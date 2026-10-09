@@ -144,11 +144,33 @@ responsive down to phone width. Watchlists are named objects you can create, **r
 and delete; each one is called a "watchlist" throughout the UI, and the old default
 "Equity sectors" list is gone (the migration removes it from existing browsers).
 
+**First-run tour** — new visitors without a key get a guided tour: a spotlight, a bubble with an
+arrow and a short animation for each step (search, markets, lists, Marvell), then step by step through
+adding an API key (paste, Save, Test) and opening Marvell. Skip any time with *Skip* or `Esc`; `←` `→`
+move between steps. Replay it from the ⋯ menu → *Take the tour*, or from the Agent's empty page. The
+"seen" flag is `fh3_tour` in localStorage. The Agent's *Add an API key to start* and the missing-key
+reply both open the key page directly.
+
 **AI (bring your own key)** — OpenRouter, OpenAI, Anthropic, DeepSeek, Gemini, Groq
 or any OpenAI-compatible endpoint. Keys live only in this browser's localStorage
 (`fh_keys`) and are sent only to the provider you pick. Prompt buttons: sentiment,
 bull vs bear, earnings take, valuation check, risk scan, compare, screener read,
 market summary. The model is told to label assumptions and never to invent figures.
+
+**Skills (type `/` in the Agent box)** — Marvell can run reusable skills written as
+`SKILL.md` files (the [Agent Skills](https://agentskills.io/specification) format: YAML
+frontmatter with `name` and `description`, then Markdown steps).
+
+* **Upload**: type `/` and press *Upload SKILL.md*, or go to Settings → Skills. Max 200 KB each.
+* **Run**: `/skill-name your question`. Arrow keys + Enter pick from the menu.
+* **`/learn`** (built in): describe a finance skill in plain words, or attach notes, and Marvell
+  drafts a `SKILL.md`. You preview it and press *Save skill*. Non-finance requests are declined.
+* **Deep Research**: skills work there too (`/skill-name your research question`). `/learn` does not:
+  the research harness can't create skills, so typing `/learn …` in Deep Research opens a new Agent
+  session and drafts the skill there automatically.
+* **`/skills`** (built in): opens the manager (edit, delete, upload).
+* Skills live in this browser's localStorage (`fh3_skills`). A skill sets the method and format
+  only: it can't change app settings, and Marvell's data-only rules still apply.
 
 **OpenCode Zen / Go** is supported as its own provider (one `oc_sk-…` key works for
 **OpenCode** is supported as **two** providers, because the endpoints differ:
