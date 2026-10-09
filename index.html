@@ -960,9 +960,9 @@ html{overflow-x:clip}
   <button class="icon-btn" id="themeBtn" title="Toggle dark theme" aria-label="Toggle dark theme">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.39 5.39 0 0 1-4.4 2.26 5.4 5.4 0 0 1-5.4-5.4c0-1.81.89-3.42 2.26-4.4C12.92 3.04 12.46 3 12 3z"/></svg>
   </button>
-  <button class="icon-btn rs-btn" id="rsBtn" title="Research with Agent" aria-label="Research with Agent">
+  <button class="icon-btn rs-btn" id="rsBtn" title="Research with Marvell" aria-label="Research with Marvell">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2zm6 12l.9 2.6L21.5 18l-2.6.9L18 21.5l-.9-2.6L14.5 18l2.6-.9L18 14z"/></svg>
-    <span class="rs-label">Research with Agent</span>
+    <span class="rs-label">Research with Marvell</span>
     <i class="rs-live" aria-hidden="true"></i>
   </button>
   <button class="icon-btn key-btn" id="keysBtn" title="AI keys and defaults" aria-label="AI keys and defaults">
@@ -4439,7 +4439,7 @@ function rsSyncBtn(){
   var open = d && d.classList.contains('open');
   btn.className = 'icon-btn rs-btn' + (RS.running ? ' running' : (RS.report ? ' ready' : '')) + (open ? ' on' : '');
   btn.title = RS.running ? 'Deep research · running (click to open)'
-    : (RS.report ? 'Deep research · report ready' : 'Research with Agent');
+    : (RS.report ? 'Deep research · report ready' : 'Research with Marvell');
   btn.setAttribute('aria-pressed', open ? 'true' : 'false');
 }
 function rsOpenPanel(tab){
