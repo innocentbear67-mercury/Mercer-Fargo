@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MercerFargo Finance Superhub — Market Prices, Quotes &amp; Business News</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231A2E50'/><text x='16' y='22' text-anchor='middle' font-family='Georgia,serif' font-size='18' font-weight='700' fill='%23F5F1E8'>MF</text><path d='M9 25.5l7 2.8 7-2.8' fill='none' stroke='%23C1A578' stroke-width='1.8' stroke-linecap='round'/></svg>">
+<link rel="icon" type="image/png" href="assets/favicon.png">
 <meta name="description" content="MercerFargo Finance Superhub — a charcoal-and-gold market dashboard with your own AI keys and free delayed market data.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -875,6 +875,13 @@ table.fh .col-trend{width:120px}
 }
 
 /* ---------- Logotype ----------------------------------------------------- */
+.logo-wm{height:30px;width:auto;display:block}
+.logo-box{font-family:var(--mf-serif);font-weight:500;font-size:13px;letter-spacing:1.3px;text-transform:uppercase;line-height:1;white-space:nowrap;
+  color:var(--fh-foreground-on-surface-emphasis);border:1.5px solid currentColor;padding:7px 10px;margin-left:12px;opacity:.9}
+:root:not([data-theme="dark"]) .logo-wm{filter:brightness(0) opacity(.85)}
+@media (max-width:1100px){ .logo-box{font-size:10.5px;letter-spacing:.9px;padding:5px 7px;margin-left:8px} }
+@media (max-width:760px){ .logo-box{display:none} }
+@media (max-width:520px){ .logo-wm{height:26px} }
 .wordmark{gap:9px}
 .wordmark .mk{width:30px;height:30px;display:block;flex:none;border-radius:8px}
 .wordmark .nm{
@@ -996,15 +1003,8 @@ html{overflow-x:clip}
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
   </button>
   <a class="brand" href="#/" id="brandLink" aria-label="MercerFargo Finance Superhub home">
-    <span class="wordmark">
-      <svg class="mk" viewBox="0 0 32 32" aria-hidden="true">
-        <rect width="32" height="32" rx="7" fill="#1a2e50"></rect>
-        <text x="16" y="21.5" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="17" font-weight="700" fill="#f5f1e8">MF</text>
-        <path d="M9.5 25.4l6.5 2.9 6.5-2.9" fill="none" stroke="#c1a578" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
-      </svg>
-      <span class="nm">Mercer<em>Fargo</em></span>
-    </span>
-    <span class="beta-badge">Finance Superhub</span>
+    <img class="logo-wm" src="assets/logo-wordmark.png" alt="Mercer Fargo">
+    <span class="logo-box">Finance Superhub</span>
   </a>
   <form class="search" id="searchForm" role="search" autocomplete="off">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
@@ -4303,6 +4303,9 @@ function aiCall(messages){
     method:'POST',
     headers:hdrs,
     body:JSON.stringify(body)
+  }).catch(function(e){
+    if(target === url && zen) throw new Error('OpenCode blocks direct browser calls (no CORS), so it only works through the local server: run python3 serve.py and open http://localhost:8000. Your key is fine.');
+    throw e;
   }).then(readJSON).then(function(j){
     if(j.error) throw new Error(j.error.message || JSON.stringify(j.error));
     if(j.type === 'error' && j.error) throw new Error(j.error.message || JSON.stringify(j.error));
@@ -4501,7 +4504,7 @@ function renderResearchPage(){
   var html = '';
   html += '<div class="section"><div class="section-head"><h2>Research</h2>' +
     '<span class="status-chip' + (aiReady() ? ' live' : '') + '"><i class="dot"></i>' + esc(aiLabel()) + '</span>' +
-    '<button class="btn filled sm" data-act="chat-new">Open the agent</button>' +
+    '<button class="btn filled sm" data-act="chat-new">Ask Marvell</button>' +
     '<button class="btn text sm" data-act="keys">Keys &amp; provider</button></div>' +
     '<div class="rs-note">Every conversation with the agent happens in the side panel, so it keeps working while you browse ' +
     'quotes, charts and screeners. This page is the history of those sessions — open one to pick it up where you left off.</div></div>';
