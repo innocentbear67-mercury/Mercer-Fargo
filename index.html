@@ -925,6 +925,8 @@ table.fh .col-trend{width:120px}
 .key-btn.bad .kdot{background:var(--fh-negative)}
 @media(max-width:1180px){.rs-label,.key-label{display:none}.icon-btn.rs-btn,.icon-btn.key-btn{width:40px;padding:0}.key-btn .kdot{position:absolute;top:7px;right:7px}}
 .avatar-btn.anon::before{content:"";width:16px;height:16px;background:currentColor;opacity:.75;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4 0-8 2-8 5v3h16v-3c0-3-4-5-8-5z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4 0-8 2-8 5v3h16v-3c0-3-4-5-8-5z'/%3E%3C/svg%3E") center/contain no-repeat}
+.contact{max-width:640px}
+.contact textarea{resize:vertical;min-height:150px}
 .set-wrap{display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:start}
 .set-nav{display:flex;flex-direction:column;gap:2px;position:sticky;top:76px}
 .set-nav a{padding:9px 14px;border-radius:999px;color:inherit;text-decoration:none;font-size:14px}
@@ -981,6 +983,29 @@ table.fh .col-trend{width:120px}
 .chat-row .cr-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .chat-row .cr-title{font-size:13.5px;color:var(--fh-foreground-on-surface-emphasis);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chat-row .cr-meta{font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis)}
+
+/* ---------- Immersive full screen ---------------------------------------- */
+#drawerFull .i-col,.drawer.full #drawerFull .i-exp{display:none}
+.drawer.full #drawerFull .i-col{display:block}
+body.rs-full{overflow:hidden;padding-right:0!important}
+body.rs-full .appbar{margin-right:0!important}
+.drawer.full{top:0;left:0;right:0;width:auto;height:100vh;border:0;box-shadow:none;z-index:100;
+  --gut:max(20px,calc((100vw - 920px)/2));background:var(--fh-background-surface)}
+.drawer.full .drawer-head{padding:14px var(--gut)}
+.drawer.full .drawer-head .rs-tabs{flex:1}
+.drawer.full .drawer-body{padding:28px var(--gut) 40px}
+.drawer.full .drawer-foot{padding:14px var(--gut) 22px}
+.drawer.full .msg{font-size:16px;line-height:26px;padding:16px 18px;border-radius:16px;margin-bottom:14px}
+.drawer.full .msg h4{font-size:16px}
+.drawer.full #rsPane{--gut:max(20px,calc((100vw - 1240px)/2))}
+.drawer.full #rsPane .rs-grid{grid-template-columns:minmax(320px,400px) minmax(0,1fr);gap:28px;align-items:start}
+.drawer.full #rsPane .rs-report{font-size:16px;line-height:27px}
+.drawer.full #rsPane .rs-note{font-size:13px}
+.drawer.full #rsPane textarea{min-height:170px;font-size:16px;line-height:25px;padding:14px 16px;border-radius:14px}
+.drawer.full .composer textarea{font-size:16px}
+.drawer.full #chat:empty::before{content:'Ask Marvell anything about your portfolio, a ticker or the market.';display:block;margin:12vh auto 0;max-width:520px;text-align:center;font-size:22px;line-height:32px;font-family:var(--mf-serif);color:var(--fh-foreground-on-surface-de-emphasis)}
+.drawer.full #rsPane .section-head h3{font-size:18px}
+@media (max-width:860px){.drawer.full #rsPane .rs-grid{grid-template-columns:1fr}}
 
 /* ---------- Side panel pushes the page (7:3 split) ----------------------- */
 :root{ --panel-w:clamp(300px, 30vw, 640px) }
@@ -1056,6 +1081,10 @@ html{overflow-x:clip}
       <button role="tab" id="tabResearch" data-act="drawer-tab" data-tab="research">Deep research</button>
     </div>
     <span class="status-chip" id="aiChip">no key</span>
+    <button class="icon-btn" id="drawerFull" data-act="drawer-full" title="Full screen" aria-label="Toggle full screen">
+      <svg class="i-exp" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+      <svg class="i-col" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+    </button>
     <button class="icon-btn" id="drawerClose" title="Close" aria-label="Close research panel">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
     </button>
@@ -2357,7 +2386,7 @@ function authGo(mode){
 function acctMenuHTML(){
   var a = acct();
   return '<div class="mhead">' + esc(a.name) + '<br><span style="font-weight:400;font-size:12px">' + esc(a.email) + '</span></div>' +
-    '<a class="mi" href="#/settings/profile">Profile</a><a class="mi" href="#/settings/ai">AI &amp; API keys</a><a class="mi" href="#/settings">Settings</a>' +
+    '<a class="mi" href="#/settings/profile">Profile</a><a class="mi" href="#/settings/ai">AI &amp; API keys</a><a class="mi" href="#/settings">Settings</a><a class="mi" href="#/feedback">Give feedback</a><a class="mi" href="#/help">Get help</a>' +
     '<div class="msep"></div><button class="mi" data-act="signout">Sign out</button>';
 }
 
@@ -2377,6 +2406,7 @@ function parseRoute(){
   if(name === 'earnings') return { name:'earnings' };
   if(name === 'research') return { name:'research' };
   if(name === 'keys') return { name:'settings', sec:'ai' };
+  if(name === 'feedback' || name === 'help') return { name:'contact', kind:name };
   if(name === 'settings') return { name:'settings', sec:parts[1] || 'profile' };
   return { name:'home' };
 }
@@ -2403,6 +2433,7 @@ function route(){
   else if(r.name === 'compare') p = renderCompare();
   else if(r.name === 'earnings') p = renderEarnings();
   else if(r.name === 'settings') p = renderSettingsPage(r.sec);
+  else if(r.name === 'contact') p = renderContactPage(r.kind);
   else p = renderResearchPage();
   return Promise.resolve(p).then(function(){
     if(seq === routeSeq) renderRail();
@@ -4373,11 +4404,17 @@ function chatPush(role, text, extra){
 }
 function openDrawer(focus){
   $('drawer').classList.add('open');
+  if(CFG.rfull){ $('drawer').classList.add('full'); document.body.classList.add('rs-full'); }
   document.body.classList.add('panel-open');
   $('drawer').setAttribute('aria-hidden', 'false');
   if(focus) setTimeout(function(){ var p = $('prompt'); if(p) { try{ p.focus({preventScroll:true}); }catch(e){ p.focus(); } } }, 60);
 }
-function closeDrawer(){ $('drawer').classList.remove('open'); document.body.classList.remove('panel-open'); $('drawer').setAttribute('aria-hidden', 'true'); if(typeof rsSyncBtn === 'function') rsSyncBtn(); }
+function setFull(on){
+  $('drawer').classList.toggle('full', !!on); document.body.classList.toggle('rs-full', !!on);
+  var b = $('drawerFull'); if(b) b.title = on ? 'Exit full screen' : 'Full screen';
+  CFG.rfull = !!on; saveCfg();
+}
+function closeDrawer(){ document.body.classList.remove('rs-full'); $('drawer').classList.remove('open'); document.body.classList.remove('panel-open'); $('drawer').setAttribute('aria-hidden', 'true'); if(typeof rsSyncBtn === 'function') rsSyncBtn(); }
 
 var SEND_ARROW = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>';
 function aiPending(on){
@@ -4538,7 +4575,7 @@ function moreMenuHTML(){
     ['#/earnings', 'Earnings calendar'], ['#/research', 'Research'], ['#/markets/' + CFG.market, 'Markets']];
   return '<div class="mhead">MercerFargo tools</div>' + links.map(function(m){
     return '<a class="mi" href="' + esc(m[0]) + '">' + m[1] + '</a>';
-  }).join('') + '<div class="msep"></div><a class="mi" href="#/settings/ai">AI keys &amp; defaults</a><a class="mi" href="#/settings">Settings</a>';
+  }).join('') + '<div class="msep"></div><a class="mi" href="#/settings/ai">AI keys &amp; defaults</a><a class="mi" href="#/settings">Settings</a><div class="msep"></div><a class="mi" href="#/feedback">Give feedback</a><a class="mi" href="#/help">Get help</a>';
 }
 function closeMenu(){ $('menuRoot').innerHTML = ''; }
 function closeDialog(){ $('dlgRoot').innerHTML = ''; }
@@ -4654,6 +4691,51 @@ function profileSave(){
   if($('pfSince').value && !(since >= 1950 && since <= yr)){ m.textContent = 'Start year must be between 1950 and ' + yr + '.'; return; }
   a.name = name; a.age = age; a.roles = roles; a.since = $('pfSince').value ? since : null;
   save('fh3_accts', ACCTS); acctRefresh(); m.textContent = 'Saved.';
+}
+
+/* ---- Feedback / Get help: emailed to the owner via Web3Forms -------------- */
+/* Access key is public by design (it only lets this form email the owner). Get one at web3forms.com. */
+var FB_KEY = '';
+var FB_TO = 'kundi7950@gmail.com';
+var FB_KINDS = {
+  feedback:{ title:'Give feedback', tag:'MERCERFARGO FEEDBACK', blurb:'Tell us what works, what doesn’t and what you want next.', subj:'e.g. Add a dividend calendar' },
+  help:{ title:'Get help', tag:'MERCERFARGO USER NEEDED HELP', blurb:'Stuck or something broken? Describe what happened and we’ll get back to you.', subj:'e.g. My API key won’t connect' }
+};
+function renderContactPage(kind){
+  var k = FB_KINDS[kind], a = acct();
+  $('main').innerHTML = '<div class="section"><div class="section-head"><h2>' + k.title + '</h2></div><div class="card contact">' +
+    '<div class="mut" style="font-size:14px;line-height:21px;margin-bottom:14px">' + k.blurb + '</div>' +
+    field('Subject', 'fbSubject', '', k.subj).replace('<input', '<input maxlength="120"') +
+    '<label class="field"><span>Message</span><textarea id="fbMsg" rows="9" maxlength="5000" placeholder="Write the details here…"></textarea></label>' +
+    field('Your email (so we can reply)' + (kind === 'help' ? '' : ' — optional'), 'fbEmail', a ? a.email : '', 'you@example.com', 'email') +
+    '<input type="checkbox" id="fbBot" tabindex="-1" autocomplete="off" style="display:none">' +
+    '<div class="key-row"><button class="btn filled" id="fbSend" data-act="fb-send" data-k="' + kind + '">Send</button><span class="mut" id="fbMsgOut" style="font-size:13px"></span></div>' +
+    '<div class="mut" style="font-size:12px;margin-top:10px">Sent to the MercerFargo team by email. We include the page you were on; we never send your API keys.</div></div></div>';
+  return Promise.resolve();
+}
+function fbSend(kind){
+  var k = FB_KINDS[kind], out = $('fbMsgOut'), btn = $('fbSend');
+  var subj = ($('fbSubject').value || '').trim(), msg = ($('fbMsg').value || '').trim(), email = ($('fbEmail').value || '').trim();
+  if($('fbBot').checked) return;
+  if(!subj) { out.textContent = 'Add a subject.'; return; }
+  if(msg.length < 10){ out.textContent = 'Write a few more words in the message.'; return; }
+  if(email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ out.textContent = 'That email doesn’t look right.'; return; }
+  if(kind === 'help' && !email){ out.textContent = 'Add your email so we can reply.'; return; }
+  var a = acct(), subject = k.tag + ': ' + subj;
+  var body = msg + '\n\n—\nPage: ' + location.href + '\nFrom: ' + (a ? a.name + ' <' + a.email + '>' : 'guest') + '\nBrowser: ' + navigator.userAgent;
+  if(!FB_KEY){   // no relay configured: fall back to the user's own mail app
+    location.href = 'mailto:' + FB_TO + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    out.textContent = 'Opening your email app…'; return;
+  }
+  btn.disabled = true; out.textContent = 'Sending…';
+  fetch('https://api.web3forms.com/submit', { method:'POST', headers:{ 'content-type':'application/json', accept:'application/json' },
+    body:JSON.stringify({ access_key:FB_KEY, subject:subject, from_name:a ? a.name : 'MercerFargo user', email:email || undefined, message:body, botcheck:'' }) })
+    .then(function(r){ return r.json(); }).then(function(j){
+      if(!j.success) throw new Error(j.message || 'send failed');
+      $('fbSubject').value = ''; $('fbMsg').value = ''; out.textContent = ''; toast('Sent — thank you!');
+      out.textContent = 'Sent. Thank you!';
+    }).catch(function(e){ out.textContent = 'Couldn’t send (' + String(e.message || e).slice(0, 80) + '). Try again, or email ' + FB_TO + '.'; })
+    .then(function(){ btn.disabled = false; });
 }
 
 /* ---- AI keys: one row per provider --------------------------------------- */
@@ -4792,11 +4874,6 @@ function rsTogglePanel(){
   var d = $('drawer');
   if(d && d.classList.contains('open')) closeDrawer(); else rsOpenPanel('chat');
 }
-document.addEventListener('keydown', function(ev){
-  if(ev.key !== 'Escape') return;
-  var d = $('drawer');
-  if(d && d.classList.contains('open')) closeDrawer();
-});
 
 /* ------------------------------------------------------------ delegation */
 /* ------------------------------------------- 10. deep research (harness) */
@@ -5315,6 +5392,7 @@ function bindEvents(){
       case 'rs-seed': rsSeed(el.getAttribute('data-sym')); break;
       case 'list-rename': renameWatchlist(el.getAttribute('data-id')); break;
       case 'rs-panel': rsOpenPanel('research'); break;
+      case 'drawer-full': setFull(!$('drawer').classList.contains('full')); break;
       case 'drawer-tab': rsShowTab(el.getAttribute('data-tab')); break;
       case 'rs-close': closeDrawer(); break;
       case 'quote': ev.preventDefault(); go('#/quote/' + encodeURIComponent(sym)); break;
@@ -5396,6 +5474,7 @@ function bindEvents(){
       case 'auth-open': openAuth(el.getAttribute('data-m')); break;
       case 'auth-mode': openAuth(el.getAttribute('data-m')); break;
       case 'auth-go': authGo(el.getAttribute('data-m')); break;
+      case 'fb-send': fbSend(el.getAttribute('data-k')); break;
       case 'profile-save': profileSave(); break;
       case 'proxy-save': CFG.ocProxy = ($('ocProxy').value || '').trim().replace(/\/+$/, ''); saveCfg(); toast(CFG.ocProxy ? 'Proxy saved' : 'Proxy cleared'); break;
       case 'signout': closeMenu(); acctSignOut(); toast('Signed out'); break;
@@ -5607,7 +5686,8 @@ function bindEvents(){
     if(ev.key === 'Escape'){
       var pickerOpen = (PICK.ctx && PICK.ctx !== 'page') || (RS.optsOpen && $('rsOptsBtn'));
       if(pickerOpen){ closeAiPickers(); return; }   // Esc closes the picker, not the whole drawer
-      closeMenu(); closeDialog(); closeDrawer();
+      closeMenu(); closeDialog();
+      if($('drawer').classList.contains('full')) setFull(false); else closeDrawer();   // Esc leaves full screen first
     }
     if(ev.key === '/' && !/input|textarea|select/i.test((ev.target.tagName || ''))){ ev.preventDefault(); var s = $('searchInput'); if(s) s.focus(); }
   });
