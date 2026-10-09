@@ -15,6 +15,25 @@ badge, active tab, the app bar's gradient). The light theme is the same identity
 warm ivory. Tokens are overridden once, at the end of the stylesheet, in the
 MercerFargo brand layer — see `.work/reference/brand.md`.
 
+## Use it online
+
+**Live site:** https://innocentbear67-mercury.github.io/Mercer-Fargo/
+
+Open it, press the key button in the header, paste your own model key and pick a default
+provider, model and effort. Your key stays in your browser's localStorage and is sent only
+to the provider you chose. Nothing is stored on a server.
+
+The hosted copy is static, so a few features need the local server (`python3 serve.py`):
+the market-wide screener scan, Google News headlines, OpenCode Zen/Go models, and Deep
+research. Everything else (quotes, charts, crypto, FX, SEC financials, the Agent with
+OpenRouter / OpenAI / Anthropic / xAI / Gemini / DeepSeek / Groq keys) works as-is.
+
+> **Not investment advice.** Market data is free and delayed, and may be incomplete or wrong.
+> AI answers can be wrong. Nothing here is a recommendation to buy or sell anything.
+
+**Licence:** the app code is MIT (see `LICENSE`). The optional Deep research agent is Google
+Research's FinanceHarness, fetched separately under CC BY-NC 4.0, so it is non-commercial only.
+
 ---
 
 ## Run it
