@@ -917,6 +917,26 @@ table.fh .col-trend{width:120px}
 .key-btn.ok .kdot{background:var(--fh-positive)}
 .key-btn.bad .kdot{background:var(--fh-negative)}
 @media(max-width:1180px){.rs-label,.key-label{display:none}.icon-btn.rs-btn,.icon-btn.key-btn{width:40px;padding:0}.key-btn .kdot{position:absolute;top:7px;right:7px}}
+.avatar-btn.anon::before{content:"";width:16px;height:16px;background:currentColor;opacity:.75;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4 0-8 2-8 5v3h16v-3c0-3-4-5-8-5z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4 0-8 2-8 5v3h16v-3c0-3-4-5-8-5z'/%3E%3C/svg%3E") center/contain no-repeat}
+.set-wrap{display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:start}
+.set-nav{display:flex;flex-direction:column;gap:2px;position:sticky;top:76px}
+.set-nav a{padding:9px 14px;border-radius:999px;color:inherit;text-decoration:none;font-size:14px}
+.set-nav a:hover{background:var(--fh-background-surface-container)}
+.set-nav a.on{background:var(--fh-background-surface-container-high,var(--fh-background-surface-container));font-weight:600}
+.set-body{display:flex;flex-direction:column;gap:16px;min-width:0}
+.krow{padding:12px 0;border-top:1px solid var(--fh-outline-variant,rgba(128,128,128,.25))}
+.krow:first-of-type{border-top:0}
+.khead{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.khead .kdot{width:8px;height:8px;border-radius:50%;background:rgba(128,128,128,.5)}
+.khead .kdot.on{background:#1e8e3e}
+.ktag{font-size:11px;padding:1px 8px;border-radius:999px;background:var(--fh-background-surface-container-high,rgba(128,128,128,.2))}
+.kmsg{font-size:12px;margin-left:auto}
+.krow .key-row .inp{flex:1;min-width:160px}
+.auth-tabs{display:flex;gap:6px;margin-bottom:12px}
+.auth-tabs button{flex:1;padding:8px;border-radius:999px;border:1px solid var(--fh-outline-variant,rgba(128,128,128,.3));background:none;color:inherit;cursor:pointer}
+.auth-tabs button.on{background:var(--fh-background-surface-container-high,rgba(128,128,128,.2));font-weight:600}
+.pill.chk{cursor:pointer}.pill.chk input{display:none}.pill.chk:has(input:checked){background:var(--fh-background-surface-container-high,rgba(128,128,128,.25));font-weight:600;outline:1px solid currentColor}
+@media(max-width:760px){.set-wrap{grid-template-columns:1fr}.set-nav{flex-direction:row;flex-wrap:wrap;position:static}}
 #pickMenuP{position:static;margin:12px 0 0;max-height:none;box-shadow:none;border-radius:14px;background:var(--fh-background-surface-container)}
 #pickMenuP .pm-cols{max-height:340px}
 .key-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
@@ -1001,7 +1021,7 @@ html{overflow-x:clip}
     <i class="rs-live" aria-hidden="true"></i>
   </button>
   <button class="icon-btn key-btn" id="keysBtn" title="AI keys and defaults" aria-label="AI keys and defaults">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.65 10A6 6 0 1 0 7 20a5.96 5.96 0 0 0 5.65-4H17v4h4v-4h2v-4H12.65zM7 18a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>
+    <svg id="keyIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.65 10A6 6 0 1 0 7 20a5.96 5.96 0 0 0 5.65-4H17v4h4v-4h2v-4H12.65zM7 18a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>
     <span class="key-label" id="keyLabel">Disconnected</span><i class="kdot" aria-hidden="true"></i>
   </button>
   <button class="icon-btn" id="moreBtn" title="More MercerFargo tools" aria-label="More tools">
@@ -2262,7 +2282,83 @@ var QPROFILE = null, QFIN = { kind:'income', period:'annual', data:null, status:
 function saveCfg(){ save(LS.cfg, CFG); }
 function saveLists(){ save(LS.lists, LISTS); }
 function savePfs(){ save(LS.pf, PFS); }
-function saveKeys(){ save(LS.keys, KEYS); }
+function saveKeys(){ save(LS.keys, KEYS); acctSync(); }
+
+/* ---- Accounts (this browser only: no server, no password) ---------------- */
+var ACCTS = load('fh3_accts', {});
+var ACCT_CUR = load('fh3_acct', '');
+var ACCT_ROLES = ['Investing', 'Trading', 'Crypto', 'Forex', 'Options', 'Commodities', 'Real estate', 'Learning', 'Other'];
+function acct(){ return ACCT_CUR && ACCTS[ACCT_CUR] || null; }
+function acctAI(){ return { provider:KEYS.provider, model:KEYS.model, effort:KEYS.effort, thinking:KEYS.thinking, url:KEYS.url, keysBy:KEYS.keysBy || {} }; }
+function acctSync(){
+  var a = acct(); if(!a) return;
+  a.ai = JSON.parse(JSON.stringify(acctAI()));
+  save('fh3_accts', ACCTS);
+}
+function acctLoad(a){
+  var ai = a.ai || {};
+  KEYS.keysBy = Object.assign({}, KEYS.keysBy || {}, ai.keysBy || {});   // account keys win, guest keys fill gaps
+  KEYS.provider = ai.provider || KEYS.provider || 'openrouter';
+  KEYS.model = ai.model || KEYS.model || AI_DEFAULT_MODEL[KEYS.provider] || '';
+  KEYS.effort = ai.effort || KEYS.effort; KEYS.thinking = ai.thinking; KEYS.url = ai.url || KEYS.url || '';
+  KEYS.key = KEYS.keysBy[KEYS.provider] || ''; KEY_OK = null;
+  saveKeys();
+}
+function acctRefresh(){
+  var b = $('signInBtn'), a = acct();
+  if(b){ b.textContent = a ? (a.name || a.email).charAt(0).toUpperCase() : ''; b.title = a ? a.name + ' · ' + a.email : 'Sign in';
+    b.classList.toggle('anon', !a); }
+  updateAiChip(); paintKeyBtn(); if($('pickMenuA')) paintAiPick();
+}
+function acctSignIn(email){
+  ACCT_CUR = email; save('fh3_acct', ACCT_CUR); acctLoad(ACCTS[email]); acctRefresh();
+}
+function acctSignOut(){
+  ACCT_CUR = ''; save('fh3_acct', ACCT_CUR);
+  KEYS.keysBy = {}; KEYS.key = ''; KEY_OK = null; saveKeys();     // keys stay with the account, not the device
+  acctRefresh(); if(CUR.view === 'settings' || CUR.view === 'keys') route();
+}
+function openAuth(mode){
+  mode = mode || 'register';
+  var year = new Date().getFullYear();
+  var reg = mode === 'register';
+  var body = '<div class="auth-tabs"><button class="' + (reg ? 'on' : '') + '" data-act="auth-mode" data-m="register">Create account</button>' +
+    '<button class="' + (reg ? '' : 'on') + '" data-act="auth-mode" data-m="signin">Sign in</button></div>' +
+    field('Email', 'auEmail', '', 'you@example.com', 'email') +
+    (reg ? field('Name', 'auName', '', 'Your name') + field('Age', 'auAge', '', '30', 'number') +
+      '<div class="field"><span>What do you do? (pick any)</span><div class="pills" id="auRoles">' +
+      ACCT_ROLES.map(function(r){ return '<label class="pill chk"><input type="checkbox" value="' + r + '"><span>' + r + '</span></label>'; }).join('') + '</div></div>' +
+      field('Started investing (optional)', 'auSince', '', 'Year, e.g. ' + (year - 5), 'number') : '') +
+    '<div class="mut" style="font-size:12px;line-height:18px;margin-top:8px">Accounts live in this browser only — there is no server or password. ' +
+    'Your profile and API keys are saved to the account, so after signing in the AI works straight away.</div><div class="mut" id="auErr" style="color:var(--fh-error,#d93025);font-size:13px;margin-top:6px"></div>';
+  dialog(reg ? 'Create your account' : 'Sign in', body, '<button class="btn text" data-act="dlg-close">Cancel</button><button class="btn filled" data-act="auth-go" data-m="' + mode + '">' + (reg ? 'Create account' : 'Sign in') + '</button>');
+}
+function authGo(mode){
+  var err = function(t){ $('auErr').textContent = t; };
+  var email = ($('auEmail').value || '').trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return err('Enter a valid email.');
+  if(mode === 'signin'){
+    if(!ACCTS[email]) return err('No account for that email on this browser. Create one instead.');
+    acctSignIn(email); closeDialog(); toast('Signed in as ' + ACCTS[email].name); if(CUR.view === 'settings') route(); return;
+  }
+  var name = ($('auName').value || '').trim(), age = parseInt($('auAge').value, 10);
+  var roles = [].slice.call(document.querySelectorAll('#auRoles input:checked')).map(function(i){ return i.value; });
+  var since = parseInt($('auSince').value, 10), yr = new Date().getFullYear();
+  if(ACCTS[email]) return err('That email already has an account here — use Sign in.');
+  if(!name) return err('Enter your name.');
+  if(!(age >= 13 && age <= 120)) return err('Enter an age between 13 and 120.');
+  if(!roles.length) return err('Pick at least one.');
+  if($('auSince').value && !(since >= 1950 && since <= yr)) return err('Start year must be between 1950 and ' + yr + '.');
+  ACCTS[email] = { email:email, name:name, age:age, roles:roles, since:$('auSince').value ? since : null, created:Date.now(), ai:acctAI() };
+  save('fh3_accts', ACCTS);          // adopts any keys already set up as a guest
+  acctSignIn(email); closeDialog(); toast('Welcome, ' + name); go('#/settings/ai');
+}
+function acctMenuHTML(){
+  var a = acct();
+  return '<div class="mhead">' + esc(a.name) + '<br><span style="font-weight:400;font-size:12px">' + esc(a.email) + '</span></div>' +
+    '<a class="mi" href="#/settings/profile">Profile</a><a class="mi" href="#/settings/ai">AI &amp; API keys</a><a class="mi" href="#/settings">Settings</a>' +
+    '<div class="msep"></div><button class="mi" data-act="signout">Sign out</button>';
+}
 
 function hashOf(){ return decodeURIComponent(location.hash.replace(/^#\/?/, '')); }
 function go(hash){ if(location.hash === hash){ route(); } else { location.hash = hash; } }
@@ -2279,7 +2375,8 @@ function parseRoute(){
   if(name === 'compare') return { name:'compare' };
   if(name === 'earnings') return { name:'earnings' };
   if(name === 'research') return { name:'research' };
-  if(name === 'keys') return { name:'keys' };
+  if(name === 'keys') return { name:'settings', sec:'ai' };
+  if(name === 'settings') return { name:'settings', sec:parts[1] || 'profile' };
   return { name:'home' };
 }
 
@@ -2304,7 +2401,7 @@ function route(){
   else if(r.name === 'screener') p = renderScreener();
   else if(r.name === 'compare') p = renderCompare();
   else if(r.name === 'earnings') p = renderEarnings();
-  else if(r.name === 'keys') p = renderKeysPage();
+  else if(r.name === 'settings') p = renderSettingsPage(r.sec);
   else p = renderResearchPage();
   return Promise.resolve(p).then(function(){
     if(seq === routeSeq) renderRail();
@@ -4065,6 +4162,9 @@ function paintKeyBtn(){
   var ok = aiReady() && KEY_OK !== false;
   l.textContent = ok ? 'Connected' : 'Disconnected';
   b.classList.toggle('ok', ok); b.classList.toggle('bad', aiReady() && KEY_OK === false);
+  var ic = $('keyIcon');   // connected: key + check; disconnected: key with a slash
+  if(ic) ic.innerHTML = ok ? '<path transform="translate(-2 -3) scale(.9)" d="M12.65 10A6 6 0 1 0 7 20a5.96 5.96 0 0 0 5.65-4H17v4h4v-4h2v-4H12.65zM7 18a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/><path d="M15 3.5l2 2 4-4.2 1.4 1.4L17 8.4l-3.4-3.5z" transform="translate(0 2)"/>'
+    : '<path d="M12.65 10A6 6 0 1 0 7 20a5.96 5.96 0 0 0 5.65-4H17v4h4v-4h2v-4H12.65zM7 18a4 4 0 1 1 0-8 4 4 0 0 1 0 8z" opacity=".55"/><path d="M3 3.5L4.4 2.1 21.9 19.6 20.5 21z" stroke="var(--fh-background-surface,#202020)" stroke-width="1.2"/>';
   b.title = ok ? 'Key connected: ' + aiProvLabel(KEYS.provider) + ' — click to manage' : (aiReady() ? 'Last test failed — click to fix' : 'No key for ' + aiProvLabel(KEYS.provider) + ' — click to add');
 }
 function aiLabel(){ return aiReady() ? (KEYS.provider + ' · ' + (KEYS.model || AI_DEFAULT_MODEL[KEYS.provider] || 'model')) : 'no key'; }
@@ -4434,7 +4534,7 @@ function moreMenuHTML(){
     ['#/earnings', 'Earnings calendar'], ['#/research', 'Research'], ['#/markets/' + CFG.market, 'Markets']];
   return '<div class="mhead">MercerFargo tools</div>' + links.map(function(m){
     return '<a class="mi" href="' + esc(m[0]) + '">' + m[1] + '</a>';
-  }).join('') + '<div class="msep"></div><a class="mi" href="#/keys">AI keys &amp; defaults</a><button class="mi" data-act="settings">Settings</button>';
+  }).join('') + '<div class="msep"></div><a class="mi" href="#/settings/ai">AI keys &amp; defaults</a><a class="mi" href="#/settings">Settings</a>';
 }
 function closeMenu(){ $('menuRoot').innerHTML = ''; }
 function closeDialog(){ $('dlgRoot').innerHTML = ''; }
@@ -4491,94 +4591,105 @@ function download(name, text){
 }
 function csvCell(v){ return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }
 
-function openSettings(){
-  var body = '';
-  body += '<h3 style="font-size:15px;margin-bottom:8px">Appearance and data</h3>';
-  body += '<label class="field"><span>Theme</span><select class="inp" id="setTheme">' +
-    ['auto', 'light', 'dark'].map(function(t){ return '<option value="' + t + '"' + (CFG.theme === t || (!CFG.theme && t === 'auto') ? ' selected' : '') + '>' + t + '</option>'; }).join('') +
-    '</select></label>';
-  body += '<label class="field"><span>Default market group</span><select class="inp" id="setMarket">' +
-    MARKET_GROUPS.map(function(g){ return '<option' + (CFG.market === g.id ? ' selected' : '') + '>' + esc(g.id) + '</option>'; }).join('') + '</select></label>';
-  body += '<div class="hr"></div><h3 style="font-size:15px;margin-bottom:8px">Account</h3>' +
-    '<div class="mut" style="font-size:13.5px;line-height:20px">MercerFargo keeps lists, portfolios and alerts in this browser\u2019s local storage instead: ' +
-    'no sign-in, no server, no upload. Your AI key never leaves the browser except to the provider you choose.</div>';
-  body += '<div class="hr"></div><h3 style="font-size:15px;margin-bottom:8px">Data status</h3>' +
-    '<div class="kv-inline" style="flex-direction:column;gap:6px">' +
-    '<span>Quotes: Stooq delayed feed ' + (DATA.lastUpdate ? '· updated ' + new Date(DATA.lastUpdate).toLocaleTimeString() : '· not loaded yet') + '</span>' +
-    '<span>Crypto: CoinGecko · FX: Frankfurter (ECB) · News: Google News RSS</span>' +
-    '<span>Fundamentals: SEC XBRL, CSV import, or AI-drafted (always labelled)</span>' +
-    '<span>Proxy chain: direct → allorigins → corsproxy (used only when a source blocks browser access)</span>' +
-    '</div>';
-  body += '<div class="hr"></div><h3 style="font-size:15px;margin-bottom:8px">Briefings</h3>' +
-    (TASKS.length ? TASKS.map(function(t, i){
-      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0">' +
-        '<span><b>' + esc(t.name) + '</b><br><span class="mut" style="font-size:12px">' +
-        esc(t.when) + ' \u00b7 ' + esc(t.sym || 'market') + ' \u00b7 ' + esc(t.instruction || '') + '</span></span>' +
-        '<button class="icon-btn" data-act="brief-del" data-i="' + i + '" title="Delete">\u2715</button></div>';
+function openSettings(sec){ closeDrawer(); go('#/settings' + (sec ? '/' + sec : '')); }
+function openKeys(){ openSettings('ai'); }
+
+/* ---- Settings page ------------------------------------------------------- */
+var SET_SECS = [['profile', 'Profile'], ['ai', 'AI & API keys'], ['appearance', 'Appearance'], ['data', 'Data sources'], ['briefings', 'Briefings'], ['export', 'Export']];
+function renderSettingsPage(sec){
+  sec = SET_SECS.some(function(x){ return x[0] === sec; }) ? sec : 'profile';
+  CUR.setSec = sec;
+  var nav = SET_SECS.map(function(x){ return '<a class="' + (x[0] === sec ? 'on' : '') + '" href="#/settings/' + x[0] + '">' + x[1] + '</a>'; }).join('');
+  $('main').innerHTML = '<div class="section"><div class="section-head"><h2>Settings</h2></div><div class="set-wrap"><nav class="set-nav">' + nav + '</nav><div class="set-body" id="setBody"></div></div></div>';
+  var h = '';
+  if(sec === 'profile') h = settingsProfileHTML();
+  else if(sec === 'ai') h = '<div class="card"><h3 style="margin:0 0 4px">Default model</h3><div class="mut" id="keySummary" style="font-size:13px"></div><div class="pickmenu" id="pickMenuP"></div></div>' +
+    '<div class="card" id="keyCard"></div>';
+  else if(sec === 'appearance') h = settingsAppearanceHTML();
+  else if(sec === 'data') h = '<div class="card"><h3>Data sources</h3><div class="kv-inline" style="flex-direction:column;gap:6px">' +
+    '<span>Quotes: TradingView delayed feed ' + (DATA.lastUpdate ? '· updated ' + new Date(DATA.lastUpdate).toLocaleTimeString() : '· not loaded yet') + '</span>' +
+    '<span>History: stockanalysis.com · Crypto: CoinGecko · FX: Frankfurter (ECB) · News: Google News RSS</span>' +
+    '<span>Fundamentals: SEC XBRL, CSV import, or AI-drafted (always labelled)</span></div></div>';
+  else if(sec === 'briefings') h = '<div class="card"><h3>Briefings</h3>' + (TASKS.length ? TASKS.map(function(t, i){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0"><span><b>' + esc(t.name) + '</b><br><span class="mut" style="font-size:12px">' +
+        esc(t.when) + ' · ' + esc(t.sym || 'market') + ' · ' + esc(t.instruction || '') + '</span></span>' +
+        '<button class="icon-btn" data-act="brief-del" data-i="' + i + '" title="Delete">✕</button></div>';
     }).join('') : '<div class="mut" style="font-size:13px">No briefings yet.</div>') +
-    '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn text sm" data-act="brief-add">New briefing</button>' +
-    '<button class="btn text sm" data-act="notif">Enable notifications</button></div>';
-  body += '<div class="hr"></div><h3 style="font-size:15px;margin-bottom:8px">Export</h3><div class="pills">' +
-    '<button class="pill" data-act="exp" data-what="watchlist">Watchlist CSV</button>' +
-    '<button class="pill" data-act="exp" data-what="portfolio">Portfolio CSV</button>' +
-    '<button class="pill" data-act="exp" data-what="quotes">Quotes CSV</button>' +
-    '<button class="pill" data-act="exp" data-what="history">History CSV</button>' +
-    '<button class="pill" data-act="chat-export">Chat history CSV</button>' +
-    '<button class="pill" data-act="sheets">Google Sheets formulas</button>' +
-    '</div>';
-  dialog('Settings', body, '<button class="btn text" data-act="dlg-close">Cancel</button><button class="btn filled" data-act="settings-save">Save</button>');
-}
-
-function openKeys(){ closeDrawer(); go('#/keys'); }
-
-/* ---- Keys & defaults page ----------------------------------------------- */
-function renderKeysPage(){
-  $('main').innerHTML = '<div class="section"><div class="section-head"><h2>AI keys &amp; defaults</h2></div>' +
-    '<div class="rs-note">Keys are saved only in this browser and sent only to the provider you pick. One key per provider; ' +
-    'the provider, model and effort chosen below are what the Agent starts with.</div></div>' +
-    '<div class="section"><div class="card"><h3 style="margin:0 0 4px">Default model</h3><div class="mut" id="keySummary" style="font-size:13px"></div>' +
-    '<div class="pickmenu" id="pickMenuP"></div></div></div>' +
-    '<div class="section"><div class="card" id="keyCard"></div></div>';
-  paintKeysPage();
-  openPicker('page');
+    '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn text sm" data-act="brief-add">New briefing</button><button class="btn text sm" data-act="notif">Enable notifications</button></div></div>';
+  else h = '<div class="card"><h3>Export</h3><div class="pills">' +
+    '<button class="pill" data-act="exp" data-what="watchlist">Watchlist CSV</button><button class="pill" data-act="exp" data-what="portfolio">Portfolio CSV</button>' +
+    '<button class="pill" data-act="exp" data-what="quotes">Quotes CSV</button><button class="pill" data-act="exp" data-what="history">History CSV</button>' +
+    '<button class="pill" data-act="chat-export">Chat history CSV</button><button class="pill" data-act="sheets">Google Sheets formulas</button></div></div>';
+  $('setBody').innerHTML = h;
+  if(sec === 'ai'){ paintKeysPage(); openPicker('page'); }
   return Promise.resolve();
 }
+function settingsAppearanceHTML(){
+  return '<div class="card"><h3>Appearance</h3><label class="field"><span>Theme</span><select class="inp" id="setTheme" >' +
+    ['auto', 'light', 'dark'].map(function(t){ return '<option value="' + t + '"' + (CFG.theme === t || (!CFG.theme && t === 'auto') ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></label>' +
+    '<label class="field"><span>Default market group</span><select class="inp" id="setMarket" >' +
+    MARKET_GROUPS.map(function(g){ return '<option' + (CFG.market === g.id ? ' selected' : '') + '>' + esc(g.id) + '</option>'; }).join('') + '</select></label></div>';
+}
+function settingsProfileHTML(){
+  var a = acct();
+  if(!a) return '<div class="card"><h3>Profile</h3><div class="mut" style="font-size:13.5px;line-height:20px;margin-bottom:12px">Create an account to keep your profile, default model and API keys together — after you sign in the AI works immediately.</div>' +
+    '<button class="btn filled" data-act="auth-open" data-m="register">Create account</button> <button class="btn text" data-act="auth-open" data-m="signin">Sign in</button></div>';
+  return '<div class="card"><h3>Profile</h3>' + field('Email', 'pfEmail', a.email, '').replace('<input', '<input disabled') +
+    field('Name', 'pfName', a.name, '') + field('Age', 'pfAge', a.age, '', 'number') +
+    '<div class="field"><span>What do you do?</span><div class="pills" id="pfRoles">' + ACCT_ROLES.map(function(r){
+      return '<label class="pill chk"><input type="checkbox" value="' + r + '"' + (a.roles.indexOf(r) >= 0 ? ' checked' : '') + '><span>' + r + '</span></label>'; }).join('') + '</div></div>' +
+    field('Started investing (year, optional)', 'pfSince', a.since || '', '', 'number') +
+    '<div class="key-row"><button class="btn filled sm" data-act="profile-save">Save profile</button><button class="btn text sm" data-act="signout">Sign out</button><span class="mut" id="pfMsg" style="font-size:12.5px"></span></div></div>';
+}
+function profileSave(){
+  var a = acct(); if(!a) return;
+  var name = ($('pfName').value || '').trim(), age = parseInt($('pfAge').value, 10), yr = new Date().getFullYear();
+  var roles = [].slice.call(document.querySelectorAll('#pfRoles input:checked')).map(function(i){ return i.value; });
+  var since = parseInt($('pfSince').value, 10), m = $('pfMsg');
+  if(!name || !(age >= 13 && age <= 120) || !roles.length) { m.textContent = 'Name, an age of 13–120 and at least one activity are required.'; return; }
+  if($('pfSince').value && !(since >= 1950 && since <= yr)){ m.textContent = 'Start year must be between 1950 and ' + yr + '.'; return; }
+  a.name = name; a.age = age; a.roles = roles; a.since = $('pfSince').value ? since : null;
+  save('fh3_accts', ACCTS); acctRefresh(); m.textContent = 'Saved.';
+}
+
+/* ---- AI keys: one row per provider --------------------------------------- */
 function paintKeysPage(){
   var card = $('keyCard'); if(!card) return;
-  var p = KEYS.provider || 'openrouter', n = aiProvLabel(p);
   if($('keySummary')) $('keySummary').textContent = aiPickText();
-  var saved = Object.keys(KEYS.keysBy || {}).filter(function(k){ return KEYS.keysBy[k]; });
-  card.innerHTML = '<h3 style="margin:0 0 4px">' + esc(n) + ' key</h3>' +
-    '<div class="mut" style="font-size:13px">' + (aiReady() ? (KEY_OK === false ? 'Last test failed.' : (KEY_OK ? 'Tested OK.' : 'Saved — not tested yet.')) : 'No key saved for this provider.') + '</div>' +
-    '<label class="field" style="margin-top:12px"><span>API key</span><input id="keyInput" type="password" autocomplete="off" placeholder="paste your key" value="' + esc(KEYS.key || '') + '"></label>' +
-    (p === 'custom' ? '<label class="field"><span>Base URL</span><input id="keyUrl" placeholder="https://api.example.com/v1/chat/completions" value="' + esc(KEYS.url || '') + '"></label>' : '') +
-    '<div class="key-row"><button class="btn filled sm" data-act="key-save">Save</button>' +
-    '<button class="btn sm" data-act="key-test"' + (aiReady() ? '' : ' disabled') + '>Test (tiny request)</button>' +
-    '<button class="btn text sm" data-act="key-clear">Remove</button><span class="mut" id="keyMsg" style="font-size:12.5px"></span></div>' +
-    (saved.length ? '<div class="key-saved">' + saved.map(function(k){
-      return '<button data-act="key-use" data-p="' + esc(k) + '" class="' + (k === p ? 'on' : '') + '"><i class="kdot"></i>' + esc(aiProvLabel(k)) + '</button>';
-    }).join('') + '</div>' : '');
+  card.innerHTML = '<h3 style="margin:0 0 4px">API keys</h3><div class="mut" style="font-size:13px;margin-bottom:8px">' +
+    (acct() ? 'Saved to your account on this browser — sign in and they are ready.' : 'Saved in this browser. Create an account to keep them with your profile.') +
+    ' Keys are sent only to the provider they belong to.</div>' + AI_PROVS.map(function(pv){
+    var p = pv[0], k = (KEYS.keysBy || {})[p] || '', def = p === KEYS.provider;
+    return '<div class="krow"><div class="khead"><i class="kdot' + (k ? ' on' : '') + '"></i><b>' + esc(pv[1]) + '</b>' + (def ? '<span class="ktag">default</span>' : '') + '<span class="mut kmsg" id="km-' + p + '"></span></div>' +
+      '<div class="key-row"><input class="inp" id="ki-' + p + '" type="password" autocomplete="off" placeholder="paste ' + esc(pv[1]) + ' key" value="' + esc(k) + '">' +
+      '<button class="btn filled sm" data-act="key-save" data-p="' + p + '">Save</button>' +
+      '<button class="btn sm" data-act="key-test" data-p="' + p + '"' + (k ? '' : ' disabled') + '>Test</button>' +
+      (k ? '<button class="btn text sm" data-act="key-clear" data-p="' + p + '">Remove</button>' : '') +
+      (k && !def ? '<button class="btn text sm" data-act="key-use" data-p="' + p + '">Make default</button>' : '') + '</div>' +
+      (p === 'custom' ? '<div class="key-row"><input class="inp" id="keyUrl" placeholder="https://api.example.com/v1/chat/completions" value="' + esc(KEYS.url || '') + '"></div>' : '') + '</div>';
+  }).join('');
 }
-function keySave(clear){
-  var v = clear ? '' : (($('keyInput') || {}).value || '').trim();
-  KEYS.key = v;
-  if(v) KEYS.keysBy[KEYS.provider] = v; else delete KEYS.keysBy[KEYS.provider];
-  if($('keyUrl')) KEYS.url = $('keyUrl').value.trim();
-  KEY_OK = null; saveKeys(); updateAiChip(); paintAiPick(); paintKeysPage();
-  toast(v ? 'Key saved locally' : 'Key removed');
+function keySave(p, clear){
+  var v = clear ? '' : (($('ki-' + p) || {}).value || '').trim();
+  if(v) KEYS.keysBy[p] = v; else delete KEYS.keysBy[p];
+  if(p === 'custom' && $('keyUrl')) KEYS.url = $('keyUrl').value.trim();
+  if(p === KEYS.provider) KEYS.key = v;
+  else if(v && !KEYS.key){ keySwitch(p); KEYS.model = AI_DEFAULT_MODEL[p] || ''; }   // first key becomes the default
+  KEY_OK = null; saveKeys(); updateAiChip(); paintAiPick(); paintKeysPage(); renderPicker();
+  toast(v ? 'Key saved' : 'Key removed');
 }
-function keyTest(btn){
-  if(!aiReady()) return;
-  var msg = $('keyMsg'); btn.disabled = true; btn.textContent = 'Testing\u2026';
-  var t = KEYS.thinking; KEYS.thinking = false; AI_CAP = 48;
+function keyTest(btn, p){
+  var k = (KEYS.keysBy || {})[p]; if(!k) return;
+  var msg = $('km-' + p); btn.disabled = true; btn.textContent = 'Testing…';
+  var old = { provider:KEYS.provider, key:KEYS.key, model:KEYS.model, thinking:KEYS.thinking };
+  KEYS.provider = p; KEYS.key = k; KEYS.model = AI_DEFAULT_MODEL[p] || old.model; KEYS.thinking = false; AI_CAP = 48;
   aiCall([{ role:'user', content:'Reply with the single word: ok' }]).then(function(r){
-    KEY_OK = true; return 'Connected \u2014 model replied' + (r ? ': \u201c' + String(r).trim().slice(0, 30) + '\u201d' : '');
-  }).catch(function(e){
-    KEY_OK = false; return 'Failed: ' + String(e.message || e).slice(0, 160);
-  }).then(function(text){
-    KEYS.thinking = t; AI_CAP = 0;
-    updateAiChip(); paintKeysPage();
-    if($('keyMsg')) $('keyMsg').textContent = text;
+    return { ok:true, t:'Connected' + (r ? ': “' + String(r).trim().slice(0, 30) + '”' : '') };
+  }).catch(function(e){ return { ok:false, t:'Failed: ' + String(e.message || e).slice(0, 140) }; }).then(function(res){
+    KEYS.provider = old.provider; KEYS.key = old.key; KEYS.model = old.model; KEYS.thinking = old.thinking; AI_CAP = 0;
+    if(p === KEYS.provider) KEY_OK = res.ok;
+    updateAiChip(); btn.disabled = false; btn.textContent = 'Test';
+    msg = $('km-' + p); if(msg){ msg.textContent = res.t; msg.style.color = res.ok ? '' : 'var(--fh-error,#d93025)'; }
   });
 }
 
@@ -5269,20 +5380,20 @@ function bindEvents(){
       }
       case 'keys': openKeys(); break;
       case 'gl-range': CFG.glr = el.getAttribute('data-r'); saveCfg(); repaintGlance(); break;
-      case 'key-save': keySave(false); break;
-      case 'key-clear': keySave(true); break;
-      case 'key-test': keyTest(el); break;
+      case 'key-save': keySave(el.getAttribute('data-p'), false); break;
+      case 'key-clear': keySave(el.getAttribute('data-p'), true); break;
+      case 'key-test': keyTest(el, el.getAttribute('data-p')); break;
       case 'key-use': keySwitch(el.getAttribute('data-p')); KEYS.model = AI_DEFAULT_MODEL[KEYS.provider] || ''; saveKeys(); updateAiChip(); paintAiPick(); paintKeysPage(); renderPicker(); break;
       case 'settings': openSettings(); break;
       case 'dlg-close': closeDialog(); break;
-      case 'settings-save': {
-        CFG.theme = $('setTheme').value; CFG.market = $('setMarket').value;
-        saveCfg(); applyTheme(); closeDialog(); renderSubnav(); toast('Settings saved');
-        break;
-      }
+      case 'auth-open': openAuth(el.getAttribute('data-m')); break;
+      case 'auth-mode': openAuth(el.getAttribute('data-m')); break;
+      case 'auth-go': authGo(el.getAttribute('data-m')); break;
+      case 'profile-save': profileSave(); break;
+      case 'signout': closeMenu(); acctSignOut(); toast('Signed out'); break;
       case 'theme': toggleTheme(); break;
       case 'menu-more': ev.stopPropagation(); menu(el, moreMenuHTML()); break;
-      case 'signin': openSettings(); break;
+      case 'signin': openAuth('register'); break;
       case 'togglelist': openAddToList(sym); break;
       case 'list-add': {
         var lid = el.getAttribute('data-id'), ls = el.getAttribute('data-sym');
@@ -5463,9 +5574,14 @@ function bindEvents(){
   $('searchForm2').addEventListener('submit', function(ev){ ev.preventDefault(); doSearch($('searchInput2').value); });
   $('brandLink').addEventListener('click', function(ev){ ev.preventDefault(); go('#/'); });
   $('themeBtn').addEventListener('click', toggleTheme);
-  $('keysBtn').addEventListener('click', openKeys);
+  $('keysBtn').addEventListener('click', function(ev){
+    ev.stopPropagation();
+    var ok = aiReady() && KEY_OK !== false;
+    menu(this, '<div class="mhead">' + (ok ? 'Key Live' : 'Disconnected') + '</div><a class="mi" href="#/settings/ai">Manage keys</a>');
+  });
   $('moreBtn').addEventListener('click', function(ev){ ev.stopPropagation(); menu(this, moreMenuHTML()); });
-  $('signInBtn').addEventListener('click', openSettings);
+  document.addEventListener('change', function(ev){ var t = ev.target; if(t.id === 'setTheme' || t.id === 'setMarket'){ CFG.theme = $('setTheme') ? $('setTheme').value : CFG.theme; CFG.market = $('setMarket') ? $('setMarket').value : CFG.market; saveCfg(); applyTheme(); renderSubnav(); } });
+  $('signInBtn').addEventListener('click', function(ev){ ev.stopPropagation(); if(acct()) menu(this, acctMenuHTML()); else openAuth('register'); });
   $('rsBtn').addEventListener('click', rsTogglePanel);
   $('railBtn').addEventListener('click', function(){
     var r = $('rail');
@@ -5627,7 +5743,7 @@ function boot(){
   if(pane) pane.innerHTML = rsPanelHTML();
   rsShowTab(CFG.rtab || 'chat', false);
   rsFetchStatus();
-  updateAiChip();
+  acctRefresh();
   aiQuickButtons();
   bindEvents();
   if(!KEYS.provider) KEYS.provider = 'openrouter';
