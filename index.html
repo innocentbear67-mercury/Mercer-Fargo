@@ -723,11 +723,17 @@ table.fh .col-trend{width:120px}
 .gl-lab{font-size:12px;letter-spacing:.3px}
 .gl-big{font-size:clamp(32px,5vw,46px);font-weight:600;line-height:1.1;margin:2px 0 4px;color:var(--fh-foreground-on-surface-emphasis)}
 .gl-day{font-size:17px;font-weight:500}
-.gl-spark{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:11.5px;min-width:160px;flex:0 1 280px}
-.gl-spark svg{width:100%;height:64px}
+.gl-spark{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:11.5px;min-width:180px;flex:0 1 320px}
+.gl-spark svg{width:100%;height:72px}
+.gl-leg{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.gl-leg i{width:14px;height:3px;border-radius:2px;display:inline-block;margin-left:6px}
+.gl-vs{display:inline-flex;gap:10px;align-items:center;margin:14px 0 0;padding:7px 14px;border-radius:999px;font-size:14px;font-weight:600}
+.gl-vs span{font-weight:400;font-size:12.5px;opacity:.85}
+.gl-vs.win{background:rgba(77,184,72,.16);color:var(--fh-positive)}
+.gl-vs.lose{background:rgba(255,92,103,.16);color:var(--fh-negative)}
 .gl-ret{display:flex;flex-direction:column;align-items:flex-end;gap:1px;font-size:15px}
 .gl-ret b{font-size:20px;font-weight:600}
-.gl-line{margin:14px 0 10px;font-size:14.5px;color:var(--fh-foreground-on-surface-default)}
+.gl-line{margin:10px 0 10px;font-size:14.5px;color:var(--fh-foreground-on-surface-default)}
 .gl-bar{display:flex;height:8px;border-radius:99px;overflow:hidden;gap:2px;margin-bottom:12px}
 .gl-bar i{display:block;min-width:3px}
 .gl-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
@@ -2511,7 +2517,7 @@ function renderHome(){
   var pf0 = PFS[CUR.pf] || PFS[Object.keys(PFS)[0]];
   var hs = pf0 ? pf0.holdings.map(function(h){ return h.s; }) : [];
   /* Portfolio first: its quotes + 1M closes resolve on their own, so the summary can paint before the rest. */
-  if(hs.length) loadQuotesFor(hs).then(function(){ return loadSparkFor(hs, '1M'); }).then(function(){ if(CUR.view === 'home' && homeState.phase === 'done') paintHome(); });
+  if(hs.length) loadQuotesFor(hs).then(function(){ return loadSparkFor(hs.concat(['SPY']), '1M'); }).then(function(){ if(CUR.view === 'home' && homeState.phase === 'done') paintHome(); });
   return Promise.all([loadGroupData(g), loadUniverseQuotes(), loadNewsData()]).then(function(){
     if(homeState.phase === 'loading' && CUR.view === 'home') paintHome();
   }).catch(function(){ paintHome(); });
@@ -2528,10 +2534,27 @@ function pfSeries(pf){
     rows.forEach(function(r){ if(r.c != null) (byDate[r.d] = byDate[r.d] || {})[dispSym(h.s)] = r.c * h.q; });
   });
   if(!n) return [];
-  var dates = Object.keys(byDate).sort();
   var out = [];
-  dates.forEach(function(d){ if(Object.keys(byDate[d]).length >= n) out.push(Object.keys(byDate[d]).reduce(function(a, k){ return a + byDate[d][k]; }, 0)); });
+  Object.keys(byDate).sort().forEach(function(d){ if(Object.keys(byDate[d]).length >= n) out.push({ d:d, v:Object.keys(byDate[d]).reduce(function(a, k){ return a + byDate[d][k]; }, 0) }); });
   return out;
+}
+/* S&P 500 via SPY (the index itself has no free keyless history), on the portfolio's own dates. */
+function spxOn(dates){
+  var m = {}; (DATA.hist['sp_SPY'] || []).forEach(function(r){ if(r.c != null) m[r.d] = r.c; });
+  var out = dates.map(function(d){ return m[d]; });
+  return out.every(function(v){ return v != null; }) ? out : null;
+}
+function vsSVG(a, b, w, h){
+  /* Two lines as % change from the first day, on one shared scale. */
+  var pa = a.map(function(v){ return (v / a[0] - 1) * 100; }), pb = b.map(function(v){ return (v / b[0] - 1) * 100; });
+  var all = pa.concat(pb, [0]), mn = Math.min.apply(null, all), mx = Math.max.apply(null, all), sp = mx - mn || 1;
+  var step = w / (a.length - 1);
+  function path(p){ return p.map(function(v, i){ return (i ? 'L' : 'M') + (i * step).toFixed(1) + ' ' + (h - 3 - (v - mn) / sp * (h - 6)).toFixed(1); }).join(' '); }
+  var zy = (h - 3 - (0 - mn) / sp * (h - 6)).toFixed(1);
+  return '<svg class="vs-svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true">' +
+    '<line x1="0" x2="' + w + '" y1="' + zy + '" y2="' + zy + '" stroke="var(--fh-border-stroke-emphasis)" stroke-dasharray="3 4"/>' +
+    '<path d="' + path(pb) + '" fill="none" stroke="var(--fh-foreground-on-surface-de-emphasis)" stroke-width="1.8" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>' +
+    '<path d="' + path(pa) + '" fill="none" stroke="var(--fh-colors-and-accents-primary)" stroke-width="2.4" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>';
 }
 function glanceHTML(){
   var pf = PFS[CUR.pf] || PFS[Object.keys(PFS)[0]];
@@ -2554,9 +2577,18 @@ function glanceHTML(){
     : (Math.abs(dayPct) < 0.05 ? 'Flat today' : (up ? 'Up ' : 'Down ') + money(Math.abs(st.day), cur) + ' today') +
       (lead && lead.day > 0 ? ' · <b class="up">' + esc(lead.s) + ' ' + pct(lead.dayPct) + '</b> leads' : '') +
       (drag && drag.day < 0 && drag !== lead ? ' · <b class="down">' + esc(drag.s) + ' ' + pct(drag.dayPct) + '</b> drags' : '');
-  var series = pfSeries(pf);
+  var ser = pfSeries(pf), series = ser.map(function(p){ return p.v; });
+  var spx = series.length > 1 ? spxOn(ser.map(function(p){ return p.d; })) : null;
   var sUp = series.length > 1 ? series[series.length - 1] >= series[0] : up;
-  var spark = series.length > 1 ? sparkSVG(series, 260, 64, sUp ? 'var(--fh-positive)' : 'var(--fh-negative)') : '';
+  var pr = series.length > 1 ? (series[series.length - 1] / series[0] - 1) * 100 : null;
+  var sr = spx ? (spx[spx.length - 1] / spx[0] - 1) * 100 : null;
+  var spark = series.length < 2 ? '' : (spx
+    ? vsSVG(series, spx, 300, 72) + '<span class="gl-leg"><i style="background:var(--fh-colors-and-accents-primary)"></i>You <b class="num ' + (pr >= 0 ? 'up' : 'down') + '">' + pct(pr, 1) + '</b>' +
+      '<i style="background:var(--fh-foreground-on-surface-de-emphasis)"></i>S&amp;P 500 <b class="num ' + (sr >= 0 ? 'up' : 'down') + '">' + pct(sr, 1) + '</b> <span class="mut">1 month</span></span>'
+    : sparkSVG(series, 260, 64, sUp ? 'var(--fh-positive)' : 'var(--fh-negative)') + '<span class="mut">1 month</span>');
+  var verdict = (pr != null && sr != null && Math.abs(pr - sr) >= 0.05)
+    ? '<div class="gl-vs ' + (pr > sr ? 'win' : 'lose') + '">' + (pr > sr ? 'You are beating the S&amp;P500!' : 'You are losing to the S&amp;P500!') +
+      ' <span class="num">' + (pr - sr >= 0 ? '+' : '\u2212') + num(Math.abs(pr - sr), 1) + ' pts over 1 month</span></div>' : '';
   var sorted = st.rows.slice().sort(function(a, b){ return b.value - a.value; });
   var bar = sorted.map(function(r, i){
     var w = st.total ? r.value / st.total * 100 : 0;
@@ -2574,14 +2606,15 @@ function glanceHTML(){
     '<div class="gl-top"><div><div class="mut gl-lab">' + esc(pf.name) + '</div>' +
     '<div class="gl-big num">' + money(st.total, cur) + '</div>' +
     '<div class="gl-day num ' + (haveDay ? (up ? 'up' : 'down') : 'mut') + '">' + (haveDay ? (up ? '▲ +' : '▼ −') + money(Math.abs(st.day), cur) + ' (' + pct(dayPct) + ') today' : '—') + '</div></div>' +
-    '<div class="gl-spark">' + spark + '<span class="mut">1 month</span></div>' +
+    '<div class="gl-spark">' + spark + '</div>' +
     '<div class="gl-ret"><span class="mut gl-lab">Total return</span><b class="num ' + (rup ? 'up' : 'down') + '">' + (rup ? '+' : '−') + money(Math.abs(st.ret), cur) + '</b>' +
     '<span class="num ' + (rup ? 'up' : 'down') + '">' + pct(st.retPct) + '</span></div></div>' +
+    verdict +
     '<div class="gl-line">' + line + '</div>' +
     '<div class="gl-bar" aria-label="Allocation">' + bar + '</div>' +
     '<div class="gl-tiles">' + tiles + '</div>' +
     '<div class="gl-foot"><a href="#/portfolio/' + esc(CUR.pf) + '" data-act="nav" data-href="#/portfolio/' + esc(CUR.pf) + '">Full portfolio ›</a>' +
-    '<span class="mut">Delayed quotes · stored in this browser</span></div></div>';
+    '<span class="mut">Delayed quotes · S&amp;P 500 shown via SPY · stored in this browser</span></div></div>';
 }
 
 function paintHome(){
