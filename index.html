@@ -725,6 +725,11 @@ table.fh .col-trend{width:120px}
 .gl-day{font-size:17px;font-weight:500}
 .gl-spark{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:11.5px;min-width:180px;flex:0 1 320px}
 .gl-spark svg{width:100%;height:72px}
+.gl-rng{display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:2px}
+.gl-rng button{background:none;border:0;border-radius:999px;color:var(--fh-foreground-on-surface-de-emphasis);font:inherit;font-size:12px;font-weight:500;padding:4px 10px;cursor:pointer}
+.gl-rng button:hover{color:var(--fh-foreground-on-surface-emphasis)}
+.gl-rng button.on{background:var(--fh-states-branded-medium-selected);color:var(--fh-foreground-on-surface-emphasis)}
+.gl-wait{height:72px;display:flex;align-items:center;font-size:12.5px}
 .gl-leg{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .gl-leg i{width:14px;height:3px;border-radius:2px;display:inline-block;margin-left:6px}
 .gl-vs{display:inline-flex;gap:10px;align-items:center;margin:14px 0 0;padding:7px 14px;border-radius:999px;font-size:14px;font-weight:600}
@@ -2517,32 +2522,98 @@ function renderHome(){
   var pf0 = PFS[CUR.pf] || PFS[Object.keys(PFS)[0]];
   var hs = pf0 ? pf0.holdings.map(function(h){ return h.s; }) : [];
   /* Portfolio first: its quotes + 1M closes resolve on their own, so the summary can paint before the rest. */
-  if(hs.length) loadQuotesFor(hs).then(function(){ return loadSparkFor(hs.concat(['SPY']), '1M'); }).then(function(){ if(CUR.view === 'home' && homeState.phase === 'done') paintHome(); });
+  if(hs.length) loadQuotesFor(hs.concat(['SPY'])).then(function(){ if(CUR.view === 'home') repaintGlance(); });
   return Promise.all([loadGroupData(g), loadUniverseQuotes(), loadNewsData()]).then(function(){
     if(homeState.phase === 'loading' && CUR.view === 'home') paintHome();
   }).catch(function(){ paintHome(); });
 }
 
 /* ---- Portfolio at a glance: the first thing on the home page --------------- */
-function pfSeries(pf){
-  /* 1M value of today's holdings (shares held now, past closes), aligned by date. */
-  var byDate = {}, n = 0;
-  pf.holdings.forEach(function(h){
-    var rows = DATA.hist['sp_' + dispSym(h.s)];
-    if(!rows || rows.length < 2) return;
-    n++;
-    rows.forEach(function(r){ if(r.c != null) (byDate[r.d] = byDate[r.d] || {})[dispSym(h.s)] = r.c * h.q; });
-  });
-  if(!n) return [];
-  var out = [];
-  Object.keys(byDate).sort().forEach(function(d){ if(Object.keys(byDate[d]).length >= n) out.push({ d:d, v:Object.keys(byDate[d]).reduce(function(a, k){ return a + byDate[d][k]; }, 0) }); });
-  return out;
+var GL_R = [['AT', 'AT'], ['5Y', '5Y'], ['1Y', '1Y'], ['YTD', 'YTD'], ['3M', '3M'], ['1M', '1M'], ['1D', 'Today']];
+var GL_TXT = { AT:'all time', '5Y':'5 years', '1Y':'1 year', YTD:'year to date', '3M':'3 months', '1M':'1 month', '1D':'today' };
+var GL = { loading:{}, intra:null };
+function glRange(){ return GL_TXT[CFG.glr] ? CFG.glr : '1M'; }
+/* Which feed range each button reads; the series is then cut to the button's window. */
+function glBase(r){ return r === '3M' ? '6M' : (r === 'YTD' ? '1Y' : r); }
+function glFetch(sym, r){
+  var s = dispSym(sym), k = 'gl_' + r + '_' + s;
+  if(DATA.hist[k]) return Promise.resolve(DATA.hist[k]);
+  /* AT: Yahoo monthly bars via serve.py reach back to inception; without the server it falls back to the free feed's 5 years. */
+  var p = r === 'AT' ? oaHist(s, 'MAX').then(function(x){ if(x && x.length > 12) return x; throw 0; }).catch(function(){ return fetchHistory(s, '5Y'); })
+    : fetchHistory(s, glBase(r));
+  return p.then(function(rows){ DATA.hist[k] = rows || []; return DATA.hist[k]; }).catch(function(){ DATA.hist[k] = []; return []; });
 }
-/* S&P 500 via SPY (the index itself has no free keyless history), on the portfolio's own dates. */
-function spxOn(dates){
-  var m = {}; (DATA.hist['sp_SPY'] || []).forEach(function(r){ if(r.c != null) m[r.d] = r.c; });
-  var out = dates.map(function(d){ return m[d]; });
-  return out.every(function(v){ return v != null; }) ? out : null;
+function glIntraLoad(pf){
+  var syms = pf.holdings.map(function(h){ return dispSym(h.s); }).concat(['SPY']);
+  GL.intra = GL.intra || {};
+  return Promise.all(syms.map(function(s){
+    return fetchJSON('/api/oa/chart?symbol=' + encodeURIComponent(s) + '&range=1D', 16000).then(function(j){
+      GL.intra[s] = { pc:j.previousClose, bars:(j.bars || []).filter(function(b){ return b.c != null; }) };
+    }).catch(function(){ GL.intra[s] = { fail:true }; });
+  }));
+}
+function glKick(pf, r){
+  var key = r + '|' + pf.holdings.map(function(h){ return h.s; }).join();
+  if(GL.loading[key]) return;
+  GL.loading[key] = 1;
+  var p = r === '1D' ? glIntraLoad(pf) : Promise.all(pf.holdings.map(function(h){ return h.s; }).concat(['SPY']).map(function(x){ return glFetch(x, r); }));
+  p.then(function(){ repaintGlance(); });
+}
+function repaintGlance(){
+  var el = document.querySelector('.glance');
+  if(el && CUR.view === 'home') el.outerHTML = glanceHTML();
+}
+/* Portfolio value vs SPY for one window: { ser:[{d,v}], spx:[v]|null }, or { pending:true } while loading. */
+function glSeries(pf, r, st){
+  if(r === '1D'){
+    var I = GL.intra, syms = pf.holdings.map(function(h){ return dispSym(h.s); }).concat(['SPY']);
+    if(!I || syms.some(function(x){ return !I[x]; })) return { pending:true };
+    var ok = syms.every(function(x){ return !I[x].fail && I[x].pc && I[x].bars.length > 3; });
+    if(ok){
+      var qty = {}; pf.holdings.forEach(function(h){ qty[dispSym(h.s)] = h.q; });
+      var byT = {}, n = pf.holdings.length;
+      pf.holdings.forEach(function(h){ var x = dispSym(h.s); I[x].bars.forEach(function(b){ (byT[b.t] = byT[b.t] || {})[x] = b.c * qty[x]; }); });
+      var ts = Object.keys(byT).sort(function(a, b){ return a - b; }).filter(function(t){ return Object.keys(byT[t]).length >= n; });
+      var spyBy = {}; I.SPY.bars.forEach(function(b){ spyBy[b.t] = b.c; });
+      ts = ts.filter(function(t){ return spyBy[t] != null; });
+      if(ts.length > 3){
+        var base = pf.holdings.reduce(function(a, h){ return a + I[dispSym(h.s)].pc * h.q; }, 0);
+        return { ser:[{ d:'prev', v:base }].concat(ts.map(function(t){ return { d:t, v:Object.keys(byT[t]).reduce(function(a, k){ return a + byT[t][k]; }, 0) }; })),
+                 spx:[I.SPY.pc].concat(ts.map(function(t){ return spyBy[t]; })), intra:true };
+      }
+    }
+    /* No intraday feed (static site / no server): two points from the delayed quotes. */
+    var q = DATA.quotes.SPY || {}, prev = st.total - st.day;
+    if(!prev || q.c == null || q.pc == null) return { ser:[], spx:null };
+    return { ser:[{ d:'prev', v:prev }, { d:'now', v:st.total }], spx:[q.pc, q.c] };
+  }
+  var syms2 = pf.holdings.map(function(h){ return dispSym(h.s); }).concat(['SPY']);
+  if(syms2.some(function(x){ return !DATA.hist['gl_' + r + '_' + x]; })) return { pending:true };
+  var spyRows = DATA.hist['gl_' + r + '_SPY'];
+  var cut = '';
+  if(r === 'YTD'){
+    var jan = new Date().getFullYear() + '-01-01';
+    spyRows.forEach(function(x){ if(x.d < jan) cut = x.d; });
+  } else {
+    var days = { '1M':31, '3M':92, '1Y':366, '5Y':1830 }[r];
+    cut = days ? ymd(new Date(Date.now() - days * 864e5)) : '';
+  }
+  var byDate = {}, n2 = 0;
+  pf.holdings.forEach(function(h){
+    var rows = DATA.hist['gl_' + r + '_' + dispSym(h.s)];
+    if(!rows || rows.length < 2) return;
+    n2++;
+    rows.forEach(function(x){ if(x.c != null && x.d >= cut) (byDate[x.d] = byDate[x.d] || {})[dispSym(h.s)] = x.c * h.q; });
+  });
+  if(!n2) return { ser:[], spx:null };
+  var spyBy2 = {}; spyRows.forEach(function(x){ if(x.c != null) spyBy2[x.d] = x.c; });
+  var out = [], spx = [];
+  Object.keys(byDate).sort().forEach(function(d){
+    if(Object.keys(byDate[d]).length >= n2 && spyBy2[d] != null){
+      out.push({ d:d, v:Object.keys(byDate[d]).reduce(function(a, k){ return a + byDate[d][k]; }, 0) }); spx.push(spyBy2[d]);
+    }
+  });
+  return out.length < 2 ? { ser:[], spx:null } : { ser:out, spx:spx };
 }
 function vsSVG(a, b, w, h){
   /* Two lines as % change from the first day, on one shared scale. */
@@ -2577,18 +2648,24 @@ function glanceHTML(){
     : (Math.abs(dayPct) < 0.05 ? 'Flat today' : (up ? 'Up ' : 'Down ') + money(Math.abs(st.day), cur) + ' today') +
       (lead && lead.day > 0 ? ' · <b class="up">' + esc(lead.s) + ' ' + pct(lead.dayPct) + '</b> leads' : '') +
       (drag && drag.day < 0 && drag !== lead ? ' · <b class="down">' + esc(drag.s) + ' ' + pct(drag.dayPct) + '</b> drags' : '');
-  var ser = pfSeries(pf), series = ser.map(function(p){ return p.v; });
-  var spx = series.length > 1 ? spxOn(ser.map(function(p){ return p.d; })) : null;
-  var sUp = series.length > 1 ? series[series.length - 1] >= series[0] : up;
+  var R = glRange(), G = glSeries(pf, R, st);
+  if(G.pending) glKick(pf, R);
+  var series = (G.ser || []).map(function(p){ return p.v; }), spx = G.spx;
   var pr = series.length > 1 ? (series[series.length - 1] / series[0] - 1) * 100 : null;
-  var sr = spx ? (spx[spx.length - 1] / spx[0] - 1) * 100 : null;
-  var spark = series.length < 2 ? '' : (spx
-    ? vsSVG(series, spx, 300, 72) + '<span class="gl-leg"><i style="background:var(--fh-colors-and-accents-primary)"></i>You <b class="num ' + (pr >= 0 ? 'up' : 'down') + '">' + pct(pr, 1) + '</b>' +
-      '<i style="background:var(--fh-foreground-on-surface-de-emphasis)"></i>S&amp;P 500 <b class="num ' + (sr >= 0 ? 'up' : 'down') + '">' + pct(sr, 1) + '</b> <span class="mut">1 month</span></span>'
-    : sparkSVG(series, 260, 64, sUp ? 'var(--fh-positive)' : 'var(--fh-negative)') + '<span class="mut">1 month</span>');
+  var sr = spx && spx.length > 1 ? (spx[spx.length - 1] / spx[0] - 1) * 100 : null;
+  var since = (R === 'AT' && G.ser && G.ser.length) ? ' <span class="mut">since ' + esc(String(G.ser[0].d).slice(0, 7)) + '</span>' : '';
+  var rng = '<div class="gl-rng" role="tablist" aria-label="Time range">' + GL_R.map(function(x){
+    return '<button type="button" role="tab" aria-selected="' + (x[0] === R) + '" class="' + (x[0] === R ? 'on' : '') + '" data-act="gl-range" data-r="' + x[0] + '">' + x[1] + '</button>';
+  }).join('') + '</div>';
+  var spark = G.pending ? '<div class="gl-wait mut">Loading ' + esc(GL_TXT[R]) + '…</div>'
+    : (series.length < 2 ? '<div class="gl-wait mut">No history for this range yet.</div>'
+    : (spx
+      ? vsSVG(series, spx, 300, 72) + '<span class="gl-leg"><i style="background:var(--fh-colors-and-accents-primary)"></i>You <b class="num ' + (pr >= 0 ? 'up' : 'down') + '">' + pct(pr, 1) + '</b>' +
+        '<i style="background:var(--fh-foreground-on-surface-de-emphasis)"></i>S&amp;P 500 <b class="num ' + (sr >= 0 ? 'up' : 'down') + '">' + pct(sr, 1) + '</b>' + since + '</span>'
+      : sparkSVG(series, 260, 64, pr >= 0 ? 'var(--fh-positive)' : 'var(--fh-negative)') + '<span class="mut">' + esc(GL_TXT[R]) + '</span>'));
   var verdict = (pr != null && sr != null && Math.abs(pr - sr) >= 0.05)
     ? '<div class="gl-vs ' + (pr > sr ? 'win' : 'lose') + '">' + (pr > sr ? 'You are beating the S&amp;P500!' : 'You are losing to the S&amp;P500!') +
-      ' <span class="num">' + (pr - sr >= 0 ? '+' : '\u2212') + num(Math.abs(pr - sr), 1) + ' pts over 1 month</span></div>' : '';
+      ' <span class="num">' + (pr - sr >= 0 ? '+' : '−') + num(Math.abs(pr - sr), 1) + ' pts ' + (R === '1D' || R === 'YTD' || R === 'AT' ? '' : 'over ') + esc(GL_TXT[R]) + '</span></div>' : '';
   var sorted = st.rows.slice().sort(function(a, b){ return b.value - a.value; });
   var bar = sorted.map(function(r, i){
     var w = st.total ? r.value / st.total * 100 : 0;
@@ -2606,7 +2683,7 @@ function glanceHTML(){
     '<div class="gl-top"><div><div class="mut gl-lab">' + esc(pf.name) + '</div>' +
     '<div class="gl-big num">' + money(st.total, cur) + '</div>' +
     '<div class="gl-day num ' + (haveDay ? (up ? 'up' : 'down') : 'mut') + '">' + (haveDay ? (up ? '▲ +' : '▼ −') + money(Math.abs(st.day), cur) + ' (' + pct(dayPct) + ') today' : '—') + '</div></div>' +
-    '<div class="gl-spark">' + spark + '</div>' +
+    '<div class="gl-spark">' + rng + spark + '</div>' +
     '<div class="gl-ret"><span class="mut gl-lab">Total return</span><b class="num ' + (rup ? 'up' : 'down') + '">' + (rup ? '+' : '−') + money(Math.abs(st.ret), cur) + '</b>' +
     '<span class="num ' + (rup ? 'up' : 'down') + '">' + pct(st.retPct) + '</span></div></div>' +
     verdict +
@@ -5176,6 +5253,7 @@ function bindEvents(){
         break;
       }
       case 'keys': openKeys(); break;
+      case 'gl-range': CFG.glr = el.getAttribute('data-r'); saveCfg(); repaintGlance(); break;
       case 'key-save': keySave(false); break;
       case 'key-clear': keySave(true); break;
       case 'key-test': keyTest(el); break;
