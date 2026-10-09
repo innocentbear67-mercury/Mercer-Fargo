@@ -607,7 +607,7 @@ table.fh .col-trend{width:120px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 /* ------------------------------------------------ deep research panel */
-/* Deep research panel — FinanceHarness bridge */
+/* Deep Research panel — FinanceHarness bridge */
 .rs-note{font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis);margin:2px 0 12px;line-height:1.5}
 .rs-note a{color:var(--fh-foreground-on-surface-link-default)}
 .rs-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:14px}
@@ -913,7 +913,7 @@ table.fh .col-trend{width:120px}
 [data-theme="light"] .btn.filled{background:var(--mf-navy);color:#fffdf7;border-color:var(--mf-navy)}
 .btn.filled:hover{filter:brightness(1.06)}
 
-/* ---------- Deep research side panel ------------------------------------- */
+/* ---------- Deep Research side panel ------------------------------------- */
 .rs-btn{position:relative}
 .icon-btn.rs-btn{width:auto;padding:0 16px 0 12px;gap:8px;border-radius:999px}
 .rs-label{font-size:13px;font-weight:500;white-space:nowrap}
@@ -1117,6 +1117,74 @@ html{overflow-x:clip}
 .tk-v.out{opacity:0;transform:translateY(4px)}
 @keyframes tkShine{from{background-position:150% 0}to{background-position:-100% 0}}
 .cmp-note{margin:8px 6px 0;text-align:center;font-size:11px;line-height:1.45;color:var(--fh-foreground-on-surface-de-emphasis);opacity:.8}
+
+/* ---------- Deep Research: focus chips, tasks, progress ------------------ */
+.rs-focus{margin:12px 0 4px}
+.fc-row{display:flex;flex-wrap:wrap;gap:8px}
+.fc{font:inherit;font-size:13px;color:var(--fh-foreground-on-surface-de-emphasis);background:transparent;border:1px solid var(--fh-border-stroke-default);border-radius:999px;padding:7px 14px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.fc:hover{color:var(--fh-foreground-on-surface-emphasis);background:var(--fh-background-surface-container)}
+.fc.on{color:var(--fh-foreground-on-surface-emphasis);background:var(--fh-background-surface-elevated);border-color:var(--r,#c1a578);font-weight:600}
+.fc-tip{margin-top:8px;font-size:12px;line-height:1.5;color:var(--fh-foreground-on-surface-de-emphasis)}
+#rsLive{margin:22px 0 6px}
+.rs-think .think{margin:0 0 12px}
+.rs-prog{position:relative;height:3px;border-radius:3px;background:var(--fh-background-surface-container-high,rgba(128,128,128,.25));overflow:hidden}
+.rs-prog i{display:block;height:100%;border-radius:3px;background:var(--r,#c1a578);transition:width .8s cubic-bezier(.25,.8,.25,1)}
+.rs-prog.run i::after{content:"";position:absolute;top:0;bottom:0;width:60px;right:calc(100% - var(--w,0%));background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:rsSweep 1.6s ease-in-out infinite;opacity:0}
+.rs-prog.run::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0,rgba(193,165,120,.35) 50%,transparent 100%);background-size:40% 100%;background-repeat:no-repeat;animation:rsRun 1.5s linear infinite}
+@keyframes rsRun{from{background-position:-60% 0}to{background-position:160% 0}}
+.rs-prog.fin i{background:var(--fh-positive,#34a853)}
+.rs-pm{display:flex;justify-content:space-between;margin:8px 0 14px;font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis);font-variant-numeric:tabular-nums}
+.rs-tasks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.rs-tasks li{display:flex;align-items:center;gap:12px;padding:7px 0;font-size:14px;color:var(--fh-foreground-on-surface-de-emphasis);transition:color .3s}
+.rs-tasks .tick{flex:none;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--fh-border-stroke-emphasis,#666);position:relative;transition:background .3s,border-color .3s}
+.rs-tasks li.active{color:var(--fh-foreground-on-surface-emphasis)}
+.rs-tasks li.active .tick{border-color:var(--r,#c1a578);border-top-color:transparent;animation:rsSpin .9s linear infinite}
+.rs-tasks li.done{color:var(--fh-foreground-on-surface-emphasis)}
+.rs-tasks li.done span{text-decoration:line-through;text-decoration-color:rgba(128,128,128,.55)}
+.rs-tasks li.done .tick{background:var(--fh-positive,#34a853);border-color:var(--fh-positive,#34a853);animation:rsPop .35s cubic-bezier(.3,1.6,.5,1)}
+.rs-tasks li.done .tick::after{content:"";position:absolute;left:5px;top:2px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+@keyframes rsSpin{to{transform:rotate(360deg)}}
+@keyframes rsPop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+.rs-details{margin:12px 0 0}
+.rs-details summary{cursor:pointer;font-size:12.5px;color:var(--fh-foreground-on-surface-de-emphasis);list-style:none}
+.rs-details summary::-webkit-details-marker{display:none}
+.rs-details summary::before{content:"\25B8  "}
+.rs-details[open] summary::before{content:"\25BE  "}
+
+/* collapse the form into a single message while a run is going */
+.rs-form{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows .4s cubic-bezier(.3,.7,.2,1),opacity .3s ease,margin .4s}
+.rs-form>div{overflow:hidden;min-height:0}
+.rs-form.shut{grid-template-rows:0fr;opacity:0;pointer-events:none}
+.rs-ask{margin:0 0 6px;padding:14px 16px;border-radius:18px;background:var(--fh-background-surface-container);animation:rsIn .3s cubic-bezier(.2,.7,.2,1) both}
+.rs-ask[hidden]{display:none}
+.ra-q{font-size:15px;line-height:1.55;color:var(--fh-foreground-on-surface-emphasis);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+.ra-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+.ra-tags{display:flex;flex-wrap:wrap;gap:6px}
+.ra-tags i{font-style:normal;font-size:11.5px;padding:3px 10px;border-radius:999px;background:var(--fh-background-surface-elevated);color:var(--fh-foreground-on-surface-de-emphasis)}
+/* result card */
+.rs-done{margin:20px 0 18px;padding:20px;border-radius:20px;background:var(--fh-background-surface-container);border:1px solid var(--fh-border-stroke-default);animation:rsIn .45s cubic-bezier(.2,.7,.2,1) both}
+.rd-head{display:flex;align-items:center;gap:10px;font-family:var(--mf-serif);font-size:19px;color:var(--fh-foreground-on-surface-emphasis)}
+.rd-ok{width:20px;height:20px;border-radius:50%;background:var(--fh-positive,#34a853);position:relative;flex:none}
+.rd-ok::after{content:"";position:absolute;left:7px;top:3px;width:4px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.rd-meta{margin-left:auto;font:400 12px/1 Roboto,Arial,sans-serif;color:var(--fh-foreground-on-surface-de-emphasis)}
+.rd-sum{margin:14px 0 18px;font-size:14.5px;line-height:1.7;color:var(--fh-foreground-on-surface-emphasis)}
+.rd-dl{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:16px 20px;border:0;border-radius:16px;cursor:pointer;font:inherit;text-align:left;
+  color:#241a05;background:linear-gradient(135deg,#d9bf8d,#c1a578 60%,#b0924f);box-shadow:0 6px 18px rgba(193,165,120,.28),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .15s,box-shadow .15s}
+.rd-dl:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(193,165,120,.38),inset 0 1px 0 rgba(255,255,255,.4)}
+.rd-dl:active{transform:translateY(0)}
+.rd-dl span{display:flex;flex-direction:column;line-height:1.3}
+.rd-dl b{font-size:16px;font-weight:600}
+.rd-dl small{font-size:12px;opacity:.75}
+.rd-row{display:flex;gap:8px;align-items:center;margin-top:12px}
+
+.newres{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 14px 0 11px;margin-left:auto;border-radius:999px;cursor:pointer;font:inherit;font-size:13px;font-weight:600;
+  color:var(--r,#c1a578);background:rgba(193,165,120,.14);border:1px solid rgba(193,165,120,.6);box-shadow:0 0 0 0 rgba(193,165,120,0);transition:background .18s,box-shadow .18s,transform .15s,opacity .2s}
+.newres:hover:not(:disabled){background:rgba(193,165,120,.26);box-shadow:0 4px 14px rgba(193,165,120,.25);transform:translateY(-1px)}
+.newres:disabled{opacity:.38;cursor:not-allowed;box-shadow:none;filter:grayscale(.6)}
+.newres[hidden],.newsess[hidden]{display:none}
+.newres .lbl{display:none}
+@container dr (min-width:400px){.newres .lbl{display:inline}}
+@container dr (max-width:399px){.newres{padding:0 10px}}
 /* full screen: centred reading column */
 .drawer.full{--gut:max(20px,calc((100vw - 760px)/2))}
 .drawer.full #rsPane{--gut:max(20px,calc((100vw - 880px)/2))}
@@ -1187,11 +1255,14 @@ html{overflow-x:clip}
   <div class="drawer-head">
     <div class="rs-tabs" role="tablist" data-t="chat"><i class="thumb"></i>
       <button role="tab" id="tabChat" data-act="drawer-tab" data-tab="chat">Agent</button>
-      <button role="tab" id="tabResearch" data-act="drawer-tab" data-tab="research">Deep research</button>
+      <button role="tab" id="tabResearch" data-act="drawer-tab" data-tab="research">Deep Research</button>
     </div>
     <span class="status-chip" id="aiChip" hidden>no key</span>
     <button class="newsess" id="newChatBtn" data-act="chat-new" title="New session" aria-label="New session">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg><span class="lbl">New session</span>
+    </button>
+    <button class="newres" id="newResBtn" data-act="rs-new" title="Start a new research" aria-label="New research" hidden>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span class="lbl">New research</span>
     </button>
     <button class="icon-btn" id="drawerFull" data-act="drawer-full" title="Full screen" aria-label="Toggle full screen">
       <svg class="i-exp" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
@@ -2581,7 +2652,7 @@ function renameWatchlist(id){
   toast('Renamed to ' + name);
 }
 function renderSubnav(){
-  var sec = [['home', 'Monitoring Terminal', '#/'], ['research', 'Research', '#/research']];
+  var sec = [['home', 'Monitoring Terminal', '#/'], ['research', 'Research Log', '#/research']];
   $('secTabs').innerHTML = sec.map(function(s){
     var on = (CUR.view === s[0]) || (s[0] === 'home' && (CUR.view === 'list' || CUR.view === 'portfolio' || CUR.view === 'markets' || CUR.view === 'quote'));
     return '<button class="sec-tab' + (on ? ' on' : '') + '" data-act="nav" data-href="' + s[2] + '">' + s[1] + '</button>';
@@ -3086,7 +3157,7 @@ function footerHTML(){
     'TradingView\u2019s public endpoints; price history from stockanalysis.com; crypto from CoinGecko; FX from the ECB (Frankfurter); ' +
     'headlines from Google News; filings from SEC XBRL. Analyst counts and estimates that are not in those feeds are yours to enter. ' +
     'Nothing here is investment advice.</div>' +
-    '<div class="links"><a href="#/research">Research</a><a href="#/screener">Screener</a><a href="#/compare">Compare</a>' +
+    '<div class="links"><a href="#/research">Research Log</a><a href="#/screener">Screener</a><a href="#/compare">Compare</a>' +
     '<a href="#/earnings">Earnings</a><a href="#" data-act="settings">Settings</a><a href="#" data-act="keys">Keys</a></div></div>';
 }
 
@@ -4092,7 +4163,7 @@ function researchTabHTML(){
       '<div class="field"><label>Your question</label><textarea id="tabPrompt" rows="3" placeholder="e.g. What would have to be true for the multiple to compress 20%?"></textarea></div>' +
       '<button class="btn filled sm" data-act="ai-ask">Run on ' + esc(sym) + '</button>' +
       '<div class="mut" style="font-size:12px;margin-top:8px">Answers open in the Research panel and use only your key.</div></div>' +
-    '<div class="card"><h3>Deep research</h3>' +
+    '<div class="card"><h3>Deep Research</h3>' +
       '<div class="mut" style="font-size:12.5px;margin:6px 0 10px">Google Research\'s FinanceHarness, running locally with your own key: it searches the web, reads and cites its sources, pulls fundamentals and can build a DCF.</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn filled sm" data-act="rs-seed" data-sym="' + esc(sym) + '">Start deep research on ' + esc(sym) + '</button>' +
       '<button class="btn text sm" data-act="nav" data-href="#/research">Open the panel</button></div></div>' +
@@ -4110,7 +4181,7 @@ var AI_DEFAULT_MODEL = {
   opencode:'deepseek-v4.1-flash', 'opencode-go':'deepseek-v4.1-flash', custom:''
 };
 
-/* Toggle-bar data shared by the Assistant keys panel and the Deep research pane.
+/* Toggle-bar data shared by the Assistant keys panel and the Deep Research pane.
    Model ids checked against each provider's docs / OpenRouter's live catalog on 2026-10-09.
    Third element = wire format when it is not chat-completions: 'r' = Responses API,
    'm' = Anthropic Messages (OpenCode Zen/Go route per model). */
@@ -4196,7 +4267,7 @@ function pickLabel(p, id){
 }
 /* Photo-style model picker: provider groups, star favorites, badges, chevron
    opens a per-model submenu (Thinking toggle + effort list). One component
-   serves the Assistant foot (KEYS) and Deep research setup (RS). */
+   serves the Assistant foot (KEYS) and Deep Research setup (RS). */
 var PICK = { ctx:null, prov:null, hov:null };
 function pickHost(c){ return $(c === 'rs' ? 'pickMenuR' : c === 'page' ? 'pickMenuP' : 'pickMenuA'); }
 function openPicker(c){
@@ -4747,15 +4818,15 @@ var SEND_ARROW = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentC
 var THINK_VERBS = ['Analyzing', 'Quantizing', 'Forecasting Trends', 'Building Valuation Models', 'Auditing', 'Screening Stocks', 'Comparing', 'Researching',
   'Gathering News', 'Stress-testing', 'Investigating Insider Activities', 'Scrutinizing Fundamentals', 'Synthesizing', 'Composing', 'Strategizing',
   'Backtesting', 'Bootstrapping', 'Tranching', 'Rehypothecating', 'Delta-hedging', 'Winsorizing', 'Securitizing', 'Amortizing', 'Annualizing'];
-var AI_BUSY = false, THINK = { timer:null, order:[], i:0 };
-function thinkVerb(){ return THINK.order[THINK.i % THINK.order.length]; }
+var AI_BUSY = false, THINK = { users:{}, timer:null, ctimer:null, order:[], i:0 };
+function thinkVerb(){ return THINK.order.length ? THINK.order[THINK.i % THINK.order.length] : THINK_VERBS[0]; }
 function thinkHTML(){
-  return '<div class="think" id="thinkRow" role="status" aria-live="polite"><svg class="tk-candles" id="tkc" viewBox="0 0 42 28" width="58" height="39" aria-hidden="true"></svg>' +
-    '<span class="tk-v" id="thinkVerb">' + esc(thinkVerb()) + '…</span></div>';
+  return '<div class="think" role="status" aria-live="polite"><svg class="tk-candles" viewBox="0 0 42 28" width="58" height="39" aria-hidden="true"></svg>' +
+    '<span class="tk-v">' + esc(thinkVerb()) + '…</span></div>';
 }
-
-/* Candle loop: 3 candles; the right-hand one is live (body and wicks move, red or green) and locks when the next one arrives. */
-var TKC = { cs:[], shift:0, t:0, timer:null };
+/* Candle loop: 3 candles; the right-hand one is live (body and wicks move, red or green) and locks when the next one arrives.
+   Every candle has its own size: a few tall, the rest short. */
+var TKC = { cs:[], shift:0, t:0 };
 function tkcNew(o){ return { o:o, c:o, sz:Math.random() < .4 ? .95 + Math.random() * .35 : .38 + Math.random() * .32, v:(Math.random() - .5) * .2, wu:.04 + Math.random() * .08, wl:.04 + Math.random() * .08 }; }
 function tkcStep(){
   var cs = TKC.cs, L = cs[cs.length - 1];
@@ -4763,42 +4834,46 @@ function tkcStep(){
   L.c = Math.max(.06, Math.min(.94, L.c + L.v)); if(L.c <= .06 || L.c >= .94) L.v = -L.v * .8;
   L.wu = Math.max(.02, Math.min(.34, L.wu + (Math.random() - .5) * .22));
   L.wl = Math.max(.02, Math.min(.34, L.wl + (Math.random() - .5) * .22));
-  if(++TKC.t % 15 === 0){   // ~1.6s: lock the live candle, open a new one at its close
-    cs.push(tkcNew(L.c)); cs.shift(); TKC.shift = 14;
-  }
+  if(++TKC.t % 15 === 0){ cs.push(tkcNew(L.c)); cs.shift(); TKC.shift = 14; }   // ~1.6s: lock it, open the next at its close
   if(TKC.shift > 0) TKC.shift = Math.max(0, TKC.shift - 3.5);
-  var svg = $('tkc'); if(!svg) return;
   var H = 25, y = function(p){ return (1.5 + (1 - p) * H).toFixed(1); };
-  svg.innerHTML = cs.map(function(k, i){
+  var html = cs.map(function(k, i){
     var x = 7 + (i - 1) * 14 + TKC.shift, up = k.c >= k.o, col = up ? 'var(--fh-positive,#34a853)' : 'var(--fh-negative,#ea4335)';
-    var f = function(p){ return k.o + (p - k.o) * k.sz; };   // each candle has its own size: a few tall, the rest short
+    var f = function(p){ return k.o + (p - k.o) * k.sz; };
     var top = f(Math.max(k.o, k.c)), bot = f(Math.min(k.o, k.c)), hy = y(Math.min(1, top + k.wu * k.sz)), ly = y(Math.max(0, bot - k.wl * k.sz));
     var by = y(top), bh = Math.max(2, (top - bot) * H).toFixed(1), o = i === 0 ? Math.min(1, x / 7 + .2) : 1;
     return '<g opacity="' + Math.max(0, o) + '"><line x1="' + x + '" x2="' + x + '" y1="' + hy + '" y2="' + ly + '" stroke="' + col + '" stroke-width="1.1" stroke-linecap="round"/>' +
       '<rect x="' + (x - 2.5) + '" y="' + by + '" width="5" height="' + bh + '" rx="1.2" fill="' + col + '"/></g>';
   }).join('');
+  [].forEach.call(document.querySelectorAll('.tk-candles'), function(svg){ svg.innerHTML = html; });
 }
-function thinkStart(){
-  if(AI_BUSY) return;
-  AI_BUSY = true; THINK.i = 0;
+/* Shared by the Agent chat and Deep Research; the timers run while either needs them. */
+function thinkStart(key){
+  THINK.users[key] = 1;
+  if(THINK.timer) return;
+  THINK.i = 0;
+  THINK.order = THINK_VERBS.slice().sort(function(){ return Math.random() - 0.5; });   // shuffled, no repeats until the list is exhausted
   var p = .5, seed = [];
   for(var q = 0; q < 4; q++){ var k = tkcNew(p); k.c = Math.max(.15, Math.min(.85, p + (Math.random() - .5) * .4)); p = k.c; seed.push(k); }
-  TKC.cs = seed; TKC.shift = 0; TKC.t = 0; clearInterval(TKC.timer); TKC.timer = setInterval(tkcStep, 105);
-  THINK.order = THINK_VERBS.slice().sort(function(){ return Math.random() - 0.5; });   // shuffled, no repeats until the list is exhausted
-  var c = $('chat'); if(c){ c.insertAdjacentHTML('beforeend', thinkHTML()); c.scrollTop = c.scrollHeight; }
+  TKC.cs = seed; TKC.shift = 0; TKC.t = 0; TKC.timer = null;
+  THINK.ctimer = setInterval(tkcStep, 105);
   THINK.timer = setInterval(function(){
     THINK.i++;
-    var v = $('thinkVerb'); if(!v) return;
-    v.classList.add('out');
-    setTimeout(function(){ var v2 = $('thinkVerb'); if(v2){ v2.textContent = thinkVerb() + '…'; v2.classList.remove('out'); } }, 220);
+    var vs = document.querySelectorAll('.tk-v');
+    [].forEach.call(vs, function(v){ v.classList.add('out'); });
+    setTimeout(function(){ [].forEach.call(document.querySelectorAll('.tk-v'), function(v){ v.textContent = thinkVerb() + '…'; v.classList.remove('out'); }); }, 220);
   }, 3000);
 }
-function thinkStop(){
-  AI_BUSY = false; clearInterval(THINK.timer); clearInterval(TKC.timer);
-  var r = $('thinkRow'); if(r) r.remove();
+function thinkStop(key){
+  delete THINK.users[key];
+  if(Object.keys(THINK.users).length) return;
+  clearInterval(THINK.timer); clearInterval(THINK.ctimer); THINK.timer = THINK.ctimer = null;
 }
 function aiPending(on){
-  if(on) thinkStart(); else thinkStop();
+  AI_BUSY = !!on;
+  var ch = $('chat');
+  if(on){ if(ch && !ch.querySelector('.think')){ ch.insertAdjacentHTML('beforeend', thinkHTML()); ch.scrollTop = ch.scrollHeight; } thinkStart('chat'); }
+  else { if(ch){ var tr = ch.querySelector('.think'); if(tr) tr.remove(); } thinkStop('chat'); }
   var btn = $('runBtn');
   if(!btn) return;
   btn.disabled = !!on;
@@ -4907,39 +4982,59 @@ function aiQuickButtons(){
 
 /* ------------------------------------------------------ research page view */
 
+/* Deep Research runs are saved here as they finish (and when stopped with partial output), so they survive reloads and work without the local server. */
+var RLOG = load('fh3_rruns', []);
+function rsLogSave(){
+  var body = RS.report || RS.tokens || ''; if(!body.trim()) return;
+  var id = RS.meta.runId || ('r' + (RS.t0 || Date.now()).toString(36));
+  var rec = { id:id, ts:Date.now(), question:RS.question || '', focus:RS.focus.slice(), report:body, citations:RS.citations || [],
+    rounds:RS.meta.rounds || 0, secs:RS.meta.elapsedSeconds != null ? RS.meta.elapsedSeconds : Math.round((Date.now() - (RS.t0 || Date.now())) / 1000), status:(RS.report && !RS.error) ? 'done' : 'partial' };
+  RLOG = RLOG.filter(function(x){ return x.id !== id; }); RLOG.unshift(rec); RLOG = RLOG.slice(0, 40);
+  while(RLOG.length > 1 && JSON.stringify(RLOG).length > 3e6) RLOG.pop();   // stay inside localStorage limits
+  save('fh3_rruns', RLOG);
+}
+function rsLogOpen(id){
+  var r = RLOG.filter(function(x){ return x.id === id; })[0]; if(!r) return;
+  RS.report = r.report; RS.tokens = ''; RS.citations = r.citations || []; RS.question = r.question; RS.focus = (r.focus && r.focus.length) ? r.focus : ['auto'];
+  RS.meta = { rounds:r.rounds, elapsedSeconds:r.secs, runId:r.id }; RS.error = null; RS.tasks = null; RS.steps = []; rsSaveCfg();
+  rsOpenPanel('research'); var pane = $('rsPane'); if(pane) pane.innerHTML = rsPanelHTML(); rsPaint();
+  setTimeout(function(){ var c = $('rsResult'); if(c) c.scrollIntoView({ block:'start' }); }, 80);
+}
 function rsResearchRuns(){
   var host = $('rsRunsHome');
   if(!host) return;
-  fetch('/research/runs').then(function(r){ return r.json(); }).then(function(d){
-    if(!$('rsRunsHome')) return;
-    var rows = d.runs || [];
-    if(!rows.length){
-      host.innerHTML = '<div class="mut" style="font-size:13px">No deep research runs yet. ' +
-        'Open the panel and run one from the Deep research tab — saved runs appear here.</div>';
-      return;
-    }
-    host.innerHTML = rows.slice(0, 15).map(function(r){
-      return '<div class="chat-row"><span class="cr-main">' +
-        '<span class="cr-title">' + esc((r.question || '(no question)').slice(0, 120)) + '</span>' +
-        '<span class="cr-meta">' + esc(r.mode || '') + ' · ' + (r.rounds || 0) + ' rounds · ' +
-        (r.citations || 0) + ' sources · ' + esc(r.model || '') + '</span></span>' +
+  function row(r){
+    return '<div class="chat-row"><span class="cr-main"><span class="cr-title">' + esc((r.question || '(no question)').slice(0, 120)) + '</span>' +
+      '<span class="cr-meta">' + esc(chatWhen(r.ts)) + ' · ' + esc((r.focus || ['auto']).map(function(f){ var x = RS_FOCUS.filter(function(y){ return y.id === f; })[0]; return x ? x.label : f; }).join(', ')) +
+      ' · ' + (r.citations || []).length + ' sources' + (r.secs != null ? ' · ' + r.secs + 's' : '') + (r.status === 'partial' ? ' · partial' : '') + '</span></span>' +
+      '<button class="btn text sm" data-act="rs-log-open" data-id="' + esc(r.id) + '">Open</button>' +
+      '<button class="btn text sm" data-act="rs-log-del" data-id="' + esc(r.id) + '">Delete</button></div>';
+  }
+  var local = RLOG.map(row).join('');
+  var empty = '<div class="mut" style="font-size:13px">No Deep Research runs yet. Run one from the Deep Research tab — it is saved here automatically.</div>';
+  host.innerHTML = local || empty;
+  fetch('/research/runs').then(function(r){ return r.json(); }).then(function(d){   // older runs kept by the local server
+    var host2 = $('rsRunsHome'); if(!host2) return;
+    var have = RLOG.map(function(x){ return x.id; });
+    var more = (d.runs || []).filter(function(r){ return have.indexOf(r.id) < 0; }).slice(0, 15).map(function(r){
+      return '<div class="chat-row"><span class="cr-main"><span class="cr-title">' + esc((r.question || '(no question)').slice(0, 120)) + '</span>' +
+        '<span class="cr-meta">' + (r.rounds || 0) + ' rounds · ' + (r.citations || 0) + ' sources · ' + esc(r.model || '') + ' · from local server</span></span>' +
         '<button class="btn text sm" data-act="rs-open" data-id="' + esc(r.id) + '">Open</button></div>';
     }).join('');
-  }).catch(function(){
-    if($('rsRunsHome')) host.innerHTML = '<div class="mut" style="font-size:13px">Saved runs need the local server.</div>';
-  });
+    if(more) host2.innerHTML = (local || '') + more;
+  }).catch(function(){});
 }
 function renderResearchPage(){
   var sessions = chatSessions();
   var html = '';
-  html += '<div class="section"><div class="section-head"><h2>Research</h2>' +
+  html += '<div class="section"><div class="section-head"><h2>Research Log</h2>' +
     '<span class="status-chip' + (aiReady() ? ' live' : '') + '"><i class="dot"></i>' + esc(aiLabel()) + '</span>' +
     '<button class="btn filled sm" data-act="chat-new">Ask Marvell</button>' +
     '<button class="btn text sm" data-act="keys">Keys &amp; provider</button></div>' +
-    '<div class="rs-note">Every conversation with the agent happens in the side panel, so it keeps working while you browse ' +
-    'quotes, charts and screeners. This page is the history of those sessions — open one to pick it up where you left off.</div></div>';
-  html += '<div class="section"><div class="card"><div class="section-head"><h3 style="flex:1">Chat sessions</h3>' +
-    '<button class="btn text sm" data-act="chat-new">New chat</button>' +
+    '<div class="rs-note">Every Agent session and every Deep Research run is saved here automatically, in this browser. ' +
+    'Open one to pick it up where you left off.</div></div>';
+  html += '<div class="section"><div class="card"><div class="section-head"><h3 style="flex:1">Agent sessions</h3>' +
+    '<button class="btn text sm" data-act="chat-new">New session</button>' +
     '<button class="btn text sm" data-act="chat-export">Export CSV</button></div>' +
     (sessions.length ? sessions.map(function(x){
       return '<div class="chat-row"><span class="cr-main">' +
@@ -4950,7 +5045,7 @@ function renderResearchPage(){
         '<button class="btn text sm" data-act="chat-del" data-sid="' + esc(x.id) + '">Delete</button></div>';
     }).join('') : '<div class="empty">No conversations yet — open the agent to ask your first question.</div>') +
     '</div></div>';
-  html += '<div class="section"><div class="card"><div class="section-head"><h3 style="flex:1">Deep research runs</h3>' +
+  html += '<div class="section"><div class="card"><div class="section-head"><h3 style="flex:1">Deep Research runs</h3>' +
     '<button class="btn text sm" data-act="rs-panel">Open the panel</button></div>' +
     '<div id="rsRunsHome"><div class="mut" style="font-size:13px">Loading…</div></div></div></div>';
   html += footerHTML();
@@ -4964,7 +5059,7 @@ function renderResearchPage(){
 function moreMenuHTML(){
   /* Real links: they navigate natively, so they never depend on click delegation. */
   var links = [['#/', 'Home'], ['#/portfolio/' + CUR.pf, 'Portfolio'], ['#/screener', 'Screener'], ['#/compare', 'Compare'],
-    ['#/earnings', 'Earnings calendar'], ['#/research', 'Research'], ['#/markets/' + CFG.market, 'Markets']];
+    ['#/earnings', 'Earnings calendar'], ['#/research', 'Research Log'], ['#/markets/' + CFG.market, 'Markets']];
   return '<div class="mhead">MercerFargo tools</div>' + links.map(function(m){
     return '<a class="mi" href="' + esc(m[0]) + '">' + m[1] + '</a>';
   }).join('') + '<div class="msep"></div><a class="mi" href="#/settings/ai">AI keys &amp; defaults</a><a class="mi" href="#/settings">Settings</a><div class="msep"></div><a class="mi" href="#/feedback">Give feedback</a><a class="mi" href="#/help">Get help</a>';
@@ -5242,7 +5337,8 @@ function rsShowTab(tab, focus){
   if(a) a.className = (t === 'chat') ? 'on' : '';
   if(b) b.className = (t === 'research') ? 'on' : '';
   var foot = document.querySelector('.drawer .drawer-foot'), nc = $('newChatBtn');
-  if(nc) nc.style.visibility = (t === 'chat') ? '' : 'hidden';
+  if(nc) nc.hidden = (t !== 'chat');
+  var nr = $('newResBtn'); if(nr){ nr.hidden = (t !== 'research'); nr.disabled = !!RS.running; }
   var apply = function(){
     chat.hidden = (t !== 'chat'); pane.hidden = (t !== 'research');
     if(foot) foot.hidden = (t !== 'chat');
@@ -5264,8 +5360,8 @@ function rsSyncBtn(){
   var d = $('drawer');
   var open = d && d.classList.contains('open');
   btn.className = 'icon-btn rs-btn' + (RS.running ? ' running' : (RS.report ? ' ready' : '')) + (open ? ' on' : '');
-  btn.title = RS.running ? 'Deep research · running (click to open)'
-    : (RS.report ? 'Deep research · report ready' : 'Research with Marvell');
+  btn.title = RS.running ? 'Deep Research · running (click to open)'
+    : (RS.report ? 'Deep Research · report ready' : 'Research with Marvell');
   btn.setAttribute('aria-pressed', open ? 'true' : 'false');
 }
 function rsOpenPanel(tab){
@@ -5282,9 +5378,9 @@ function rsTogglePanel(){
 /* ------------------------------------------- 10. deep research (harness) */
 /* Talks to serve.py's /research/* bridge, which runs Google Research's
    FinanceHarness locally with the user's own model key. */
-var RS = load(LS.research, { mode:'auto', provider:'', model:'', readerModel:'', effort:'medium', thinking:true, question:'' });
+var RS = load(LS.research, { mode:'auto', focus:['auto'], provider:'', model:'', readerModel:'', effort:'medium', thinking:true, question:'' });
 RS.model = fixOrId(RS.model);
-function rsSaveCfg(){ save(LS.research, { mode:RS.mode, provider:RS.provider, model:RS.model, readerModel:RS.readerModel, effort:RS.effort, question:RS.question }); }
+function rsSaveCfg(){ save(LS.research, { mode:RS.mode, focus:RS.focus, provider:RS.provider, model:RS.model, readerModel:RS.readerModel, effort:RS.effort, question:RS.question }); }
 var RS_DEFAULT_MODEL = { xai:'grok-4.7', gemini:'gemini-3.8-flash', openrouter:'deepseek/deepseek-v4.1-flash',
   openai:'gpt-6.1-sol', deepseek:'deepseek-flash', groq:'openai/gpt-oss-120b',
   opencode:'deepseek-v4.1-flash', 'opencode-go':'deepseek-v4.1-flash' };
@@ -5326,20 +5422,166 @@ var RS_PROVIDERS = [['openrouter','OpenRouter'],['openai','OpenAI'],['xai','xAI 
                     ['deepseek','DeepSeek'],['groq','Groq'],['opencode-go','OpenCode Go'],['opencode','OpenCode Zen'],
                     ['custom','Custom (OpenAI-compatible)']];
 
+/* ---- Research focus: pick what the agent should look at (multi-select) ---- */
+var RS_FOCUS = [
+  { id:'auto', label:'Auto', tip:'The agent decides what is noise and what is useful', brief:'Decide yourself which areas matter for this question. Discard noise, and say briefly what you left out and why.' },
+  { id:'macro', label:'Macro', tip:'Rates, inflation, growth, liquidity, sector cycle', brief:'Macro backdrop: rates, inflation, growth, liquidity, FX and the sector cycle, and how they affect this company.', kw:/macro|inflation|cpi|fed\b|fomc|interest rate|gdp|treasury|yield|jobs|payroll|recession|economy|liquidity/i },
+  { id:'comps', label:'Competitors Comparison', tip:'Peers side by side', brief:'Competitors comparison: the closest peers side by side on growth, margins, valuation multiples, market share and moat.', kw:/competitor|peer|versus|\bvs\b|market share|compar|rival|industry/i },
+  { id:'fund', label:'Company Fundamentals', tip:'FCF, ROIC, debt, PEG, margins, acquisitions, dilution, reverse/forward DCF', brief:'Company fundamentals: free cash flow, ROIC, debt and coverage, PEG ratio, margins, acquisitions, share dilution, and both a reverse DCF (what the price implies) and a forward DCF.', kw:/free cash|\bfcf\b|roic|debt|\bpeg\b|margin|dcf|dilution|acquisition|balance sheet|income statement|cash flow|fundamental|valuation|xbrl/i },
+  { id:'earn', label:'Earning Report', tip:'Past 5 quarters + latest 10-K + recent 8-Ks', brief:'Earnings: the past 5 quarters (revenue, EPS, guidance, surprises), the latest 10-K and the recent 8-K filings.', kw:/earnings|10-?k|8-?k|10-?q|quarter|guidance|\beps\b|transcript|filing|sec\b/i },
+  { id:'ins', label:'Insiders', tip:'Insider buying and selling, ownership', brief:'Insiders: recent Form 4 insider buying and selling, ownership changes and buybacks.', kw:/insider|form 4|13f|ownership|buyback|repurchase|holder/i },
+  { id:'news', label:'News & Politics', tip:'Headlines, regulation, geopolitics', brief:'News and politics: recent headlines, regulation, tariffs, elections, geopolitics and legal issues that could move the stock.', kw:/news|politic|regulat|tariff|election|congress|geopolit|lawsuit|antitrust|sanction/i }
+];
+var RS_FOCUS_DEFAULT = ['macro', 'comps', 'fund'];   // what Auto turns into when the user switches it off
+if(!Array.isArray(RS.focus) || !RS.focus.length) RS.focus = ['auto'];
+function rsFocusOn(id){ return RS.focus.indexOf(id) >= 0; }
+function rsFocusToggle(id){
+  var f = RS.focus.slice();
+  if(id === 'auto') f = rsFocusOn('auto') ? RS_FOCUS_DEFAULT.slice() : ['auto'];
+  else {
+    if(rsFocusOn('auto')) f = [id];
+    else { var i = f.indexOf(id); if(i >= 0) f.splice(i, 1); else f.push(id); }
+    if(!f.length) f = ['auto'];
+  }
+  RS.focus = RS_FOCUS.map(function(x){ return x.id; }).filter(function(x){ return f.indexOf(x) >= 0; });
+  rsSaveCfg();
+  var host = $('rsFocus'); if(host) host.innerHTML = rsFocusHTML();
+  var chip = document.querySelector('.rs-top .status-chip'); if(chip) chip.outerHTML = rsChip();
+}
+function rsFocusHTML(){
+  var chips = RS_FOCUS.map(function(x){
+    return '<button type="button" class="fc' + (rsFocusOn(x.id) ? ' on' : '') + '" data-act="rs-focus" data-f="' + x.id + '" title="' + esc(x.tip) + '" aria-pressed="' + rsFocusOn(x.id) + '">' + esc(x.label) + '</button>';
+  }).join('');
+  var sel = RS_FOCUS.filter(function(x){ return rsFocusOn(x.id); });
+  var tips = rsFocusOn('auto') ? RS_FOCUS[0].tip : sel.filter(function(x){ return x.id === 'fund' || x.id === 'earn'; }).map(function(x){ return x.label + ': ' + x.tip; }).join(' · ');
+  return '<div class="fc-row">' + chips + '</div>' + (tips ? '<div class="fc-tip">' + esc(tips) + '</div>' : '');
+}
+function rsFocusMode(){   // the harness only knows three modes
+  if(rsFocusOn('auto')) return 'auto';
+  return RS.focus.every(function(x){ return x === 'fund' || x === 'earn'; }) ? 'analytical' : 'research';
+}
+function rsFocusBrief(){
+  var sel = RS_FOCUS.filter(function(x){ return rsFocusOn(x.id); });
+  return '\n\nResearch focus:\n' + sel.map(function(x){ return '- ' + x.brief; }).join('\n') +
+    (rsFocusOn('auto') ? '' : '\nUse only these areas; skip the rest.');
+}
+
+/* ---- Task list + progress: planned when a run starts, ticked as the agent finishes each job ---- */
+function rsPlan(){
+  var t = [{ id:'scope', label:'Understand the question' }];
+  if(rsFocusOn('auto')) t.push({ id:'gather', label:'Gather relevant sources' }, { id:'filter', label:'Filter noise from signal' }, { id:'check', label:'Cross-check key facts' });
+  else RS_FOCUS.filter(function(x){ return x.id !== 'auto' && rsFocusOn(x.id); }).forEach(function(x){ t.push({ id:x.id, label:x.label === 'Auto' ? x.label : x.label, kw:x.kw }); });
+  t.push({ id:'write', label:'Write the report' });
+  RS.tasks = t.map(function(x){ return { id:x.id, label:x.label, kw:x.kw || null, st:'todo' }; });
+  RS.cur = 0; RS.round = 0; RS.t0 = Date.now(); RS.planId = String(RS.t0); RS.tasks[0].st = 'active';
+}
+function rsTaskAdvance(to){   // everything before `to` is finished; `to` becomes the active job
+  if(!RS.tasks || to <= RS.cur && RS.tasks[RS.cur].st === 'active') return;
+  to = Math.min(to, RS.tasks.length - 1);
+  for(var i = 0; i < to; i++) RS.tasks[i].st = 'done';
+  if(RS.tasks[to].st !== 'done') RS.tasks[to].st = 'active';
+  RS.cur = Math.max(RS.cur, to);
+}
+function rsTaskEvent(o){
+  if(!RS.tasks) return;
+  var n = RS.tasks.length;
+  if(o.kind === 'round_start'){
+    RS.round = o.round || (RS.round + 1);
+    if(RS.round >= 1) rsTaskAdvance(Math.max(RS.cur, 1));          // scoping is done once research begins
+    if(rsFocusOn('auto')){                                         // no topics to match: advance with the rounds
+      var step = Math.min(n - 2, Math.floor((RS.round - 1) / 2) + 1);
+      rsTaskAdvance(Math.max(RS.cur, step));
+    }
+  } else if(o.kind === 'tool_call' || o.kind === 'phase'){
+    var hay = (o.name || '') + ' ' + (o.label || '') + ' ' + (o.args ? JSON.stringify(o.args) : '');
+    for(var i = RS.tasks.length - 2; i >= 1; i--){
+      if(RS.tasks[i].kw && RS.tasks[i].kw.test(hay)){ rsTaskAdvance(Math.max(RS.cur, i)); break; }
+    }
+    if(/answer|final|report|write/i.test((o.label || '') + (o.name || ''))) rsTaskAdvance(n - 1);
+  } else if(o.kind === 'token' && RS.cur < n - 1 && RS.tokens.length > 200){
+    rsTaskAdvance(n - 1);                                          // the report is being written
+  }
+}
+function rsTaskFinish(ok){
+  if(!RS.tasks) return;
+  RS.tasks.forEach(function(t){ if(ok) t.st = 'done'; else if(t.st === 'active') t.st = 'todo'; });
+  if(ok) RS.cur = RS.tasks.length - 1;
+}
+function rsProgress(){
+  if(!RS.tasks) return 0;
+  var done = RS.tasks.filter(function(t){ return t.st === 'done'; }).length, act = RS.tasks.some(function(t){ return t.st === 'active'; }) ? .5 : 0;
+  return Math.min(1, (done + act) / RS.tasks.length);
+}
+function rsClock(ms){ var s = Math.max(0, Math.round(ms / 1000)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+function rsLiveHTML(){
+  if(!RS.tasks) return '<div id="rsLive" hidden></div>';
+  return '<div id="rsLive" data-plan="' + RS.planId + '"><div class="rs-think"' + (RS.running ? '' : ' hidden') + '>' + (RS.running ? thinkHTML() : '') + '</div>' +
+    '<div class="rs-prog' + (RS.running ? ' run' : '') + '" role="progressbar" aria-valuemin="0" aria-valuemax="100"><i id="rsBar" style="width:' + Math.round(rsProgress() * 100) + '%"></i></div>' +
+    '<div class="rs-pm"><span id="rsPm"></span><span id="rsEl"></span></div>' +
+    '<ul class="rs-tasks" id="rsTasks">' + RS.tasks.map(function(t){ return '<li class="' + t.st + '" data-id="' + t.id + '"><i class="tick"></i><span>' + esc(t.label) + '</span></li>'; }).join('') + '</ul></div>';
+}
+function rsLiveSync(){
+  var live = $('rsLive'); if(!live || !RS.tasks) return;
+  if(live.getAttribute('data-plan') !== RS.planId){ live.outerHTML = rsLiveHTML(); live = $('rsLive'); }   // new run: build the task list once
+  live.hidden = false;
+  var bar = $('rsBar'), p = Math.round(rsProgress() * 100);
+  if(bar) bar.style.width = (RS.running ? Math.min(p, 96) : p) + '%';
+  var pr = live.querySelector('.rs-prog'); if(pr){ pr.classList.toggle('run', !!RS.running); pr.classList.toggle('fin', !RS.running && p === 100); pr.setAttribute('aria-valuenow', p); }
+  var done = RS.tasks.filter(function(t){ return t.st === 'done'; }).length;
+  var pm = $('rsPm'); if(pm) pm.textContent = RS.running ? (done + ' of ' + RS.tasks.length + ' tasks') : (p === 100 ? 'All ' + RS.tasks.length + ' tasks complete' : done + ' of ' + RS.tasks.length + ' tasks');
+  var el = $('rsEl'); if(el) el.textContent = rsClock(((RS.running ? Date.now() : RS.tEnd) || Date.now()) - RS.t0);
+  [].forEach.call(live.querySelectorAll('.rs-tasks li'), function(li, i){ var t = RS.tasks[i]; if(t && li.className !== t.st) li.className = t.st; });
+  var th = live.querySelector('.rs-think');
+  if(th){ if(RS.running && th.hidden){ th.hidden = false; th.innerHTML = thinkHTML(); } else if(!RS.running && !th.hidden){ th.hidden = true; th.innerHTML = ''; } }
+}
+
+/* ---- Collapsed "your question" message while a run is going; result card when it ends ---- */
+function rsFocusLabels(){ return rsFocusOn('auto') ? ['Auto'] : RS_FOCUS.filter(function(x){ return rsFocusOn(x.id); }).map(function(x){ return x.label; }); }
+function rsAskHTML(){
+  return '<div class="rs-ask" id="rsAsk"' + (RS.running ? '' : ' hidden') + '><div class="ra-q" id="rsAskQ">' + esc(RS.question || '') + '</div>' +
+    '<div class="ra-foot"><span class="ra-tags">' + rsFocusLabels().map(function(l){ return '<i>' + esc(l) + '</i>'; }).join('') + '</span>' +
+    '<button class="btn text sm" data-act="rs-cancel">Stop</button></div></div>';
+}
+function rsPlain(t){ return String(t || '').replace(/\s*\[(\d{1,3})\]/g, '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/`([^`]+)`/g, '$1').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/^[#>\-*\s\d.]+/gm, function(m){ return /[-*\d]/.test(m) ? '• ' : ''; }).trim(); }
+function rsSummary(md){
+  md = String(md || ''); var m = md.match(/^#{1,6}\s*(summary|tl;?dr|conclusion|bottom line|verdict|key takeaways?)[^\n]*\n([\s\S]*?)(?=\n#{1,6}\s|(?![\s\S]))/im), body = m ? m[2] : '';
+  if(!body.trim()) body = md.split(/\n/).filter(function(l){ return l.trim() && !/^#{1,6}\s/.test(l) && !/^---/.test(l); }).slice(0, 6).join('\n');
+  var out = rsPlain(body).split(/\n/).filter(Boolean).slice(0, 4).join('\n');
+  return out.length > 520 ? out.slice(0, 520).replace(/\s+\S*$/, '') + '…' : out;
+}
+function rsDoneHTML(){
+  var h = '<div class="rs-done" id="rsResult"><div class="rd-head"><span class="rd-ok"></span>Research complete' +
+    '<span class="rd-meta">' + (RS.meta.elapsedSeconds != null ? RS.meta.elapsedSeconds + 's' : '') + (RS.citations && RS.citations.length ? ' · ' + RS.citations.length + ' sources' : '') + '</span></div>' +
+    '<div class="rd-sum">' + esc(rsSummary(RS.report)).replace(/\n/g, '<br>') + '</div>' +
+    '<button class="rd-dl" data-act="rs-download"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg><span><b>Download report</b><small>Saves a .md file to your Downloads folder</small></span></button>' +
+    '<div class="rd-row"><button class="btn text sm" data-act="rs-copy">Copy report</button></div></div>';
+  return h;
+}
+function rsNew(){
+  RS.report = ''; RS.tokens = ''; RS.citations = []; RS.steps = []; RS.error = null; RS.meta = {}; RS.tasks = null; RS.question = ''; RS.trajPath = null;
+  rsSaveCfg();
+  var pane = $('rsPane'); if(pane) pane.innerHTML = rsPanelHTML();
+  var q = $('rsQ'); if(q) q.focus();
+}
+function rsSyncForm(){
+  var f = $('rsForm'), a = $('rsAsk'); if(!f || !a) return;
+  f.classList.toggle('shut', !!RS.running); a.hidden = !RS.running;
+  var q = $('rsAskQ'); if(q) q.textContent = RS.question || '';
+}
+
 function rsChip(){
   var st = RS.status || {};
   if(RS.running) return '<span class="status-chip live"><i class="dot"></i>researching…</span>';
   if(st.offline) return '<span class="status-chip"><i class="dot"></i>start serve.py to use research</span>';
   if(!st.installed) return '<span class="status-chip"><i class="dot"></i>harness not installed</span>';
-  return '<span class="status-chip live"><i class="dot"></i>harness ready · ' + esc(RS.mode) + '</span>';
+  return '<span class="status-chip live"><i class="dot"></i>harness ready \u00b7 ' + (rsFocusOn('auto') ? 'auto' : RS.focus.length + ' focus areas') + '</span>';
 }
 
 function rsOptsText(){
   var prov = RS.provider || KEYS.provider || 'openrouter';
   var model = ($('rsModel') && $('rsModel').value.trim()) || RS.model || AI_DEFAULT_MODEL[prov] || '';
-  var modeLabels = { auto:'Auto', research:'Web research', analytical:'Numbers first' };
   var eff = RS_EFFORT[rsEffortKey()] || RS_EFFORT.med;
-  return (modeLabels[RS.mode] || 'Auto') + ' · ' + aiProvLabel(prov) + ' · ' +
+  return aiProvLabel(prov) + ' · ' +
     (aiModelLabel(model) || model || 'model') + ' · ' + eff.label;
 }
 function rsOptsSet(open){
@@ -5356,31 +5598,26 @@ function rsPanelHTML(){
   var h = '<div class="section"><div class="card"><h2 class="rs-h">What should we dig into?</h2><div class="section-head rs-top">' + rsChip() +
     '<button class="btn text sm" data-act="rs-runs">Past runs</button>' +
     '<button class="btn text sm" data-act="keys">Keys</button></div>';
-  h += '<div class="rs-grid"><div>' +
+  h += rsAskHTML() + '<div class="rs-form' + (RS.running ? ' shut' : '') + '" id="rsForm"><div><div class="rs-grid"><div>' +
     '<div class="field"><label>Question</label><textarea id="rsQ" rows="4" ' +
     'placeholder="Ask a question \u2014 e.g. Estimate NVDA\'s intrinsic value with a DCF">' +
     esc(RS.question || '') + '</textarea></div>' +
+    '<div class="rs-focus" id="rsFocus">' + rsFocusHTML() + '</div>' +
     '<div class="rs-actions">' +
     '<button class="btn filled sm" data-act="rs-run"' + (RS.running ? ' disabled' : '') + '>' +
     (RS.running ? 'Researching…' : 'Run research') + '</button>' +
-    '<button class="btn text sm" data-act="rs-cancel"' + (RS.running ? '' : ' disabled') + '>Stop</button>' +
     (st.installed ? '' : '<button class="btn sm" data-act="rs-setup">Install harness</button>') +
     '<span class="mut" style="font-size:12px">' + rsHint() + '</span></div></div>';
-  var modes = [['auto','Auto'],['research','Web research'],['analytical','Numbers first']];
   h += '<div id="rsOpts"><button class="ai-pick" id="rsOptsBtn" data-act="rsopts-toggle" aria-expanded="' + (RS.optsOpen ? 'true' : 'false') + '">' +
     '<span class="ap-k">Setup</span><span class="ap-name">' + esc(rsOptsText()) + '</span>' +
     '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15.5 5 8.5 6.4 7.1 12 12.7l5.6-5.6L19 8.5z"/></svg></button>' +
-    '<div class="rs-opts-body"' + (RS.optsOpen ? '' : ' hidden') + '><div class="rs-opts"><label>Mode</label><span class="rs-modes">' +
-    modes.map(function(m){ return '<button type="button" data-act="rs-mode" data-mode="' + m[0] + '"' +
-      (RS.mode === m[0] ? ' class="on"' : '') + '>' + m[1] + '</button>'; }).join('') +
-    '</span></div>' +
+    '<div class="rs-opts-body"' + (RS.optsOpen ? '' : ' hidden') + '>' +
     '<div class="rs-opts"><label>Model</label><button type="button" class="ai-pick" style="flex:1" data-act="rspick-open"><span class="ap-name">' + esc(model) + ' · ' + esc(RS_EFFORT[rsEffortKey()].label) + '</span>' +
     '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15.5 5 8.5 6.4 7.1 12 12.7l5.6-5.6L19 8.5z"/></svg></button></div>' +
     '<div class="rs-opts"><label>Reader</label><input id="rsReader" value="' + esc(RS.readerModel || '') + '" placeholder="optional: cheaper page reader"></div>' +
     '</div><div class="pickmenu" id="pickMenuR" hidden></div></div></div>';
-  h += '<div id="rsLog">' + rsStepsHTML() + '</div><div id="rsReport">' + rsReportHTML() + '</div>' +
-    '<div class="rs-note rs-foot">Runs <a href="' + esc(st.source || '#') + '" target="_blank" rel="noopener">Google Research\'s FinanceHarness</a> ' +
-    'locally with your own model key: it searches the web, cites sources and can build a DCF. Licence CC BY-NC 4.0 \u2014 <b>non-commercial use only</b>.</div>' +
+  h += '</div></div>';
+  h += rsLiveHTML() + '<details class="rs-details" id="rsDetails"' + (RS.steps.length ? '' : ' hidden') + '><summary>Activity</summary><div id="rsLog">' + rsStepsHTML() + '</div></details><div id="rsReport">' + rsReportHTML() + '</div>' +
     '</div></div>';
   return h;
 }
@@ -5449,6 +5686,7 @@ function rsReportHTML(){
   var h = '';
   if(RS.error) h += '<div class="msg err" style="margin-top:12px"><b>Research failed</b><br>' + esc(RS.error) + '</div>';
   if(!body && !RS.error) return h;
+  if(!RS.running && !RS.error && body) h = rsDoneHTML() + h;
   h += '<div class="rs-report" id="rsReportBody">' + rsMarkdown(body) + (RS.running ? '<span class="mut">▍</span>' : '') + '</div>';
   if(RS.citations && RS.citations.length){
     h += '<div class="rs-cites"><h5>Sources (' + RS.citations.length + ')</h5><ol>' +
@@ -5458,8 +5696,6 @@ function rsReportHTML(){
       }).join('') + '</ol></div>';
   }
   h += '<div class="rs-actions">' +
-    '<button class="btn text sm" data-act="rs-copy">Copy report</button>' +
-    '<button class="btn text sm" data-act="rs-download">Download .md</button>' +
     (RS.trajPath ? '<span class="mut" style="font-size:11.5px">trajectory: ' + esc(RS.trajPath.split('/').pop()) + '</span>' : '') +
     '</div>';
   return h;
@@ -5470,6 +5706,7 @@ function rsSyncButtons(){
   var stop = document.querySelector('[data-act="rs-cancel"]');
   if(run){ run.disabled = RS.running; run.textContent = RS.running ? 'Researching…' : 'Run research'; }
   if(stop) stop.disabled = !RS.running;
+  var nr = $('newResBtn'); if(nr){ nr.disabled = !!RS.running; nr.title = RS.running ? 'Available when this research finishes' : 'Start a new research'; }
 }
 function rsPaint(){
   var log = $('rsLog');
@@ -5480,6 +5717,8 @@ function rsPaint(){
   var hintEl = document.querySelector('.rs-actions .mut');
   if(hintEl) hintEl.innerHTML = rsHint();
   log.innerHTML = rsStepsHTML();
+  rsLiveSync(); rsSyncForm();
+  var dt = $('rsDetails'); if(dt) dt.hidden = !RS.steps.length;
   var rep = $('rsReport');
   if(rep) rep.innerHTML = rsReportHTML();
   var card = log.closest('.card');
@@ -5517,11 +5756,15 @@ function rsFrame(o){
     RS.meta = Object.assign(RS.meta, { rounds:o.rounds, elapsedSeconds:o.elapsedSeconds, termination:o.termination });
     RS.trajPath = o.trajectoryPath || null;
     if(o.termination && o.termination !== 'answer') RS.error = RS.error || ('the agent stopped early (' + o.termination + ')');
-    return rsPaint();
+    rsTaskFinish(!RS.error); RS.tEnd = Date.now(); RS.running = false; thinkStop('rs');
+    rsPaint();
+    setTimeout(function(){ var r = $('rsResult'); if(r) r.scrollIntoView({ behavior:'smooth', block:'start' }); }, 350);   // bring the result and download button into view
+    return;
   }
   if(o.type === 'exit'){ RS.running = false; return rsPaintSoon(); }
   if(o.type !== 'event') return;
   var k = o.kind;
+  rsTaskEvent(o);
   if(k === 'round_start'){ rsStep('round', 'Round ' + (o.round || '')); }
   else if(k === 'tool_call'){ rsStep('tool', rsToolLabel(o.name)); }
   else if(k === 'tool_result'){
@@ -5548,12 +5791,15 @@ function rsRun(){
   if(prov === 'anthropic'){ toast('Anthropic is not OpenAI-compatible — pick OpenRouter for Claude'); return; }
   if(!KEYS.key && prov !== 'custom' && prov !== 'gemini'){ toast('Add your API key under Keys first'); return; }
   if(prov === 'gemini' && !KEYS.key){ toast('Gemini needs an API key'); return; }
-  RS.running = true; RS.steps = []; RS.report = ''; RS.tokens = ''; RS.error = null;
+  var model = RS.model;
+  RS.running = true; RS.steps = []; RS.report = ''; RS.tokens = ''; RS.error = null; RS.tEnd = 0;
+  rsPlan(); thinkStart('rs');
+  clearInterval(RS.clock); RS.clock = setInterval(function(){ if(RS.running) rsLiveSync(); else clearInterval(RS.clock); }, 1000);
   RS.citations = []; RS.trajPath = null; RS.meta = {};
   rsStep('round', 'Starting FinanceHarness', prov + ' · ' + (model || 'default model'));
   rsPaint();
   var body = {
-    question:RS.question, mode:RS.mode, provider:prov, model:model,
+    question:RS.question + rsFocusBrief(), mode:rsFocusMode(), provider:prov, model:model,
     readerModel:RS.readerModel, apiKey:KEYS.key || '', baseUrl:KEYS.url || '',
     temperature:RS_EFFORT[rsEffortKey()].t, maxTokens:RS_EFFORT[rsEffortKey()].mt,
     streamTokens:true
@@ -5584,7 +5830,8 @@ function rsRun(){
     if(e && e.name === 'AbortError'){ rsStep('log', 'Stopped by you'); }
     else { RS.error = String((e && e.message) || e); rsStep('log', 'Error: ' + RS.error, null, false); }
   }).then(function(){
-    RS.running = false;
+    RS.running = false; if(!RS.tEnd) RS.tEnd = Date.now(); thinkStop('rs'); rsLogSave();
+    if(RS.tasks && !RS.error && RS.report) rsTaskFinish(true); else if(RS.tasks) rsTaskFinish(false);
     rsFetchStatus();
     rsPaint();
   });
@@ -5703,14 +5950,20 @@ function rsCopy(){
 function rsDownload(){
   var text = RS.report || RS.tokens || '';
   if(!text){ toast('Nothing to download yet'); return; }
-  var head = '# ' + (RS.question || 'Research') + '\n\n';
-  var blob = new Blob([head + text], { type:'text/markdown' });
+  var day = new Date().toISOString().slice(0, 10);
+  var slug = (RS.question || 'research').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 6).join('-') || 'research';
+  var head = '# ' + (RS.question || 'Research') + '\n\n_MercerFargo Deep Research · ' + day + ' · focus: ' + rsFocusLabels().join(', ') + '_\n\n';
+  var cites = (RS.citations && RS.citations.length) ? '\n\n## Sources\n' + RS.citations.map(function(c){ return c.index + '. ' + (c.title || c.url) + ' — ' + c.url; }).join('\n') : '';
+  var foot = '\n\n---\nFor informational purposes only — not financial advice. Do your own research. AI can make mistakes.\n';
+  var blob = new Blob([head + text + cites + foot], { type:'text/markdown;charset=utf-8' });
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'research-' + (RS.meta.runId || Date.now()) + '.md';
+  a.download = 'MercerFargo-Research_' + slug + '_' + day + '.md';
   document.body.appendChild(a); a.click();
   setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  toast('Report saved to your Downloads folder');
 }
+
 function rsSetMode(mode){
   RS.mode = mode; rsSaveCfg();
   var host = document.querySelector('.rs-modes');
@@ -5790,7 +6043,10 @@ function bindEvents(){
       case 'rspick-open': openPicker('rs'); break;
       case 'aipick-toggle': openPicker('keys'); break;
       case 'rsopts-toggle': rsOptsSet(!RS.optsOpen); break;
-      case 'rs-mode': rsSetMode(el.getAttribute('data-mode')); break;
+      case 'rs-new': rsNew(); break;
+      case 'rs-log-open': rsLogOpen(el.getAttribute('data-id')); break;
+      case 'rs-log-del': RLOG = RLOG.filter(function(x){ return x.id !== el.getAttribute('data-id'); }); save('fh3_rruns', RLOG); rsResearchRuns(); break;
+      case 'rs-focus': rsFocusToggle(el.getAttribute('data-f')); break;
       case 'rs-seed': rsSeed(el.getAttribute('data-sym')); break;
       case 'list-rename': renameWatchlist(el.getAttribute('data-id')); break;
       case 'rs-panel': rsOpenPanel('research'); break;
