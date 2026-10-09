@@ -150,6 +150,18 @@ or any OpenAI-compatible endpoint. Keys live only in this browser's localStorage
 bull vs bear, earnings take, valuation check, risk scan, compare, screener read,
 market summary. The model is told to label assumptions and never to invent figures.
 
+**Skills (type `/` in the Agent box)** — Marvell can run reusable skills written as
+`SKILL.md` files (the [Agent Skills](https://agentskills.io/specification) format: YAML
+frontmatter with `name` and `description`, then Markdown steps).
+
+* **Upload**: type `/` and press *Upload SKILL.md*, or go to Settings → Skills. Max 200 KB each.
+* **Run**: `/skill-name your question`. Arrow keys + Enter pick from the menu.
+* **`/learn`** (built in): describe a finance skill in plain words, or attach notes, and Marvell
+  drafts a `SKILL.md`. You preview it and press *Save skill*. Non-finance requests are declined.
+* **`/skills`** (built in): opens the manager (edit, delete, upload).
+* Skills live in this browser's localStorage (`fh3_skills`). A skill sets the method and format
+  only: it can't change app settings, and Marvell's data-only rules still apply.
+
 **OpenCode Zen / Go** is supported as its own provider (one `oc_sk-…` key works for
 **OpenCode** is supported as **two** providers, because the endpoints differ:
 
