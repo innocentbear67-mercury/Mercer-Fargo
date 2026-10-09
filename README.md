@@ -158,6 +158,9 @@ frontmatter with `name` and `description`, then Markdown steps).
 * **Run**: `/skill-name your question`. Arrow keys + Enter pick from the menu.
 * **`/learn`** (built in): describe a finance skill in plain words, or attach notes, and Marvell
   drafts a `SKILL.md`. You preview it and press *Save skill*. Non-finance requests are declined.
+* **Deep Research**: skills work there too (`/skill-name your research question`). `/learn` does not:
+  the research harness can't create skills, so typing `/learn …` in Deep Research opens a new Agent
+  session and drafts the skill there automatically.
 * **`/skills`** (built in): opens the manager (edit, delete, upload).
 * Skills live in this browser's localStorage (`fh3_skills`). A skill sets the method and format
   only: it can't change app settings, and Marvell's data-only rules still apply.
