@@ -9,3 +9,4 @@ harness/
 
 # Cloudflare wrangler cache (holds account id and email)
 worker/.wrangler/
+scripts/.figi-cache.json

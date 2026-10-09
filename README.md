@@ -113,6 +113,20 @@ nothing else. It never stores or logs your data.
 
 ---
 
+### Smart Money
+
+`#/investors` (left rail, collapsible) tracks eleven well-known portfolios: a top-10 donut and a full list per
+investor, with story and philosophy pages. Holdings live in `assets/gurus/holdings.json`:
+
+- Buffett, Burry, Ackman, Wood, Soros, Dalio, Li Lu, Marks, and Jensen Huang (NVIDIA Corp's own
+  portfolio): each filer's latest 13F-HR on SEC
+  EDGAR, CUSIPs mapped to tickers with OpenFIGI (fallback: SEC's ticker list by name).
+- Pelosi and Trump don't file 13Fs. `assets/gurus/disclosures.json` holds their House / OGE
+  disclosures at the midpoint of each value range, so the weights are estimates.
+
+Refresh after each 13F deadline (mid-Feb, May, Aug, Nov): `python3 scripts/fetch_13f.py`.
+Company logos load from financialmodelingprep.com; a missing logo falls back to the ticker.
+
 ## What is implemented
 
 **Layout** — Google-style app bar (hamburger, wordmark, search, market status chip,

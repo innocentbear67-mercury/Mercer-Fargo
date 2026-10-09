@@ -1306,6 +1306,127 @@ html{overflow-x:clip}
   #tour .tr-hole,#tour .tr-dim{transition:none}
   #tour .tr-hole::after,#tour .tr-arrow svg,#tour .tr-bubble.in{animation:none;opacity:1}
 }
+/* ---------- Famous investors ------------------------------------------- */
+/* Pie slots: the dataviz reference palette + two validated extras (both modes pass the six checks). */
+:root{--gp1:#2a78d6;--gp2:#eb6834;--gp3:#1baf7a;--gp4:#eda100;--gp5:#e87ba4;--gp6:#008300;--gp7:#4a3aa7;--gp8:#e34948;--gp9:#1593b5;--gp10:#9a6424}
+[data-theme="dark"]{--gp1:#3987e5;--gp2:#d95926;--gp3:#199e70;--gp4:#c98500;--gp5:#d55181;--gp6:#008300;--gp7:#9085e9;--gp8:#e66767;--gp9:#2aa3c9;--gp10:#a8742a}
+.rail a.rail-item{text-decoration:none}
+.rail .rail-toggle{width:100%;border:0;background:transparent;cursor:pointer;border-radius:10px}
+.rail .rail-toggle:hover{color:var(--fh-foreground-on-surface-emphasis)}
+.rail .rail-toggle span:last-child{display:inline-flex;align-items:center;gap:4px}
+.rail .rail-toggle .chev{transition:transform .25s}
+.rail .rail-toggle[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+.rail-fold{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,.8,.2,1)}
+.rail-fold.open{grid-template-rows:1fr}
+.rail-fold>div{overflow:hidden;min-height:0}
+.rail .guru-item img{width:26px;height:26px;border-radius:50%;object-fit:cover;flex:0 0 auto;background:#000;transition:transform .2s}
+.rail .guru-item:hover img{transform:scale(1.12)}
+.gu-logo{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:28px;height:28px;border-radius:7px;
+  background:#fff;overflow:hidden;font-size:11px;font-weight:600;color:#1a2e50}
+.gu-logo::before{content:attr(data-l)}
+.gu-logo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:2px;background:#fff}
+.gu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.gu-card{display:flex;flex-direction:column;border:1px solid var(--fh-border-stroke-default);border-radius:16px;overflow:hidden;
+  background:var(--fh-background-surface);color:inherit;transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s,border-color .3s;
+  animation:guIn .55s both;animation-delay:var(--d,0ms)}
+.gu-card:hover{transform:translateY(-5px);box-shadow:var(--fh-elevation-3);border-color:var(--fh-colors-and-accents-primary);text-decoration:none}
+.gu-card .ph{position:relative;aspect-ratio:1/1;background:#000;overflow:hidden}
+.gu-card .ph img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.gu-card:hover .ph img{transform:scale(1.06)}
+.gu-tag{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11.5px;letter-spacing:.3px;background:var(--mf-navy);color:#f3e9d6;border:1px solid rgba(193,165,120,.45)}
+.gu-card .ph .gu-tag{position:absolute;left:10px;bottom:10px}
+.gu-card .bd{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px}
+.gu-card .nm{font-family:var(--mf-serif);font-size:19px;color:var(--fh-foreground-on-surface-emphasis)}
+.gu-card .fm,.gu-sub{font-size:12.5px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.gu-card .tops{display:flex;gap:6px;margin-top:8px;align-items:center}
+.gu-card .tops .more{font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis);margin-left:2px}
+.gu-hero{display:grid;grid-template-columns:180px minmax(0,1fr);gap:24px;align-items:center;padding:22px;border-radius:20px;
+  background:linear-gradient(120deg,var(--mf-navy) 0%,var(--fh-background-surface) 75%);border:1px solid var(--fh-border-stroke-default);animation:guIn .5s both}
+.gu-hero .av{width:180px;height:180px;border-radius:50%;object-fit:cover;background:#000;box-shadow:0 0 0 3px var(--mf-gold),var(--fh-elevation-3);animation:guPop .7s cubic-bezier(.2,.8,.2,1.2) both}
+.gu-hero h2{font-family:var(--mf-serif);font-size:34px;line-height:1.15;margin:8px 0 2px;color:var(--fh-foreground-on-surface-emphasis)}
+.gu-hero .tl{font-size:15px;margin:6px 0 12px;color:var(--fh-foreground-on-surface-default)}
+:root:not([data-theme="dark"]) .gu-hero{background:linear-gradient(120deg,var(--mf-navy) 0%,#2d4a78 100%)}
+:root:not([data-theme="dark"]) .gu-hero h2,:root:not([data-theme="dark"]) .gu-hero .tl,:root:not([data-theme="dark"]) .gu-hero .gu-sub{color:#fffdf7}
+.gu-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:14px}
+.gu-stat{padding:10px 12px;border-radius:12px;background:var(--fh-background-surface);border:1px solid var(--fh-border-stroke-default)}
+.gu-stat b{display:block;font-size:19px;font-weight:500;color:var(--fh-foreground-on-surface-emphasis)}
+.gu-stat span{font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.gu-seg{display:inline-flex;border:1px solid var(--fh-border-stroke-emphasis);border-radius:18px;padding:2px}
+.gu-seg button{border:0;background:transparent;padding:6px 14px;border-radius:16px;font-size:13.5px;color:var(--fh-foreground-on-surface-default)}
+.gu-seg button.on{background:var(--fh-states-branded-medium-selected);color:var(--fh-foreground-on-highlight);font-weight:500}
+.gu-pie-wrap{display:flex;gap:28px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.gu-pie{flex:0 0 auto;max-width:100%;height:auto;overflow:visible}
+.gu-sweep{animation:guSweep 1.1s cubic-bezier(.3,.7,.2,1) forwards}
+.gu-slice{cursor:pointer;transition:transform .28s cubic-bezier(.2,.8,.2,1.3),opacity .2s;stroke:var(--fh-background-surface);stroke-width:2}
+.gu-slice.on{transform:translate(var(--dx),var(--dy))}
+.gu-pie.hov .gu-slice:not(.on){opacity:.4}
+.gu-pie .ctr{transition:opacity .2s}
+.gu-legend{flex:1;min-width:240px;display:grid;gap:2px}
+.gu-leg{display:grid;grid-template-columns:12px 28px 62px minmax(0,1fr) 58px;gap:10px;align-items:center;padding:6px 8px;border-radius:10px;
+  color:inherit;font-size:13.5px;animation:guIn .45s both;animation-delay:var(--d,0ms)}
+.gu-leg:hover,.gu-leg.on{background:var(--fh-states-neutral-hovered);text-decoration:none}
+.gu-leg .sw{width:12px;height:12px;border-radius:3px}
+.gu-leg .tk,.gu-row .tk{font-weight:600;color:var(--fh-foreground-on-surface-emphasis)}
+.gu-leg .cn,.gu-row .cn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fh-foreground-on-surface-de-emphasis)}
+.gu-leg .wt,.gu-row .wt{text-align:right;font-variant-numeric:tabular-nums}
+.gu-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 6px}
+.gu-tools input{flex:1;min-width:160px;max-width:320px;padding:8px 14px;border-radius:18px;border:1px solid var(--fh-border-stroke-emphasis);background:var(--fh-background-surface);color:inherit;font-size:13.5px}
+.gu-list{display:grid;gap:1px}
+.gu-row{display:grid;grid-template-columns:30px 28px 70px minmax(90px,1.1fr) minmax(80px,2fr) 62px 76px;gap:10px;align-items:center;
+  padding:7px 8px;border-radius:10px;color:inherit;font-size:13.5px;transition:background .15s,transform .2s}
+.gu-row:hover{background:var(--fh-states-neutral-hovered);transform:translateX(3px);text-decoration:none}
+.gu-row .rk{font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis);text-align:right;font-variant-numeric:tabular-nums}
+.gu-row .vl{text-align:right;font-size:12.5px;color:var(--fh-foreground-on-surface-de-emphasis);font-variant-numeric:tabular-nums}
+.gu-bar{height:10px;border-radius:0 4px 4px 0;background:var(--fh-border-stroke-default);overflow:hidden}
+.gu-bar i{display:block;height:100%;width:0;border-radius:0 4px 4px 0;background:var(--bc,var(--fh-colors-and-accents-primary));
+  animation:guBar .9s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--d,0ms);transition:filter .15s}
+.gu-row:hover .gu-bar i{filter:brightness(1.25) saturate(1.2)}
+.gu-pc{display:inline-block;margin-left:6px;padding:0 6px;border-radius:8px;font-size:10.5px;font-weight:600;vertical-align:1px;background:var(--fh-states-neutral-hovered);color:var(--fh-foreground-on-surface-default)}
+.gu-row .cn .gu-pc{margin:0 6px 0 0}
+.gu-pc.put{background:rgba(227,73,72,.18);color:#e66767}
+.gu-pc.call{background:rgba(27,175,122,.18);color:#1baf7a}
+.gu-tip{position:fixed;z-index:200;pointer-events:none;min-width:200px;max-width:280px;padding:12px 14px;border-radius:14px;
+  background:var(--fh-background-surface);border:1px solid var(--fh-border-stroke-emphasis);box-shadow:var(--fh-elevation-3);
+  opacity:0;transform:translateY(6px) scale(.92);transform-origin:left bottom;transition:opacity .15s,transform .2s cubic-bezier(.2,.8,.2,1.4)}
+.gu-tip.on{opacity:1;transform:none}
+.gu-tip .hd{display:flex;gap:10px;align-items:center}
+.gu-tip .gu-logo{width:40px;height:40px;border-radius:10px;font-size:14px}
+.gu-tip .tk{font-weight:600;font-size:15px;color:var(--fh-foreground-on-surface-emphasis)}
+.gu-tip .cn{font-size:12.5px;color:var(--fh-foreground-on-surface-de-emphasis);line-height:1.3}
+.gu-tip .w{font-size:26px;font-weight:500;margin:8px 0 2px;color:var(--fh-foreground-on-surface-emphasis);font-variant-numeric:tabular-nums}
+.gu-tip .w small{font-size:12px;font-weight:400;color:var(--fh-foreground-on-surface-de-emphasis)}
+.gu-tip .ln{font-size:12.5px;color:var(--fh-foreground-on-surface-de-emphasis);font-variant-numeric:tabular-nums}
+.gu-story p{margin:0 0 12px;line-height:1.65}
+.gu-quote{margin:14px 0 4px;padding:14px 18px;border-left:3px solid var(--mf-gold);font-family:var(--mf-serif);font-size:19px;line-height:1.45;color:var(--fh-foreground-on-surface-emphasis)}
+.gu-quote cite{display:block;margin-top:6px;font-family:inherit;font-style:normal;font-size:12.5px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.gu-ph{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.gu-ph .card{animation:guIn .5s both;animation-delay:var(--d,0ms);transition:transform .25s,border-color .25s}
+.gu-ph .card:hover{transform:translateY(-3px);border-color:var(--fh-colors-and-accents-primary)}
+.gu-ph .n{font-family:var(--mf-serif);font-size:26px;color:var(--mf-gold);line-height:1}
+.gu-ph h4{margin:8px 0 4px;font-size:15px;color:var(--fh-foreground-on-surface-emphasis)}
+.gu-ph p{margin:0;font-size:13.5px;line-height:1.55;color:var(--fh-foreground-on-surface-default)}
+.gu-facts{margin:0;padding-left:18px;line-height:1.7}
+.gu-nav{display:flex;justify-content:space-between;gap:12px;margin-top:8px}
+.gu-nav a{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 8px;border-radius:24px;border:1px solid var(--fh-border-stroke-default);color:inherit}
+.gu-nav a:hover{border-color:var(--fh-colors-and-accents-primary);text-decoration:none}
+.gu-nav img{width:34px;height:34px;border-radius:50%;object-fit:cover;background:#000}
+.gu-crowd{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.gu-crowd a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--fh-border-stroke-default);color:inherit;animation:guIn .45s both;animation-delay:var(--d,0ms)}
+.gu-crowd a:hover{border-color:var(--fh-colors-and-accents-primary);text-decoration:none}
+.gu-crowd .who{display:flex;margin-left:auto}
+.gu-crowd .who img{width:22px;height:22px;border-radius:50%;object-fit:cover;background:#000;border:2px solid var(--fh-background-surface);margin-left:-7px}
+@keyframes guIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes guPop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
+@keyframes guSweep{to{stroke-dashoffset:0}}
+@keyframes guBar{to{width:var(--w)}}
+@media (prefers-reduced-motion:reduce){ .gu-bar i{width:var(--w)} .gu-sweep{stroke-dashoffset:0!important} }
+@media (max-width:760px){
+  .gu-hero{grid-template-columns:1fr;text-align:center;justify-items:center}
+  .gu-hero .av{width:130px;height:130px}
+  .gu-row{grid-template-columns:28px 64px minmax(0,1fr) 56px;gap:8px}
+  .gu-row .rk,.gu-row .cn,.gu-row .vl{display:none}
+  .gu-leg{grid-template-columns:12px 28px 56px minmax(0,1fr) 52px}
+}
 </style>
   </head>
   <body>
@@ -2812,6 +2933,7 @@ function parseRoute(){
   if(name === 'compare') return { name:'compare' };
   if(name === 'earnings') return { name:'earnings' };
   if(name === 'research') return { name:'research' };
+  if(name === 'investors') return { name:'investors', id:parts[1] || '' };
   if(name === 'keys') return { name:'settings', sec:'ai' };
   if(name === 'feedback' || name === 'help') return { name:'contact', kind:name };
   if(name === 'settings') return { name:'settings', sec:parts[1] || 'profile' };
@@ -2827,8 +2949,10 @@ function route(){
   if(r.name === 'list') CUR.list = r.id;
   if(r.name === 'portfolio') CUR.pf = r.id;
   if(r.name === 'markets') CFG.market = r.group;
+  if(r.name === 'investors') CUR.guru = r.id;
   renderSubnav();
   renderRail();
+  if($('guTip')) $('guTip').classList.remove('on');
   window.scrollTo({ top:0 });
   var p;
   if(r.name === 'home') p = renderHome();
@@ -2841,6 +2965,7 @@ function route(){
   else if(r.name === 'earnings') p = renderEarnings();
   else if(r.name === 'settings') p = renderSettingsPage(r.sec);
   else if(r.name === 'contact') p = renderContactPage(r.kind);
+  else if(r.name === 'investors') p = renderInvestors(r.id);
   else p = renderResearchPage();
   return Promise.resolve(p).then(function(){
     if(seq === routeSeq) renderRail();
@@ -2908,6 +3033,18 @@ function renderRail(){
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8l-2-2z"/></svg>' +
       '<span class="lbl">' + esc(p.name) + '</span><span class="cnt">' + p.holdings.length + '</span></button>';
   });
+  var smOpen = load('fh3_smart_open', true);
+  html += '<button class="rail-head rail-toggle" data-act="smart-toggle" aria-expanded="' + smOpen + '" aria-controls="smartList"><span>Smart Money</span>' +
+    '<span>' + GURUS.length + '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15.5 5 8.5 6.4 7.1 12 12.7l5.6-5.6L19 8.5z"/></svg></span></button>';
+  html += '<div class="rail-fold' + (smOpen ? ' open' : '') + '" id="smartList"><div>';
+  html += '<a class="rail-item' + (CUR.view === 'investors' && !CUR.guru ? ' on' : '') + '" href="#/investors">' +
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3zm-8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 2 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z"/></svg>' +
+    '<span class="lbl">All investors</span></a>';
+  GURUS.forEach(function(g){
+    html += '<a class="rail-item guru-item' + (CUR.view === 'investors' && CUR.guru === g.id ? ' on' : '') + '" href="#/investors/' + g.id + '">' +
+      '<img src="' + guruImg(g) + '" alt="" loading="lazy"><span class="lbl">' + esc(g.name) + '</span></a>';
+  });
+  html += '</div></div>';
   html += '<div class="rail-head"><span>Sectors</span></div>';
   SECTORS.forEach(function(s){
     html += '<a class="sect-link" href="#/screener" data-act="sector" data-sector="' + esc(s) + '">' + esc(s) + '</a>';
@@ -3628,6 +3765,334 @@ function concentrationHTML(st){
     '<span>Top 3: <b>' + num(top3 / (st.total || 1) * 100, 1) + '%</b></span>' +
     '<span>HHI: <b>' + num(hhi, 3) + '</b></span></div>' +
     '<div class="mut" style="font-size:12px;margin-top:8px">Tile colour shows total return per position.</div>';
+}
+
+/* -------------------------------------------------------- famous investors */
+/* Holdings come from assets/gurus/holdings.json, rebuilt by scripts/fetch_13f.py from SEC EDGAR
+   (13F-HR) plus the House / OGE disclosures for Pelosi and Trump. */
+
+var GURUS = [
+  { id:'buffett', name:'Warren Buffett', firm:'Berkshire Hathaway', tag:'Value', tl:'The Oracle of Omaha: buys wonderful businesses at fair prices and holds them for decades.',
+    born:'1930 · Omaha, Nebraska',
+    story:['Buffett bought his first stock at 11 and studied under Benjamin Graham at Columbia, the father of value investing. He ran an investment partnership from 1956 and in 1965 took control of Berkshire Hathaway, a failing New England textile mill.',
+      'He turned that mill into one of the world\'s largest companies: insurance (GEICO and its float), BNSF Railway, Berkshire Hathaway Energy and a large stock portfolio. Berkshire\'s compounded gain in book value and share price over six decades is the best-known record in investing.',
+      'Buffett stepped down as CEO at the end of 2025 and Greg Abel took over in January 2026. Buffett remains chairman. The 13F below is Berkshire\'s equity portfolio.'],
+    ph:[['Moats','Own businesses with durable competitive advantages that let them keep high returns on capital for a long time.'],
+      ['Price is what you pay','Value is what you get. Mr. Market\'s mood swings are a chance to buy cheaply, not a guide.'],
+      ['Circle of competence','Stay inside what you understand. Knowing where your knowledge ends matters more than how wide it is.'],
+      ['Forever holding period','Great companies compound. Low turnover means fewer mistakes, lower taxes and less friction.']],
+    q:['Be fearful when others are greedy and greedy when others are fearful.','1986 shareholder letter'],
+    facts:['Still lives in the Omaha house he bought in 1958 for $31,500.','Berkshire\'s annual meeting draws so many people it is called "Woodstock for Capitalists".','Co-founded the Giving Pledge with Bill and Melinda Gates in 2010.'] },
+  { id:'burry', name:'Michael Burry', firm:'Scion Asset Management', tag:'Contrarian', tl:'The doctor who shorted the 2008 housing bubble and keeps betting against the crowd.',
+    born:'1971 · San Jose, California',
+    story:['Burry trained as a physician and was a neurology resident at Stanford when his value-investing posts on early internet message boards drew a following. He left medicine and founded Scion Capital in 2000.',
+      'In 2005 he bought credit default swaps against subprime mortgage bonds, years before the crash. Investors revolted while he waited. When the housing market collapsed in 2007 and 2008 the bet paid off hugely. Christian Bale played him in The Big Short (2015).',
+      'In late 2025 Burry deregistered Scion as an investment adviser and stopped managing outside money, so its Q3 2025 13F is the last one. That filing showed large put options on Palantir and Nvidia, a bet against the AI trade.'],
+    ph:[['Read the filings','Do the primary research yourself. The edge is in the footnotes nobody else reads.'],
+      ['Margin of safety','Buy assets well below conservative estimates of value, so being wrong costs less.'],
+      ['Be early, be alone','Big mispricings exist because the crowd disagrees. Expect to look wrong for a long time.'],
+      ['Asymmetric bets','Use options and swaps when the downside is capped and the payoff is large.']],
+    facts:['Lost his left eye to cancer as a child and wears a glass eye.','Taught himself investing while working long hospital shifts.','Puts in a 13F are reported at the value of the underlying shares, so they can dominate the weights.'] },
+  { id:'ackman', name:'Bill Ackman', firm:'Pershing Square Capital', tag:'Activist', tl:'A concentrated activist who buys big stakes in great companies and pushes for change.',
+    born:'1966 · Chappaqua, New York',
+    story:['Ackman co-founded Gotham Partners after Harvard Business School and launched Pershing Square in 2004. He runs a portfolio of usually eight to twelve large positions and often takes board seats to push management.',
+      'His record has big wins and big losses. General Growth Properties, Chipotle and Hilton made fortunes. A long short of Herbalife and the Valeant collapse cost billions. In March 2020 a roughly $27 million credit hedge returned about $2.6 billion as COVID hit markets.',
+      'In 2025 Pershing Square invested about $900 million in Howard Hughes Holdings, with a plan to turn it into a diversified holding company along Berkshire\'s lines.'],
+    ph:[['Concentrate','A few simple, predictable, free-cash-flow businesses are better than a long list of average ones.'],
+      ['Engage','Owners can push for better strategy, capital allocation and governance, and should.'],
+      ['Durable growth','Look for pricing power, high barriers to entry and long runways for reinvestment.'],
+      ['Hedge the tail','Cheap insurance against market crashes protects the long book when it matters.']],
+    facts:['Pershing Square Holdings trades publicly in Amsterdam and London.','He posts long essays about markets and politics on X.','Made one of the largest pandemic trades in history with the 2020 credit hedge.'] },
+  { id:'wood', name:'Cathie Wood', firm:'ARK Invest', tag:'Innovation', tl:'Bets on disruptive technology with a five-year view and publishes her trades daily.',
+    born:'1955 · Los Angeles, California',
+    story:['Wood spent 12 years at AllianceBernstein and co-founded Tupelo Capital before starting ARK Invest in 2014. She built the firm around actively managed, transparent ETFs focused on one idea: disruptive innovation.',
+      'ARK\'s flagship ARK Innovation ETF (ARKK) gained roughly 150% in 2020 and became a symbol of the growth boom, then lost most of that in 2021 and 2022. Wood kept buying her highest-conviction names through the drawdown.',
+      'ARK publishes its holdings every day and trade notices every evening. The 13F covers all of ARK\'s ETFs and funds, which is why it has so many names.'],
+    ph:[['Disruptive innovation','AI, robotics, energy storage, multiomics and blockchain are converging and will reshape the economy.'],
+      ['Five-year horizon','Value companies on where they could be in five years, not on next quarter.'],
+      ['Wright\'s Law','Costs fall by a steady percentage each time cumulative production doubles. That drives adoption.'],
+      ['Open research','Publish models and trades openly and let the market argue with them.']],
+    facts:['ARK\'s annual Big Ideas report is free and widely read.','Named the firm after the Ark of the Covenant.','Tesla has been a cornerstone position for most of ARK\'s history.'] },
+  { id:'pelosi', name:'Nancy Pelosi', firm:'U.S. House of Representatives', tag:'Congress', tl:'The former Speaker whose family\'s tech-heavy trades are the most-watched in Congress.',
+    born:'1940 · Baltimore, Maryland',
+    story:['Pelosi has represented San Francisco since 1987 and was the first woman to serve as Speaker of the House (2007 to 2011 and 2019 to 2023). In November 2025 she said she would not seek re-election in 2026.',
+      'The trades are made by her husband, Paul Pelosi, a venture capitalist and investor. Under the STOCK Act they must be disclosed within 45 days, in broad dollar ranges. Retail traders follow the filings closely, and an ETF (NANC) tracks Democratic members\' trades.',
+      'This portfolio is not a 13F. It is built from the 2025 annual disclosure plus 2026 transaction reports, using the midpoint of each dollar range. Treat the weights as estimates.'],
+    ph:[['Mega-cap tech','Most of the book sits in a handful of large technology and platform companies.'],
+      ['Long-dated calls','Deep in-the-money LEAPS calls add leverage on high-conviction names, later exercised into stock.'],
+      ['Let winners run','Big positions in Apple, Nvidia, Microsoft and Alphabet have been held for years.'],
+      ['Tax-aware giving','Appreciated shares are given to a donor-advised fund instead of sold.']],
+    q:['We\'re a free-market economy. They should be able to participate in that.','On members trading stocks, December 2021'],
+    facts:['Disclosures give value ranges, such as $5M to $25M, not exact amounts.','The family also owns real estate, a vineyard and private stakes that are not shown here.','2026 filings added Bloom Energy, Intel and Uber positions.'] },
+  { id:'soros', name:'George Soros', firm:'Soros Fund Management', tag:'Macro', tl:'The man who broke the Bank of England, and the theorist of reflexive markets.',
+    born:'1930 · Budapest, Hungary',
+    story:['Soros survived the Nazi occupation of Hungary, emigrated to England in 1947 and studied at the London School of Economics under the philosopher Karl Popper. He moved to New York in 1956 to work in arbitrage.',
+      'With Jim Rogers he launched what became the Quantum Fund in 1973, one of the best-performing hedge funds ever. On Black Wednesday in 1992 his fund shorted the British pound and made about $1 billion when Britain left the European Exchange Rate Mechanism.',
+      'Soros Fund Management became a family office in 2011 and is run by CIO Dawn Fitzpatrick. The 13F shows its U.S.-listed equity and option positions.'],
+    ph:[['Reflexivity','Prices do not just reflect fundamentals. They change them, creating self-reinforcing booms and busts.'],
+      ['Bet big when right','Size matters more than hit rate. When the thesis is working, press it.'],
+      ['Survive first','Cut losers fast. Staying in the game beats being right too early.'],
+      ['Fallibility','Assume your view is flawed and keep looking for the flaw.']],
+    q:['It\'s not whether you\'re right or wrong, but how much you make when you\'re right.','Paraphrasing his best-known rule'],
+    facts:['He has given more than $32 billion to the Open Society Foundations.','He said back pain was often his signal that a position was wrong.','His son Alex Soros now chairs the Open Society Foundations.'] },
+  { id:'dalio', name:'Ray Dalio', firm:'Bridgewater Associates', tag:'Macro', tl:'Built the world\'s largest hedge fund on economic cycles, diversification and radical transparency.',
+    born:'1949 · New York, New York',
+    story:['Dalio bought his first stock at 12 with caddying money and started Bridgewater from his two-bedroom apartment in 1975. It grew into the largest hedge fund in the world.',
+      'Bridgewater created Pure Alpha in 1991 and the All Weather strategy in 1996, the forerunner of risk parity. Its research on debt cycles helped it through the 2008 crisis. Dalio\'s book Principles (2017) set out the culture of radical transparency that runs the firm.',
+      'Dalio handed over control in 2022 and sold his remaining stake in 2025. The 13F shows Bridgewater\'s U.S. equity book, run under CEO Nir Bar Dea. It is mostly broad, diversified exposure, so expect hundreds of names.'],
+    ph:[['The economic machine','The economy is a machine of transactions, driven by productivity and short- and long-term debt cycles.'],
+      ['The holy grail','Fifteen or more uncorrelated return streams cut risk without cutting return.'],
+      ['All Weather','Balance risk across growth and inflation regimes instead of predicting which comes next.'],
+      ['Pain + reflection','Mistakes are data. Write them down and turn them into principles.']],
+    q:['Pain + Reflection = Progress.','Principles'],
+    facts:['Meetings at Bridgewater are recorded and staff rate each other in real time.','Principles began as an internal memo before becoming a bestseller.','The 13F does not show Bridgewater\'s large bond, currency and futures positions.'] },
+  { id:'lilu', name:'Li Lu', firm:'Himalaya Capital', tag:'Value', tl:'A Tiananmen student leader who became Charlie Munger\'s chosen value investor.',
+    born:'1966 · Tangshan, China',
+    story:['Li Lu was a student leader at the 1989 Tiananmen Square protests and fled to the United States. He earned a BA, JD and MBA from Columbia at the same time. A 1993 lecture by Warren Buffett there changed his path.',
+      'He founded Himalaya Capital in 1997. Charlie Munger became an investor and later trusted him with part of the Munger family\'s money. Li Lu introduced Munger to BYD, which Berkshire bought in 2008.',
+      'Himalaya runs a very concentrated portfolio, often fewer than ten U.S.-listed names, and holds for many years.'],
+    ph:[['Own a piece of a business','A stock is a share of a real company. Know it as well as its managers do.'],
+      ['Concentrate on the best','A few great ideas in a lifetime are enough. Put real money behind them.'],
+      ['Deep, independent research','Do the work yourself and form views that do not need the crowd\'s agreement.'],
+      ['Patience','Compounding needs time. Holding through volatility is the job.']],
+    facts:['Munger called him the Chinese Warren Buffett.','He wrote a memoir, Moving the Mountain, about 1989.','Himalaya\'s 13F only shows U.S.-listed holdings, not its Asian positions.'] },
+  { id:'marks', name:'Howard Marks', firm:'Oaktree Capital Management', tag:'Credit', tl:'The distressed-debt pioneer whose memos Wall Street reads first.',
+    born:'1946 · New York, New York',
+    story:['Marks studied at Wharton and the University of Chicago, then ran high-yield and convertible portfolios at Citibank and TCW. In 1995 he co-founded Oaktree Capital, which became a leader in distressed debt and credit.',
+      'His client memos, written since 1990, are some of the most-read writing in finance. His books The Most Important Thing (2011) and Mastering the Market Cycle (2018) set out his approach to risk and cycles. Brookfield bought a majority of Oaktree in 2019.',
+      'Most of Oaktree\'s money is in credit, which a 13F does not show. This list covers only its U.S.-listed equity positions, often from restructurings and post-bankruptcy equity.'],
+    ph:[['Second-level thinking','It is not enough to be right. You need to be more right than the consensus already priced in.'],
+      ['Control risk','Avoiding losers matters more than reaching for winners. Risk means the chance of permanent loss.'],
+      ['Know where we are','You can\'t predict the cycle, but you can see the temperature of the market and act on it.'],
+      ['The pendulum','Investor psychology swings between greed and fear and rarely stops in the middle.']],
+    q:['You can\'t predict. You can prepare.','Memo title, 2001'],
+    facts:['Buffett has said Marks\'s memos are the first thing he opens.','Oaktree raised record distressed-debt funds in 2008 and deployed them at the bottom.','The memos are free on Oaktree\'s website.'] },
+  { id:'huang', name:'Jensen Huang', firm:'NVIDIA', tag:'Builder', tl:'The founder who bet NVIDIA on accelerated computing, and now invests across the AI supply chain.',
+    born:'1963 · Tainan, Taiwan',
+    story:['Huang moved to the United States as a child, washed dishes at Denny\'s as a teenager and studied electrical engineering at Oregon State and Stanford. After chip design jobs at AMD and LSI Logic, he co-founded NVIDIA in 1993 with Chris Malachowsky and Curtis Priem, at a Denny\'s booth in San Jose.',
+      'NVIDIA launched the GeForce 256, marketed as the first GPU, in 1999. In 2006 it released CUDA so GPUs could run general-purpose code. That bet looked expensive for years, then became the foundation of the deep-learning boom. In July 2025 NVIDIA became the first company worth $4 trillion.',
+      'Huang does not file a 13F. His personal wealth is mostly NVIDIA stock, about 3.5% of the company. The portfolio below is NVIDIA Corp\'s own 13F: the stakes it has taken in partners across the AI supply chain, including a $5 billion investment in Intel in 2025.'],
+    ph:[['Zero-billion-dollar markets','Go where there is no market yet and build it. By the time a market is obvious, it is crowded.'],
+      ['Full-stack platform','Chips, systems, networking and software (CUDA) together. The platform is the moat, not the chip.'],
+      ['Invest in the ecosystem','Back the customers, suppliers and partners that make accelerated computing spread faster.'],
+      ['Intellectual honesty','Flat structure, few one-on-ones and lots of open reasoning, so the whole company learns from each decision.']],
+    facts:['His black leather jacket is a keynote trademark.','He has around 60 direct reports and avoids one-on-one meetings.','NVIDIA\'s 13F does not include its many private-company investments.'] },
+  { id:'trump', name:'Donald Trump', firm:'President of the United States', tag:'Disclosure', tl:'A real-estate brand turned media, crypto and a sprawling managed stock portfolio.',
+    born:'1946 · Queens, New York',
+    story:['Trump built the Trump Organization in real estate, licensing and golf, and became a TV star with The Apprentice. He was the 45th President and has been the 47th since January 2025.',
+      'His largest listed holding is Trump Media & Technology Group (DJT), with 114.75 million shares held in his revocable trust. His disclosure also shows crypto wallets, licensing income from the $TRUMP meme coin, and economic rights in World Liberty Financial.',
+      'This view is not a 13F. It sums the listed stocks and ETFs across his brokerage accounts in the 2025 OGE 278e annual report, at the midpoint of each value range. His 278-T reports list thousands of trades in these accounts each year.'],
+    ph:[['The brand','Most of the value comes from businesses built around his name: Trump Media, licensing, crypto ventures.'],
+      ['Managed accounts','Outside managers run broad, index-like stock accounts across hundreds of companies.'],
+      ['Fixed income','A large share of his disclosed assets are municipal and corporate bonds, not shown here.'],
+      ['Real estate','Hotels, golf clubs and buildings make up a large part of his wealth and are not listed securities.']],
+    facts:['The 2025 annual report runs over 900 pages.','He wrote The Art of the Deal (1987).','DJT is valued at $8.105 a share (October 9, 2026). Ranges like "Over $50,000,000" are shown at $50M.'] }
+];
+var GURU = { data:null, view:'pie', q:'', loading:null };
+
+function guruById(id){ for(var i = 0; i < GURUS.length; i++) if(GURUS[i].id === id) return GURUS[i]; return null; }
+function guruImg(g){ return 'assets/gurus/' + g.id + '.webp'; }
+function guruLoad(){
+  if(GURU.data) return Promise.resolve(GURU.data);
+  if(!GURU.loading) GURU.loading = fetch('assets/gurus/holdings.json').then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(j){ GURU.data = j.investors || {}; return GURU.data; })
+    .catch(function(e){ GURU.loading = null; throw e; });
+  return GURU.loading;
+}
+function guruPeriod(d){
+  if(!d || !d.period) return '';
+  if(d.source !== '13F-HR') return d.source;
+  var m = +d.period.slice(5, 7);
+  return 'Q' + Math.ceil(m / 3) + ' ' + d.period.slice(0, 4) + ' 13F';
+}
+function guruLogo(h, cls){
+  var t = h.t || '', src = !t ? '' : 'https://financialmodelingprep.com/image-stock/' + encodeURIComponent(h.cr ? t + 'USD' : t.replace('.', '-')) + '.png';
+  return '<span class="gu-logo' + (cls ? ' ' + cls : '') + '" data-l="' + esc((t || h.n || '?').slice(0, 2)) + '">' +
+    (src ? '<img src="' + src + '" alt="" loading="lazy" onerror="this.remove()">' : '') + '</span>';
+}
+function guruPc(h){ return h.pc ? '<span class="gu-pc ' + h.pc.toLowerCase() + '">' + esc(h.pc.toUpperCase()) + '</span>' : ''; }
+function guruHref(h){ return h.t ? '#/quote/' + encodeURIComponent(h.t) : ''; }
+
+function renderInvestors(id){
+  var g = id && guruById(id);
+  if(id && !g){ go('#/investors'); return; }
+  CUR.guru = g ? g.id : '';
+  $('main').innerHTML = '<div class="section">' + skeletonRows(4, 140) + '</div>';
+  return guruLoad().then(function(data){
+    if(CUR.view !== 'investors' || CUR.guru !== (g ? g.id : '')) return;
+    if(g) paintGuru(g, data[g.id]); else paintGuruIndex(data);
+  }).catch(function(e){
+    $('main').innerHTML = '<div class="section"><div class="card empty">Could not load investor holdings (' + esc(e.message) + '). ' +
+      'Open the app through <code>python3 serve.py</code> or the hosted site; browsers block local files.</div></div>';
+  });
+}
+
+function paintGuruIndex(data){
+  var html = '<div class="section"><div class="section-head"><h2>Smart Money</h2></div>' +
+    '<p class="gu-sub" style="margin:-4px 0 16px">What the best-known investors own, from their latest SEC 13F filings and public disclosures. Pick one to explore.</p><div class="gu-grid">';
+  GURUS.forEach(function(g, i){
+    var d = data[g.id] || { holdings:[] };
+    html += '<a class="gu-card" href="#/investors/' + g.id + '" style="--d:' + (i * 55) + 'ms">' +
+      '<div class="ph"><img src="' + guruImg(g) + '" alt="' + esc(g.name) + '" loading="lazy"><span class="gu-tag">' + esc(g.tag) + '</span></div>' +
+      '<div class="bd"><span class="nm">' + esc(g.name) + '</span><span class="fm">' + esc(g.firm) + '</span>' +
+      '<span class="fm num">$' + compact(d.total) + ' · ' + d.holdings.length + ' holdings · ' + esc(guruPeriod(d)) + '</span>' +
+      '<div class="tops">' + d.holdings.slice(0, 5).map(function(h){ return guruLogo(h); }).join('') +
+      (d.holdings.length > 5 ? '<span class="more">+' + (d.holdings.length - 5) + '</span>' : '') + '</div></div></a>';
+  });
+  html += '</div></div>';
+
+  // Crowd favourites: tickers that show up in several investors' top 25
+  var cnt = {};
+  GURUS.forEach(function(g){
+    var seen = {};
+    ((data[g.id] || {}).holdings || []).slice(0, 25).forEach(function(h){
+      if(!h.t || h.pc || seen[h.t]) return; seen[h.t] = 1;
+      (cnt[h.t] = cnt[h.t] || { h:h, who:[] }).who.push(g);
+    });
+  });
+  var crowd = Object.keys(cnt).map(function(k){ return cnt[k]; }).filter(function(c){ return c.who.length > 1; })
+    .sort(function(a, b){ return b.who.length - a.who.length; }).slice(0, 12);
+  if(crowd.length){
+    html += '<div class="section"><div class="section-head"><h2>Crowd favourites</h2></div>' +
+      '<p class="gu-sub" style="margin:-4px 0 12px">Stocks in the top 25 of more than one of these portfolios.</p><div class="gu-crowd">' +
+      crowd.map(function(c, i){
+        return '<a href="' + guruHref(c.h) + '" style="--d:' + (i * 40) + 'ms">' + guruLogo(c.h) + '<span><b>' + esc(c.h.t) + '</b><br><span class="gu-sub">' + c.who.length + ' investors</span></span>' +
+          '<span class="who">' + c.who.map(function(g){ return '<img src="' + guruImg(g) + '" alt="' + esc(g.name) + '" title="' + esc(g.name) + '">'; }).join('') + '</span></a>';
+      }).join('') + '</div></div>';
+  }
+  html += footerHTML();
+  $('main').innerHTML = html;
+}
+
+function paintGuru(g, d){
+  d = d || { holdings:[], total:0 };
+  var hs = d.holdings, top10 = hs.slice(0, 10).reduce(function(a, h){ return a + h.w; }, 0);
+  var link = d.accession ? 'https://www.sec.gov/Archives/edgar/data/' + d.cik + '/' + d.accession.replace(/-/g, '') + '/' : d.url;
+  var i = GURUS.indexOf(g), prev = GURUS[(i + GURUS.length - 1) % GURUS.length], next = GURUS[(i + 1) % GURUS.length];
+  var html = '<div class="section"><div class="gu-hero"><img class="av" src="' + guruImg(g) + '" alt="' + esc(g.name) + '">' +
+    '<div><span class="gu-tag">' + esc(g.tag) + '</span><h2>' + esc(g.name) + '</h2><div class="gu-sub">' + esc(g.firm) + ' · ' + esc(g.born) + '</div>' +
+    '<div class="tl">' + esc(g.tl) + '</div>' +
+    '<div class="gu-stats">' +
+      '<div class="gu-stat"><b class="num">$' + compact(d.total) + '</b><span>' + (d.est ? 'Estimated value' : 'Reported value') + '</span></div>' +
+      '<div class="gu-stat"><b class="num">' + hs.length + '</b><span>Holdings</span></div>' +
+      '<div class="gu-stat"><b class="num">' + num(top10, 1) + '%</b><span>In top 10</span></div>' +
+      '<div class="gu-stat"><b>' + esc(hs[0] ? hs[0].t || hs[0].n : '—') + '</b><span>Biggest position</span></div>' +
+      '<div class="gu-stat"><b>' + esc(guruPeriod(d)) + '</b><span>Filed ' + esc(d.filed || '—') + '</span></div>' +
+    '</div></div></div></div>';
+
+  html += '<div class="section"><div class="card"><div class="section-head" style="margin:0"><h3 style="flex:1;margin:0">Holdings</h3>' +
+    '<div class="gu-seg" role="tablist"><button class="' + (GURU.view === 'pie' ? 'on' : '') + '" data-gview="pie">Top 10 pie</button>' +
+    '<button class="' + (GURU.view === 'list' ? 'on' : '') + '" data-gview="list">All ' + hs.length + '</button></div></div>' +
+    '<div id="guHold"></div>' +
+    '<div class="movers-note">' + (d.note ? esc(d.note) : 'From ' + esc(d.filer || g.firm) + '\'s 13F-HR for the period ending ' + esc(d.period) +
+      '. 13Fs list U.S.-listed long equity and option positions only, reported up to 45 days after quarter end. Options are shown at the value of the underlying shares.') +
+    (link ? ' <a href="' + esc(link) + '" target="_blank" rel="noopener">Source filing</a>' : '') + '</div></div></div>';
+
+  html += '<div class="section"><div class="grid-2"><div class="card gu-story"><h3>The story</h3>' + g.story.map(function(p){ return '<p>' + esc(p) + '</p>'; }).join('') +
+    (g.q ? '<blockquote class="gu-quote">“' + esc(g.q[0]) + '”<cite>' + esc(g.q[1]) + '</cite></blockquote>' : '') + '</div>' +
+    '<div class="card"><h3>Worth knowing</h3><ul class="gu-facts">' + g.facts.map(function(f){ return '<li>' + esc(f) + '</li>'; }).join('') + '</ul></div></div></div>';
+
+  html += '<div class="section"><div class="section-head"><h2>Philosophy</h2></div><div class="gu-ph">' + g.ph.map(function(p, k){
+    return '<div class="card" style="--d:' + (k * 70) + 'ms"><div class="n">0' + (k + 1) + '</div><h4>' + esc(p[0]) + '</h4><p>' + esc(p[1]) + '</p></div>';
+  }).join('') + '</div></div>';
+
+  html += '<div class="section gu-nav"><a href="#/investors/' + prev.id + '"><img src="' + guruImg(prev) + '" alt="">← ' + esc(prev.name) + '</a>' +
+    '<a href="#/investors">All investors</a>' +
+    '<a href="#/investors/' + next.id + '"><img src="' + guruImg(next) + '" alt="">' + esc(next.name) + ' →</a></div>';
+  html += footerHTML();
+  $('main').innerHTML = html;
+  GURU.q = '';
+  paintGuruHold(d);
+  $$('[data-gview]').forEach(function(b){
+    b.onclick = function(){ GURU.view = b.getAttribute('data-gview'); $$('[data-gview]').forEach(function(x){ x.classList.toggle('on', x === b); }); paintGuruHold(d); };
+  });
+}
+
+function paintGuruHold(d){
+  var box = $('guHold'); if(!box) return;
+  var hs = d.holdings;
+  if(!hs.length){ box.innerHTML = '<div class="empty">No holdings in this filing.</div>'; return; }
+  box.innerHTML = GURU.view === 'pie' ? guruPie(hs.slice(0, 10)) : guruListShell(hs.length);
+  if(GURU.view === 'list'){
+    var inp = $('guQ'), paint = function(){ $('guList').innerHTML = guruRows(hs, GURU.q); };
+    inp.value = GURU.q; paint();
+    inp.oninput = function(){ GURU.q = inp.value; paint(); };
+  }
+  guruHover(box, hs);
+}
+
+/* Donut of the top 10. Slices are revealed by a mask sweeping clockwise; hover pops a slice outward. */
+function guruPie(top){
+  var S = 340, cx = S / 2, R = 150, r = 88, tot = top.reduce(function(a, h){ return a + h.w; }, 0) || 1, a0 = -Math.PI / 2, paths = [];
+  var pt = function(rad, a){ return (cx + rad * Math.cos(a)).toFixed(2) + ' ' + (cx + rad * Math.sin(a)).toFixed(2); };
+  top.forEach(function(h, i){
+    var a1 = a0 + h.w / tot * Math.PI * 2, mid = (a0 + a1) / 2, big = a1 - a0 > Math.PI ? 1 : 0;
+    if(a1 - a0 >= Math.PI * 2 - 1e-6) a1 -= 1e-4;   // a single 100% slice still needs two distinct arc ends
+    paths.push('<path class="gu-slice" data-gi="' + i + '" style="--dx:' + (Math.cos(mid) * 10).toFixed(1) + 'px;--dy:' + (Math.sin(mid) * 10).toFixed(1) + 'px" fill="var(--gp' + (i + 1) + ')" d="M' + pt(R, a0) +
+      ' A' + R + ' ' + R + ' 0 ' + big + ' 1 ' + pt(R, a1) + ' L' + pt(r, a1) + ' A' + r + ' ' + r + ' 0 ' + big + ' 0 ' + pt(r, a0) + ' Z"/>');
+    a0 = a1;
+  });
+  var mr = (R + 14) / 2, C = (2 * Math.PI * mr).toFixed(1);
+  var svg = '<svg class="gu-pie" id="guPie" width="' + S + '" height="' + S + '" viewBox="0 0 ' + S + ' ' + S + '" role="img" aria-label="Top 10 holdings by weight">' +
+    '<defs><mask id="guMask"><circle class="gu-sweep" cx="' + cx + '" cy="' + cx + '" r="' + mr + '" fill="none" stroke="#fff" stroke-width="' + (R + 14) +
+    '" stroke-dasharray="' + C + '" stroke-dashoffset="' + C + '" transform="rotate(-90 ' + cx + ' ' + cx + ')"/></mask></defs>' +
+    '<g mask="url(#guMask)">' + paths.join('') + '</g>' +
+    '<g class="ctr" id="guCtr"><text x="' + cx + '" y="' + (cx - 6) + '" text-anchor="middle" font-size="30" font-weight="500" fill="var(--fh-foreground-on-surface-emphasis)">' + num(tot, 1) + '%</text>' +
+    '<text x="' + cx + '" y="' + (cx + 18) + '" text-anchor="middle" font-size="12.5" fill="var(--fh-foreground-on-surface-de-emphasis)">of portfolio in top 10</text></g></svg>';
+  var leg = top.map(function(h, i){
+    var tag = h.t ? 'a href="' + guruHref(h) + '"' : 'div';
+    return '<' + tag + ' class="gu-leg" data-gi="' + i + '" style="--d:' + (300 + i * 45) + 'ms"><span class="sw" style="background:var(--gp' + (i + 1) + ')"></span>' + guruLogo(h) +
+      '<span class="tk">' + esc(h.t || '—') + '</span><span class="cn">' + esc(h.n) + guruPc(h) + '</span><span class="wt num">' + num(h.w, 2) + '%</span></' + tag.split(' ')[0] + '>';
+  }).join('');
+  return '<div class="gu-pie-wrap">' + svg + '<div class="gu-legend">' + leg + '</div></div>';
+}
+
+function guruListShell(n){
+  return '<div class="gu-tools"><input id="guQ" type="search" placeholder="Filter ' + n + ' holdings by ticker or name" aria-label="Filter holdings"></div><div class="gu-list" id="guList"></div>';
+}
+function guruRows(hs, q){
+  q = (q || '').trim().toLowerCase();
+  var max = hs[0] ? hs[0].w : 1, out = [], shown = 0;
+  hs.forEach(function(h, i){
+    if(q && (h.t || '').toLowerCase().indexOf(q) < 0 && (h.n || '').toLowerCase().indexOf(q) < 0) return;
+    var tag = h.t ? 'a href="' + guruHref(h) + '"' : 'div';
+    out.push('<' + tag + ' class="gu-row" data-gi="' + i + '"><span class="rk">' + (i + 1) + '</span>' + guruLogo(h) +
+      '<span class="tk">' + esc(h.t || '—') + '</span><span class="cn">' + esc(h.n) + guruPc(h) + '</span>' +
+      '<span class="gu-bar"><i style="--w:' + Math.max(0.6, h.w / max * 100).toFixed(2) + '%;--d:' + Math.min(shown, 30) * 25 + 'ms' + (i < 10 ? ';--bc:var(--gp' + (i + 1) + ')' : '') + '"></i></span>' +
+      '<span class="wt num">' + num(h.w, h.w < 0.1 ? 3 : 2) + '%</span><span class="vl">$' + compact(h.v) + '</span></' + tag.split(' ')[0] + '>');
+    shown++;
+  });
+  return out.join('') || '<div class="empty">No holdings match “' + esc(q) + '”.</div>';
+}
+
+/* One floating bubble for pie slices, legend rows and list rows. */
+function guruHover(box, hs){
+  var tip = $('guTip');
+  if(!tip){ tip = document.createElement('div'); tip.id = 'guTip'; tip.className = 'gu-tip'; tip.setAttribute('role', 'tooltip'); document.body.appendChild(tip); }
+  var cur = -1, pie = $('guPie');
+  var mark = function(i){
+    if(!pie) return;
+    pie.classList.toggle('hov', i >= 0);
+    $$('.gu-slice', pie).forEach(function(s){ s.classList.toggle('on', +s.getAttribute('data-gi') === i); });
+    $$('.gu-leg', box).forEach(function(s){ s.classList.toggle('on', +s.getAttribute('data-gi') === i); });
+  };
+  box.onmousemove = function(ev){
+    var el = ev.target.closest && ev.target.closest('[data-gi]');
+    if(!el || !box.contains(el)){ box.onmouseleave(); return; }
+    var i = +el.getAttribute('data-gi'), h = hs[i];
+    if(i !== cur){
+      cur = i; mark(i);
+      tip.innerHTML = '<div class="hd">' + guruLogo(h) + '<div><div class="tk">' + esc(h.t || 'No ticker') + guruPc(h) + '</div><div class="cn">' + esc(h.n) + '</div></div></div>' +
+        '<div class="w">' + num(h.w, h.w < 0.1 ? 3 : 2) + '% <small>of portfolio · #' + (i + 1) + '</small></div>' +
+        '<div class="ln">Value $' + compact(h.v) + (h.s ? ' · ' + compact(h.s).replace(/\.00(?=[KMB]?$)/, '') + ' shares' : '') + '</div>';
+      tip.classList.remove('on'); void tip.offsetWidth; tip.classList.add('on');
+    }
+    var x = ev.clientX + 16, y = ev.clientY - tip.offsetHeight - 12;
+    if(x + tip.offsetWidth > innerWidth - 8) x = ev.clientX - tip.offsetWidth - 16;
+    if(y < 8) y = ev.clientY + 18;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  };
+  box.onmouseleave = function(){ cur = -1; mark(-1); tip.classList.remove('on'); };
 }
 
 /* ----------------------------------------------------------- screener view */
@@ -6851,6 +7316,8 @@ function bindEvents(){
       case 'quote': ev.preventDefault(); go('#/quote/' + encodeURIComponent(sym)); break;
       case 'openlist': go('#/list/' + el.getAttribute('data-id')); break;
       case 'openpf': go('#/portfolio/' + el.getAttribute('data-id')); break;
+      case 'smart-toggle': { var open = !load('fh3_smart_open', true); save('fh3_smart_open', open);
+        el.setAttribute('aria-expanded', open); $('smartList').classList.toggle('open', open); break; }
       case 'market': CFG.market = el.getAttribute('data-group'); saveCfg(); renderSubnav();
         go(CUR.view === 'markets' ? '#/markets/' + CFG.market : '#/'); break;
       case 'sector': ev.preventDefault(); CUR.screen = Object.assign(defaultScreen(), { sector:el.getAttribute('data-sector') }); go('#/screener'); break;
