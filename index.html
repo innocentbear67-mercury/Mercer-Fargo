@@ -3075,6 +3075,20 @@ function defaultScreen(){
   return { sector:'', minPx:'', maxPx:'', minPct:'', maxPct:'', minMc:'', maxMc:'', q:'', sort:{ key:'mc', dir:-1 } };
 }
 
+/* Sidebar sectors are GICS-style; the TradingView scan uses its own names. */
+var SECTOR_MAP = {
+  'Technology':['Electronic Technology', 'Technology Services'], 'Communications':['Communications'],
+  'Discretionary':['Retail Trade', 'Consumer Durables', 'Consumer Services'], 'Staples':['Consumer Non-Durables', 'Distribution Services'],
+  'Financials':['Finance'], 'Health care':['Health Technology', 'Health Services'],
+  'Industrials':['Producer Manufacturing', 'Industrial Services', 'Transportation', 'Commercial Services'],
+  'Energy':['Energy Minerals'], 'Materials':['Process Industries', 'Non-Energy Minerals'], 'Utilities':['Utilities'], 'Real estate':['Finance']
+};
+function sectorMatch(r, sel){
+  if(r.sector === sel) return true;
+  var m = SECTOR_MAP[sel];
+  if(!m || m.indexOf(r.sector) < 0) return false;
+  return sel !== 'Real estate' || /\b(REIT|realty|propert|real estate|land|residential)\b/i.test(r.name || '');
+}
 function screenUniverse(){
   var f = CUR.screen || defaultScreen();
   var snap = screenRows();
@@ -3086,7 +3100,7 @@ function screenUniverse(){
         return { sym:u[0], name:u[1], sector:u[2], c:q.c, ch:ch.abs, pct:ch.pct, mc:q.mc };
       });
   return list.filter(function(r){
-    if(f.sector && r.sector !== f.sector) return false;
+    if(f.sector && !sectorMatch(r, f.sector)) return false;
     if(f.q && r.sym.indexOf(f.q.toUpperCase()) < 0 && String(r.name).toLowerCase().indexOf(f.q.toLowerCase()) < 0) return false;
     if(f.minPx !== '' && !(r.c >= parseFloat(f.minPx))) return false;
     if(f.maxPx !== '' && !(r.c <= parseFloat(f.maxPx))) return false;
@@ -3114,7 +3128,8 @@ function renderScreener(){
     });
     var html = '';
     html += '<div class="section"><div class="section-head"><h2>Stock screener</h2>' +
-      '<button class="btn text sm" data-act="screen-reset">Reset</button>' +
+      (f.sector ? '<span class="status-chip live"><i class="dot"></i>' + esc(f.sector) + '</span>' : '') +
+      '<button class="btn text sm" data-act="screen-reset">' + (f.sector ? 'Clear sector' : 'Reset') + '</button>' +
       '<button class="btn text sm" data-act="screen-addlist">Add results to list</button>' +
       '<button class="btn text sm" data-act="ai" data-kind="screener">AI read of these filters</button></div>';
     html += '<div class="card"><div class="filters">' +
@@ -5189,7 +5204,7 @@ function bindEvents(){
       case 'openpf': go('#/portfolio/' + el.getAttribute('data-id')); break;
       case 'market': CFG.market = el.getAttribute('data-group'); saveCfg(); renderSubnav();
         go(CUR.view === 'markets' ? '#/markets/' + CFG.market : '#/'); break;
-      case 'sector': CUR.screen = Object.assign(defaultScreen(), { sector:el.getAttribute('data-sector') }); break;
+      case 'sector': ev.preventDefault(); CUR.screen = Object.assign(defaultScreen(), { sector:el.getAttribute('data-sector') }); go('#/screener'); break;
       case 'range': CUR.range = el.getAttribute('data-range'); paintQuote(); break;
       case 'qtab': CUR.tab = el.getAttribute('data-tab'); paintQuote(); break;
       case 'fin-kind': Q.fin.kind = el.getAttribute('data-kind'); paintQuotePanel(); break;
@@ -5335,7 +5350,7 @@ function bindEvents(){
       case 'nlportfolio': aiRun('custom', 'Propose a diversified 8-position starter portfolio for a long-horizon investor, with a one-line rationale per position and the main risk. Do not invent specific prices.'); break;
       case 'screen-apply': {
         var f = CUR.screen = defaultScreen();
-        f.q = $('fq').value; f.sector = $('fsector') ? $('fsector').value : ''; f.minPx = $('fminPx').value; f.maxPx = $('fmaxPx').value;
+        f.q = $('fq').value; f.sector = $('fsector') ? $('fsector').value : f.sector; f.minPx = $('fminPx').value; f.maxPx = $('fmaxPx').value;
         f.minPct = $('fminPct').value; f.maxPct = $('fmaxPct').value;
         f.minMc = $('fminMc') ? $('fminMc').value : ''; f.maxMc = $('fmaxMc') ? $('fmaxMc').value : '';
         renderScreener();
