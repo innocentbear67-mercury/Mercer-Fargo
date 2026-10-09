@@ -4643,7 +4643,7 @@ function skillDraftPush(text, fromRs){
   var p = skillParse(t);
   if(!p.name || !p.body || !p.hasFrontmatter){ chatPush('assistant', 'I couldn’t produce a valid SKILL.md that time. Try /learn again with a bit more detail.', { err:true }); return; }
   if(SKILL_BUILTIN.some(function(b){ return b.name === p.name; })) p.name = p.name + '-skill';
-  chatPush('assistant', (fromRs ? SKILL_MOVED_NOTE + '\n\n' : '') + 'Here is a draft skill: **/' + p.name + '**\n\n' + p.description + '\n\nCheck it, then save. You can edit it later in Settings → Skills.',
+  chatPush('assistant', (fromRs ? SKILL_MOVED_NOTE + '\n\n' : '') + 'Here is a draft skill: **/' + p.name + '**\n\n' + p.description + '\n\n**Not saved yet.** Open "Preview SKILL.md" below to check it, then press **Save skill** to finish. Until you do, /' + p.name + ' won\u2019t be in your skills list. You can edit it later in Settings → Skills.',
     { skillDraft:{ name:p.name, description:p.description, raw:skillCompose(p.name, p.description, p.body), st:'pending' } });
 }
 function skillCard(m){
