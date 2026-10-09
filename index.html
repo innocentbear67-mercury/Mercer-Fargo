@@ -652,8 +652,8 @@ table.fh .col-trend{width:120px}
 .pm-tab:hover{color:var(--fh-foreground-on-surface-emphasis)}
 .pm-tab.on{background:var(--fh-states-branded-medium-selected);color:var(--fh-foreground-on-surface-emphasis);font-weight:600}
 .pm-cols{display:flex;min-height:0;flex:1;overflow:hidden}
-.pm-models{flex:1.2;min-width:0;overflow-y:auto;padding:6px;border-right:1px solid var(--fh-border-stroke-default)}
-.pm-effort{flex:1;min-width:0;overflow-y:auto;padding:6px}
+.pm-models{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1.2;min-width:0;overflow-y:auto;padding:6px;border-right:1px solid var(--fh-border-stroke-default)}
+.pm-effort{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1;min-width:0;overflow-y:auto;padding:6px}
 .pm-m,.pm-e{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;border-radius:10px;color:inherit;font:inherit;font-size:13px;padding:7px 10px;cursor:pointer;text-align:left}
 .pm-m:hover,.pm-e:hover{background:var(--fh-states-neutral-hovered)}
 .pm-m.hov{background:var(--fh-states-neutral-hovered)}
@@ -1185,6 +1185,36 @@ html{overflow-x:clip}
 .newres .lbl{display:none}
 @container dr (min-width:400px){.newres .lbl{display:inline}}
 @container dr (max-width:399px){.newres{padding:0 10px}}
+
+.gl-more{background:none;border:0;padding:0;font:inherit;font-size:12.5px;font-weight:500;color:var(--fh-foreground-on-surface-link-default);cursor:pointer}
+.gl-more:hover{text-decoration:underline}
+.gl-full{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s cubic-bezier(.3,.7,.2,1),margin .4s;margin-top:0}
+.gl-full.open{grid-template-rows:1fr;margin-top:14px}
+.gf-in{overflow:hidden;min-height:0}
+.gf-scroll{overflow-x:auto;border-top:1px solid var(--fh-border-stroke-default)}
+.gf-tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:620px}
+.gf-tbl th{text-align:right;font-weight:500;font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis);padding:12px 10px 8px;white-space:nowrap}
+.gf-tbl th:first-child,.gf-tbl td:first-child{text-align:left;padding-left:0}
+.gf-tbl td{padding:10px;text-align:right;border-top:1px solid var(--fh-border-stroke-default);vertical-align:middle;white-space:nowrap}
+.gf-tbl td small{display:block;font-size:11.5px;opacity:.85}
+.gf-sym a{display:flex;flex-direction:column;text-decoration:none;color:inherit;white-space:normal;max-width:230px}
+.gf-sym b{font-size:14.5px}
+.gf-sym span{font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gf-sym a:hover b{color:var(--fh-colors-and-accents-primary)}
+.gf-w{position:relative;min-width:84px}
+.gf-w i{position:absolute;right:10px;bottom:6px;height:3px;border-radius:2px;background:var(--fh-colors-and-accents-primary);opacity:.7;max-width:calc(100% - 20px)}
+.gf-tot td{font-weight:600;border-top:2px solid var(--fh-border-stroke-default)}
+.gf-act{padding:10px 0 0;font-size:12.5px}
+.gf-act a{color:var(--fh-foreground-on-surface-link-default);text-decoration:none;font-weight:500}
+
+.pm-search{padding:8px 10px 2px;flex:0 0 auto}
+.pm-search input{width:100%;box-sizing:border-box;border:0;outline:0;border-radius:10px;padding:8px 12px;font:inherit;font-size:13px;color:inherit;background:var(--fh-background-surface-container)}
+.pm-search input:focus{box-shadow:0 0 0 1.5px var(--fh-border-stroke-emphasis,#666)}
+.pm-grp{padding:10px 10px 4px;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis)}
+.pm-name{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;text-overflow:ellipsis}
+.pm-name small{font-size:11px;color:var(--fh-foreground-on-surface-de-emphasis);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-new{flex:none;font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:999px;color:var(--r,#c1a578);background:rgba(193,165,120,.16);margin-right:4px}
+.pm-free{flex:none;font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:999px;color:var(--fh-positive,#34a853);background:rgba(52,168,83,.14)}
 /* full screen: centred reading column */
 .drawer.full{--gut:max(20px,calc((100vw - 760px)/2))}
 .drawer.full #rsPane{--gut:max(20px,calc((100vw - 880px)/2))}
@@ -3016,8 +3046,27 @@ function glanceHTML(){
     '<div class="gl-line">' + line + '</div>' +
     '<div class="gl-bar" aria-label="Allocation">' + bar + '</div>' +
     '<div class="gl-tiles">' + tiles + '</div>' +
-    '<div class="gl-foot"><a href="#/portfolio/' + esc(CUR.pf) + '" data-act="nav" data-href="#/portfolio/' + esc(CUR.pf) + '">Full portfolio ›</a>' +
-    '<span class="mut">Delayed quotes · S&amp;P 500 shown via SPY · stored in this browser</span></div></div>';
+    '<div class="gl-foot"><button type="button" class="gl-more" data-act="gl-toggle" aria-expanded="' + !!CFG.glopen + '">' + (CFG.glopen ? 'Hide portfolio ⌃' : 'Full portfolio ⌄') + '</button>' +
+    '<span class="mut">Delayed quotes · S&amp;P 500 shown via SPY · stored in this browser</span></div>' +
+    glFullHTML(st, sorted, cur) + '</div>';
+}
+function glFullHTML(st, sorted, cur){
+  var cls = function(v){ return v == null ? 'mut' : (v >= 0 ? 'up' : 'down'); };
+  var sg = function(v, c){ return (v >= 0 ? '+' : '−') + money(Math.abs(v), c); };
+  var rows = sorted.map(function(r){
+    var w = st.total ? r.value / st.total * 100 : 0, hasCost = r.cost > 0;
+    return '<tr><td class="gf-sym"><a href="#/quote/' + encodeURIComponent(r.s) + '" data-act="quote" data-sym="' + esc(r.s) + '"><b>' + esc(r.s) + '</b><span>' + esc(r.name || '') + '</span></a></td>' +
+      '<td class="num">' + money(r.price, r.cur) + '</td>' +
+      '<td class="num ' + cls(r.day) + '">' + (r.day == null ? '—' : sg(r.day, r.cur) + '<small>' + pct(r.dayPct) + '</small>') + '</td>' +
+      '<td class="num ' + (hasCost ? cls(r.ret) : 'mut') + '">' + (hasCost ? sg(r.ret, r.cur) + '<small>' + pct(r.retPct) + '</small>' : '—') + '</td>' +
+      '<td class="num">' + money(r.value, r.cur) + '<small class="mut">' + num(r.q, r.q % 1 ? 2 : 0) + ' sh</small></td>' +
+      '<td class="num gf-w">' + num(w, 1) + '%<i style="width:' + Math.min(100, w).toFixed(1) + '%"></i></td></tr>';
+  }).join('');
+  var foot = '<tr class="gf-tot"><td>Total</td><td></td><td class="num ' + cls(st.day) + '">' + sg(st.day, cur) + '</td>' +
+    '<td class="num ' + (st.cost > 0 ? cls(st.ret) : 'mut') + '">' + (st.cost > 0 ? sg(st.ret, cur) + '<small>' + pct(st.retPct) + '</small>' : '—') + '</td>' +
+    '<td class="num">' + money(st.total, cur) + '</td><td class="num">100%</td></tr>';
+  return '<div class="gl-full' + (CFG.glopen ? ' open' : '') + '" id="glFull"><div class="gf-in"><div class="gf-scroll"><table class="gf-tbl"><thead><tr><th>Holding</th><th>Price</th><th>Day change</th><th>Total P/L</th><th>Market value</th><th>Weight</th></tr></thead><tbody>' + rows + '</tbody><tfoot>' + foot + '</tfoot></table></div>' +
+    '<div class="gf-act"><a href="#/portfolio/' + esc(CUR.pf) + '" data-act="nav" data-href="#/portfolio/' + esc(CUR.pf) + '">Manage holdings ›</a></div></div></div>';
 }
 
 function paintHome(){
@@ -4209,7 +4258,12 @@ var AI_MODELS = {
 /* 'r' | 'm' | '' (chat-completions) for a provider's model id. */
 function aiWire(prov, id){
   var hit = (AI_MODELS[prov] || []).filter(function(m){ return m[0] === id; })[0];
-  return hit ? (hit[2] || '') : '';
+  if(hit) return hit[2] || '';
+  if(prov === 'opencode' || prov === 'opencode-go'){   // models found by Refresh: pick the wire format from the family
+    if(/^claude-/.test(id) || (prov === 'opencode-go' && /^(minimax|qwen)/.test(id))) return 'm';
+    if(/^(gpt-|grok-)/.test(id)) return 'r';
+  }
+  return '';
 }
 /* OpenRouter spells Claude versions with a dot (claude-sonnet-5.5); older saves used a dash. */
 function fixOrId(id){ return /^anthropic\/claude-[a-z]+-\d+-\d+$/.test(id || '') ? id.replace(/-(\d+)$/, '.$1') : id; }
@@ -4244,10 +4298,75 @@ function pickSave(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch
 function pickFavs(){ return pickLoad('fh3_favs', []); }
 function pickCustoms(){ return pickLoad('fh3_custom', []); }
 function pickOR(){ var c = pickLoad('fh3_or', null); return (c && c.ids) || []; }
+/* OpenRouter's full text-model catalogue (public, ~470 models), cached for 12h. */
+var OR = { loading:false };
+function orRecs(){ var c = pickLoad('fh3_or2', null); return (c && c.recs) || []; }
+function orLoad(force){
+  var c = pickLoad('fh3_or2', null);
+  if(OR.loading || (!force && c && Date.now() - c.t < 43200000 && c.recs.length)) return;
+  OR.loading = true;
+  fetchJSON('https://openrouter.ai/api/v1/models', 20000).then(function(j){
+    var recs = ((j && j.data) || []).filter(function(m){
+      var out = (m.architecture && m.architecture.output_modalities) || ['text'];
+      return m.id && out.indexOf('text') >= 0 && out.indexOf('image') < 0;
+    }).map(function(m){
+      var pr = m.pricing || {}, name = String(m.name || m.id), v = name.indexOf(': ') > 0 ? name.split(': ')[0] : '';
+      return { id:m.id, n:name.replace(/^[^:]+:\s*/, '').replace(/\s*\(free\)\s*$/i, ''), v:v, free:/:free$/.test(m.id) || (pr.prompt === '0' && pr.completion === '0'), t:m.created || 0, ctx:m.context_length || 0 };
+    });
+    if(!recs.length) throw new Error('empty');
+    pickSave('fh3_or2', { t:Date.now(), recs:recs });
+    if(force) toast(recs.length + ' OpenRouter models loaded (' + recs.filter(function(r){ return r.free; }).length + ' free)');
+  }).catch(function(){ if(force) toast('Refresh failed — are you offline?'); }).then(function(){ OR.loading = false; if(PICK.ctx) renderPicker(); });
+}
+/* OpenCode Zen / Go publish a live model list (new and "stealth" models appear weekly). It has no CORS, so it goes through the proxy. */
+var OC = { loading:{} };
+var OC_NAMES = { gpt:'GPT', glm:'GLM', deepseek:'DeepSeek', minimax:'MiniMax', mimo:'MiMo', longcat:'LongCat', qwen:'Qwen', kimi:'Kimi' };
+function ocPretty(id){
+  var t = String(id).replace(/-free$/, '').split('-'), out = [];
+  t.forEach(function(w){ if(/^\d+$/.test(w) && out.length && /^\d+(\.\d+)*$/.test(out[out.length - 1])) out[out.length - 1] += '.' + w; else out.push(w); });
+  return out.map(function(w){ return OC_NAMES[w] || (/^[a-z]/.test(w) ? w.charAt(0).toUpperCase() + w.slice(1) : w); }).join(' ');
+}
+function ocRecs(p){ var c = pickLoad('fh3_oc_' + p, null); return (c && c.recs) || []; }
+function ocLoad(p, force){
+  var c = pickLoad('fh3_oc_' + p, null);
+  if(OC.loading[p] || (!force && c && Date.now() - c.t < 21600000 && c.recs.length)) return;
+  OC.loading[p] = true;
+  var url = p === 'opencode' ? 'https://opencode.ai/zen/v1/models' : 'https://opencode.ai/zen/go/v1/models', key = (KEYS.keysBy || {})[p] || '';
+  var get = function(withKey){
+    var target = canTryProxy() ? PROXY_PATH + encodeURIComponent(url) : ((CFG.ocProxy || OC_PROXY) + '?u=' + encodeURIComponent(url));
+    var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, to = setTimeout(function(){ if(ctl) ctl.abort(); }, 15000);
+    // plain fetch on purpose: the generic fetchText chain falls back to third-party relays, which must never see an API key
+    return fetch(target, { headers:withKey && key ? { authorization:'Bearer ' + key } : {}, signal:ctl ? ctl.signal : undefined })
+      .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function(j){ clearTimeout(to); return j; }, function(e){ clearTimeout(to); throw e; });
+  };
+  get(true).catch(function(){ return get(false); }).then(function(j){
+    var ids = ((j && j.data) || []).map(function(m){ return m.id; }).filter(Boolean);
+    if(!ids.length) throw new Error('empty');
+    var prev = {}; ((c && c.recs) || []).forEach(function(r){ prev[r.id] = r.first; });
+    var recs = ids.map(function(id){ return { id:id, free:/-free$/.test(id), first:id in prev ? prev[id] : (c ? Date.now() : 0) }; });   // first-ever scan marks nothing "new"
+    pickSave('fh3_oc_' + p, { t:Date.now(), recs:recs });
+    var fresh = recs.filter(function(r){ return r.first && Date.now() - r.first < 14 * 864e5; }).length;
+    if(force) toast(recs.length + ' models found' + (fresh ? ' · ' + fresh + ' new' : '') + ' · ' + recs.filter(function(r){ return r.free; }).length + ' free' + (key ? '' : ' (add your key to see free/unlisted ones)'));
+  }).catch(function(){ if(force) toast('Could not read the OpenCode model list — it needs the local server or the proxy'); })
+    .then(function(){ OC.loading[p] = false; if(PICK.ctx) renderPicker(); });
+}
 function pickItems(p){
-  var items = (AI_MODELS[p] || []).map(function(m){ return { id:m[0], label:m[1], badge:'' }; });
-  if(p === 'openrouter'){ pickOR().forEach(function(id){ if(!items.some(function(x){ return x.id === id; })) items.push({ id:id, label:String(id).split('/').pop(), badge:'' }); }); }
-  if(p === 'custom'){ pickCustoms().forEach(function(c){ items.push({ id:c.id, label:c.label || c.id, badge:'' }); }); }
+  var items = (AI_MODELS[p] || []).map(function(m){ return { id:m[0], label:m[1], sub:'', free:false, grp:p === 'openrouter' ? 'Featured' : '' }; });
+  if(p === 'openrouter'){
+    var seen = {}; items.forEach(function(x){ seen[x.id] = 1; });
+    var recs = orRecs().filter(function(r){ return !seen[r.id]; });
+    recs.filter(function(r){ return r.free; }).sort(function(a, b){ return b.t - a.t; }).forEach(function(r){ items.push({ id:r.id, label:r.n, sub:r.v, free:true, grp:'Free' }); });
+    recs.filter(function(r){ return !r.free; }).sort(function(a, b){ return b.t - a.t; }).forEach(function(r){ items.push({ id:r.id, label:r.n, sub:r.v, free:false, grp:'All models' }); });
+  }
+  if(p === 'opencode' || p === 'opencode-go'){
+    var have = {}; items.forEach(function(x){ have[x.id] = 1; x.grp = 'Featured'; });
+    var rest = ocRecs(p).filter(function(r){ return !have[r.id]; }), isNew = function(r){ return r.first && Date.now() - r.first < 14 * 864e5; };
+    var push = function(r, g){ items.push({ id:r.id, label:ocPretty(r.id), sub:isNew(r) && g !== 'New' ? 'new' : '', free:r.free, grp:g }); };
+    rest.filter(isNew).forEach(function(r){ push(r, 'New'); });
+    rest.filter(function(r){ return !isNew(r) && r.free; }).forEach(function(r){ push(r, 'Free'); });
+    rest.filter(function(r){ return !isNew(r) && !r.free; }).forEach(function(r){ push(r, 'All models'); });
+  }
+  if(p === 'custom'){ pickCustoms().forEach(function(c){ items.push({ id:c.id, label:c.label || c.id, sub:'', free:false, grp:'' }); }); }
   return items;
 }
 function pickCtx(c){
@@ -4262,16 +4381,16 @@ function pickLabel(p, id){
   var hit = '';
   Object.keys(AI_MODELS).forEach(function(k){ (AI_MODELS[k] || []).forEach(function(m){ if(m[0] === id) hit = m[1]; }); });
   if(!hit) pickCustoms().forEach(function(c){ if(c.id === id) hit = c.label || c.id; });
-  if(!hit && pickOR().indexOf(id) >= 0) hit = String(id).split('/').pop();
+  if(!hit){ var rr = orRecs().filter(function(r){ return r.id === id; })[0]; if(rr) hit = rr.n; }
   return hit || id || 'model';
 }
 /* Photo-style model picker: provider groups, star favorites, badges, chevron
    opens a per-model submenu (Thinking toggle + effort list). One component
    serves the Assistant foot (KEYS) and Deep Research setup (RS). */
-var PICK = { ctx:null, prov:null, hov:null };
+var PICK = { ctx:null, prov:null, hov:null, q:'' };
 function pickHost(c){ return $(c === 'rs' ? 'pickMenuR' : c === 'page' ? 'pickMenuP' : 'pickMenuA'); }
 function openPicker(c){
-  PICK.ctx = c; var st = pickCtx(c); PICK.prov = st.prov; PICK.hov = st.model || null;
+  PICK.ctx = c; var st = pickCtx(c); PICK.prov = st.prov; PICK.hov = st.model || null; PICK.q = '';
   renderPicker(); var h = pickHost(c); if(h) h.hidden = false;
 }
 function closePicker(){ if(PICK.ctx === 'page') return; PICK.ctx = null; PICK.prov = null; PICK.hov = null; ['pickMenuA', 'pickMenuR'].forEach(function(id){ var h = $(id); if(h) h.hidden = true; }); }
@@ -4301,22 +4420,8 @@ function pickApplyThink(c, on){
 }
 /* Claude-style switcher: provider tabs on top, models left, effort right
    (follows the hovered / selected model). Clicking an effort commits and closes. */
-function renderPicker(){
-  var host = pickHost(PICK.ctx); if(!host || !PICK.ctx) return;
-  var st = pickCtx(PICK.ctx), prov = PICK.prov || st.prov;
-  var rs = PICK.ctx === 'rs';
-  if(rs && prov === 'anthropic') prov = 'openrouter';
-  var items = pickItems(prov).filter(function(m){ return !rs || !aiWire(prov, m.id); });
-  var hov = PICK.hov || (prov === st.prov ? st.model : '') || (items[0] && items[0].id) || '';
-  var h = '<div class="pm-tabs">' + AI_PROVS.filter(function(pr){ return !rs || pr[0] !== 'anthropic'; }).map(function(pr){
-    return '<button type="button" class="pm-tab' + (pr[0] === prov ? ' on' : '') + '" data-act="pick-prov" data-p="' + esc(pr[0]) + '">' + esc(pr[1]) + '</button>';
-  }).join('') + '</div><div class="pm-cols"><div class="pm-models">';
-  h += items.length ? items.map(function(m){
-    var cur = prov === st.prov && st.model === m.id;
-    return '<button type="button" class="pm-m' + (cur ? ' cur' : '') + (hov === m.id ? ' hov' : '') + '" data-act="pick-sel" data-p="' + esc(prov) + '" data-m="' + esc(m.id) + '">' +
-      '<span class="pm-name">' + esc(m.label) + '</span>' + (cur ? '<span class="pm-check">✓</span>' : '') + '</button>';
-  }).join('') : '<div class="pm-empty">No models yet — add one below</div>';
-  h += '</div><div class="pm-effort">';
+function pickEffortHTML(prov, hov, st){
+  var h = '';
   if(hov){
     h += '<div class="pm-eh">Effort</div>' + Object.keys(AI_EFFORT).map(function(k){
       var on = st.eff === k && prov === st.prov && st.model === hov;
@@ -4324,22 +4429,56 @@ function renderPicker(){
     }).join('') +
     '<button type="button" class="pm-e pm-think" data-act="pick-think"><span>Thinking</span><span class="pm-switch' + (st.think ? ' on' : '') + '"><span class="pm-knob"></span></span></button>';
   }
-  h += '</div></div><div class="pm-foot">' +
+  return h;
+}
+function pickState(){   // provider/model state the picker is showing right now
+  var st = pickCtx(PICK.ctx), prov = PICK.prov || st.prov;
+  if(PICK.ctx === 'rs' && prov === 'anthropic') prov = 'openrouter';
+  return { st:st, prov:prov };
+}
+function pickModelsHTML(prov, st, hov, items){
+  var q = (PICK.q || '').trim().toLowerCase();
+  if(q) items = items.filter(function(m){ return (m.label + ' ' + m.id + ' ' + m.sub).toLowerCase().indexOf(q) >= 0; });
+  var more = 0;
+  if(!q && items.length > 220){ more = items.length - 220; items = items.slice(0, 220); }
+  if(!items.length) return '<div class="pm-empty">' + (q ? 'No models match “' + esc(PICK.q) + '”' : (prov === 'openrouter' ? 'Loading the OpenRouter catalogue…' : 'No models yet — add one below')) + '</div>';
+  var last = null;
+  return items.map(function(m){
+    var cur = prov === st.prov && st.model === m.id, head = '';
+    if(m.grp && m.grp !== last){ head = '<div class="pm-grp">' + esc(m.grp) + '</div>'; last = m.grp; }
+    return head + '<button type="button" class="pm-m' + (cur ? ' cur' : '') + (hov === m.id ? ' hov' : '') + '" data-act="pick-sel" data-p="' + esc(prov) + '" data-m="' + esc(m.id) + '" title="' + esc(m.id) + '">' +
+      '<span class="pm-name">' + esc(m.label) + (m.sub && m.sub !== 'new' ? '<small>' + esc(m.sub) + '</small>' : '') + '</span>' + (m.sub === 'new' ? '<span class="pm-new">new</span>' : '') + (m.free ? '<span class="pm-free">free</span>' : '') + (cur ? '<span class="pm-check">✓</span>' : '') + '</button>';
+  }).join('') + (more ? '<div class="pm-empty">+ ' + more + ' more — search to find them</div>' : '');
+}
+function renderPicker(){
+  var host = pickHost(PICK.ctx); if(!host || !PICK.ctx) return;
+  var st = pickCtx(PICK.ctx), prov = PICK.prov || st.prov;
+  var rs = PICK.ctx === 'rs';
+  if(rs && prov === 'anthropic') prov = 'openrouter';
+  if(prov === 'openrouter') orLoad(false); else if(prov === 'opencode' || prov === 'opencode-go') ocLoad(prov, false);
+  var items = pickItems(prov).filter(function(m){ return !rs || !aiWire(prov, m.id); });
+  var hov = PICK.hov || (prov === st.prov ? st.model : '') || (items[0] && items[0].id) || '';
+  var h = '<div class="pm-tabs">' + AI_PROVS.filter(function(pr){ return !rs || pr[0] !== 'anthropic'; }).map(function(pr){
+    return '<button type="button" class="pm-tab' + (pr[0] === prov ? ' on' : '') + '" data-act="pick-prov" data-p="' + esc(pr[0]) + '">' + esc(pr[1]) + '</button>';
+  }).join('') + '</div>' +
+    (items.length > 10 ? '<div class="pm-search"><input id="pmQ" type="search" autocomplete="off" placeholder="Search ' + items.length + ' models" value="' + esc(PICK.q || '') + '"></div>' : '') +
+    '<div class="pm-cols"><div class="pm-models">' + pickModelsHTML(prov, st, hov, items) + '</div><div class="pm-effort">' + pickEffortHTML(prov, hov, st) + '</div></div><div class="pm-foot">' +
     '<button type="button" data-act="pick-refresh">↻ Refresh</button>' +
     '<button type="button" data-act="pick-add">+ Custom model</button>' +
-    (PICK.ctx === 'keys' ? '<button type="button" data-act="pick-key">🔑 API key</button>' : '') +
+    (PICK.ctx === 'keys' ? '<button type="button" data-act="pick-key">\U0001F511 API key</button>' : '') +
     '</div>';
+  var sc = ['.pm-models', '.pm-effort', '.pm-tabs'].map(function(q){ var e = host.querySelector(q); return e ? [e.scrollTop, e.scrollLeft] : [0, 0]; });
+  var hadFocus = document.activeElement && document.activeElement.id === 'pmQ';
   host.innerHTML = h;
+  ['.pm-models', '.pm-effort', '.pm-tabs'].forEach(function(q, i){ var e = host.querySelector(q); if(e){ e.scrollTop = sc[i][0]; e.scrollLeft = sc[i][1]; } });
+  if(hadFocus){ var qi = $('pmQ'); if(qi){ qi.focus(); qi.setSelectionRange(qi.value.length, qi.value.length); } }
 }
 function pickRefresh(){
+  var p = pickState().prov;
+  if(p === 'openrouter') orLoad(true);
+  else if(p === 'opencode' || p === 'opencode-go') ocLoad(p, true);
+  else toast(aiProvLabel(p) + ' has no public model list \u2014 use \u201c+ Custom model\u201d to add a new one');
   renderPicker();
-  fetchJSON('https://openrouter.ai/api/v1/models', 15000).then(function(j){
-    var ids = ((j && j.data) || []).map(function(m){ return m.id; }).filter(Boolean).slice(0, 60);
-    if(!ids.length) throw new Error('empty');
-    pickSave('fh3_or', { t:Date.now(), ids:ids });
-    toast(ids.length + ' OpenRouter models loaded');
-    renderPicker();
-  }).catch(function(){ toast('Refresh failed — are you offline?'); });
 }
 function pickAdd(){
   var id = prompt('Model id (e.g. vendor/model-name):');
@@ -5233,7 +5372,7 @@ function paintKeysPage(){
     (acct() ? 'Saved to your account on this browser — sign in and they are ready.' : 'Saved in this browser. Create an account to keep them with your profile.') +
     ' Keys are sent only to the provider they belong to.</div>' +
     '<div class="krow"><div class="khead"><b>OpenCode proxy URL</b><span class="mut kmsg">only for OpenCode / OpenCode Go on the hosted site</span></div>' +
-    '<div class="key-row"><input class="inp" id="ocProxy" placeholder=default: built-in relay value="' + esc(CFG.ocProxy || '') + '">' +
+    '<div class="key-row"><input class="inp" id="ocProxy" placeholder="Built-in relay (leave empty)" value="' + esc(CFG.ocProxy || '') + '">' +
     '<button class="btn filled sm" data-act="proxy-save">Save</button></div></div>' + AI_PROVS.map(function(pv){
     var p = pv[0], k = (KEYS.keysBy || {})[p] || '', def = p === KEYS.provider;
     return '<div class="krow"><div class="khead"><i class="kdot' + (k ? ' on' : '') + '"></i><b>' + esc(pv[1]) + '</b>' + (def ? '<span class="ktag">default</span>' : '') + '<span class="mut kmsg" id="km-' + p + '"></span></div>' +
@@ -5997,6 +6136,13 @@ document.addEventListener('change', function(ev){
 });
 document.addEventListener('input', function(ev){
   var el = ev.target;
+  if(el && el.id === 'pmQ' && PICK.ctx){
+    PICK.q = el.value;
+    var host = pickHost(PICK.ctx), ps = pickState(), items = pickItems(ps.prov).filter(function(m){ return PICK.ctx !== 'rs' || !aiWire(ps.prov, m.id); });
+    var ml = host && host.querySelector('.pm-models');
+    if(ml){ ml.innerHTML = pickModelsHTML(ps.prov, ps.st, PICK.hov || ps.st.model, items); ml.scrollTop = 0; }
+    return;
+  }
   if(el && el.id === 'prompt'){ el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 180) + 'px'; }
   if(el && el.id === 'rsQ'){
     RS.question = el.value;
@@ -6011,7 +6157,10 @@ function bindEvents(){
     if(!m || !PICK.ctx) return;
     var id = m.getAttribute('data-m');
     if(id === PICK.hov) return;
-    PICK.hov = id; renderPicker();
+    PICK.hov = id;   // update in place: rebuilding the list would throw its scroll position back to the top
+    var host = pickHost(PICK.ctx); if(!host) return;
+    [].forEach.call(host.querySelectorAll('.pm-m'), function(b){ b.classList.toggle('hov', b.getAttribute('data-m') === id); });
+    var ps = pickState(), eff = host.querySelector('.pm-effort'); if(eff) eff.innerHTML = pickEffortHTML(ps.prov, id, ps.st);
   });
   document.addEventListener('click', function(ev){
     var el = ev.target.closest('[data-act]');
@@ -6030,7 +6179,7 @@ function bindEvents(){
       case 'rs-open': rsOpenRun(el.getAttribute('data-id')); break;
       case 'rs-copy': rsCopy(); break;
       case 'rs-download': rsDownload(); break;
-      case 'pick-prov': PICK.prov = el.getAttribute('data-p'); PICK.hov = null;
+      case 'pick-prov': PICK.prov = el.getAttribute('data-p'); PICK.hov = null; PICK.q = '';
         if(PICK.ctx === 'page' && PICK.prov !== KEYS.provider){ pickSetBoth('page', PICK.prov, AI_DEFAULT_MODEL[PICK.prov] || ''); paintKeysPage(); }
         renderPicker(); break;
       case 'pick-sel': PICK.prov = el.getAttribute('data-p'); PICK.hov = el.getAttribute('data-m'); pickSetBoth(PICK.ctx, PICK.prov, PICK.hov); renderPicker(); if(PICK.ctx === 'page') paintKeysPage(); break;
@@ -6127,6 +6276,13 @@ function bindEvents(){
         break;
       }
       case 'keys': openKeys(); break;
+      case 'gl-toggle': {
+        CFG.glopen = !CFG.glopen; saveCfg();
+        var gf = $('glFull'); if(gf) gf.classList.toggle('open', CFG.glopen);
+        el.setAttribute('aria-expanded', String(!!CFG.glopen)); el.textContent = CFG.glopen ? 'Hide portfolio \u2303' : 'Full portfolio \u2304';
+        if(CFG.glopen) setTimeout(function(){ var g2 = $('glFull'); if(g2) g2.scrollIntoView({ behavior:'smooth', block:'nearest' }); }, 380);
+        break;
+      }
       case 'gl-range': CFG.glr = el.getAttribute('data-r'); saveCfg(); repaintGlance(); break;
       case 'key-save': keySave(el.getAttribute('data-p'), false); break;
       case 'key-clear': keySave(el.getAttribute('data-p'), true); break;
@@ -6342,13 +6498,18 @@ function bindEvents(){
     var v = $('prompt').value.trim();
     if(!v && ATT.length) v = 'Please analyze the attached file(s).';
     aiRun(v ? 'custom' : 'summary', v || null);
-    $('prompt').value = '';
+    $('prompt').value = ''; $('prompt').style.height = '';   // shrink back after a multi-line message
   });
   $('micBtn').addEventListener('click', dictate);
   $('attFile').addEventListener('change', function(){ attAdd(this.files); this.value = ''; });
   var dz = $('drawer'); dz.addEventListener('dragover', function(ev){ ev.preventDefault(); }); dz.addEventListener('drop', attDrop);
   $('prompt').addEventListener('paste', function(ev){ var f = [].slice.call((ev.clipboardData && ev.clipboardData.files) || []); if(f.length){ ev.preventDefault(); attAdd(f); } });
   if($('model')) $('model').addEventListener('input', paintAiPick);
+  $('prompt').addEventListener('keydown', function(ev){   // Enter sends, Shift+Enter starts a new line
+    if(ev.key !== 'Enter' || ev.shiftKey || ev.isComposing || ev.keyCode === 229) return;
+    ev.preventDefault();
+    var b = $('runBtn'); if(b && !b.disabled) b.click();
+  });
   document.addEventListener('keydown', function(ev){
     if(ev.key === 'Escape'){
       var pickerOpen = (PICK.ctx && PICK.ctx !== 'page') || (RS.optsOpen && $('rsOptsBtn'));
