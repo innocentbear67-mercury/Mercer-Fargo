@@ -2186,6 +2186,7 @@ function barRow(label, value, max, color){
 }
 /* ------------------------------------------------------- 6. state + router */
 
+var OC_PROXY = 'https://mercer-fargo-opencode-proxy.mercerfargo.workers.dev';   // hosted CORS relay for OpenCode (worker/)
 var CFG = load(LS.cfg, { theme:'', market:'US', currency:'USD' });
 var LISTS = load(LS.lists, {
   main:{ name:'My watchlist', syms:['AAPL','MSFT','NVDA','TSLA','AMZN','META','GOOGL'] }
@@ -4283,7 +4284,7 @@ function aiCall(messages){
   // opencode.ai sends no CORS headers, so it goes through the local proxy; the
   // key rides along in the Authorization header and never touches disk. Go also
   // requires a stable x-opencode-session per conversation.
-  var target = zen && canTryProxy() ? PROXY_PATH + encodeURIComponent(url) : url;
+  var target = zen && canTryProxy() ? PROXY_PATH + encodeURIComponent(url) : zen && (CFG.ocProxy || OC_PROXY) ? (CFG.ocProxy || OC_PROXY) + '?u=' + encodeURIComponent(url) : url;
   var hdrs = { 'content-type':'application/json', authorization:'Bearer ' + KEYS.key };
   if(zen) hdrs['x-opencode-session'] = mfSessionId();
   var body;
@@ -4304,7 +4305,7 @@ function aiCall(messages){
     headers:hdrs,
     body:JSON.stringify(body)
   }).catch(function(e){
-    if(target === url && zen) throw new Error('OpenCode blocks direct browser calls (no CORS), so it only works through the local server: run python3 serve.py and open http://localhost:8000. Your key is fine.');
+    if(target === url && zen) throw new Error('OpenCode blocks direct browser calls (no CORS). Set an OpenCode proxy URL in Settings \u2192 AI & API keys, or run python3 serve.py locally. Your key is fine.');
     throw e;
   }).then(readJSON).then(function(j){
     if(j.error) throw new Error(j.error.message || JSON.stringify(j.error));
@@ -4661,7 +4662,10 @@ function paintKeysPage(){
   if($('keySummary')) $('keySummary').textContent = aiPickText();
   card.innerHTML = '<h3 style="margin:0 0 4px">API keys</h3><div class="mut" style="font-size:13px;margin-bottom:8px">' +
     (acct() ? 'Saved to your account on this browser — sign in and they are ready.' : 'Saved in this browser. Create an account to keep them with your profile.') +
-    ' Keys are sent only to the provider they belong to.</div>' + AI_PROVS.map(function(pv){
+    ' Keys are sent only to the provider they belong to.</div>' +
+    '<div class="krow"><div class="khead"><b>OpenCode proxy URL</b><span class="mut kmsg">only for OpenCode / OpenCode Go on the hosted site</span></div>' +
+    '<div class="key-row"><input class="inp" id="ocProxy" placeholder=default: built-in relay value="' + esc(CFG.ocProxy || '') + '">' +
+    '<button class="btn filled sm" data-act="proxy-save">Save</button></div></div>' + AI_PROVS.map(function(pv){
     var p = pv[0], k = (KEYS.keysBy || {})[p] || '', def = p === KEYS.provider;
     return '<div class="krow"><div class="khead"><i class="kdot' + (k ? ' on' : '') + '"></i><b>' + esc(pv[1]) + '</b>' + (def ? '<span class="ktag">default</span>' : '') + '<span class="mut kmsg" id="km-' + p + '"></span></div>' +
       '<div class="key-row"><input class="inp" id="ki-' + p + '" type="password" autocomplete="off" placeholder="paste ' + esc(pv[1]) + ' key" value="' + esc(k) + '">' +
@@ -5393,6 +5397,7 @@ function bindEvents(){
       case 'auth-mode': openAuth(el.getAttribute('data-m')); break;
       case 'auth-go': authGo(el.getAttribute('data-m')); break;
       case 'profile-save': profileSave(); break;
+      case 'proxy-save': CFG.ocProxy = ($('ocProxy').value || '').trim().replace(/\/+$/, ''); saveCfg(); toast(CFG.ocProxy ? 'Proxy saved' : 'Proxy cleared'); break;
       case 'signout': closeMenu(); acctSignOut(); toast('Signed out'); break;
       case 'theme': toggleTheme(); break;
       case 'menu-more': ev.stopPropagation(); menu(el, moreMenuHTML()); break;

@@ -1,0 +1,3 @@
+name = "mercer-fargo-opencode-proxy"
+main = "opencode-proxy.js"
+compatibility_date = "2026-01-01"
