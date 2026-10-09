@@ -419,9 +419,26 @@ table.fh .col-trend{width:120px}
 }
 .chart-toolbar .tbtn:hover{background:var(--fh-states-neutral-hovered)}
 .chart-toolbar .tbtn.on{background:var(--fh-states-neutral-selected)}
-.chart-box{position:relative;margin:16px 0 8px;min-height:340px}
-.chart-box svg{display:block;width:100%;height:340px;overflow:visible}
+.chart-box{position:relative;margin:16px 0 8px;min-height:680px}
+.chart-box svg{display:block;width:100%;height:680px;overflow:visible}
+@media (max-width:760px){ .chart-box{min-height:460px} .chart-box svg{height:460px} }
 .chart-box .gridline{stroke:var(--fh-chart-grid);stroke-width:1}
+.chart-box.loading svg{opacity:.45;transition:opacity .2s}
+.vol-layer{opacity:.5;cursor:ns-resize;transition:none}
+.vol-layer .vol-hit{fill:transparent}
+.vol-layer:hover{opacity:.65}
+.vol-layer.anim,.vol-slider b.anim{transition:transform .45s cubic-bezier(.2,.8,.2,1),top .45s cubic-bezier(.2,.8,.2,1)}
+.vol-slider{position:absolute;left:6px;width:22px;cursor:pointer;touch-action:none;outline:none}
+.vol-slider i{position:absolute;left:7px;top:-4px;bottom:-4px;width:8px;border-radius:4px;background:var(--fh-border-stroke-emphasis);box-shadow:inset 0 0 0 1px var(--fh-foreground-on-surface-de-emphasis);opacity:.7}
+.vol-slider b{position:absolute;left:2px;width:18px;height:46px;margin-top:-23px;border-radius:9px;background:var(--fh-background-surface);
+  border:2px solid var(--fh-foreground-on-surface-de-emphasis);box-shadow:var(--fh-elevation-1,0 1px 3px rgba(0,0,0,.3));cursor:grab}
+.vol-slider b span{position:absolute;left:24px;top:50%;transform:translateY(-50%);font-size:9.5px;font-weight:600;letter-spacing:.4px;
+  color:var(--fh-foreground-on-surface-de-emphasis);opacity:0;transition:opacity .15s;pointer-events:none}
+.vol-slider:hover b span,.vol-slider:focus-visible b span{opacity:1}
+.vol-slider.moved b{border-color:var(--fh-colors-and-accents-primary)}
+.vol-slider:focus-visible b{outline:2px solid var(--fh-colors-and-accents-primary);outline-offset:2px}
+body.vol-dragging,body.vol-dragging *{cursor:grabbing!important;user-select:none}
+.vol-none{position:absolute;left:8px;bottom:30px;font-size:11px;color:var(--fh-foreground-on-surface-de-emphasis)}
 .chart-box .axis{fill:var(--fh-foreground-on-surface-de-emphasis);font-size:11px}
 .chart-tip{
   position:absolute;pointer-events:none;background:var(--fh-background-surface-inverted);
@@ -1372,10 +1389,25 @@ html{overflow-x:clip}
 .gu-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 6px}
 .gu-tools input{flex:1;min-width:160px;max-width:320px;padding:8px 14px;border-radius:18px;border:1px solid var(--fh-border-stroke-emphasis);background:var(--fh-background-surface);color:inherit;font-size:13.5px}
 .gu-list{display:grid;gap:1px}
-.gu-row{display:grid;grid-template-columns:30px 28px 70px minmax(90px,1.1fr) minmax(80px,2fr) 62px 76px;gap:10px;align-items:center;
+.gu-row{display:grid;grid-template-columns:30px 28px 70px minmax(90px,1.1fr) minmax(80px,2fr) 58px 62px 76px;gap:10px;align-items:center;
   padding:7px 8px;border-radius:10px;color:inherit;font-size:13.5px;transition:background .15s,transform .2s}
 .gu-row:hover{background:var(--fh-states-neutral-hovered);transform:translateX(3px);text-decoration:none}
 .gu-row .rk{font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis);text-align:right;font-variant-numeric:tabular-nums}
+.gu-ch{font-size:11.5px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.gu-ch.up,.gu-tip .mv.up,.gu-mv .ma.up{color:var(--fh-positive)}
+.gu-ch.dn,.gu-tip .mv.dn,.gu-mv .ma.dn{color:var(--fh-negative)}
+.gu-tip .mv{margin-top:6px;padding-top:6px;border-top:1px solid var(--fh-border-stroke-default);font-size:12.5px;font-weight:500;color:var(--fh-foreground-on-surface-de-emphasis)}
+.gu-mvs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:10px}
+.gu-mvh{display:flex;justify-content:space-between;padding:0 4px 6px;margin-bottom:4px;border-bottom:1px solid var(--fh-border-stroke-default);
+  font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis)}
+.gu-mv{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 4px;border-radius:10px;color:inherit;
+  animation:guIn .45s both;animation-delay:var(--d,0ms);transition:background .15s,transform .2s}
+.gu-mv:hover{background:var(--fh-states-neutral-hovered);transform:translateX(3px);text-decoration:none}
+.gu-mv .mt{min-width:0;display:flex;flex-wrap:wrap;align-items:center;column-gap:4px;font-size:13.5px}
+.gu-mv .mt b{color:var(--fh-foreground-on-surface-emphasis)}
+.gu-mv .mt>span:last-child{flex-basis:100%;font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gu-mv .ma{text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.25}
+.gu-mv .ma small{display:block;font-size:11.5px;font-weight:400;color:var(--fh-foreground-on-surface-de-emphasis)}
 .gu-row .vl{text-align:right;font-size:12.5px;color:var(--fh-foreground-on-surface-de-emphasis);font-variant-numeric:tabular-nums}
 .gu-bar{height:10px;border-radius:0 4px 4px 0;background:var(--fh-border-stroke-default);overflow:hidden}
 .gu-bar i{display:block;height:100%;width:0;border-radius:0 4px 4px 0;background:var(--bc,var(--fh-colors-and-accents-primary));
@@ -1423,7 +1455,8 @@ html{overflow-x:clip}
 @media (max-width:760px){
   .gu-hero{grid-template-columns:1fr;text-align:center;justify-items:center}
   .gu-hero .av{width:130px;height:130px}
-  .gu-row{grid-template-columns:28px 64px minmax(0,1fr) 56px;gap:8px}
+  .gu-row{grid-template-columns:28px 64px minmax(0,1fr) 50px 56px;gap:8px}
+  .gu-mvs{grid-template-columns:1fr}
   .gu-row .rk,.gu-row .cn,.gu-row .vl{display:none}
   .gu-leg{grid-template-columns:12px 28px 56px minmax(0,1fr) 52px}
 }
@@ -2247,12 +2280,15 @@ function saSlug(sym){
   return String(alt).toLowerCase();
 }
 
+/* Intraday bars cached before timestamps were kept can't label times: fetch again. */
+function histUsable(rows, range, sym){ return rows && (range === '1D' || range === '5D') && rows.length && !rows[rows.length - 1].t && !isFx(dispSym(sym)) ? null : rows; }
+
 /* Public entry point: also mirrors the series into DATA.hist so views that read
    DATA.hist directly (quote stats, compare table and chart) see it too. */
 function fetchHistory(sym, range){
   var days = RANGE_DAYS[range] || 40;
   var key = histKey(sym, days);
-  var cached = loadHistCache(sym, days);
+  var cached = histUsable(loadHistCache(sym, days), range, sym);
   if(cached && cached.length){
     DATA.hist[key] = cached;
     return Promise.resolve(cached);
@@ -2273,7 +2309,7 @@ function oaHist(sym, range){
     .then(function(j){
       var bars = (j && j.bars) || [];
       return bars.map(function(b){
-        return { d:b.d, o:numOf(b.o), h:numOf(b.h), l:numOf(b.l), c:numOf(b.c), v:numOf(b.v) || 0 };
+        return { d:b.d, t:b.t || null, o:numOf(b.o), h:numOf(b.h), l:numOf(b.l), c:numOf(b.c), v:numOf(b.v) || 0 };
       }).filter(function(r){ return r.d && r.c != null; });
     });
 }
@@ -2314,7 +2350,7 @@ function fillTRHMovers(){
 
 function fetchHistoryRaw(sym, range){
   var days = RANGE_DAYS[range] || 40;
-  var cached = loadHistCache(sym, days);
+  var cached = histUsable(loadHistCache(sym, days), range, sym);
   if(cached && cached.length) return Promise.resolve(cached);
   var s = dispSym(sym);
   if(TV_MISS[s] && !CG[s] && !isFx(s) && Date.now() - TV_MISS[s] < 600000) return Promise.resolve([]);   // unknown symbol: skip the slow relay chain
@@ -2324,7 +2360,7 @@ function fetchHistoryRaw(sym, range){
     return fetchJSON('https://api.coingecko.com/api/v3/coins/' + CG[s] + '/market_chart?vs_currency=usd&days=' + d2, 14000)
       .then(function(j){
         var pts = (j.prices || []).map(function(p){
-          return { d:new Date(p[0]).toISOString().slice(0, 10), o:p[1], h:p[1], l:p[1], c:p[1], v:0 };
+          return { d:new Date(p[0]).toISOString().slice(0, 10), t:Math.round(p[0] / 1000), o:p[1], h:p[1], l:p[1], c:p[1], v:0 };
         });
         saveHistCache(sym, days, pts);
         return pts;
@@ -2511,7 +2547,7 @@ function renderChart(){
       '<div style="margin-top:12px"><button class="btn text" data-act="retry-hist">Retry</button></div></div>';
     return;
   }
-  var W = 1000, H = 340, padL = 8, padR = 64, padT = 14, padB = 26;
+  var W = 1000, H = parseFloat(getComputedStyle(host).minHeight) || 680, padL = 44, padR = 64, padT = 14, padB = 26;
   var plotW = W - padL - padR, plotH = H - padT - padB;
   var closes = rows.map(function(r){ return r.c; });
   var series = [closes];
@@ -2529,6 +2565,7 @@ function renderChart(){
   });
   var all = [];
   series.forEach(function(s){ all = all.concat(s.filter(isFinite)); });
+  if(mode === 'candles') rows.forEach(function(r){ if(isFinite(r.h)) all.push(r.h); if(isFinite(r.l)) all.push(r.l); });   // wicks stay inside the plot
   var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all);
   if(ind.ma20 || ind.ma50 || ind.ma200){} // moving averages stay on the primary series
   var sp = (mx - mn) || 1;
@@ -2552,13 +2589,15 @@ function renderChart(){
   if(rows.length > 1){
     spanDays = (Date.parse(rows[rows.length - 1].d) - Date.parse(rows[0].d)) / 864e5;
   }
+  var intraday = rows.length > 1 && rows[0].t && rows[1].t && rows[1].t - rows[0].t < 86400;
   var ticks = Math.min(spanDays > 400 ? 5 : 6, rows.length);
   var seen = {}, lastX = -999;
   for(var t = 0; t < ticks; t++){
     var idx = Math.round(t * (rows.length - 1) / Math.max(1, ticks - 1));
     var dstr = rows[idx] && rows[idx].d ? rows[idx].d : '';
     if(!dstr) continue;
-    var lbl = spanDays > 400 ? monthName(dstr.slice(5, 7)) + ' ' + dstr.slice(2, 4) : monthName(dstr.slice(5, 7)) + ' ' + parseInt(dstr.slice(8, 10), 10);
+    var lbl = spanDays > 400 ? monthName(dstr.slice(5, 7)) + ' ' + dstr.slice(2, 4) :
+      intraday && spanDays < 1.5 ? barTime(rows[idx]) : monthName(dstr.slice(5, 7)) + ' ' + parseInt(dstr.slice(8, 10), 10);
     if(seen[lbl]) continue;
     seen[lbl] = 1;
     var xpos = X(idx);
@@ -2603,31 +2642,102 @@ function renderChart(){
     var s2 = series[ci];
     if(s2 && s2.length > 2) svg.push('<path d="' + pathOf(s2) + '" fill="none" stroke="' + CHART_PALETTE[ci % CHART_PALETTE.length] + '" stroke-width="1.6" stroke-dasharray="5 3"/>');
   });
-  if(ind.vol){
-    var vmax = Math.max.apply(null, rows.map(function(r){ return r.v || 0; })) || 1;
+  /* Volume: one bar per price bar of this range, drawn on its own layer that slides between the top of the plot (VOL.min)
+     and fully below it (VOL.max), clipped to the plot. 0 = resting on the bottom axis. */
+  var vmax = Math.max.apply(null, rows.map(function(r){ return r.v || 0; })), bandH = plotH * 0.33, vol = [];
+  if(vmax > 0){
+    var vw = Math.max(1.2, Math.min(8, plotW / rows.length * 0.7));
     rows.forEach(function(r, i){
-      var bh = ((r.v || 0) / vmax) * plotH * 0.22;
-      svg.push('<rect x="' + (X(i) - 1.4) + '" y="' + (padT + plotH - bh) + '" width="2.8" height="' + bh + '" fill="var(--fh-foreground-on-surface-de-emphasis)" opacity=".35"/>');
+      var bh = (r.v || 0) / vmax * bandH; if(!bh) return;
+      vol.push('<rect x="' + (X(i) - vw / 2).toFixed(1) + '" y="' + (padT + plotH - bh).toFixed(1) + '" width="' + vw.toFixed(1) + '" height="' + bh.toFixed(1) +
+        '" fill="var(--fh-foreground-on-surface-emphasis)"/>');   // one colour: volume is not buyers vs sellers
     });
   }
+  VOL.min = -(plotH - bandH); VOL.max = 0; VOL.H = H;   // top of the plot .. resting on the bottom axis
+  CUR.volY = clamp(CUR.volY || 0, VOL.min, VOL.max);
+  host.classList.remove('loading');
   host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" data-chart="' + esc(CUR.key) + '">' +
-    '<g>' + svg.join('') + '</g><line class="xhair" x1="0" y1="' + padT + '" x2="0" y2="' + (padT + plotH) + '" stroke="var(--fh-foreground-on-surface-de-emphasis)" opacity="0"/></svg>' +
+    '<defs><clipPath id="volClip"><rect x="' + padL + '" y="' + padT + '" width="' + plotW + '" height="' + plotH + '"/></clipPath></defs>' +
+    '<g>' + svg.join('') + '</g>' +
+    (vol.length ? '<g clip-path="url(#volClip)"><g class="vol-layer" id="volLayer" style="transform:translateY(' + CUR.volY + 'px)">' +
+      '<rect class="vol-hit" x="' + padL + '" y="' + (padT + plotH - bandH) + '" width="' + plotW + '" height="' + bandH + '"/>' + vol.join('') + '</g></g>' : '') +
+    '<line class="xhair" x1="0" y1="' + padT + '" x2="0" y2="' + (padT + plotH) + '" stroke="var(--fh-foreground-on-surface-de-emphasis)" opacity="0"/></svg>' +
+    (vol.length ? '<div class="vol-slider" id="volSlider" role="slider" tabindex="0" aria-label="Volume position. Drag to move, click to reset" aria-orientation="vertical" ' +
+      'style="top:' + (padT / H * 100) + '%;height:' + (plotH / H * 100) + '%"><i></i><b id="volThumb"><span>VOL</span></b></div>' :
+      '<div class="vol-none">No per-bar volume for this instrument</div>') +
     '<div class="chart-tip" id="chartTip"></div>';
-  bindChartHover(rows, X, padT, plotH, W, padR);
+  bindChartHover(rows, X, padT, plotH, W, padR, padL);
+  bindVolume();
 }
 
-function bindChartHover(rows, X, padT, plotH, W, padR){
+var VOL = { min:0, max:0, H:680 };
+function volSet(y, animate){
+  CUR.volY = clamp(y, VOL.min, VOL.max);
+  var g = $('volLayer'), th = $('volThumb'), sl = $('volSlider');
+  if(!g || !th) return;
+  g.classList.toggle('anim', !!animate); th.classList.toggle('anim', !!animate);
+  g.style.transform = 'translateY(' + CUR.volY + 'px)';
+  th.style.top = ((CUR.volY - VOL.min) / ((VOL.max - VOL.min) || 1) * 100) + '%';
+  sl.setAttribute('aria-valuenow', Math.round(CUR.volY));
+  sl.classList.toggle('moved', Math.abs(CUR.volY) > 0.5);
+}
+/* Slider: drag to move the volume layer, a click (no drag) sends it home. The bars themselves drag too. */
+function bindVolume(){
+  var sl = $('volSlider'), g = $('volLayer'), svg = $('chartHost') && $('chartHost').querySelector('svg');
+  if(!sl || !g || !svg) return;
+  sl.setAttribute('aria-valuemin', Math.round(VOL.min)); sl.setAttribute('aria-valuemax', Math.round(VOL.max));
+  volSet(CUR.volY, false);
+  var drag = function(el, fromPointer){
+    el.addEventListener('pointerdown', function(ev){
+      ev.preventDefault(); el.setPointerCapture(ev.pointerId);
+      var y0 = ev.clientY, v0 = CUR.volY, moved = false, scale = VOL.H / svg.getBoundingClientRect().height;
+      var mv = function(e){
+        if(!moved && Math.abs(e.clientY - y0) < 3) return;
+        moved = true; document.body.classList.add('vol-dragging');
+        if(fromPointer){ var r = sl.getBoundingClientRect(); volSet(VOL.min + clamp((e.clientY - r.top) / r.height, 0, 1) * (VOL.max - VOL.min), false); }
+        else volSet(v0 + (e.clientY - y0) * scale, false);
+      };
+      var up = function(){
+        el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
+        document.body.classList.remove('vol-dragging');
+        if(moved){   // the browser fires a click after the drag; keep it from reaching anything underneath
+          var eat = function(c){ c.stopPropagation(); c.preventDefault(); };
+          window.addEventListener('click', eat, true); setTimeout(function(){ window.removeEventListener('click', eat, true); }, 0);
+        } else if(fromPointer) volSet(0, true);
+      };
+      el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+    });
+  };
+  drag(sl, true); drag(g, false);
+  sl.onkeydown = function(e){
+    var step = (VOL.max - VOL.min) / 20;
+    if(e.key === 'ArrowUp'){ e.preventDefault(); volSet(CUR.volY - step, true); }
+    else if(e.key === 'ArrowDown'){ e.preventDefault(); volSet(CUR.volY + step, true); }
+    else if(e.key === 'Enter' || e.key === ' ' || e.key === 'Home'){ e.preventDefault(); volSet(0, true); }
+  };
+}
+/* Intraday bars in the exchange's own clock: New York for US listings, Singapore for SGX, the viewer's clock for crypto. */
+function barTime(r, withDate){
+  if(!r.t) return '';
+  var s = dispSym(CUR.sym), tz = CG[s] ? undefined : /^\d/.test(s) ? 'Asia/Singapore' : 'America/New_York';
+  var o = { hour:'numeric', minute:'2-digit', timeZone:tz };
+  if(withDate){ o.month = 'short'; o.day = 'numeric'; }
+  return new Date(r.t * 1000).toLocaleString('en-US', o) + (withDate && tz ? (tz === 'America/New_York' ? ' ET' : ' SGT') : '');
+}
+
+function bindChartHover(rows, X, padT, plotH, W, padR, padL){
+  padL = padL || 8;
   var box = $('chartHost'), svg = box && box.querySelector('svg'), tip = $('chartTip'), hair = svg && svg.querySelector('.xhair');
   if(!svg || !tip) return;
   var move = function(ev){
     var r = svg.getBoundingClientRect();
     var rel = ((ev.clientX - r.left) / r.width) * W;
-    var i = clamp(Math.round((rel - 8) / Math.max(1, (W - 8 - padR)) * (rows.length - 1)), 0, rows.length - 1);
+    var i = clamp(Math.round((rel - padL) / Math.max(1, (W - padL - padR)) * (rows.length - 1)), 0, rows.length - 1);
     var row = rows[i]; if(!row) return;
     var x = X(i);
     hair.setAttribute('x1', x); hair.setAttribute('x2', x); hair.setAttribute('opacity', '.6');
     var ch = chgFrom({ c:row.c, pc:rows[0].c });
-    tip.innerHTML = '<b>' + esc(row.d) + '</b><br>Close ' + num(row.c, Math.abs(row.c) < 10 ? 4 : 2) +
+    tip.innerHTML = '<b>' + esc(row.t && rows[1] && rows[1].t && rows[1].t - rows[0].t < 86400 ? barTime(row, true) : row.d) + '</b><br>Close ' + num(row.c, Math.abs(row.c) < 10 ? 4 : 2) +
       (row.h && row.h !== row.c ? '<br>H ' + num(row.h, 2) + ' · L ' + num(row.l, 2) : '') +
       (row.v ? '<br>Vol ' + compact(row.v) : '') +
       '<br>' + chgSpan(row.c - rows[0].c, ch.pct, { pctOnly:true, icon:false });
@@ -2685,8 +2795,9 @@ if(!Object.keys(PFS).length) PFS.main = { name:'Main portfolio', holdings:[] };
 var TASKS = load(LS.tasks, []).filter(function(t){ return t && typeof t === 'object'; });
 
 var CUR = {
-  view:'home', sym:'AAPL', tab:'overview', range:'1M', chart:'area',
-  ind:{ ma20:false, ma50:false, ma200:false, vol:false }, cmp:{},
+  view:'home', sym:'AAPL', tab:'overview', range:RANGE_DAYS[CFG.range] ? CFG.range : '1M',
+  chart:/^(area|line|candles)$/.test(CFG.chart) ? CFG.chart : 'area', volY:0,
+  ind:{ ma20:false, ma50:false, ma200:false }, cmp:{},
   list:'main', pf:'main', key:'AAPL', cols:{ pc:true, o:false, h:false, l:false, v:true, mc:false },
   sort:{ key:'', dir:-1 }, sec:null, screen:null, cmpSel:[]
 };
@@ -3910,6 +4021,20 @@ function guruLogo(h, cls){
   return '<span class="gu-logo' + (cls ? ' ' + cls : '') + '" data-l="' + esc((t || h.n || '?').slice(0, 2)) + '">' +
     (src ? '<img src="' + src + '" alt="" loading="lazy" onerror="this.remove()">' : '') + '</span>';
 }
+/* Change versus the previous filing: ps = last quarter's shares (0 = new); mv overrides for disclosures without share counts. */
+function guruMove(h){
+  if(h.mv) return { k:h.mv };
+  if(h.ps == null) return null;
+  if(!h.ps) return { k:'new' };
+  var p = (h.s / h.ps - 1) * 100;
+  return Math.abs(p) < 0.5 ? { k:'same', p:0 } : { k:p > 0 ? 'add' : 'trim', p:p };
+}
+function guruChip(m){
+  if(!m || m.k === 'same') return '<span class="gu-ch"></span>';
+  var txt = m.k === 'new' ? 'NEW' : m.p == null ? (m.k === 'add' ? 'ADDED' : 'TRIMMED') : (m.p > 0 ? '+' : '−') + (Math.abs(m.p) >= 1000 ? '999+' : num(Math.abs(m.p), Math.abs(m.p) < 10 ? 1 : 0)) + '%';
+  return '<span class="gu-ch ' + (m.k === 'trim' ? 'dn' : 'up') + '">' + txt + '</span>';
+}
+function guruPrevLabel(d){ return d.prev ? d.prev.label || guruPeriod({ source:'13F-HR', period:d.prev.period }) : ''; }
 function guruPc(h){ return h.pc ? '<span class="gu-pc ' + h.pc.toLowerCase() + '">' + esc(h.pc.toUpperCase()) + '</span>' : ''; }
 function guruHref(h){ return h.t ? '#/quote/' + encodeURIComponent(h.t) : ''; }
 
@@ -3927,6 +4052,12 @@ function renderInvestors(id){
   });
 }
 
+function guruCardMoves(d){
+  if(!d.prev || d.source !== '13F-HR') return '';
+  var n = d.holdings.filter(function(h){ var m = guruMove(h); return m && m.k === 'new'; }).length, x = (d.sold || []).length;
+  return '<span class="fm num"><span class="up">' + n + ' new</span> · <span class="down">' + x + ' sold out</span> vs ' + esc(guruPrevLabel(d)) + '</span>';
+}
+
 function paintGuruIndex(data){
   var html = '<div class="section"><div class="section-head"><h2>Smart Money</h2></div>' +
     '<p class="gu-sub" style="margin:-4px 0 16px">What the best-known investors own, from their latest SEC 13F filings and public disclosures. Pick one to explore.</p><div class="gu-grid">';
@@ -3935,7 +4066,7 @@ function paintGuruIndex(data){
     html += '<a class="gu-card" href="#/investors/' + g.id + '" style="--d:' + (i * 55) + 'ms">' +
       '<div class="ph"><img src="' + guruImg(g) + '" alt="' + esc(g.name) + '" loading="lazy"><span class="gu-tag">' + esc(g.tag) + '</span></div>' +
       '<div class="bd"><span class="nm">' + esc(g.name) + '</span><span class="fm">' + esc(g.firm) + '</span>' +
-      '<span class="fm num">$' + compact(d.total) + ' · ' + d.holdings.length + ' holdings · ' + esc(guruPeriod(d)) + '</span>' +
+      '<span class="fm num">$' + compact(d.total) + ' · ' + d.holdings.length + ' holdings · ' + esc(guruPeriod(d)) + '</span>' + guruCardMoves(d) +
       '<div class="tops">' + d.holdings.slice(0, 5).map(function(h){ return guruLogo(h); }).join('') +
       (d.holdings.length > 5 ? '<span class="more">+' + (d.holdings.length - 5) + '</span>' : '') + '</div></div></a>';
   });
@@ -3988,6 +4119,7 @@ function paintGuru(g, d){
       '. 13Fs list U.S.-listed long equity and option positions only, reported up to 45 days after quarter end. Options are shown at the value of the underlying shares.') +
     (link ? ' <a href="' + esc(link) + '" target="_blank" rel="noopener">Source filing</a>' : '') + '</div></div></div>';
 
+  html += guruMovesHTML(d);
   html += '<div class="section"><div class="grid-2"><div class="card gu-story"><h3>The story</h3>' + g.story.map(function(p){ return '<p>' + esc(p) + '</p>'; }).join('') +
     (g.q ? '<blockquote class="gu-quote">“' + esc(g.q[0]) + '”<cite>' + esc(g.q[1]) + '</cite></blockquote>' : '') + '</div>' +
     '<div class="card"><h3>Worth knowing</h3><ul class="gu-facts">' + g.facts.map(function(f){ return '<li>' + esc(f) + '</li>'; }).join('') + '</ul></div></div></div>';
@@ -4047,6 +4179,38 @@ function guruPie(top){
   return '<div class="gu-pie-wrap">' + svg + '<div class="gu-legend">' + leg + '</div></div>';
 }
 
+/* New buys / Added / Trimmed / Sold out, each ranked by the dollar size of the move. */
+function guruMovesHTML(d){
+  if(!d.prev) return d.holdings.length ? '<div class="section"><div class="card"><h3>Quarter moves</h3><div class="gu-sub">' +
+    esc(d.source) + ' is an annual disclosure, so there is no quarter-over-quarter comparison.</div></div></div>' : '';
+  var col = { new:[], add:[], trim:[] };
+  d.holdings.forEach(function(h){
+    var m = guruMove(h); if(!m || !col[m.k]) return;
+    var amt = m.k === 'new' || m.p == null ? h.v : Math.abs(h.s - h.ps) / h.s * h.v;   // value of the shares bought or sold, at this period's price
+    col[m.k].push({ h:h, m:m, amt:amt });
+  });
+  var sold = (d.sold || []).map(function(h){ return { h:h, m:{ k:'sold' }, amt:h.v }; });
+  var list = function(title, rows, cls, sub){
+    rows.sort(function(a, b){ return b.amt - a.amt; });
+    var body = rows.slice(0, 6).map(function(r, k){
+      var tag = r.h.t ? 'a href="' + guruHref(r.h) + '"' : 'div';
+      return '<' + tag + ' class="gu-mv" style="--d:' + (k * 45) + 'ms">' + guruLogo(r.h) + '<span class="mt"><b>' + esc(r.h.t || r.h.n) + '</b>' + guruPc(r.h) +
+        '<span>' + esc(r.h.n) + '</span></span><span class="ma ' + cls + '">' + sub(r) + '</span></' + tag.split(' ')[0] + '>';
+    }).join('') || '<div class="gu-sub" style="padding:8px 4px">None</div>';
+    return '<div class="gu-mvcol"><div class="gu-mvh"><span>' + title + '</span><span class="num">' + rows.length + '</span></div>' + body +
+      (rows.length > 6 ? '<div class="gu-sub" style="padding:6px 4px">+' + (rows.length - 6) + ' more</div>' : '') + '</div>';
+  };
+  var usd = function(v){ return '$' + compact(v); };
+  return '<div class="section"><div class="card"><div class="section-head" style="margin:0 0 4px"><h3 style="flex:1;margin:0">Quarter moves</h3>' +
+    '<span class="gu-sub">' + esc(guruPrevLabel(d)) + ' → ' + esc(guruPeriod(d)) + '</span></div><div class="gu-mvs">' +
+    list('New buys', col.new, 'up', function(r){ return usd(r.h.v) + '<small>' + num(r.h.w, 2) + '%</small>'; }) +
+    list('Added', col.add, 'up', function(r){ return (r.m.p == null ? 'Added' : '+' + num(r.m.p, 0) + '%') + '<small>' + (r.m.p == null ? num(r.h.w, 2) + '%' : '+' + usd(r.amt)) + '</small>'; }) +
+    list('Trimmed', col.trim, 'dn', function(r){ return '−' + num(Math.abs(r.m.p), 0) + '%<small>−' + usd(r.amt) + '</small>'; }) +
+    (d.source === '13F-HR' ? list('Sold out', sold, 'dn', function(r){ return usd(r.h.v) + '<small>was ' + num(r.h.w, 2) + '%</small>'; }) : '') +
+    '</div><div class="movers-note">Share counts compared with the ' + esc(guruPrevLabel(d)) + ' filing. Dollar moves use this period\'s prices. ' +
+    'A ticker or CUSIP change after a merger or spin-off can show up as one sale and one new buy.</div></div></div>';
+}
+
 function guruListShell(n){
   return '<div class="gu-tools"><input id="guQ" type="search" placeholder="Filter ' + n + ' holdings by ticker or name" aria-label="Filter holdings"></div><div class="gu-list" id="guList"></div>';
 }
@@ -4057,12 +4221,20 @@ function guruRows(hs, q){
     if(q && (h.t || '').toLowerCase().indexOf(q) < 0 && (h.n || '').toLowerCase().indexOf(q) < 0) return;
     var tag = h.t ? 'a href="' + guruHref(h) + '"' : 'div';
     out.push('<' + tag + ' class="gu-row" data-gi="' + i + '"><span class="rk">' + (i + 1) + '</span>' + guruLogo(h) +
-      '<span class="tk">' + esc(h.t || '—') + '</span><span class="cn">' + esc(h.n) + guruPc(h) + '</span>' +
+      '<span class="tk">' + esc(h.t || '—') + '</span><span class="cn">' + guruPc(h) + esc(h.n) + '</span>' +
       '<span class="gu-bar"><i style="--w:' + Math.max(0.6, h.w / max * 100).toFixed(2) + '%;--d:' + Math.min(shown, 30) * 25 + 'ms' + (i < 10 ? ';--bc:var(--gp' + (i + 1) + ')' : '') + '"></i></span>' +
-      '<span class="wt num">' + num(h.w, h.w < 0.1 ? 3 : 2) + '%</span><span class="vl">$' + compact(h.v) + '</span></' + tag.split(' ')[0] + '>');
+      guruChip(guruMove(h)) + '<span class="wt num">' + num(h.w, h.w < 0.1 ? 3 : 2) + '%</span><span class="vl">$' + compact(h.v) + '</span></' + tag.split(' ')[0] + '>');
     shown++;
   });
   return out.join('') || '<div class="empty">No holdings match “' + esc(q) + '”.</div>';
+}
+
+function guruShares(n){ return compact(n).replace(/\.00(?=[KMB]?$)/, ''); }
+function guruTipMove(h){
+  var m = guruMove(h); if(!m) return '';
+  var t = m.k === 'new' ? 'New position this period' : m.k === 'same' ? 'No change in shares' :
+    (m.k === 'add' ? 'Added' : 'Trimmed') + (m.p == null ? ' this period' : ' ' + num(Math.abs(m.p), 1) + '% · ' + guruShares(h.ps) + ' → ' + guruShares(h.s) + ' shares');
+  return '<div class="mv ' + (m.k === 'trim' ? 'dn' : m.k === 'same' ? '' : 'up') + '">' + t + '</div>';
 }
 
 /* One floating bubble for pie slices, legend rows and list rows. */
@@ -4084,7 +4256,7 @@ function guruHover(box, hs){
       cur = i; mark(i);
       tip.innerHTML = '<div class="hd">' + guruLogo(h) + '<div><div class="tk">' + esc(h.t || 'No ticker') + guruPc(h) + '</div><div class="cn">' + esc(h.n) + '</div></div></div>' +
         '<div class="w">' + num(h.w, h.w < 0.1 ? 3 : 2) + '% <small>of portfolio · #' + (i + 1) + '</small></div>' +
-        '<div class="ln">Value $' + compact(h.v) + (h.s ? ' · ' + compact(h.s).replace(/\.00(?=[KMB]?$)/, '') + ' shares' : '') + '</div>';
+        '<div class="ln">Value $' + compact(h.v) + (h.s ? ' · ' + guruShares(h.s) + ' shares' : '') + '</div>' + guruTipMove(h);
       tip.classList.remove('on'); void tip.offsetWidth; tip.classList.add('on');
     }
     var x = ev.clientX + 16, y = ev.clientY - tip.offsetHeight - 12;
@@ -4456,7 +4628,7 @@ function paintQuote(){
       (CUR.chart === 'candles' ? 'Candles' : (CUR.chart === 'line' ? 'Line' : 'Area')) + ' ▾</button>' +
     '<button class="tbtn" data-act="menu-compare"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zm10 6h-6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V10a1 1 0 0 0-1-1z"/></svg> Compare ▾' +
       (Object.keys(CUR.cmp).length ? ' (' + Object.keys(CUR.cmp).length + ')' : '') + '</button>' +
-    '<button class="tbtn' + ((CUR.ind.ma20 || CUR.ind.ma50 || CUR.ind.vol) ? ' on' : '') + '" data-act="menu-ind">' +
+    '<button class="tbtn' + ((CUR.ind.ma20 || CUR.ind.ma50 || CUR.ind.ma200) ? ' on' : '') + '" data-act="menu-ind">' +
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 20V10h3v10H4zm6.5 0V4h3v16h-3zM17 20v-7h3v7h-3z"/></svg> Indicators ▾</button>' +
     '<span class="grow"></span>' +
     '<span class="mut" style="font-size:12px">' + (Q.hist && Q.hist.length ? Q.hist.length + ' points' : '') + '</span>' +
@@ -7321,7 +7493,14 @@ function bindEvents(){
       case 'market': CFG.market = el.getAttribute('data-group'); saveCfg(); renderSubnav();
         go(CUR.view === 'markets' ? '#/markets/' + CFG.market : '#/'); break;
       case 'sector': ev.preventDefault(); CUR.screen = Object.assign(defaultScreen(), { sector:el.getAttribute('data-sector') }); go('#/screener'); break;
-      case 'range': CUR.range = el.getAttribute('data-range'); paintQuote(); break;
+      case 'range': {
+        var rg = el.getAttribute('data-range');
+        CUR.range = CFG.range = rg; saveCfg();
+        $$('.range-row .pill').forEach(function(b){ b.classList.toggle('on', b === el); });
+        if($('chartHost')) $('chartHost').classList.add('loading');
+        loadQuoteHistory().then(function(){ if(CUR.view === 'quote' && CUR.range === rg) paintQuote(); });   // a later click wins
+        break;
+      }
       case 'qtab': CUR.tab = el.getAttribute('data-tab'); paintQuote(); break;
       case 'fin-kind': Q.fin.kind = el.getAttribute('data-kind'); paintQuotePanel(); break;
       case 'sort': {
@@ -7341,9 +7520,9 @@ function bindEvents(){
         [['area', 'Area'], ['line', 'Line'], ['candles', 'Candles']].map(function(m){
           return '<button class="mi' + (CUR.chart === m[0] ? ' on' : '') + '" data-act="chart-mode" data-mode="' + m[0] + '">' + m[1] + '</button>';
         }).join('')); break;
-      case 'chart-mode': CUR.chart = el.getAttribute('data-mode'); paintQuote(); break;
+      case 'chart-mode': CUR.chart = CFG.chart = el.getAttribute('data-mode'); saveCfg(); paintQuote(); break;
       case 'menu-ind': ev.stopPropagation(); menu(el, '<div class="mhead">Indicators</div>' +
-        [['ma20', 'Moving average 20'], ['ma50', 'Moving average 50'], ['ma200', 'Moving average 200'], ['vol', 'Volume']].map(function(m){
+        [['ma20', 'Moving average 20'], ['ma50', 'Moving average 50'], ['ma200', 'Moving average 200']].map(function(m){
           return '<button class="mi' + (CUR.ind[m[0]] ? ' on' : '') + '" data-act="ind" data-ind="' + m[0] + '">' + m[1] + '</button>';
         }).join('')); break;
       case 'ind': {

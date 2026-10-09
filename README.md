@@ -124,6 +124,9 @@ investor, with story and philosophy pages. Holdings live in `assets/gurus/holdin
 - Pelosi and Trump don't file 13Fs. `assets/gurus/disclosures.json` holds their House / OGE
   disclosures at the midpoint of each value range, so the weights are estimates.
 
+Each 13F is compared with the filer's previous quarter: new buys, adds, trims and exits show
+in a Quarter moves panel, as chips in the list and in the hover bubble.
+
 Refresh after each 13F deadline (mid-Feb, May, Aug, Nov): `python3 scripts/fetch_13f.py`.
 Company logos load from financialmodelingprep.com; a missing logo falls back to the ticker.
 

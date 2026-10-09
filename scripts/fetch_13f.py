@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuild assets/gurus/holdings.json from each fund's latest 13F-HR on SEC EDGAR.
+"""Rebuild assets/gurus/holdings.json from each fund's latest 13F-HR on SEC EDGAR,\ncompared with the quarter before it (share changes, new and exited positions).
 
 Run once a quarter after the 13F deadline (45 days after quarter end):
     python3 scripts/fetch_13f.py
@@ -33,13 +33,18 @@ def get(url, data=None, ctype=None):
             time.sleep(15)
 
 
-def latest_13f(cik):
+def last_two_13f(cik):
+    """The filer's name and its two most recent 13F-HRs for different quarters, newest first."""
     sub = json.loads(get('https://data.sec.gov/submissions/CIK%010d.json' % cik))
-    r = sub['filings']['recent']
+    r, found = sub['filings']['recent'], []
     for i, form in enumerate(r['form']):
-        if form == '13F-HR':
-            return sub['name'], r['accessionNumber'][i], r['reportDate'][i], r['filingDate'][i]
-    raise SystemExit('no 13F-HR for CIK %d' % cik)
+        if form == '13F-HR' and all(f[1] != r['reportDate'][i] for f in found):
+            found.append((r['accessionNumber'][i], r['reportDate'][i], r['filingDate'][i]))
+            if len(found) == 2:
+                break
+    if not found:
+        raise SystemExit('no 13F-HR for CIK %d' % cik)
+    return sub['name'], found
 
 
 def info_table(cik, acc):
@@ -94,24 +99,36 @@ def sec_names():
     return m
 
 
+def holding(r, total, figi, names):
+    t = (figi.get(r['cusip']) or {}).get('ticker') or names.get(norm(r['name'])) or ''
+    note = re.search(r'NOTE|DBCV|SDCV|BOND|DEB', r['cls'].upper())   # convertibles: issuer ticker, flagged
+    pc = r['put_call'] or ('Note' if note else '')
+    return {'t': t.replace('/', '.').replace('-', '.'), 'n': r['name'].title(), 'v': r['value'], 's': r['shares'],
+            'w': round(r['value'] * 100 / total, 3), **({'pc': pc} if pc else {})}
+
+
 def main():
     out = {'generated': time.strftime('%Y-%m-%d'), 'investors': {}}
     names = sec_names()
     for gid, cik in FUNDS.items():
-        name, acc, period, filed = latest_13f(cik)
+        name, filings = last_two_13f(cik)
+        (acc, period, filed), prev = filings[0], (filings[1] if len(filings) > 1 else None)
         rows = info_table(cik, acc)
-        print('%s: %s %s %d rows' % (gid, name, period, len(rows)), file=sys.stderr)
-        figi = figi_map(sorted({r['cusip'] for r in rows}))
+        old = info_table(cik, prev[0]) if prev else []
+        print('%s: %s %s %d rows (prev %s, %d rows)' % (gid, name, period, len(rows), prev and prev[1], len(old)), file=sys.stderr)
+        figi = figi_map(sorted({r['cusip'] for r in rows + old}))
+        before = {(r['cusip'], r['put_call']): r for r in old}
+        now = {(r['cusip'], r['put_call']) for r in rows}
         total = sum(r['value'] for r in rows) or 1
-        hold = []
-        for r in sorted(rows, key=lambda r: -r['value']):
-            t = (figi.get(r['cusip']) or {}).get('ticker') or names.get(norm(r['name'])) or ''
-            note = re.search(r'NOTE|DBCV|SDCV|BOND|DEB', r['cls'].upper())   # convertibles: issuer ticker, flagged
-            pc = r['put_call'] or ('Note' if note else '')
-            hold.append({'t': t.replace('/', '.').replace('-', '.'), 'n': r['name'].title(), 'v': r['value'], 's': r['shares'],
-                         'w': round(r['value'] * 100 / total, 3), **({'pc': pc} if pc else {})})
+        old_total = sum(r['value'] for r in old) or 1
+        hold = [holding(r, total, figi, names) for r in sorted(rows, key=lambda r: -r['value'])]
+        if prev:   # ps = shares last quarter (0 = new position); a CUSIP change after a corporate action reads as sold + new
+            for h, r in zip(hold, sorted(rows, key=lambda r: -r['value'])):
+                h['ps'] = before.get((r['cusip'], r['put_call']), {}).get('shares', 0)
+        sold = [holding(r, old_total, figi, names) for r in sorted(old, key=lambda r: -r['value']) if (r['cusip'], r['put_call']) not in now]
         out['investors'][gid] = {'source': '13F-HR', 'filer': name, 'cik': cik, 'accession': acc,
-                                 'period': period, 'filed': filed, 'total': total, 'holdings': hold}
+                                 'period': period, 'filed': filed, 'total': total, 'holdings': hold,
+                                 **({'prev': {'period': prev[1], 'accession': prev[0], 'total': old_total}, 'sold': sold} if prev else {})}
     if os.path.exists(DISC):
         out['investors'].update(json.load(open(DISC)))
     json.dump(out, open(OUT, 'w'), separators=(',', ':'))
