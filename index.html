@@ -4939,12 +4939,23 @@ function aiCall(messages){
     if(!noTemp(body.model)) body.temperature = aiEffort().t;
     if(zen && /^deepseek-v4\.1-flash/.test(body.model)) body.reasoning_effort = aiThinking() ? ({ minimal:'low', low:'low', medium:'medium', high:'high', xhigh:'high', max:'high', ultra:'high' }[aiEffortKey()] || 'low') : 'low';
   }
-  return fetch(target, {
-    method:'POST',
-    headers:hdrs,
-    body:JSON.stringify(body)
+  var relayUrl = (CFG.ocProxy || OC_PROXY) ? (CFG.ocProxy || OC_PROXY) + '?u=' + encodeURIComponent(url) : url;
+  var payload = JSON.stringify(body);
+  var sent = target;
+  function send(t){ sent = t; return fetch(t, { method:'POST', headers:hdrs, body:payload }); }
+  /* On the hosted site there is no serve.py, so POST /proxy hits a static host that answers 404/405 with an HTML
+     page. Wait for the startup probe, and if the local proxy still turns out to be absent, retry via the relay. */
+  var ready = (zen && proxyReady === null) ? probeProxy() : Promise.resolve();
+  return ready.then(function(){
+    var first = zen && canTryProxy() ? PROXY_PATH + encodeURIComponent(url) : zen ? relayUrl : url;
+    return send(first).then(function(r){
+      if(!(zen && first !== relayUrl && first.indexOf(PROXY_PATH) === 0 && (r.status === 404 || r.status === 405))) return r;
+      return r.clone().text().then(function(tx){
+        try{ JSON.parse(tx); return r; }catch(e){ proxyReady = false; return send(relayUrl); }
+      });
+    });
   }).catch(function(e){
-    if(target === url && zen) throw new Error('OpenCode blocks direct browser calls (no CORS). Set an OpenCode proxy URL in Settings \u2192 AI & API keys, or run python3 serve.py locally. Your key is fine.');
+    if(sent === url && zen) throw new Error('OpenCode blocks direct browser calls (no CORS). Set an OpenCode proxy URL in Settings → AI & API keys, or run python3 serve.py locally. Your key is fine.');
     throw e;
   }).then(readJSON).then(function(j){
     if(j.error) throw new Error(j.error.message || JSON.stringify(j.error));
@@ -4960,7 +4971,10 @@ function aiCall(messages){
 function readJSON(r){
   return r.text().then(function(t){
     var parsed;
-    try{ parsed = JSON.parse(t); }catch(e){ throw new Error('Provider returned non-JSON (' + r.status + '): ' + t.slice(0, 180)); }
+    try{ parsed = JSON.parse(t); }catch(e){
+      if(/<html/i.test(t) && (r.status === 404 || r.status === 405)) throw new Error('The request reached a web page instead of the AI provider (HTTP ' + r.status + '). On the hosted site, OpenCode needs the relay: check Settings \u2192 AI & API keys \u2192 OpenCode proxy URL, or run python3 serve.py locally. Your key is fine.');
+      throw new Error('Provider returned non-JSON (' + r.status + '): ' + t.slice(0, 180));
+    }
     if(!r.ok && !parsed.error) throw new Error('HTTP ' + r.status);
     return parsed;
   });
