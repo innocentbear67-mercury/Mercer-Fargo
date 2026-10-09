@@ -144,6 +144,13 @@ responsive down to phone width. Watchlists are named objects you can create, **r
 and delete; each one is called a "watchlist" throughout the UI, and the old default
 "Equity sectors" list is gone (the migration removes it from existing browsers).
 
+**First-run tour** — new visitors without a key get a guided tour: a spotlight, a bubble with an
+arrow and a short animation for each step (search, markets, lists, Marvell), then step by step through
+adding an API key (paste, Save, Test) and opening Marvell. Skip any time with *Skip* or `Esc`; `←` `→`
+move between steps. Replay it from the ⋯ menu → *Take the tour*, or from the Agent's empty page. The
+"seen" flag is `fh3_tour` in localStorage. The Agent's *Add an API key to start* and the missing-key
+reply both open the key page directly.
+
 **AI (bring your own key)** — OpenRouter, OpenAI, Anthropic, DeepSeek, Gemini, Groq
 or any OpenAI-compatible endpoint. Keys live only in this browser's localStorage
 (`fh_keys`) and are sent only to the provider you pick. Prompt buttons: sentiment,

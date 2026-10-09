@@ -1210,6 +1210,44 @@ html{overflow-x:clip}
 .drawer.full .empty{padding-top:12vh}
 .drawer.full .drawer-foot{padding:10px var(--gut) 24px}
 @media (prefers-reduced-motion:reduce){.rs-tabs .thumb{transition:none}}
+/* ---- First-run tour: spotlight, bubble, arrow ---------------------------- */
+#tour{position:fixed;inset:0;z-index:9999;pointer-events:none}
+#tour .tr-shield{position:absolute;inset:0;pointer-events:auto}
+#tour.pass .tr-shield{pointer-events:none}
+#tour .tr-dim{position:absolute;inset:0;background:rgba(8,8,10,.62);opacity:0;transition:opacity .3s}
+#tour.center .tr-dim{opacity:1}
+#tour .tr-hole{position:absolute;border-radius:12px;box-shadow:0 0 0 100vmax rgba(8,8,10,.62);opacity:0;
+  transition:top .38s cubic-bezier(.4,0,.2,1),left .38s cubic-bezier(.4,0,.2,1),width .38s cubic-bezier(.4,0,.2,1),height .38s cubic-bezier(.4,0,.2,1),opacity .25s}
+#tour.has-target .tr-hole{opacity:1}
+#tour .tr-hole::after{content:"";position:absolute;inset:-3px;border-radius:inherit;border:2px solid var(--fh-colors-and-accents-primary);animation:trPulse 1.6s ease-out infinite}
+#tour .tr-bubble{position:absolute;box-sizing:border-box;width:330px;max-width:calc(100vw - 24px);padding:16px 18px 14px;border-radius:16px;pointer-events:auto;
+  background:var(--fh-background-surface-elevated);color:var(--fh-foreground-on-surface-emphasis);border:1px solid var(--fh-border-stroke-default);
+  box-shadow:0 12px 40px rgba(0,0,0,.45);opacity:0}
+#tour .tr-bubble.in{animation:trIn .38s cubic-bezier(.2,.8,.2,1) both}
+#tour .tr-step{font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--fh-colors-and-accents-primary);margin-bottom:4px}
+#tour .tr-title{font-family:var(--mf-serif);font-size:19px;line-height:26px;font-weight:500;margin:0 0 6px}
+#tour .tr-text{font-size:14px;line-height:21px;color:var(--fh-foreground-on-surface-default);margin:0 0 14px}
+#tour .tr-foot{display:flex;align-items:center;gap:8px}
+#tour .tr-dots{display:flex;gap:5px;flex:1;min-width:0}
+#tour .tr-dots i{width:6px;height:6px;border-radius:50%;background:var(--fh-border-stroke-default);transition:background .25s,transform .25s}
+#tour .tr-dots i.on{background:var(--fh-colors-and-accents-primary);transform:scale(1.35)}
+#tour .tr-dots i.done{background:var(--fh-colors-and-accents-primary);opacity:.55}
+#tour .tr-arrow{position:absolute;width:28px;height:40px;color:var(--fh-colors-and-accents-primary);opacity:0;pointer-events:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45))}
+#tour .tr-arrow.show{opacity:1}
+#tour .tr-arrow svg{display:block;width:100%;height:100%;animation:trNudge 1s ease-in-out infinite}
+#tour .tr-arrow.up{transform:none}
+#tour .tr-arrow.down{transform:rotate(180deg)}
+#tour .tr-arrow.left{transform:rotate(-90deg)}
+#tour .tr-arrow.right{transform:rotate(90deg)}
+@keyframes trIn{from{opacity:0;transform:translateY(10px) scale(.95)}to{opacity:1;transform:none}}
+@keyframes trPulse{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(1.07)}}
+@keyframes trNudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.tr-note{font:inherit;font-size:13px;color:var(--fh-colors-and-accents-primary);background:none;border:0;padding:0;margin:-8px 0 14px;cursor:pointer;text-align:left;text-decoration:underline;text-underline-offset:3px}
+.empty .tr-row{display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:6px}
+@media (prefers-reduced-motion:reduce){
+  #tour .tr-hole,#tour .tr-dim{transition:none}
+  #tour .tr-hole::after,#tour .tr-arrow svg,#tour .tr-bubble.in{animation:none;opacity:1}
+}
 </style>
   </head>
   <body>
@@ -4461,6 +4499,141 @@ function aiContext(extra){
   return lines.join('\n');
 }
 
+/* ---- First-run tour ------------------------------------------------------
+   Spotlight + bubble + arrow. Steps whose target is missing or hidden (for
+   example the watchlist rail on a phone) are skipped. Seen-flag: fh3_tour.   */
+var TOUR = { on:false, i:-1, dir:1, timer:0, tick:0 };
+var TOUR_STEPS = [
+  { title:'Welcome to MercerFargo', text:'This quick tour (about a minute) shows you around and helps you add an API key so Marvell, your AI agent, can answer. Use Next, or the ← → keys.' },
+  { sel:'#searchInput', home:true, title:'Search anything', text:'Type a ticker like NVDA, a company name, or a crypto, then press Enter to open its page.' },
+  { sel:'#mktTabs', home:true, title:'Switch markets', text:'US, Europe, Asia, currencies and crypto. Pick one and the cards on the home page change.' },
+  { sel:'#rail', home:true, title:'Your lists live here', text:'Watchlists and portfolios are saved in this browser. Add a stock to a list from its page.' },
+  { sel:'#rsBtn', title:'Meet Marvell', text:'This opens Marvell, your AI agent, in a side panel. It can read the page, answer questions and run Deep Research. It needs an API key first.' },
+  { sel:'#keysBtn', title:'Step 1: add your API key', text:'An API key is a password from an AI company (OpenRouter, OpenAI, Anthropic and others). This button is where it lives. I’ll take you there.', next:'Take me there' },
+  { sel:'#keyCard input[type=password]', up:'.krow', route:'#/settings/ai', pass:true, title:'Step 2: paste your key', text:'Find the company your key came from in this list and paste the key into its box. It is only sent to that company.' },
+  { sel:'#keyCard [data-act=key-save]', pass:true, route:'#/settings/ai', title:'Step 3: press Save', text:'Save keeps the key in this browser. The first key you save becomes your default.' },
+  { sel:'#keyCard [data-act=key-test]', pass:true, route:'#/settings/ai', title:'Step 4: press Test', text:'You should see “Connected”. If it says Failed, check the key and try again.' },
+  { sel:'#rsBtn', title:'Step 5: open Marvell', text:'You’re ready. Open Marvell and try “Give me a quick read on NVDA”. Type / to see skills.', next:'Open Marvell', final:true }
+];
+function tourSeen(){ return !!load('fh3_tour', null); }
+function tourMark(){ save('fh3_tour', { done:true, ts:Date.now() }); }
+function tourVisible(el){ if(!el) return false; var r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden'; }
+function tourEl(step){ if(!step.sel) return null; var e = document.querySelector(step.sel); if(e && step.up) e = e.closest(step.up) || e; return e; }
+function tourStart(){
+  if(TOUR.on) return;
+  try{ closeMenu(); closeDialog(); closeDrawer(); }catch(e){}
+  var root = document.createElement('div');
+  root.id = 'tour'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', 'Getting started tour');
+  root.innerHTML = '<div class="tr-dim"></div><div class="tr-shield"></div><div class="tr-hole"></div>' +
+    '<div class="tr-arrow"><svg viewBox="0 0 28 40" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 38V6M4 15 14 4l10 11"/></svg></div>' +
+    '<div class="tr-bubble" aria-live="polite"></div>';
+  document.body.appendChild(root);
+  TOUR.on = true; TOUR.i = -1; TOUR.dir = 1;
+  TOUR.tick = setInterval(tourPlace, 350);
+  window.addEventListener('resize', tourPlace);
+  window.addEventListener('scroll', tourPlace, true);
+  tourGo(0, 1);
+}
+function tourEnd(opts){
+  if(!TOUR.on) return;
+  TOUR.on = false; clearInterval(TOUR.tick); clearTimeout(TOUR.timer);
+  window.removeEventListener('resize', tourPlace); window.removeEventListener('scroll', tourPlace, true);
+  var r = $('tour'); if(r) r.remove();
+  tourMark();
+  if(opts && opts.open){ openDrawer(true); }
+}
+function tourGo(i, dir){
+  if(!TOUR.on) return;
+  clearTimeout(TOUR.timer);
+  if(i < 0) i = 0;
+  if(i >= TOUR_STEPS.length){ tourEnd(); return; }
+  var step = TOUR_STEPS[i]; TOUR.i = i; TOUR.dir = dir || 1;
+  if(step.route && location.hash.indexOf(step.route) !== 0) go(step.route);
+  else if(step.home && /^#\/(settings|feedback|help)/.test(location.hash)) go('#/');
+  var tries = 0;
+  (function wait(){
+    if(!TOUR.on || TOUR.i !== i) return;
+    var el = tourEl(step);
+    if(!step.sel || tourVisible(el)){ tourShow(i); return; }
+    if(++tries > (step.route ? 25 : 4)){ tourGo(i + TOUR.dir, TOUR.dir); return; }   // never appears (or hidden on this screen): skip it
+    TOUR.timer = setTimeout(wait, 120);
+  })();
+}
+function tourShow(i){
+  var step = TOUR_STEPS[i], root = $('tour'), b = root.querySelector('.tr-bubble'), last = (i === TOUR_STEPS.length - 1);
+  root.classList.toggle('center', !step.sel);
+  root.classList.toggle('pass', !!step.pass);
+  root.classList.toggle('has-target', !!step.sel);
+  var dots = TOUR_STEPS.map(function(s, k){ return '<i class="' + (k === i ? 'on' : k < i ? 'done' : '') + '"></i>'; }).join('');
+  b.innerHTML = '<div class="tr-step">Step ' + (i + 1) + ' of ' + TOUR_STEPS.length + '</div><h3 class="tr-title">' + esc(step.title) + '</h3><p class="tr-text">' + esc(step.text) + '</p>' +
+    '<div class="tr-foot"><div class="tr-dots">' + dots + '</div>' +
+    (last ? '' : '<button class="btn text sm" data-tour="skip">Skip</button>') +
+    (i > 0 ? '<button class="btn text sm" data-tour="back">Back</button>' : '') +
+    '<button class="btn filled sm" data-tour="next">' + esc(step.next || (last ? 'Done' : 'Next')) + '</button></div>';
+  b.classList.remove('in'); void b.offsetWidth; b.classList.add('in');
+  var el = tourEl(step);
+  if(el){ var r = el.getBoundingClientRect(); if(r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) el.scrollIntoView({ block:'center', inline:'nearest' }); }
+  tourPlace();
+  var nb = b.querySelector('[data-tour=next]'); if(nb) nb.focus({ preventScroll:true });
+}
+function tourPlace(){
+  if(!TOUR.on) return;
+  var root = $('tour'), step = TOUR_STEPS[TOUR.i]; if(!root || !step) return;
+  var b = root.querySelector('.tr-bubble'), hole = root.querySelector('.tr-hole'), arrow = root.querySelector('.tr-arrow');
+  var vw = innerWidth, vh = innerHeight, m = 12, bw = b.offsetWidth, bh = b.offsetHeight, el = tourEl(step);
+  if(!step.sel || !tourVisible(el)){
+    arrow.classList.remove('show');
+    b.style.left = Math.max(m, (vw - bw) / 2) + 'px'; b.style.top = Math.max(m, (vh - bh) / 2) + 'px';
+    return;
+  }
+  var r = el.getBoundingClientRect(), pad = 6;
+  var x1 = Math.max(0, r.left - pad), y1 = Math.max(0, r.top - pad), x2 = Math.min(vw, r.right + pad), y2 = Math.min(vh, r.bottom + pad);
+  hole.style.left = x1 + 'px'; hole.style.top = y1 + 'px'; hole.style.width = (x2 - x1) + 'px'; hole.style.height = (y2 - y1) + 'px';
+  var gap = 46, narrow = vw < 600;
+  var below = vh - y2, above = y1, right = vw - x2, left = x1, side;
+  if(below >= bh + gap + m) side = 'bottom';
+  else if(above >= bh + gap + m) side = 'top';
+  else if(!narrow && right >= bw + gap + m) side = 'right';
+  else if(!narrow && left >= bw + gap + m) side = 'left';
+  else side = below >= above ? 'bottom' : 'top';
+  var cx = (x1 + x2) / 2, cy = (y1 + y2) / 2, bx, by, ax, ay, cls, fits = true;
+  if(side === 'bottom' || side === 'top'){
+    bx = Math.min(Math.max(m, cx - bw / 2), vw - bw - m);
+    by = side === 'bottom' ? y2 + gap : y1 - gap - bh;
+    if(by < m || by + bh > vh - m){ fits = false; by = Math.min(Math.max(m, by), vh - bh - m); }
+    ax = Math.min(Math.max(cx, m + 14), vw - m - 14) - 14; ay = side === 'bottom' ? y2 + 3 : y1 - 43; cls = side === 'bottom' ? 'up' : 'down';
+  } else {
+    by = Math.min(Math.max(m, cy - bh / 2), vh - bh - m);
+    bx = side === 'right' ? x2 + gap : x1 - gap - bw;
+    ax = side === 'right' ? x2 + 3 : x1 - 43; ay = Math.min(Math.max(cy, m + 14), vh - m - 14) - 14; cls = side === 'right' ? 'left' : 'right';
+  }
+  b.style.left = bx + 'px'; b.style.top = by + 'px';
+  arrow.className = 'tr-arrow ' + cls + (fits ? ' show' : '');
+  if(cls === 'left' || cls === 'right'){ arrow.style.width = '40px'; arrow.style.height = '28px'; arrow.style.left = (ax - (cls === 'left' ? 0 : 0)) + 'px'; arrow.style.top = ay + 'px'; }
+  else { arrow.style.width = '28px'; arrow.style.height = '40px'; arrow.style.left = ax + 'px'; arrow.style.top = ay + 'px'; }
+}
+function tourMaybeStart(){
+  if(tourSeen() || TOUR.on) return;
+  if(aiReady()){ tourMark(); return; }            // returning user who already has a key
+  if($('dlgRoot') && $('dlgRoot').innerHTML) return;
+  setTimeout(function(){ if(!tourSeen() && !TOUR.on) tourStart(); }, 900);
+}
+document.addEventListener('click', function(ev){
+  var t = ev.target && ev.target.closest && ev.target.closest('[data-tour]'); if(!t || !TOUR.on) return;
+  ev.preventDefault(); ev.stopPropagation();
+  var a = t.getAttribute('data-tour');
+  if(a === 'skip') tourEnd();
+  else if(a === 'back') tourGo(TOUR.i - 1, -1);
+  else if(a === 'next'){ var st = TOUR_STEPS[TOUR.i]; if(st.final) tourEnd({ open:true }); else tourGo(TOUR.i + 1, 1); }
+}, true);
+document.addEventListener('keydown', function(ev){
+  if(!TOUR.on) return;
+  var typing = /input|textarea|select/i.test((ev.target.tagName || ''));
+  if(ev.key === 'Escape'){ ev.preventDefault(); ev.stopPropagation(); tourEnd(); }
+  else if(!typing && ev.key === 'ArrowRight'){ ev.preventDefault(); var st = TOUR_STEPS[TOUR.i]; if(st.final) tourEnd({ open:true }); else tourGo(TOUR.i + 1, 1); }
+  else if(!typing && ev.key === 'ArrowLeft'){ ev.preventDefault(); tourGo(TOUR.i - 1, -1); }
+}, true);
+
 /* ---- Skills: SKILL.md files the agent can run with "/" ----------------------
    Format follows the Agent Skills spec (agentskills.io): YAML frontmatter with
    `name` (a-z, 0-9, hyphens, max 64) and `description`, then Markdown steps.
@@ -5003,7 +5176,7 @@ function chatRender(){
   if(!msgs.length){
     var sym = dispSym(CUR.sym), sug = [['market', 'What\u2019s moving the markets today?'], ['portfolio', 'How is my portfolio positioned?'], ['summary', 'Give me a quick read on ' + sym]];
     el.innerHTML = '<div class="empty"><h2>What\u2019s on your mind?</h2>' +
-      (aiReady() ? '' : '<a class="empty-note" href="#/settings/ai">Add an API key to start \u2192</a>') +
+      (aiReady() ? '' : '<div class="tr-row"><button type="button" class="tr-note" data-act="keys">Add an API key to start \u2192</button><button type="button" class="tr-note" data-act="tour-start">Take a quick tour</button></div>') +
       '<div class="sug">' + sug.map(function(x){ return '<button type="button" data-act="ai" data-kind="' + x[0] + '"><span>' + esc(x[1]) + '</span>' +
         '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>'; }).join('') + '</div>' +
       '<div class="ex">Explore</div><div class="chips">' + aiQuickHTML() + '</div></div>';
@@ -5011,7 +5184,8 @@ function chatRender(){
   }
   el.innerHTML = msgs.map(function(m){
     return '<div class="msg ' + (m.role === 'user' ? 'me' : (m.err ? 'err' : '')) + '">' +
-      (m.role === 'user' ? esc(m.text) : mdToHTML(m.text) + actCards(m) + skillCard(m)) + '</div>';
+      (m.role === 'user' ? esc(m.text) : mdToHTML(m.text) + actCards(m) + skillCard(m) +
+        (m.keyCta ? '<div class="act-b" style="margin-top:10px"><button class="btn filled sm" data-act="keys">Add API key</button><button class="btn text sm" data-act="tour-start">Show me how</button></div>' : '')) + '</div>';
   }).join('') + (AI_BUSY && msgs[msgs.length - 1].role === 'user' ? thinkHTML() : '');
   el.scrollTop = el.scrollHeight;
 }
@@ -5116,7 +5290,7 @@ function aiRun(kind, question, opts){
   var spec = AI_KINDS[kind] || AI_KINDS.custom;
   if(!aiReady()){
     openDrawer();
-    chatPush('assistant', 'I need an API key before I can answer. Press the **key button** in the header, paste a key for your provider and Save. Keys are stored only in this browser.', { err:true });
+    chatPush('assistant', 'I need an API key before I can answer. Press **Add API key** below, paste a key for your provider and Save. Keys are stored only in this browser.', { err:true, keyCta:true });
     return Promise.resolve(null);
   }
   openDrawer();
@@ -5295,7 +5469,7 @@ function moreMenuHTML(){
     ['#/earnings', 'Earnings calendar'], ['#/research', 'Research Log'], ['#/markets/' + CFG.market, 'Markets']];
   return '<div class="mhead">MercerFargo tools</div>' + links.map(function(m){
     return '<a class="mi" href="' + esc(m[0]) + '">' + m[1] + '</a>';
-  }).join('') + '<div class="msep"></div><a class="mi" href="#/settings/ai">AI keys &amp; defaults</a><a class="mi" href="#/settings">Settings</a><div class="msep"></div><a class="mi" href="#/feedback">Give feedback</a><a class="mi" href="#/help">Get help</a>';
+  }).join('') + '<div class="msep"></div><a class="mi" href="#/settings/ai">AI keys &amp; defaults</a><a class="mi" href="#/settings">Settings</a><div class="msep"></div><button class="mi" data-act="tour-start">Take the tour</button><a class="mi" href="#/feedback">Give feedback</a><a class="mi" href="#/help">Get help</a>';
 }
 function closeMenu(){ $('menuRoot').innerHTML = ''; }
 function closeDialog(){ $('dlgRoot').innerHTML = ''; }
@@ -6383,6 +6557,7 @@ function bindEvents(){
         break;
       }
       case 'keys': openKeys(); break;
+      case 'tour-start': ev.preventDefault(); closeMenu(); tourStart(); break;
       case 'gl-range': CFG.glr = el.getAttribute('data-r'); saveCfg(); repaintGlance(); break;
       case 'key-save': keySave(el.getAttribute('data-p'), false); break;
       case 'key-clear': keySave(el.getAttribute('data-p'), true); break;
@@ -6784,6 +6959,7 @@ function boot(){
     return loadUniverseQuotes();
   }).then(function(){
     if(CUR.view === 'home') paintHome();
+    tourMaybeStart();
   });
   scheduleBriefings();
   window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ if(!CFG.theme || CFG.theme === 'auto') applyTheme(); });
