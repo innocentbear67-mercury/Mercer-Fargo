@@ -525,6 +525,7 @@ table.fh .col-trend{width:120px}
 .menu{position:fixed;z-index:70;min-width:240px;max-height:70vh;overflow-y:auto;background:var(--fh-background-surface-elevated);
   border:1px solid var(--fh-border-stroke-default);border-radius:12px;box-shadow:var(--fh-elevation-3);padding:8px}
 .menu .mi{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;padding:11px 14px;border-radius:10px;font-size:14px;text-align:left;color:var(--fh-foreground-on-surface-default)}
+.menu a.mi{text-decoration:none;color:inherit;box-sizing:border-box}
 .menu .mi:hover{background:var(--fh-states-neutral-hovered)}
 .menu .mi.on{background:var(--fh-states-branded-medium-selected);color:var(--fh-foreground-on-highlight)}
 .menu .mhead{padding:10px 14px 6px;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis)}
@@ -716,6 +717,29 @@ table.fh .col-trend{width:120px}
 .rs-run:last-child{border-bottom:0}
 .rs-run .q{color:var(--fh-foreground-on-surface-default)}
 .rs-run .m{color:var(--fh-foreground-on-surface-de-emphasis);font-size:11.5px}
+/* Portfolio at a glance */
+.glance{padding:20px 22px}
+.gl-top{display:flex;gap:28px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+.gl-lab{font-size:12px;letter-spacing:.3px}
+.gl-big{font-size:clamp(32px,5vw,46px);font-weight:600;line-height:1.1;margin:2px 0 4px;color:var(--fh-foreground-on-surface-emphasis)}
+.gl-day{font-size:17px;font-weight:500}
+.gl-spark{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:11.5px;min-width:160px;flex:0 1 280px}
+.gl-spark svg{width:100%;height:64px}
+.gl-ret{display:flex;flex-direction:column;align-items:flex-end;gap:1px;font-size:15px}
+.gl-ret b{font-size:20px;font-weight:600}
+.gl-line{margin:14px 0 10px;font-size:14.5px;color:var(--fh-foreground-on-surface-default)}
+.gl-bar{display:flex;height:8px;border-radius:99px;overflow:hidden;gap:2px;margin-bottom:12px}
+.gl-bar i{display:block;min-width:3px}
+.gl-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.gl-tile{display:flex;flex-direction:column;gap:2px;padding:9px 12px;border-radius:12px;text-decoration:none;color:inherit;font-size:13px}
+.gl-tile b{font-size:14px}
+.gl-tile small{color:var(--fh-foreground-on-surface-de-emphasis);font-size:11px}
+.gl-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:12px}
+.gl-foot a{color:var(--fh-foreground-on-surface-link-default);text-decoration:none;font-weight:500}
+.gl-empty{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.gl-empty .gl-big{font-size:24px}
+.gl-cta{display:flex;gap:8px}
+.glance.loading .gl-big{opacity:.6}
 /* ============================================================================
    MercerFargo brand layer
    Palette: Charcoal Black #333333 (main), Deep Navy Blue #1A2E50, Antique Gold #C1A578
@@ -2480,12 +2504,84 @@ function renderHome(){
   homeState.phase = 'loading';
   homeState.spark = false;
   $('main').innerHTML =
+    '<div class="section">' + glanceHTML() + '</div>' +
     '<div class="section">' + skeletonCards(5) + '</div>' +
     '<div class="section"><div class="section-head"><h2>Top movers in your watchlists</h2></div>' + skeletonRows(6) + '</div>' +
     '<div class="section"><div class="section-head"><h2>Market news</h2></div>' + skeletonRows(4, 200) + '</div>';
+  var pf0 = PFS[CUR.pf] || PFS[Object.keys(PFS)[0]];
+  var hs = pf0 ? pf0.holdings.map(function(h){ return h.s; }) : [];
+  /* Portfolio first: its quotes + 1M closes resolve on their own, so the summary can paint before the rest. */
+  if(hs.length) loadQuotesFor(hs).then(function(){ return loadSparkFor(hs, '1M'); }).then(function(){ if(CUR.view === 'home' && homeState.phase === 'done') paintHome(); });
   return Promise.all([loadGroupData(g), loadUniverseQuotes(), loadNewsData()]).then(function(){
     if(homeState.phase === 'loading' && CUR.view === 'home') paintHome();
   }).catch(function(){ paintHome(); });
+}
+
+/* ---- Portfolio at a glance: the first thing on the home page --------------- */
+function pfSeries(pf){
+  /* 1M value of today's holdings (shares held now, past closes), aligned by date. */
+  var byDate = {}, n = 0;
+  pf.holdings.forEach(function(h){
+    var rows = DATA.hist['sp_' + dispSym(h.s)];
+    if(!rows || rows.length < 2) return;
+    n++;
+    rows.forEach(function(r){ if(r.c != null) (byDate[r.d] = byDate[r.d] || {})[dispSym(h.s)] = r.c * h.q; });
+  });
+  if(!n) return [];
+  var dates = Object.keys(byDate).sort();
+  var out = [];
+  dates.forEach(function(d){ if(Object.keys(byDate[d]).length >= n) out.push(Object.keys(byDate[d]).reduce(function(a, k){ return a + byDate[d][k]; }, 0)); });
+  return out;
+}
+function glanceHTML(){
+  var pf = PFS[CUR.pf] || PFS[Object.keys(PFS)[0]];
+  if(!pf || !pf.holdings.length){
+    return '<div class="card glance"><div class="gl-empty"><div><div class="gl-big">Your portfolio</div>' +
+      '<div class="mut">Add what you own and this spot shows value, today\'s move and what drove it, at a glance.</div></div>' +
+      '<div class="gl-cta"><button class="btn filled" data-act="addholding">Add a holding</button>' +
+      '<button class="btn text" data-act="importpf">Import CSV</button></div></div></div>';
+  }
+  var st = pfStats(pf), cur = st.rows.length ? st.rows[0].cur : 'USD';
+  var priced = st.rows.filter(function(r){ return DATA.quotes[r.s] && DATA.quotes[r.s].c != null; }).length;
+  var loading = priced < st.rows.length;
+  var prev = st.total - st.day;
+  var dayPct = prev ? st.day / prev * 100 : null;
+  var haveDay = st.rows.some(function(r){ return r.day != null; });
+  var up = st.day >= 0, rup = st.ret >= 0;
+  var movers = st.rows.filter(function(r){ return r.day != null; }).sort(function(a, b){ return b.day - a.day; });
+  var lead = movers[0], drag = movers[movers.length - 1];
+  var line = !haveDay ? (loading ? 'Loading prices…' : 'No day change yet — markets may be closed.')
+    : (Math.abs(dayPct) < 0.05 ? 'Flat today' : (up ? 'Up ' : 'Down ') + money(Math.abs(st.day), cur) + ' today') +
+      (lead && lead.day > 0 ? ' · <b class="up">' + esc(lead.s) + ' ' + pct(lead.dayPct) + '</b> leads' : '') +
+      (drag && drag.day < 0 && drag !== lead ? ' · <b class="down">' + esc(drag.s) + ' ' + pct(drag.dayPct) + '</b> drags' : '');
+  var series = pfSeries(pf);
+  var sUp = series.length > 1 ? series[series.length - 1] >= series[0] : up;
+  var spark = series.length > 1 ? sparkSVG(series, 260, 64, sUp ? 'var(--fh-positive)' : 'var(--fh-negative)') : '';
+  var sorted = st.rows.slice().sort(function(a, b){ return b.value - a.value; });
+  var bar = sorted.map(function(r, i){
+    var w = st.total ? r.value / st.total * 100 : 0;
+    return '<i style="width:' + w.toFixed(2) + '%;background:hsl(' + ((i * 47 + 38) % 360) + ' 28% ' + (62 - Math.min(i, 5) * 4) + '%)" title="' + esc(r.s) + ' ' + num(w, 1) + '%"></i>';
+  }).join('');
+  var tiles = sorted.slice(0, 8).map(function(r){
+    var p = r.dayPct, cls = p == null ? 'mut' : (p >= 0 ? 'up' : 'down');
+    var a = p == null ? 0.08 : clamp(0.1 + Math.abs(p) / 6, 0.1, 0.5);
+    var bg = p == null ? 'var(--fh-background-surface-container)' : (p >= 0 ? 'rgba(77,184,72,' + a + ')' : 'rgba(255,92,103,' + a + ')');
+    return '<a class="gl-tile" href="#/quote/' + encodeURIComponent(r.s) + '" data-act="quote" data-sym="' + esc(r.s) + '" style="background:' + bg + '">' +
+      '<b>' + esc(r.s) + '</b><span class="' + cls + ' num">' + (p == null ? '—' : pct(p, 1)) + '</span>' +
+      '<small class="num">' + (st.total ? num(r.value / st.total * 100, 0) : 0) + '%</small></a>';
+  }).join('');
+  return '<div class="card glance' + (loading ? ' loading' : '') + '">' +
+    '<div class="gl-top"><div><div class="mut gl-lab">' + esc(pf.name) + '</div>' +
+    '<div class="gl-big num">' + money(st.total, cur) + '</div>' +
+    '<div class="gl-day num ' + (haveDay ? (up ? 'up' : 'down') : 'mut') + '">' + (haveDay ? (up ? '▲ +' : '▼ −') + money(Math.abs(st.day), cur) + ' (' + pct(dayPct) + ') today' : '—') + '</div></div>' +
+    '<div class="gl-spark">' + spark + '<span class="mut">1 month</span></div>' +
+    '<div class="gl-ret"><span class="mut gl-lab">Total return</span><b class="num ' + (rup ? 'up' : 'down') + '">' + (rup ? '+' : '−') + money(Math.abs(st.ret), cur) + '</b>' +
+    '<span class="num ' + (rup ? 'up' : 'down') + '">' + pct(st.retPct) + '</span></div></div>' +
+    '<div class="gl-line">' + line + '</div>' +
+    '<div class="gl-bar" aria-label="Allocation">' + bar + '</div>' +
+    '<div class="gl-tiles">' + tiles + '</div>' +
+    '<div class="gl-foot"><a href="#/portfolio/' + esc(CUR.pf) + '" data-act="nav" data-href="#/portfolio/' + esc(CUR.pf) + '">Full portfolio ›</a>' +
+    '<span class="mut">Delayed quotes · stored in this browser</span></div></div>';
 }
 
 function paintHome(){
@@ -2497,14 +2593,8 @@ function paintHome(){
   var pf = PFS[CUR.pf] || PFS[Object.keys(PFS)[0]];
   var html = '';
 
+  html += '<div class="section">' + glanceHTML() + '</div>';
   html += '<div class="section">' + cardRailHTML(g) + '</div>';
-
-  html += '<div class="section">' +
-    '<button class="btn cta" data-act="newpf">' +
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> ' +
-    (pf ? 'Open ' + esc(pf.name) + ' · ' + pf.holdings.length + ' holdings' : 'Create a portfolio') + '</button>' +
-    '<div class="kv-inline" style="margin-top:8px;justify-content:center">Track holdings, cost basis and day change locally. No account needed.</div>' +
-    '</div>';
 
   html += '<div class="section"><div class="section-head"><h2>Top movers in your watchlists</h2>' +
     '<button class="btn text sm" data-act="menu-cols">Columns</button>' +
@@ -4213,6 +4303,14 @@ function renderResearchPage(){
 
 /* ------------------------------------------------- 9. dialogs, menus, init */
 
+function moreMenuHTML(){
+  /* Real links: they navigate natively, so they never depend on click delegation. */
+  var links = [['#/', 'Home'], ['#/portfolio/' + CUR.pf, 'Portfolio'], ['#/screener', 'Screener'], ['#/compare', 'Compare'],
+    ['#/earnings', 'Earnings calendar'], ['#/research', 'Research'], ['#/markets/' + CFG.market, 'Markets']];
+  return '<div class="mhead">MercerFargo tools</div>' + links.map(function(m){
+    return '<a class="mi" href="' + esc(m[0]) + '">' + m[1] + '</a>';
+  }).join('') + '<div class="msep"></div><a class="mi" href="#/keys">AI keys &amp; defaults</a><button class="mi" data-act="settings">Settings</button>';
+}
 function closeMenu(){ $('menuRoot').innerHTML = ''; }
 function closeDialog(){ $('dlgRoot').innerHTML = ''; }
 
@@ -5057,11 +5155,7 @@ function bindEvents(){
         break;
       }
       case 'theme': toggleTheme(); break;
-      case 'menu-more': ev.stopPropagation(); menu(el,
-        '<div class="mhead">MercerFargo tools</div>' +
-        [['#/screener', 'Screener'], ['#/compare', 'Compare'], ['#/earnings', 'Earnings calendar'], ['#/research', 'Research'], ['#/markets/' + CFG.market, 'Markets']].map(function(m){
-          return '<button class="mi" data-act="nav" data-href="' + m[0] + '">' + m[1] + '</button>';
-        }).join('') + '<div class="msep"></div><button class="mi" data-act="keys">AI keys</button><button class="mi" data-act="settings">Settings</button>'); break;
+      case 'menu-more': ev.stopPropagation(); menu(el, moreMenuHTML()); break;
       case 'signin': openSettings(); break;
       case 'togglelist': openAddToList(sym); break;
       case 'list-add': {
@@ -5244,11 +5338,7 @@ function bindEvents(){
   $('brandLink').addEventListener('click', function(ev){ ev.preventDefault(); go('#/'); });
   $('themeBtn').addEventListener('click', toggleTheme);
   $('keysBtn').addEventListener('click', openKeys);
-  $('moreBtn').addEventListener('click', function(ev){ ev.stopPropagation(); menu(this,
-    '<div class="mhead">MercerFargo tools</div>' +
-    [['#/screener', 'Screener'], ['#/compare', 'Compare'], ['#/earnings', 'Earnings calendar'], ['#/research', 'Research'], ['#/markets/' + CFG.market, 'Markets']].map(function(m){
-      return '<button class="mi" data-act="nav" data-href="' + m[0] + '">' + m[1] + '</button>';
-    }).join('') + '<div class="msep"></div><button class="mi" data-act="keys">AI keys</button><button class="mi" data-act="settings">Settings</button>'); });
+  $('moreBtn').addEventListener('click', function(ev){ ev.stopPropagation(); menu(this, moreMenuHTML()); });
   $('signInBtn').addEventListener('click', openSettings);
   $('rsBtn').addEventListener('click', rsTogglePanel);
   $('railBtn').addEventListener('click', function(){
