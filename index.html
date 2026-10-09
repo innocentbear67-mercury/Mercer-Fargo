@@ -1122,6 +1122,7 @@ html{overflow-x:clip}
 .act-tbl th{text-align:left;font-weight:500;color:var(--fh-foreground-on-surface-de-emphasis);padding:3px 0}
 .act-tbl td{padding:3px 0;border-top:1px solid var(--fh-border-stroke-default)}
 .act-b{display:flex;gap:8px}
+.btn.filled.danger{background:var(--fh-negative,#ea4335);border-color:var(--fh-negative,#ea4335);color:#fff}
 .think{display:flex;align-items:center;gap:12px;margin:0 0 18px;color:var(--fh-foreground-on-surface-de-emphasis);font-size:14.5px}
 .tk-candles{flex:none;overflow:hidden}
 .tk-v{background:linear-gradient(100deg,var(--fh-foreground-on-surface-de-emphasis) 35%,var(--fh-foreground-on-surface-emphasis) 50%,var(--fh-foreground-on-surface-de-emphasis) 65%) 0 0/250% 100%;
@@ -1227,6 +1228,8 @@ html{overflow-x:clip}
 .pm-name small{font-size:11px;color:var(--fh-foreground-on-surface-de-emphasis);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pm-new{flex:none;font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:999px;color:var(--r,#c1a578);background:rgba(193,165,120,.16);margin-right:4px}
 .pm-free{flex:none;font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:999px;color:var(--fh-positive,#34a853);background:rgba(52,168,83,.14)}
+.pfask p{margin:0 0 12px;line-height:1.6}
+.pfask ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;line-height:1.55;font-size:14px}
 /* full screen: centred reading column */
 .drawer.full{--gut:max(20px,calc((100vw - 760px)/2))}
 .drawer.full #rsPane{--gut:max(20px,calc((100vw - 880px)/2))}
@@ -1536,7 +1539,7 @@ function num(v, dp){
 function money(v, cur, dp){
   if(v == null || !isFinite(v)) return '—';
   var sym = !cur || cur === 'USD' ? '$' : (cur === 'SGD' ? 'S$' : (cur === 'EUR' ? '€' : (cur === 'GBP' ? '£' : '')));
-  var dp2 = dp == null ? (Math.abs(v) < 1 ? 4 : 2) : dp;
+  var dp2 = dp == null ? (v !== 0 && Math.abs(v) < 1 ? 4 : 2) : dp;
   return sym + num(v, dp2);
 }
 function pct(v, dp){
@@ -2499,9 +2502,7 @@ var LISTS = load(LS.lists, {
 });
 /* Retire the old default "Equity sectors" watchlist wherever it is still stored. */
 if(LISTS.sectors && LISTS.sectors.name === 'Equity sectors'){ delete LISTS.sectors; saveLists(); }
-var PFS = load(LS.pf, { main:{ name:'Main portfolio', holdings:[
-  { s:'AAPL', q:10, px:180 }, { s:'NVDA', q:5, px:120 }, { s:'MSFT', q:4, px:400 }
-] } });
+var PFS = load(LS.pf, { main:{ name:'Main portfolio', holdings:[] } });   // new visitors start with an empty portfolio
 var TASKS = load(LS.tasks, []);
 
 var CUR = {
@@ -4326,6 +4327,9 @@ if(KEYS.key && KEYS.provider && !KEYS.keysBy[KEYS.provider]) KEYS.keysBy[KEYS.pr
 var KEY_OK = null;   // null = untested, true/false = last Test result for the active key
 var AI_CAP = 0;      // token cap for the Test button
 function aiMt(){ return AI_CAP ? Math.min(aiEffort().mt, AI_CAP) : aiEffort().mt; }
+/* Reasoning models spend hidden "thinking" tokens out of the same output limit; without extra room they can use it all and return an empty answer. */
+var THINK_ROOM = { minimal:1024, low:2048, medium:4096, high:8192, xhigh:12288, max:16384, ultra:24000 };
+function aiMtThink(){ return aiMt() + (!AI_CAP && aiThinking() ? (THINK_ROOM[aiEffortKey()] || 4096) : 0); }
 function keySwitch(p){
   if(KEYS.provider && KEYS.key) KEYS.keysBy[KEYS.provider] = KEYS.key;
   KEYS.provider = p; KEYS.key = KEYS.keysBy[p] || ''; KEY_OK = null;
@@ -4680,6 +4684,7 @@ function tourEnd(opts){
   var r = $('tour'); if(r) r.remove();
   tourMark();
   if(opts && opts.open){ openDrawer(true); }
+  setTimeout(pfAsk, 600);
 }
 function tourGo(i, dir){
   if(!TOUR.on) return;
@@ -5092,7 +5097,7 @@ var AI_ACT_PROMPT = '\n\nYou can also operate the app for the user. When (and on
   'Actions: open_quote{symbol,tab?:overview|analysis|earnings|financials|holdings|research,range?:1D|5D|1M|6M|YTD|1Y|5Y|MAX}; ' +
   'open_page{page:home|portfolio|screener|compare|earnings|markets|research|settings,id?}; compare{symbols:[2-6 tickers]}; ' +
   'create_portfolio{name,holdings:[{symbol,shares,cost?}]}; add_holdings{portfolio:<id or name>,holdings:[...]}; ' +
-  'create_watchlist{name,symbols:[...]}; add_to_watchlist{watchlist:<id or name>,symbols:[...]}. ' +
+  'delete_portfolio{portfolio:<id or name>} (to replace a portfolio: delete it, then create the new one); create_watchlist{name,symbols:[...]}; add_to_watchlist{watchlist:<id or name>,symbols:[...]}. ' +
   'Opening pages runs immediately; creating or adding needs the user’s approval, so say briefly what you are about to do. ' +
   'For uploaded portfolios use exactly the rows supplied — never invent holdings, shares or costs; omit cost if unknown. ' +
   'When you open a page, reply with one short sentence confirming it: you cannot see the new page\u2019s numbers yet, so do not comment on them or say data is missing \u2014 the user can ask a follow-up once it is open. ' +
@@ -5123,6 +5128,7 @@ function actNorm(o){
   if(d === 'compare'){ var cs = (o.symbols || []).map(actSym).filter(Boolean).slice(0, 6); return cs.length >= 2 ? { do:d, symbols:cs } : null; }
   if(d === 'create_portfolio'){ var rows = actRows(o.holdings), nm = actName(o.name) || 'Imported portfolio'; return rows.length ? { do:d, name:nm, holdings:rows } : null; }
   if(d === 'add_holdings'){ var id = actFind(PFS, o.portfolio), r2 = actRows(o.holdings); return id && r2.length ? { do:d, id:id, holdings:r2 } : null; }
+  if(d === 'delete_portfolio'){ var did = actFind(PFS, o.portfolio); return did ? { do:d, id:did } : null; }
   if(d === 'create_watchlist'){ var ss = (o.symbols || []).map(actSym).filter(Boolean).slice(0, 100); return ss.length ? { do:d, name:actName(o.name) || 'New watchlist', symbols:ss } : null; }
   if(d === 'add_to_watchlist'){ var lid = actFind(LISTS, o.watchlist), s3 = (o.symbols || []).map(actSym).filter(Boolean).slice(0, 100); return lid && s3.length ? { do:d, id:lid, symbols:s3 } : null; }
   return null;
@@ -5141,6 +5147,7 @@ function actLabel(a){
   if(a.do === 'compare') return 'Comparing ' + a.symbols.join(', ');
   if(a.do === 'create_portfolio') return 'Create portfolio “' + a.name + '” · ' + a.holdings.length + ' holding' + (a.holdings.length === 1 ? '' : 's');
   if(a.do === 'add_holdings') return 'Add ' + a.holdings.length + ' holding' + (a.holdings.length === 1 ? '' : 's') + ' to “' + PFS[a.id].name + '”';
+  if(a.do === 'delete_portfolio') return 'Delete portfolio \u201c' + PFS[a.id].name + '\u201d \u00b7 ' + PFS[a.id].holdings.length + ' holding' + (PFS[a.id].holdings.length === 1 ? '' : 's') + ' (cannot be undone)';
   if(a.do === 'create_watchlist') return 'Create watchlist “' + a.name + '” · ' + a.symbols.length + ' symbols';
   return 'Add ' + a.symbols.join(', ') + ' to “' + LISTS[a.id].name + '”';
 }
@@ -5150,12 +5157,18 @@ function actRun(a){
   else if(a.do === 'open_page') go(a.page === 'portfolio' ? '#/portfolio/' + (a.id || CUR.pf) : ACT_PAGES[a.page]);
   else if(a.do === 'compare'){ CUR.cmpSel = a.symbols.slice(); go('#/compare'); }
   else if(a.do === 'create_portfolio'){
-    var base = a.name, n = 1, nm = base; while(Object.keys(PFS).some(function(k){ return PFS[k].name === nm; })) nm = base + ' (' + (++n) + ')';
-    var pid = 'p' + Date.now().toString(36); PFS[pid] = { name:nm, holdings:a.holdings.map(function(h){ return { s:h.s, q:h.q, px:h.px }; }) };
-    savePfs(); renderRail(); go('#/portfolio/' + pid);
+    var rows = a.holdings.map(function(h){ return { s:h.s, q:h.q, px:h.px }; });
+    var empty = Object.keys(PFS).filter(function(k){ return !PFS[k].holdings.length; })[0];   // fill the empty placeholder instead of leaving it behind
+    var base = a.name, n = 1, nm = base; while(Object.keys(PFS).some(function(k){ return k !== empty && PFS[k].name === nm; })) nm = base + ' (' + (++n) + ')';
+    var pid = empty || ('p' + Date.now().toString(36)); PFS[pid] = { name:nm, holdings:rows };
+    CUR.pf = pid; savePfs(); renderRail(); go('#/portfolio/' + pid);
   } else if(a.do === 'add_holdings'){
     a.holdings.forEach(function(h){ PFS[a.id].holdings.push({ s:h.s, q:h.q, px:h.px }); });
     savePfs(); renderRail(); go('#/portfolio/' + a.id);
+  } else if(a.do === 'delete_portfolio'){
+    delete PFS[a.id]; if(!Object.keys(PFS).length) PFS.main = { name:'Main portfolio', holdings:[] };
+    if(!PFS[CUR.pf]) CUR.pf = Object.keys(PFS)[0];
+    savePfs(); renderRail(); go('#/portfolio/' + CUR.pf);
   } else if(a.do === 'create_watchlist'){
     var lid = 'l' + Date.now().toString(36); LISTS[lid] = { name:a.name, syms:a.symbols.slice() }; saveLists(); renderRail(); go('#/list/' + lid);
   } else if(a.do === 'add_to_watchlist'){
@@ -5176,7 +5189,7 @@ function actCards(m){
     if(x.st === 'done') return '<div class="act done">✓ ' + esc(actLabel(a)) + '</div>';
     if(x.st === 'dismissed' || x.st === 'failed') return '<div class="act off">' + (x.st === 'failed' ? 'Couldn’t run: ' : 'Dismissed: ') + esc(actLabel(a)) + '</div>';
     return '<div class="act"><div class="act-t">' + esc(actLabel(a)) + '</div>' + tbl +
-      '<div class="act-b"><button class="btn filled sm" data-act="act-apply" data-ts="' + m.ts + '" data-i="' + i + '">Apply</button>' +
+      '<div class="act-b"><button class="btn filled sm' + (a.do === 'delete_portfolio' ? ' danger' : '') + '" data-act="act-apply" data-ts="' + m.ts + '" data-i="' + i + '">' + (a.do === 'delete_portfolio' ? 'Delete' : 'Apply') + '</button>' +
       '<button class="btn text sm" data-act="act-dismiss" data-ts="' + m.ts + '" data-i="' + i + '">Dismiss</button></div></div>';
   }).join('');
 }
@@ -5210,7 +5223,7 @@ function aiCall(messages){
     var gmodel = model || 'gemini-3.8-flash';
     var body = {
       generationConfig:(function(){
-        var g = { temperature:aiEffort().t, maxOutputTokens:aiMt() };
+        var g = { temperature:aiEffort().t, maxOutputTokens:aiMtThink() };
         if(aiThinking()) g.thinkingConfig = { thinkingBudget:GEMINI_THINK_BUDGET[aiEffortKey()] || 2048 };
         return g;
       })(),
@@ -5243,11 +5256,11 @@ function aiCall(messages){
     hdrs['x-api-key'] = KEYS.key; hdrs['anthropic-version'] = '2023-06-01';
     body = { model:model, max_tokens:aiMt(), system:sys, messages:aiShape(messages, 'a') };
   } else if(wire === 'r'){
-    body = { model:model, instructions:sys, input:aiShape(messages, 'r'), max_output_tokens:aiMt() };
+    body = { model:model, instructions:sys, input:aiShape(messages, 'r'), max_output_tokens:aiMtThink() };
   } else {
     body = { model:model || 'gpt-6.1-sol', messages:[{ role:'system', content:sys }].concat(aiShape(messages, 'o')) };
     // OpenAI's GPT-5+/6 reject max_tokens; everyone else still takes it.
-    body[prov === 'openai' ? 'max_completion_tokens' : 'max_tokens'] = aiMt();
+    body[prov === 'openai' ? 'max_completion_tokens' : 'max_tokens'] = aiMtThink();
     if(!noTemp(body.model)) body.temperature = aiEffort().t;
     if(zen && /^deepseek-v4\.1-flash/.test(body.model)) body.reasoning_effort = aiThinking() ? ({ minimal:'low', low:'low', medium:'medium', high:'high', xhigh:'high', max:'high', ultra:'high' }[aiEffortKey()] || 'low') : 'low';
   }
@@ -5277,7 +5290,11 @@ function aiCall(messages){
       return (o.content || []).map(function(c){ return c.text || ''; }).join('');
     }).join('\n');
     var choice = (j.choices || [])[0] || {};
-    return (choice.message || {}).content || '';
+    var out = (choice.message || {}).content || '';
+    if(!out && !AI_CAP) throw new Error(choice.finish_reason === 'length'
+      ? 'The model used its whole output limit thinking and had nothing left to answer. Turn Thinking off or raise the effort level, then try again.'
+      : 'The model returned an empty reply. Try again, or pick a different model.');
+    return out;
   });
 }
 function readJSON(r){
@@ -5800,6 +5817,7 @@ function keySave(p, clear){
   else if(v && !KEYS.key){ keySwitch(p); KEYS.model = AI_DEFAULT_MODEL[p] || ''; }   // first key becomes the default
   KEY_OK = null; saveKeys(); updateAiChip(); paintAiPick(); paintKeysPage(); renderPicker();
   toast(v ? 'Key saved' : 'Key removed');
+  if(v) setTimeout(pfAsk, 700);
 }
 function keyTest(btn, p){
   var k = (KEYS.keysBy || {})[p]; if(!k) return;
@@ -5827,6 +5845,42 @@ function openAddToList(sym){
   dialog('Add to watchlist', body, '<button class="btn text" data-act="dlg-close">Close</button><button class="btn filled" data-act="list-new-with" data-sym="' + esc(sym) + '">Create and add</button>');
 }
 
+function pfImport(){
+  pickFile('.csv,text/csv', function(text){
+    var grid = parseCSVGrid(text);
+    var head = (grid[0] || []).map(function(h){ return h.toLowerCase(); });
+    var iS = head.findIndex(function(h){ return h.indexOf('sym') >= 0 || h === 'ticker'; });
+    var iQ = head.findIndex(function(h){ return h.indexOf('qty') >= 0 || h.indexOf('share') >= 0; });
+    var iP = head.findIndex(function(h){ return h.indexOf('cost') >= 0 || h.indexOf('price') >= 0 || h.indexOf('avg') >= 0; });
+    if(iS < 0){ toast('CSV needs a symbol column.'); return; }
+    var added = 0;
+    grid.slice(1).forEach(function(r){
+      if(!r[iS]) return;
+      PFS[CUR.pf].holdings.push({ s:dispSym(r[iS].toUpperCase()), q:parseFloat(r[iQ]) || 0, px:parseFloat(r[iP]) || 0 });
+      added++;
+    });
+    savePfs(); renderPortfolio(); toast(added + ' holdings imported');
+  });
+}
+
+/* After the first API key is saved, offer to set up a portfolio (once). */
+function pfEmpty(){ return Object.keys(PFS).every(function(k){ return !PFS[k].holdings.length; }); }
+function pfAsk(){
+  if(CFG.pfAsked || TOUR.on || !pfEmpty() || !Object.keys(KEYS.keysBy || {}).some(function(k){ return KEYS.keysBy[k]; })) return;
+  CFG.pfAsked = true; saveCfg();
+  dialog('Key saved — add your portfolio?', '<div class="pfask"><p>Marvell is ready. If you tell it what you own, it can review your positions and compare you with the S&amp;P 500. You can skip this and add it any time.</p>' +
+    '<ol><li><b>Ask Marvell</b> — type your holdings (for example “10 AAPL at 150, 5 NVDA”) or attach a CSV or PDF statement. Marvell drafts the portfolio and you press <b>Apply</b>. Screenshots work if your model can read images.</li>' +
+    '<li><b>Import a CSV</b> — a file with a Symbol column, a Shares column and (optionally) a Cost column.</li>' +
+    '<li><b>Add one by one</b> — Portfolio page → Add holding.</li></ol></div>',
+    '<button class="btn text" data-act="pf-ask" data-w="later">Not now</button><button class="btn" data-act="pf-ask" data-w="manual">Add manually</button>' +
+    '<button class="btn" data-act="pf-ask" data-w="import">Import CSV</button><button class="btn filled" data-act="pf-ask" data-w="marvell">Ask Marvell</button>');
+}
+function pfAskDo(w){
+  closeDialog();
+  if(w === 'marvell'){ openDrawer(); rsShowTab('chat'); var p = $('prompt'); if(p){ p.value = 'Create a portfolio from these holdings: '; p.focus(); p.setSelectionRange(p.value.length, p.value.length); } }
+  else if(w === 'import'){ go('#/portfolio/' + CUR.pf); pfImport(); }
+  else if(w === 'manual'){ go('#/portfolio/' + CUR.pf); setTimeout(function(){ openAddHolding(CUR.pf); }, 350); }
+}
 function openAddHolding(pfId){
   var pf = PFS[pfId];
   var body = '<div class="mut" style="font-size:13.5px;margin-bottom:10px">Holdings stay in this browser. Cost basis is whatever you type.</div>' +
@@ -6772,24 +6826,8 @@ function bindEvents(){
         savePfs(); renderPortfolio(); renderRail();
         break;
       }
-      case 'importpf': {
-        pickFile('.csv,text/csv', function(text){
-          var grid = parseCSVGrid(text);
-          var head = (grid[0] || []).map(function(h){ return h.toLowerCase(); });
-          var iS = head.findIndex(function(h){ return h.indexOf('sym') >= 0 || h === 'ticker'; });
-          var iQ = head.findIndex(function(h){ return h.indexOf('qty') >= 0 || h.indexOf('share') >= 0; });
-          var iP = head.findIndex(function(h){ return h.indexOf('cost') >= 0 || h.indexOf('price') >= 0 || h.indexOf('avg') >= 0; });
-          if(iS < 0){ toast('CSV needs a symbol column.'); return; }
-          var added = 0;
-          grid.slice(1).forEach(function(r){
-            if(!r[iS]) return;
-            PFS[CUR.pf].holdings.push({ s:dispSym(r[iS].toUpperCase()), q:parseFloat(r[iQ]) || 0, px:parseFloat(r[iP]) || 0 });
-            added++;
-          });
-          savePfs(); renderPortfolio(); toast(added + ' holdings imported');
-        });
-        break;
-      }
+      case 'importpf': pfImport(); break;
+      case 'pf-ask': pfAskDo(el.getAttribute('data-w')); break;
       case 'exportpf': {
         var rows = [['symbol', 'shares', 'avg_cost']].concat(PFS[CUR.pf].holdings.map(function(h){ return [h.s, h.q, h.px]; }));
         download('portfolio.csv', rows.map(function(r){ return r.map(csvCell).join(','); }).join('\n'));
