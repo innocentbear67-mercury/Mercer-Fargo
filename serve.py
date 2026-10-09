@@ -173,6 +173,10 @@ def fetch_upstream(url, timeout=25, method="GET", payload=None, content_type=Non
         return resp.status, resp.headers.get("Content-Type") or "application/octet-stream", raw
 
 
+class NotFound(ValueError):
+    """Yahoo says the symbol does not exist: there is no point trying the Stooq fallback."""
+
+
 class Handler(SimpleHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     server_version = "FinanceHub/1.0"
@@ -409,13 +413,13 @@ class Handler(SimpleHTTPRequestHandler):
             try:
                 # Yahoo blocks long/spoofed UA strings; plain Mozilla/5.0 is the
                 # combo that works from this machine.
-                status, _, body = fetch_upstream(url, ua="Mozilla/5.0", timeout=20)
+                status, _, body = fetch_upstream(url, ua="Mozilla/5.0", timeout=8)
             except urllib.error.HTTPError as e:
                 last = "yahoo HTTP %s (%s)" % (e.code, host)
                 if e.code == 429:
                     time.sleep(1.5)
                     continue
-                raise ValueError(last)
+                raise (NotFound(last) if e.code == 404 else ValueError(last))
             if status != 200:
                 last = "yahoo HTTP %s (%s)" % (status, host)
                 continue
@@ -438,7 +442,7 @@ class Handler(SimpleHTTPRequestHandler):
         f = lambda t: time.strftime("%Y-%m-%d", time.gmtime(t))
         url = ("https://stooq.com/q/d/l/?s=%s&d1=%s&d2=%s&i=d"
                % (urllib.parse.quote(self.oa_stooq_sym(symbol), safe=""), f(start), f(end)))
-        status, _, body = fetch_upstream(url)
+        status, _, body = fetch_upstream(url, timeout=6)   # stooq is often unreachable: fail fast
         if status != 200:
             raise ValueError("stooq HTTP %s" % status)
         lines = body.decode("utf-8").strip().split("\n")
@@ -496,6 +500,8 @@ class Handler(SimpleHTTPRequestHandler):
                           "asOf": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
                           "note": "date-level freshness; latest candle may be incomplete; ~15min delayed"},
             })
+        except NotFound as e:
+            return self.json_error(404, "unknown symbol: %s" % e)
         except Exception as e:                                    # noqa: BLE001
             try:
                 bars = self.oa_stooq_chart(symbol, rng)
@@ -531,11 +537,13 @@ class Handler(SimpleHTTPRequestHandler):
                             "previousClose": prev, "currency": meta.get("currency"),
                             "marketTime": meta.get("regularMarketTime"),
                             "bars": len(ts)})
+            except NotFound as e:
+                out.append({"symbol": s.upper(), "error": "unknown symbol (%s)" % e})
             except Exception as e:                                # noqa: BLE001
                 try:
                     url = ("https://stooq.com/q/l/?s=%s&f=sd2t2ohlcv&h&e=csv"
                            % urllib.parse.quote(self.oa_stooq_sym(s), safe=""))
-                    st, _, body = fetch_upstream(url)
+                    st, _, body = fetch_upstream(url, timeout=6)
                     parts = body.decode("utf-8").strip().split("\n")
                     c = parts[1].split(",") if len(parts) > 1 else []
                     price = float(c[6]) if len(c) > 6 and c[6] != "N/D" else None

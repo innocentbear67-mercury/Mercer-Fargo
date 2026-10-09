@@ -937,6 +937,7 @@ table.fh .col-trend{width:120px}
 .key-btn.bad .kdot{background:var(--fh-negative)}
 @media(max-width:1180px){.rs-label,.key-label{display:none}.icon-btn.rs-btn,.icon-btn.key-btn{width:40px;padding:0}.key-btn .kdot{position:absolute;top:7px;right:7px}}
 .avatar-btn.anon::before{content:"";width:16px;height:16px;background:currentColor;opacity:.75;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4 0-8 2-8 5v3h16v-3c0-3-4-5-8-5z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4 0-8 2-8 5v3h16v-3c0-3-4-5-8-5z'/%3E%3C/svg%3E") center/contain no-repeat}
+.nf{max-width:560px}.nf h2{font-family:var(--mf-serif);font-weight:500;margin:0 0 8px}
 .contact{max-width:640px}
 .contact textarea{resize:vertical;min-height:150px}
 .set-wrap{display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:start}
@@ -953,6 +954,9 @@ table.fh .col-trend{width:120px}
 .ktag{font-size:11px;padding:1px 8px;border-radius:999px;background:var(--fh-background-surface-container-high,rgba(128,128,128,.2))}
 .kmsg{font-size:12px;margin-left:auto}
 .krow .key-row .inp{flex:1;min-width:160px}
+.g-wrap{margin:0 0 6px}.g-slot{display:flex;justify-content:center;min-height:44px}
+.g-or{display:flex;align-items:center;gap:10px;margin:14px 0 4px;font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.g-or::before,.g-or::after{content:"";flex:1;height:1px;background:var(--fh-border-stroke-default)}
 .auth-tabs{display:flex;gap:6px;margin-bottom:12px}
 .auth-tabs button{flex:1;padding:8px;border-radius:999px;border:1px solid var(--fh-outline-variant,rgba(128,128,128,.3));background:none;color:inherit;cursor:pointer}
 .auth-tabs button.on{background:var(--fh-background-surface-container-high,rgba(128,128,128,.2));font-weight:600}
@@ -1167,7 +1171,7 @@ html{overflow-x:clip}
 /* collapse the form into a single message while a run is going */
 .rs-form{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows .4s cubic-bezier(.3,.7,.2,1),opacity .3s ease,margin .4s}
 .rs-form>div{overflow:hidden;min-height:0}
-.rs-form.shut{grid-template-rows:0fr;opacity:0;pointer-events:none}
+.rs-form.shut{grid-template-rows:0fr;opacity:0;pointer-events:none;visibility:hidden;transition:grid-template-rows .4s cubic-bezier(.3,.7,.2,1),opacity .3s ease,margin .4s,visibility 0s .4s}
 .rs-ask{margin:0 0 6px;padding:14px 16px;border-radius:18px;background:var(--fh-background-surface-container);animation:rsIn .3s cubic-bezier(.2,.7,.2,1) both}
 .rs-ask[hidden]{display:none}
 .ra-q{font-size:15px;line-height:1.55;color:var(--fh-foreground-on-surface-emphasis);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
@@ -1201,8 +1205,8 @@ html{overflow-x:clip}
 
 .gl-more{background:none;border:0;padding:0;font:inherit;font-size:12.5px;font-weight:500;color:var(--fh-foreground-on-surface-link-default);cursor:pointer}
 .gl-more:hover{text-decoration:underline}
-.gl-full{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s cubic-bezier(.3,.7,.2,1),margin .4s;margin-top:0}
-.gl-full.open{grid-template-rows:1fr;margin-top:14px}
+.gl-full{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows .4s cubic-bezier(.3,.7,.2,1),margin .4s,visibility 0s .4s;margin-top:0}   /* hidden = not focusable either */
+.gl-full.open{grid-template-rows:1fr;margin-top:14px;visibility:visible;transition:grid-template-rows .4s cubic-bezier(.3,.7,.2,1),margin .4s,visibility 0s}
 .gf-in{overflow:hidden;min-height:0}
 .gf-scroll{overflow-x:auto;border-top:1px solid var(--fh-border-stroke-default)}
 .gf-tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:620px}
@@ -1230,6 +1234,27 @@ html{overflow-x:clip}
 .pm-free{flex:none;font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:999px;color:var(--fh-positive,#34a853);background:rgba(52,168,83,.14)}
 .pfask p{margin:0 0 12px;line-height:1.6}
 .pfask ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;line-height:1.55;font-size:14px}
+
+.an-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:2px 0 8px}
+.an-head b{font-family:var(--mf-serif);font-size:20px;font-weight:500}
+.tc{position:relative;height:128px;margin:6px 0 4px}
+.tc-track,.tc-band{position:absolute;top:56px;height:8px;border-radius:5px}
+.tc-track{left:0;right:0;background:var(--fh-background-surface-container-high,rgba(128,128,128,.22))}
+.tc-band{background:var(--fh-colors-and-accents-primary,#c1a578);opacity:.38}
+.tc-dot{position:absolute;top:54px;width:12px;height:12px;border-radius:50%;transform:translateX(-50%);border:2px solid var(--fh-background-surface,#1c1c1c);box-sizing:content-box;margin-top:-2px}
+.tc-px{background:var(--fh-foreground-on-surface-emphasis,#f3efe6)}
+.tc-tg{background:var(--fh-colors-and-accents-primary,#c1a578)}
+.tc-stem{position:absolute;width:1.5px;transform:translateX(-50%);background:var(--fh-border-stroke-emphasis,rgba(160,160,160,.6))}
+.tc-up{top:34px;height:22px}
+.tc-down{top:64px;height:22px}
+.tc-lab{position:absolute;transform:translateX(-50%);text-align:center;white-space:nowrap;line-height:1.25}
+.tc-top{top:0}.tc-bot{top:88px}
+.tc-lab span{display:block;font-size:11.5px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.tc-lab b{font-size:14px;font-weight:600}
+.tc-lab em{font-style:normal;font-weight:600}
+.tc-gold{color:var(--fh-colors-and-accents-primary,#c1a578)}
+.tc-ends{display:flex;justify-content:space-between;font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis);padding-top:8px;border-top:1px solid var(--fh-border-stroke-default)}
+.tc-ends b{color:var(--fh-foreground-on-surface-emphasis);font-weight:500;margin-left:4px}
 /* full screen: centred reading column */
 .drawer.full{--gut:max(20px,calc((100vw - 760px)/2))}
 .drawer.full #rsPane{--gut:max(20px,calc((100vw - 880px)/2))}
@@ -1409,7 +1434,9 @@ html{overflow-x:clip}
 
 /* ---------------------------------------------------------------- 1. data */
 
-const LS = { keys:'fh3_keys', lists:'fh3_lists', pfs:'fh3_pf', cfg:'fh3_cfg', hist:'fh3_hist', q:'fh3_q', chat:'fh3_chat', tasks:'fh3_tasks', research:'fh3_research', skills:'fh3_skills' };
+const LS = { keys:'fh3_keys', lists:'fh3_lists', pf:'fh3_pf', cfg:'fh3_cfg', hist:'fh3_hist', q:'fh3_q', chat:'fh3_chat', tasks:'fh3_tasks', research:'fh3_research', skills:'fh3_skills' };
+/* Portfolios were once saved under the key "undefined" (a typo in the key table). Move them to their real key once. */
+try{ if(!localStorage.getItem('fh3_pf') && localStorage.getItem('undefined')){ localStorage.setItem('fh3_pf', localStorage.getItem('undefined')); localStorage.removeItem('undefined'); } }catch(e){}
 
 const MARKET_GROUPS = [
   { id:'US',             label:'US',             symbols:['SPY','QQQ','DIA','IWM','VTI'] },
@@ -1617,9 +1644,21 @@ function trendCell(histPts, up){
 /* ------------------------------------------------------------- 3. storage */
 
 function load(key, fallback){
-  try{ var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; }
+  try{
+    var v = localStorage.getItem(key); if(!v) return fallback;
+    v = JSON.parse(v);
+    // Stored data from an older version (or edited by hand) can have the wrong shape; a wrong type would blank the whole app, so fall back instead.
+    var want = Array.isArray(fallback) ? 'array' : (fallback !== null && typeof fallback === 'object' ? 'object' : typeof fallback);
+    var got = Array.isArray(v) ? 'array' : (v === null ? 'null' : typeof v);
+    return (want === got || (fallback === null && v !== null)) ? v : fallback;
+  }catch(e){ return fallback; }
 }
-function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+function save(key, val){
+  try{ localStorage.setItem(key, JSON.stringify(val)); }
+  catch(e){   // usually "quota exceeded": say so once instead of silently losing the change
+    if(!save.warned){ save.warned = true; try{ toast('Browser storage is full \u2014 changes may not be saved. Delete old chats or Research Log runs.', 6000); }catch(x){} }
+  }
+}
 
 /* ---------------------------------------------------------- 4. data layer */
 
@@ -1677,6 +1716,7 @@ function fetchText(url, ms, init){
   var host = '';
   try{ host = new URL(url).hostname; }catch(e){ host = ''; }
   var attempts = [];
+  if(/^\/(?!\/)/.test(url)){ attempts.push({ u:url, via:false }); return fetchWithTimeout(url, ms, init).then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }); }   // our own server: one try, never relayed through third parties
   if(DIRECT_ONLY[host]){
     attempts.push({ u:url, via:false });
   } else if(PROXY_FIRST[host]){
@@ -1686,18 +1726,19 @@ function fetchText(url, ms, init){
     attempts.push({ u:url, via:false });
     if(canTryProxy()) attempts.push({ u:PROXY_PATH + encodeURIComponent(url), via:true });
   }
-  attempts.push({ u:'https://api.allorigins.win/raw?url=' + encodeURIComponent(url), via:false });
+  if(!DIRECT_ONLY[host]) attempts.push({ u:'https://api.allorigins.win/raw?url=' + encodeURIComponent(url), via:false });   // CORS-open sources never need a third-party relay
   var i = 0;
   function step(){
     if(i >= attempts.length) return Promise.reject(new Error('unreachable: ' + url));
     var a = attempts[i++];
-    return fetchWithTimeout(a.u, ms, init).then(function(r){
-      if(!r.ok) throw new Error('HTTP ' + r.status);
+    return fetchWithTimeout(a.u, a.u.indexOf('allorigins') > 0 ? Math.min(ms, 8000) : ms, init).then(function(r){
+      if(!r.ok){ var er = new Error('HTTP ' + r.status); er.status = r.status; throw er; }
       return r.text();
     }).then(function(t){
       if(a.via) proxyReady = true;
       return t;
     }).catch(function(e){
+      if(e && e.status === 404) throw e;   // the source answered "not found": relaying through other routes cannot change that
       if(a.via && proxyReady === null) proxyReady = false;
       return step();
     });
@@ -1813,22 +1854,28 @@ function tvCandidates(sym){
   });
   return out;
 }
+var TV_MISS = {};
 function resolveTV(sym){
   var s = dispSym(sym);
   if(TVMAP[s]) return Promise.resolve(TVMAP[s]);
   if(isCrypto(s) || isFx(s)) return Promise.resolve(null);
-  var list = tvCandidates(s), i = 0;
-  function step(){
-    if(i >= list.length) return Promise.resolve(null);
-    var full = list[i++];
-    return fetchJSON('https://scanner.tradingview.com/symbol?symbol=' + encodeURIComponent(full) + '&fields=close', 9000)
-      .then(function(j){
-        if(!j || j.code) throw new Error('no symbol');
-        TVMAP[s] = full; saveTVMap();
-        return full;
-      }).catch(function(){ return step(); });
-  }
-  return step();
+  if(TV_MISS[s] && Date.now() - TV_MISS[s] < 600000) return Promise.resolve(null);   // known-bad symbol: don't re-probe for 10 minutes
+  var list = tvCandidates(s);
+  // Probe every exchange at once with a plain fetch (the endpoint allows browsers): an unknown symbol now fails in ~1s, not after a chain of retries.
+  var probe = function(full){
+    var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, to = setTimeout(function(){ if(ctl) ctl.abort(); }, 7000);
+    return fetch('https://scanner.tradingview.com/symbol?symbol=' + encodeURIComponent(full) + '&fields=close', { signal:ctl ? ctl.signal : undefined })
+      .then(function(r){ return r.json(); }).then(function(j){ clearTimeout(to); if(!j || j.code || j.close == null){ var er = new Error('no symbol'); er.definitive = !!(j && j.code === 'symbol_not_exists'); throw er; } return full; }, function(e){ clearTimeout(to); throw e; });
+  };
+  return new Promise(function(resolve){
+    var left = list.length, done = false, sure = 0;
+    list.forEach(function(full){
+      probe(full).then(function(f){ if(!done){ done = true; TVMAP[s] = f; saveTVMap(); resolve(f); } }, function(e){
+        if(e && e.definitive) sure++;
+        if(--left === 0 && !done){ done = true; if(sure === list.length) TV_MISS[s] = Date.now(); resolve(null); }   // only "not found" everywhere counts; a network failure is not a verdict
+      });
+    });
+  });
 }
 
 /* --- TradingView quotes, fundamentals and analyst data ------------------- */
@@ -1839,7 +1886,8 @@ var TV_FIELDS = [
   'debt_to_equity','return_on_equity','employees','premarket_change','premarket_close','premarket_volume',
   'postmarket_change','postmarket_close','postmarket_volume','price_target_average','price_target_high',
   'price_target_low','earnings_release_next_date','earnings_per_share_forecast_next_fq',
-  'earnings_per_share_forecast_next_fy','revenue_forecast_next_fy','Recommend.All','update_mode'
+  'earnings_per_share_forecast_next_fy','revenue_forecast_next_fy','Recommend.All','update_mode',
+  'price_target_median','recommendation_mark','recommendation_buy','recommendation_over','recommendation_hold','recommendation_under','recommendation_sell','recommendation_total'
 ].join(',');
 
 function applyTV(sym, d){
@@ -1885,6 +1933,8 @@ function applyTV(sym, d){
     'NetIncome': d.net_income != null ? compact(d.net_income) : null,
     'DebtToEquity': d.debt_to_equity, 'ROE': d.return_on_equity,
     'RecommendAll': d['Recommend.All'],
+    'TargetMedian': d.price_target_median, 'AnalystMark': d.recommendation_mark, 'AnalystTotal': d.recommendation_total,
+    'AnalystSB': d.recommendation_buy, 'AnalystB': d.recommendation_over, 'AnalystH': d.recommendation_hold, 'AnalystS': d.recommendation_under, 'AnalystSS': d.recommendation_sell,
     'NextEarnings': nextEarn ? new Date(nextEarn * 1000).toISOString().slice(0, 10) : null,
     'EPSForecastNextFQ': d.earnings_per_share_forecast_next_fq,
     'EPSForecastNextFY': d.earnings_per_share_forecast_next_fy,
@@ -2146,6 +2196,7 @@ function fetchHistoryRaw(sym, range){
   var cached = loadHistCache(sym, days);
   if(cached && cached.length) return Promise.resolve(cached);
   var s = dispSym(sym);
+  if(TV_MISS[s] && !CG[s] && !isFx(s) && Date.now() - TV_MISS[s] < 600000) return Promise.resolve([]);   // unknown symbol: skip the slow relay chain
 
   if(CG[s]){
     var d2 = range === '1D' ? 1 : (range === '5D' ? 7 : (range === '1M' ? 30 : (range === '6M' ? 180 : (range === '5Y' ? 1825 : (range === 'MAX' ? 3650 : 365)))));
@@ -2503,7 +2554,14 @@ var LISTS = load(LS.lists, {
 /* Retire the old default "Equity sectors" watchlist wherever it is still stored. */
 if(LISTS.sectors && LISTS.sectors.name === 'Equity sectors'){ delete LISTS.sectors; saveLists(); }
 var PFS = load(LS.pf, { main:{ name:'Main portfolio', holdings:[] } });   // new visitors start with an empty portfolio
-var TASKS = load(LS.tasks, []);
+/* Repair anything malformed so one bad entry cannot take the page down. */
+Object.keys(LISTS).forEach(function(k){ var l = LISTS[k]; if(!l || typeof l !== 'object' || !Array.isArray(l.syms)) delete LISTS[k]; else { l.name = String(l.name || k); l.syms = l.syms.filter(function(x){ return typeof x === 'string' && x; }); } });
+if(!Object.keys(LISTS).length) LISTS.main = { name:'My watchlist', syms:['AAPL','MSFT','NVDA','TSLA','AMZN','META','GOOGL'] };
+Object.keys(PFS).forEach(function(k){ var p = PFS[k]; if(!p || typeof p !== 'object' || !Array.isArray(p.holdings)) delete PFS[k]; else {
+  p.name = String(p.name || k);
+  p.holdings = p.holdings.filter(function(h){ return h && typeof h.s === 'string' && h.s && isFinite(h.q); }).map(function(h){ return { s:h.s, q:+h.q, px:isFinite(h.px) ? +h.px : 0 }; }); } });
+if(!Object.keys(PFS).length) PFS.main = { name:'Main portfolio', holdings:[] };
+var TASKS = load(LS.tasks, []).filter(function(t){ return t && typeof t === 'object'; });
 
 var CUR = {
   view:'home', sym:'AAPL', tab:'overview', range:'1M', chart:'area',
@@ -2511,8 +2569,10 @@ var CUR = {
   list:'main', pf:'main', key:'AAPL', cols:{ pc:true, o:false, h:false, l:false, v:true, mc:false },
   sort:{ key:'', dir:-1 }, sec:null, screen:null, cmpSel:[]
 };
+if(!LISTS[CUR.list]) CUR.list = Object.keys(LISTS)[0];
+if(!PFS[CUR.pf]) CUR.pf = Object.keys(PFS)[0];
 var KEYS = load(LS.keys, { provider:'openrouter', model:'', key:'', url:'' });
-var CHAT = load(LS.chat, []);
+var CHAT = load(LS.chat, []).filter(function(m){ return m && typeof m === 'object' && (m.role === 'user' || m.role === 'assistant'); }).map(function(m){ m.text = typeof m.text === 'string' ? m.text : ''; return m; });   // drop malformed saved messages
 var CHAT_SID = null;
 /* Sessions: messages carry a sid; older saved messages are backfilled by 30-minute gaps. */
 function chatSessionId(){ return 's' + Date.now().toString(36); }
@@ -2616,7 +2676,8 @@ function acctLoad(a){
 }
 function acctRefresh(){
   var b = $('signInBtn'), a = acct();
-  if(b){ b.textContent = a ? (a.name || a.email).charAt(0).toUpperCase() : ''; b.title = a ? a.name + ' · ' + a.email : 'Sign in';
+  if(b){ b.textContent = a && !a.picture ? (a.name || a.email).charAt(0).toUpperCase() : ''; b.title = a ? a.name + ' · ' + a.email : 'Sign in';
+    b.style.backgroundImage = a && a.picture ? 'url("' + a.picture.replace(/"/g, '') + '")' : ''; b.style.backgroundSize = 'cover';
     b.classList.toggle('anon', !a); }
   updateAiChip(); paintKeyBtn(); if($('pickMenuA')) paintAiPick();
 }
@@ -2625,8 +2686,66 @@ function acctSignIn(email){
 }
 function acctSignOut(){
   ACCT_CUR = ''; save('fh3_acct', ACCT_CUR);
+  try{ if(window.google && google.accounts) google.accounts.id.disableAutoSelect(); }catch(e){}
   KEYS.keysBy = {}; KEYS.key = ''; KEY_OK = null; saveKeys();     // keys stay with the account, not the device
   acctRefresh(); if(CUR.view === 'settings' || CUR.view === 'keys') route();
+}
+/* ---- Sign in with Google (Google Identity Services, no server needed) -------
+   Paste your OAuth "Web application" Client ID below (Google Cloud Console -> APIs & Services -> Credentials).
+   Authorised JavaScript origins must include the site address, e.g. https://innocentbear67-mercury.github.io and http://localhost:8000.
+   The Client ID is public by design. While it is empty the Google button simply doesn't appear. */
+var GOOGLE_CLIENT_ID = '';
+var GIS = { loaded:false, loading:false };
+function gisDecode(jwt){
+  try{
+    var p = String(jwt).split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(decodeURIComponent(atob(p + '==='.slice((p.length + 3) % 4)).split('').map(function(c){ return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join('')));
+  }catch(e){ return null; }
+}
+function gisInit(){
+  if(!window.google || !google.accounts || !google.accounts.id) return;
+  if(!GIS.loaded){ google.accounts.id.initialize({ client_id:GOOGLE_CLIENT_ID, callback:gisCb, ux_mode:'popup', auto_select:false, cancel_on_tap_outside:true }); GIS.loaded = true; }
+  [].forEach.call(document.querySelectorAll('.g-slot'), function(el){
+    if(el.firstChild) return;
+    google.accounts.id.renderButton(el, { type:'standard', theme:'filled_black', size:'large', shape:'pill', text:'continue_with', logo_alignment:'left', width:Math.min(320, (el.parentNode.clientWidth || 320) - 4) });
+  });
+}
+function gisLoad(){
+  if(!GOOGLE_CLIENT_ID) return;
+  if(window.google && google.accounts){ gisInit(); return; }
+  if(GIS.loading) return; GIS.loading = true;
+  var sc = document.createElement('script'); sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true; sc.defer = true;
+  sc.onload = function(){ GIS.loading = false; gisInit(); };
+  sc.onerror = function(){ GIS.loading = false; var e = $('auErr'); if(e) e.textContent = 'Google sign-in could not load (blocked by an ad blocker or offline?).'; };
+  document.head.appendChild(sc);
+}
+function gisCb(resp){
+  var c = resp && resp.credential ? gisDecode(resp.credential) : null, err = function(t){ var e = $('auErr'); if(e) e.textContent = t; else toast(t); };
+  if(!c) return err('Google sign-in failed. Try again.');
+  if(c.aud !== GOOGLE_CLIENT_ID || !/^(https:\/\/)?accounts\.google\.com$/.test(c.iss || '') || (c.exp || 0) * 1000 < Date.now()) return err('That Google sign-in was not valid. Try again.');
+  if(!c.email || c.email_verified === false) return err('Your Google email is not verified.');
+  var email = String(c.email).toLowerCase(), fresh = !ACCTS[email];
+  if(fresh) ACCTS[email] = { email:email, name:c.name || c.given_name || email.split('@')[0], age:null, roles:[], since:null, created:Date.now(), google:true, ai:acctAI() };
+  ACCTS[email].picture = c.picture || ACCTS[email].picture || ''; ACCTS[email].google = true;
+  save('fh3_accts', ACCTS); acctSignIn(email); closeDialog(); toast('Signed in as ' + ACCTS[email].name);
+  if(fresh) setTimeout(openFinishProfile, 250); else if(CUR.view === 'settings') route();
+}
+function openFinishProfile(){
+  var year = new Date().getFullYear(), a = acct(); if(!a) return;
+  dialog('Welcome, ' + (a.name || '').split(' ')[0] + ' — two quick questions', '<div class="mut" style="font-size:13.5px;margin-bottom:10px">This helps us tailor Marvell to you. You can skip it and fill it in later under Settings → Profile.</div>' +
+    field('Age', 'auAge', '', '30', 'number') +
+    '<div class="field"><span>What do you do? (pick any)</span><div class="pills" id="auRoles">' + ACCT_ROLES.map(function(r){ return '<label class="pill chk"><input type="checkbox" value="' + r + '"><span>' + r + '</span></label>'; }).join('') + '</div></div>' +
+    field('Started investing (optional)', 'auSince', '', 'Year, e.g. ' + (year - 5), 'number') + '<div class="mut" id="auErr" style="color:var(--fh-error,#d93025);font-size:13px;margin-top:6px"></div>',
+    '<button class="btn text" data-act="dlg-close">Skip</button><button class="btn filled" data-act="auth-finish">Save</button>');
+}
+function authFinish(){
+  var a = acct(); if(!a) return closeDialog();
+  var age = parseInt($('auAge').value, 10), roles = [].slice.call(document.querySelectorAll('#auRoles input:checked')).map(function(i){ return i.value; });
+  var since = parseInt($('auSince').value, 10), yr = new Date().getFullYear(), err = function(t){ $('auErr').textContent = t; };
+  if($('auAge').value && !(age >= 13 && age <= 120)) return err('Enter an age between 13 and 120.');
+  if($('auSince').value && !(since >= 1950 && since <= yr)) return err('Start year must be between 1950 and ' + yr + '.');
+  if($('auAge').value) a.age = age; if(roles.length) a.roles = roles; a.since = $('auSince').value ? since : a.since;
+  save('fh3_accts', ACCTS); closeDialog(); toast('Profile saved');
 }
 function openAuth(mode){
   mode = mode || 'register';
@@ -2634,6 +2753,7 @@ function openAuth(mode){
   var reg = mode === 'register';
   var body = '<div class="auth-tabs"><button class="' + (reg ? 'on' : '') + '" data-act="auth-mode" data-m="register">Create account</button>' +
     '<button class="' + (reg ? '' : 'on') + '" data-act="auth-mode" data-m="signin">Sign in</button></div>' +
+    (GOOGLE_CLIENT_ID ? '<div class="g-wrap"><div class="g-slot"></div><div class="g-or"><span>or use your email</span></div></div>' : '') +
     field('Email', 'auEmail', '', 'you@example.com', 'email') +
     (reg ? field('Name', 'auName', '', 'Your name') + field('Age', 'auAge', '', '30', 'number') +
       '<div class="field"><span>What do you do? (pick any)</span><div class="pills" id="auRoles">' +
@@ -2641,6 +2761,7 @@ function openAuth(mode){
       field('Started investing (optional)', 'auSince', '', 'Year, e.g. ' + (year - 5), 'number') : '') +
     '<div class="mut" style="font-size:12px;line-height:18px;margin-top:8px">Accounts live in this browser only — there is no server or password. ' +
     'Your profile and API keys are saved to the account, so after signing in the AI works straight away.</div><div class="mut" id="auErr" style="color:var(--fh-error,#d93025);font-size:13px;margin-top:6px"></div>';
+  setTimeout(gisLoad, 0);
   dialog(reg ? 'Create your account' : 'Sign in', body, '<button class="btn text" data-act="dlg-close">Cancel</button><button class="btn filled" data-act="auth-go" data-m="' + mode + '">' + (reg ? 'Create account' : 'Sign in') + '</button>');
 }
 function authGo(mode){
@@ -2674,10 +2795,16 @@ function hashOf(){ return decodeURIComponent(location.hash.replace(/^#\/?/, ''))
 function go(hash){ if(location.hash === hash){ route(); } else { location.hash = hash; } }
 
 function parseRoute(){
-  var parts = hashOf().split('/').filter(Boolean);
+  // split first, decode after: an encoded slash (EUR%2FUSD) belongs to the symbol, not to the path
+  var parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map(function(p){ try{ return decodeURIComponent(p); }catch(e){ return p; } });
   if(!parts.length) return { name:'home' };
   var name = parts[0];
-  if(name === 'quote') return { name:'quote', sym:(parts[1] || 'AAPL').toUpperCase(), tab:parts[2] || 'overview' };
+  if(name === 'quote'){
+    var qs = (parts[1] || 'AAPL').toUpperCase(), qt = parts[2] || 'overview';
+    if(/^[A-Z]{3}$/.test(qs) && /^[A-Za-z]{3}$/.test(qt) && !/^(all)$/i.test(qt)){ qs += '/' + qt.toUpperCase(); qt = parts[3] || 'overview'; }   // EUR/USD typed with a plain slash
+    var cm = qs.match(/^([A-Z]+)-USD$/); if(cm && CG[cm[1]]) qs = cm[1];                                                                                   // BTC-USD -> BTC
+    return { name:'quote', sym:qs, tab:qt };
+  }
   if(name === 'list') return { name:'list', id:parts[1] || CUR.list };
   if(name === 'portfolio') return { name:'portfolio', id:parts[1] || CUR.pf };
   if(name === 'markets') return { name:'markets', group:parts[1] || CFG.market };
@@ -2722,17 +2849,22 @@ function route(){
 
 /* ------------------------------------------------------------- app chrome */
 
+/* In-app replacement for window.prompt(): embedded browsers and "block more dialogs" settings make prompt() silently return null, which looked like a dead button. */
+var ASK_CB = null;
+function askText(title, label, def, cb){
+  ASK_CB = cb;
+  dialog(title, field(label, 'askVal', def || '', ''), '<button class="btn text" data-act="dlg-close">Cancel</button><button class="btn filled" data-act="ask-ok">OK</button>');
+  setTimeout(function(){ var i = $('askVal'); if(i){ i.focus(); i.select(); } }, 30);
+}
+function askOk(){ var i = $('askVal'), v = i ? i.value.trim() : '', cb = ASK_CB; ASK_CB = null; closeDialog(); if(cb && v) cb(v); }
 function renameWatchlist(id){
   var l = LISTS[id] || LISTS[CUR.list];
   if(!l) return;
-  var name = prompt('Rename watchlist', l.name);
-  if(name === null) return;
-  name = (name || '').trim();
-  if(!name){ toast('A watchlist needs a name'); return; }
-  l.name = name;
-  saveLists(); renderRail();
-  if(CUR.view === 'list') renderList();
-  toast('Renamed to ' + name);
+  askText('Rename watchlist', 'Name', l.name, function(name){
+    l.name = name; saveLists(); renderRail();
+    if(CUR.view === 'list') renderList();
+    toast('Renamed to ' + name);
+  });
 }
 function renderSubnav(){
   var sec = [['home', 'Monitoring Terminal', '#/'], ['research', 'Research Log', '#/research']];
@@ -2902,6 +3034,7 @@ var EARNINGS = load('fh3_earn', [
   { s:'META', when:'Fiscal Q3', date:'', note:'' },
   { s:'TSLA', when:'Fiscal Q3', date:'', note:'' }
 ]);
+EARNINGS = EARNINGS.filter(function(e){ return e && typeof e.s === 'string'; });
 
 function skeletonCards(n){
   var out = '';
@@ -3800,6 +3933,14 @@ function paintRailQuote(){ /* rail highlights stay simple */ }
 function paintQuote(){
   var sym = dispSym(CUR.sym);
   var q = DATA.quotes[sym] || {};
+  if(q.c == null && TV_MISS[sym] && !CG[sym]){   // every exchange said "no such symbol": say so instead of showing an empty chart
+    var fx = /^[A-Z]{6}$/.test(sym) ? sym.slice(0, 3) + '/' + sym.slice(3) : '';
+    $('main').innerHTML = '<div class="section"><div class="card nf"><h2>We couldn\u2019t find \u201c' + esc(sym) + '\u201d</h2>' +
+      '<p class="mut">No exchange we search (NASDAQ, NYSE, AMEX) lists that ticker. Check the spelling, or search by company name.</p>' +
+      (fx ? '<p>Looking for a currency pair? Try <a href="#/quote/' + encodeURIComponent(fx) + '" data-act="nav" data-href="#/quote/' + encodeURIComponent(fx) + '"><b>' + esc(fx) + '</b></a>.</p>' : '') +
+      '<div class="key-row"><a class="btn filled sm" href="#/" data-act="nav" data-href="#/">Home</a><a class="btn text sm" href="#/screener" data-act="nav" data-href="#/screener">Screener</a></div></div></div>';
+    return;
+  }
   var ch = chgFrom(q);
   var up = ch.pct == null ? true : ch.pct >= 0;
   var cur = currencyOf(sym);
@@ -4041,39 +4182,51 @@ function analysisHTML(){
   var effHi = a.hi ? parseFloat(a.hi) : tvHi;
   var effLo = a.lo ? parseFloat(a.lo) : tvLo;
   var total = (a.buy || 0) + (a.hold || 0) + (a.sell || 0);
+  var f = function(k){ return numOf(tv[k]); };
+  var feed = { sb:f('AnalystSB'), b:f('AnalystB'), h:f('AnalystH'), s:f('AnalystS'), ss:f('AnalystSS'), n:f('AnalystTotal'), mark:f('AnalystMark') };
+  var haveFeed = feed.n > 0;
+  var cur = currencyOf(sym), med = f('TargetMedian');
+  var markLabel = function(m){ return m == null ? '' : (m < 1.5 ? 'Strong Buy' : m < 2.5 ? 'Buy' : m < 3.5 ? 'Hold' : m < 4.5 ? 'Sell' : 'Strong Sell'); };
+  var techLabel = function(v){ return v > 0.5 ? 'Strong Buy' : v > 0.1 ? 'Buy' : v >= -0.1 ? 'Neutral' : v >= -0.5 ? 'Sell' : 'Strong Sell'; };
   var html = '<div class="section"><div class="grid-2">';
   html += '<div class="card"><div class="section-head"><h3 style="flex:1">Analyst recommendations</h3>' +
     '<button class="ai-chip" data-act="ai" data-kind="ratings">Draft with AI</button></div>';
-  if(total){
-    var bp = a.buy / total * 100, hp = a.hold / total * 100, sp = a.sell / total * 100;
-    html += '<div class="analyst-bar">' +
-      '<i style="width:' + bp + '%;background:var(--fh-sentiment-positive-container);color:var(--fh-sentiment-on-positive-container)">' + num(bp, 0) + '%</i>' +
-      '<i style="width:' + hp + '%;background:var(--fh-sentiment-neutral-container);color:var(--fh-sentiment-on-neutral-container)">' + num(hp, 0) + '%</i>' +
-      '<i style="width:' + sp + '%;background:var(--fh-sentiment-negative-container);color:var(--fh-sentiment-on-negative-container)">' + num(sp, 0) + '%</i></div>' +
-      '<div class="sent-legend"><span>Buy ' + a.buy + '</span><span>Hold ' + a.hold + '</span><span>Sell ' + a.sell + '</span></div>';
-  } else if(tvTarget != null || tvScore != null){
-    html += '<div class="kv-inline" style="flex-direction:column;gap:6px;margin-bottom:8px">' +
-      (tvTarget != null ? '<span>Consensus price target: <b>' + money(tvTarget, currencyOf(sym)) + '</b>' +
-        (tvLo != null && tvHi != null ? ' · range ' + money(tvLo, currencyOf(sym)) + ' – ' + money(tvHi, currencyOf(sym)) : '') + '</span>' : '') +
-      (tvScore != null ? '<span>TradingView rating score: <b>' + num(tvScore, 2) + '</b> ' +
-        '<span class="mut">(−1 sell · 0 neutral · +1 buy)</span></span>' : '') +
-      '</div>' +
-      '<div class="mut" style="font-size:12.5px;margin-bottom:8px">Buy/hold/sell counts are not in the free feed. Load the consensus into the editable fields below, or type your own numbers.</div>' +
-      '<button class="btn tonal sm" data-act="a-load-tv">Load TradingView consensus</button>';
+  var bar = function(buy, hold, sell){
+    var t = buy + hold + sell, bp = buy / t * 100, hp = hold / t * 100, sp = sell / t * 100;
+    return '<div class="analyst-bar">' +
+      '<i style="width:' + bp + '%;background:var(--fh-sentiment-positive-container);color:var(--fh-sentiment-on-positive-container)">' + (bp >= 8 ? num(bp, 0) + '%' : '') + '</i>' +
+      '<i style="width:' + hp + '%;background:var(--fh-sentiment-neutral-container);color:var(--fh-sentiment-on-neutral-container)">' + (hp >= 8 ? num(hp, 0) + '%' : '') + '</i>' +
+      '<i style="width:' + sp + '%;background:var(--fh-sentiment-negative-container);color:var(--fh-sentiment-on-negative-container)">' + (sp >= 8 ? num(sp, 0) + '%' : '') + '</i></div>';
+  };
+  if(total){   // numbers the user typed (or loaded and edited) take priority
+    html += '<div class="an-head"><b>Your numbers</b><span class="mut">' + total + ' analysts</span></div>' + bar(a.buy || 0, a.hold || 0, a.sell || 0) +
+      '<div class="sent-legend"><span>Buy ' + (a.buy || 0) + '</span><span>Hold ' + (a.hold || 0) + '</span><span>Sell ' + (a.sell || 0) + '</span></div>';
+  } else if(haveFeed){
+    var fb = (feed.sb || 0) + (feed.b || 0), fh = feed.h || 0, fs = (feed.s || 0) + (feed.ss || 0);
+    html += '<div class="an-head"><b>' + esc(markLabel(feed.mark) || 'Analyst consensus') + '</b><span class="mut">' + feed.n + ' analysts · TradingView</span></div>' + bar(fb, fh, fs) +
+      '<div class="sent-legend"><span>Buy ' + fb + '</span><span>Hold ' + fh + '</span><span>Sell ' + fs + '</span></div>' +
+      '<div class="mut" style="font-size:12px;margin-top:4px">Strong buy ' + (feed.sb || 0) + ' · Buy ' + (feed.b || 0) + ' · Hold ' + fh + ' · Sell ' + (feed.s || 0) + ' · Strong sell ' + (feed.ss || 0) + '</div>';
   } else {
-    html += '<div class="mut" style="font-size:13.5px">No analyst counts yet. Enter them below or let AI draft from public coverage (labelled as AI-drafted).</div>';
+    html += '<div class="mut" style="font-size:13.5px">No analyst counts for this instrument. Enter them below or let AI draft from public coverage (labelled as AI-drafted).</div>';
   }
+  if(tvTarget != null){
+    html += '<div class="kv-inline" style="flex-direction:column;gap:6px;margin:12px 0 4px">' +
+      '<span>Consensus price target: <b>' + money(tvTarget, cur) + '</b>' + (med != null ? ' <span class="mut">(median ' + money(med, cur) + ')</span>' : '') + '</span>' +
+      (tvLo != null && tvHi != null ? '<span>Target range: ' + money(tvLo, cur) + ' – ' + money(tvHi, cur) + '</span>' : '') + '</div>';
+  }
+  if(tvScore != null) html += '<div class="mut" style="font-size:12px;margin-top:6px">Technical rating (price indicators, not analysts): <b>' + techLabel(tvScore) + '</b> (' + num(tvScore, 2) + ')</div>';
+  html += '<div style="margin-top:12px"><button class="btn tonal sm" data-act="a-load-tv">' + (haveFeed || tvTarget != null ? 'Copy into the fields below' : 'Load TradingView data') + '</button></div>';
   html += '<div class="filters" style="margin-top:14px">' +
-    '<label class="field"><span>Buy</span><input class="inp" id="aBuy" value="' + (a.buy == null ? '' : a.buy) + '"></label>' +
-    '<label class="field"><span>Hold</span><input class="inp" id="aHold" value="' + (a.hold == null ? '' : a.hold) + '"></label>' +
-    '<label class="field"><span>Sell</span><input class="inp" id="aSell" value="' + (a.sell == null ? '' : a.sell) + '"></label>' +
-    '<label class="field"><span>Avg target</span><input class="inp" id="aTarget" value="' + esc(a.target) + '"></label>' +
-    '<label class="field"><span>High target</span><input class="inp" id="aHi" value="' + esc(a.hi) + '"></label>' +
-    '<label class="field"><span>Low target</span><input class="inp" id="aLo" value="' + esc(a.lo) + '"></label>' +
+    '<label class="field"><span>Buy</span><input class="inp" id="aBuy" inputmode="numeric" placeholder="' + (haveFeed ? (feed.sb || 0) + (feed.b || 0) : '') + '" value="' + (a.buy == null ? '' : a.buy) + '"></label>' +
+    '<label class="field"><span>Hold</span><input class="inp" id="aHold" inputmode="numeric" placeholder="' + (haveFeed ? (feed.h || 0) : '') + '" value="' + (a.hold == null ? '' : a.hold) + '"></label>' +
+    '<label class="field"><span>Sell</span><input class="inp" id="aSell" inputmode="numeric" placeholder="' + (haveFeed ? (feed.s || 0) + (feed.ss || 0) : '') + '" value="' + (a.sell == null ? '' : a.sell) + '"></label>' +
+    '<label class="field"><span>Avg target</span><input class="inp" id="aTarget" inputmode="decimal" placeholder="' + (tvTarget != null ? num(tvTarget, 2) : '') + '" value="' + esc(a.target) + '"></label>' +
+    '<label class="field"><span>High target</span><input class="inp" id="aHi" inputmode="decimal" placeholder="' + (tvHi != null ? num(tvHi, 2) : '') + '" value="' + esc(a.hi) + '"></label>' +
+    '<label class="field"><span>Low target</span><input class="inp" id="aLo" inputmode="decimal" placeholder="' + (tvLo != null ? num(tvLo, 2) : '') + '" value="' + esc(a.lo) + '"></label>' +
     '</div><div style="margin-top:10px"><button class="btn tonal sm" data-act="a-save">Save & compute upside</button></div>';
   if(effTarget && q.c){
     var up = (effTarget / q.c - 1) * 100;
-    html += '<div class="kv-inline" style="margin-top:12px"><span>' + (a.target ? 'Implied upside' : 'Consensus upside') +
+    html += '<div class="kv-inline" style="margin-top:12px"><span>' + (a.target && parseFloat(a.target) !== tvTarget ? 'Implied upside (your target)' : 'Consensus upside') +
       ' vs ' + money(q.c, currencyOf(sym)) + ': <b class="' + (up >= 0 ? 'up' : 'down') + '">' + pct(up) + '</b></span>' +
       (effLo && effHi ? '<span>Range ' + money(effLo, currencyOf(sym)) + ' – ' + money(effHi, currencyOf(sym)) + '</span>' : '') + '</div>';
   }
@@ -4099,19 +4252,23 @@ function analysisHTML(){
 }
 function targetChartHTML(a, price, cur){
   if(!a.target || !price) return '<div class="empty">No consensus target available for this instrument yet. Enter one on the left to plot the range.</div>';
-  var lo = parseFloat(a.lo || a.target) || price * .8, hi = parseFloat(a.hi || a.target) || price * 1.2, t = parseFloat(a.target);
-  var mn = Math.min(lo, price) * .96, mx = Math.max(hi, price) * 1.04;
-  var X = function(v){ return ((v - mn) / (mx - mn)) * 100; };
-  return '<div style="position:relative;height:74px;margin-top:14px">' +
-    '<div style="position:absolute;top:26px;left:0;right:0;height:8px;border-radius:5px;background:var(--fh-background-surface-container)"></div>' +
-    '<div style="position:absolute;top:26px;height:8px;border-radius:5px;background:var(--fh-sentiment-neutral-container);left:' + X(lo) + '%;width:' + (X(hi) - X(lo)) + '%"></div>' +
-    '<div style="position:absolute;top:16px;left:' + X(price) + '%;transform:translateX(-50%);text-align:center">' +
-      '<div style="font-size:11px" class="mut">Price</div><div style="width:2px;height:18px;background:var(--fh-foreground-on-surface-emphasis);margin:0 auto"></div>' +
-      '<div class="num" style="font-size:12px">' + money(price, cur) + '</div></div>' +
-    '<div style="position:absolute;top:16px;left:' + X(t) + '%;transform:translateX(-50%);text-align:center">' +
-      '<div style="font-size:11px" class="mut">Avg target</div><div style="width:2px;height:18px;background:var(--fh-colors-and-accents-primary);margin:0 auto"></div>' +
-      '<div class="num" style="font-size:12px;color:var(--fh-colors-and-accents-primary)">' + money(t, cur) + '</div></div>' +
-    '</div>';
+  var t = parseFloat(a.target), lo = parseFloat(a.lo), hi = parseFloat(a.hi);
+  if(!isFinite(lo)) lo = Math.min(t, price); if(!isFinite(hi)) hi = Math.max(t, price);
+  if(lo > hi){ var sw = lo; lo = hi; hi = sw; }
+  var mn = Math.min(lo, price, t), mx = Math.max(hi, price, t), pad = (mx - mn || mx * .1 || 1) * .06;
+  mn -= pad; mx += pad;
+  var X = function(v){ return Math.max(0, Math.min(100, (v - mn) / (mx - mn) * 100)); };
+  var lab = function(x){ return 'left:min(max(' + x.toFixed(2) + '%,18%),82%)'; };   // keep labels inside the card; the marker itself stays exact
+  var up = (t / price - 1) * 100;
+  return '<div class="tc">' +
+    '<div class="tc-track"></div>' +
+    '<div class="tc-band" style="left:' + X(lo).toFixed(2) + '%;width:' + Math.max(0.8, X(hi) - X(lo)).toFixed(2) + '%"></div>' +
+    '<div class="tc-stem tc-up" style="left:' + X(price).toFixed(2) + '%"></div><i class="tc-dot tc-px" style="left:' + X(price).toFixed(2) + '%"></i>' +
+    '<div class="tc-lab tc-top" style="' + lab(X(price)) + '"><span>Price</span><b class="num">' + money(price, cur) + '</b></div>' +
+    '<div class="tc-stem tc-down" style="left:' + X(t).toFixed(2) + '%"></div><i class="tc-dot tc-tg" style="left:' + X(t).toFixed(2) + '%"></i>' +
+    '<div class="tc-lab tc-bot" style="' + lab(X(t)) + '"><span>Avg target <em class="' + (up >= 0 ? 'up' : 'down') + '">' + pct(up, 1) + '</em></span><b class="num tc-gold">' + money(t, cur) + '</b></div>' +
+    '</div>' +
+    '<div class="tc-ends"><span>Low <b class="num">' + money(lo, cur) + '</b></span><span>High <b class="num">' + money(hi, cur) + '</b></span></div>';
 }
 
 /* --- Earnings ----------------------------------------------------------- */
@@ -4537,12 +4694,12 @@ function pickRefresh(){
   renderPicker();
 }
 function pickAdd(){
-  var id = prompt('Model id (e.g. vendor/model-name):');
-  if(!id) return; id = id.trim(); if(!id) return;
-  var c = pickCustoms();
-  if(!c.some(function(x){ return x.id === id; })) c.push({ p:'custom', id:id, label:id });
-  pickSave('fh3_custom', c);
-  renderPicker();
+  askText('Add a custom model', 'Model id (e.g. vendor/model-name)', '', function(id){
+    var c = pickCustoms();
+    if(!c.some(function(x){ return x.id === id; })) c.push({ p:'custom', id:id, label:id });
+    pickSave('fh3_custom', c);
+    renderPicker();
+  });
 }
 function paintKeySegs(){ paintAiPick(); }
 /* ---- collapsed picker line (assistant foot) ----------------------------- */
@@ -5546,7 +5703,7 @@ function aiQuickButtons(){
 /* ------------------------------------------------------ research page view */
 
 /* Deep Research runs are saved here as they finish (and when stopped with partial output), so they survive reloads and work without the local server. */
-var RLOG = load('fh3_rruns', []);
+var RLOG = load('fh3_rruns', []).filter(function(r){ return r && typeof r === 'object' && typeof r.id === 'string' && typeof r.report === 'string'; });
 function rsLogSave(){
   var body = RS.report || RS.tokens || ''; if(!body.trim()) return;
   var id = RS.meta.runId || ('r' + (RS.t0 || Date.now()).toString(36));
@@ -6744,8 +6901,7 @@ function bindEvents(){
         break;
       }
       case 'cmp-custom': {
-        var v = prompt('Compare with which symbol?');
-        if(v){ CUR.cmp[v.toUpperCase()] = true; loadQuoteHistory().then(function(){ paintQuote(); }); }
+        askText('Compare with', 'Symbol', '', function(v){ CUR.cmp[v.toUpperCase()] = true; loadQuoteHistory().then(function(){ paintQuote(); }); });
         break;
       }
       case 'retry-hist': loadQuoteHistory().then(function(){ renderChart(); }); break;
@@ -6777,6 +6933,8 @@ function bindEvents(){
       case 'dlg-close': closeDialog(); break;
       case 'auth-open': openAuth(el.getAttribute('data-m')); break;
       case 'auth-mode': openAuth(el.getAttribute('data-m')); break;
+      case 'ask-ok': askOk(); break;
+      case 'auth-finish': authFinish(); break;
       case 'auth-go': authGo(el.getAttribute('data-m')); break;
       case 'fb-send': fbSend(el.getAttribute('data-k')); break;
       case 'profile-save': profileSave(); break;
@@ -6801,14 +6959,12 @@ function bindEvents(){
         break;
       }
       case 'newlist': {
-        var name = prompt('Name for the new watchlist?', 'New watchlist');
-        if(name){ var nid = 'l' + Date.now().toString(36); LISTS[nid] = { name:name, syms:[] }; saveLists(); renderRail(); go('#/list/' + nid); }
+        askText('New watchlist', 'Name', 'New watchlist', function(name){ var nid = 'l' + Date.now().toString(36); LISTS[nid] = { name:name, syms:[] }; saveLists(); renderRail(); go('#/list/' + nid); });
         break;
       }
       case 'addtolist': openAddToList(dispSym(CUR.sym)); break;
       case 'newpf': {
-        var pname = prompt('Name for the new portfolio?', 'Portfolio ' + (Object.keys(PFS).length + 1));
-        if(pname){ var pid = 'p' + Date.now().toString(36); PFS[pid] = { name:pname, holdings:[] }; savePfs(); renderRail(); go('#/portfolio/' + pid); }
+        askText('New portfolio', 'Name', 'Portfolio ' + (Object.keys(PFS).length + 1), function(pname){ var pid = 'p' + Date.now().toString(36); PFS[pid] = { name:pname, holdings:[] }; savePfs(); renderRail(); go('#/portfolio/' + pid); });
         break;
       }
       case 'addholding': openAddHolding(CUR.pf); break;
@@ -6845,13 +7001,11 @@ function bindEvents(){
       case 'screen-reset': CUR.screen = defaultScreen(); renderScreener(); break;
       case 'screen-addlist': {
         var picks = screenUniverse().slice(0, 20).map(function(r){ return r.sym; });
-        var nm2 = prompt('Add ' + picks.length + ' matches to which watchlist? (name)', 'Screened ' + new Date().toLocaleDateString());
-        if(nm2){ var nid2 = 'l' + Date.now().toString(36); LISTS[nid2] = { name:nm2, syms:picks }; saveLists(); renderRail(); toast('Created ' + nm2); }
+        askText('Save matches as a watchlist', 'Watchlist name (' + picks.length + ' matches)', 'Screened ' + new Date().toLocaleDateString(), function(nm2){ var nid2 = 'l' + Date.now().toString(36); LISTS[nid2] = { name:nm2, syms:picks }; saveLists(); renderRail(); toast('Created ' + nm2); });
         break;
       }
       case 'cmp-add': {
-        var v2 = prompt('Add symbol to compare');
-        if(v2){ CUR.cmpSel.push(v2.toUpperCase()); renderCompare(); }
+        askText('Add to comparison', 'Symbol', '', function(v2){ CUR.cmpSel.push(v2.toUpperCase()); renderCompare(); });
         break;
       }
       case 'cmp-del': {
@@ -6920,7 +7074,8 @@ function bindEvents(){
       }
       case 'a-save': {
         var a = ANALYSIS[dispSym(CUR.sym)] = ANALYSIS[dispSym(CUR.sym)] || { rows:[] };
-        a.buy = parseInt($('aBuy').value, 10) || 0; a.hold = parseInt($('aHold').value, 10) || 0; a.sell = parseInt($('aSell').value, 10) || 0;
+        var pint = function(id){ var v = $(id).value.trim(); return v === '' ? null : (parseInt(v, 10) || 0); };   // blank stays blank, so the feed numbers show
+        a.buy = pint('aBuy'); a.hold = pint('aHold'); a.sell = pint('aSell');
         a.target = $('aTarget').value; a.hi = $('aHi').value; a.lo = $('aLo').value;
         save('fh3_analysis', ANALYSIS); paintQuotePanel(); toast('Saved');
         break;
@@ -6931,6 +7086,9 @@ function bindEvents(){
         if(numOf(dd['1 Year Target']) != null) al.target = String(numOf(dd['1 Year Target']));
         if(numOf(dd['PriceTargetHigh']) != null) al.hi = String(numOf(dd['PriceTargetHigh']));
         if(numOf(dd['PriceTargetLow']) != null) al.lo = String(numOf(dd['PriceTargetLow']));
+        if(numOf(dd['AnalystTotal']) > 0){
+          al.buy = (numOf(dd['AnalystSB']) || 0) + (numOf(dd['AnalystB']) || 0); al.hold = numOf(dd['AnalystH']) || 0; al.sell = (numOf(dd['AnalystS']) || 0) + (numOf(dd['AnalystSS']) || 0);
+        }
         al.note = 'Consensus loaded from TradingView';
         save('fh3_analysis', ANALYSIS); paintQuotePanel(); toast('TradingView consensus loaded into the fields');
         break;
@@ -6988,6 +7146,7 @@ function bindEvents(){
     var b = $('runBtn'); if(b && !b.disabled) b.click();
   });
   document.addEventListener('keydown', function(ev){
+    if(ev.key === 'Enter' && ev.target && ev.target.id === 'askVal'){ ev.preventDefault(); askOk(); return; }
     if(ev.key === 'Escape'){
       var pickerOpen = (PICK.ctx && PICK.ctx !== 'page') || (RS.optsOpen && $('rsOptsBtn'));
       if(pickerOpen){ closeAiPickers(); return; }   // Esc closes the picker, not the whole drawer
