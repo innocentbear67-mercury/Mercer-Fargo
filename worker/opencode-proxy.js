@@ -48,12 +48,38 @@ async function chartResponse(symbol, rng) {
   return json({ error: lastErr }, 502, 0);
 }
 
+// (3) Read-only relay for the feeds a browser can't reach: they send no CORS
+// headers (Google News, OpenInsider, TraderHub) or refuse browsers outright
+// (www.sec.gov wants a contactable User-Agent). Allow-listed by host and path,
+// GET only, cached at the edge for `ttl` seconds.
+export const FEEDS = [
+  { re: /^https:\/\/news\.google\.com\/rss\/search\?/, ttl: 600 },
+  { re: /^https?:\/\/openinsider\.com\/screener\?/, ttl: 1800, http: true },
+  { re: /^https:\/\/traderhub\.openalice\.ai\/api\/reference\/[a-z-]+$/, ttl: 300 },
+  { re: /^https:\/\/data\.sec\.gov\/submissions\/CIK\d{10}\.json$/, ttl: 900, sec: true },
+  { re: /^https:\/\/www\.sec\.gov\/Archives\/edgar\/data\/\d+\/\d{18}\/[\w.\-]+$/, ttl: 86400 * 30, sec: true },  // accessioned: immutable
+];
+
+async function feedResponse(u, env) {
+  const f = FEEDS.find((x) => x.re.test(u));
+  if (!f) return new Response('Not allowed', { status: 403, headers: cors });
+  if (f.http) u = u.replace(/^https:/, 'http:');   // openinsider's TLS port refuses connections
+  const headers = { 'User-Agent': f.sec ? 'MercerFargo research ' + ((env && env.SEC_CONTACT) || 'contact@example.com') : 'Mozilla/5.0' };
+  const res = await fetch(u, { headers, cf: { cacheTtl: f.ttl, cacheEverything: true } });
+  const out = new Headers({ 'content-type': res.headers.get('content-type') || 'text/plain', 'cache-control': 'public, max-age=' + (res.ok ? Math.min(f.ttl, 3600) : 0) });
+  for (const k in cors) out.set(k, cors[k]);
+  return new Response(res.body, { status: res.status, headers: out });   // streamed: big 10-Ks pass straight through
+}
+
 export default {
-  async fetch(req) {
+  async fetch(req, env) {
     const url = new URL(req.url);
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     if (url.pathname === '/api/chart' && req.method === 'GET') {
       return chartResponse(url.searchParams.get('symbol'), url.searchParams.get('range'));
+    }
+    if (url.pathname === '/api/fetch' && req.method === 'GET') {
+      return feedResponse(url.searchParams.get('u') || '', env);
     }
     // Existing OpenCode relay, unchanged.
     const target = url.searchParams.get('u') || '';

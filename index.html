@@ -2152,6 +2152,9 @@ function fetchWithTimeout(url, ms, init){
    everything else is fetched directly, which is faster and keeps the proxy
    request count low. */
 var PROXY_FIRST = { 'news.google.com':1, 'openinsider.com':1 };
+/* Feeds the hosted worker relays (worker/ /api/fetch): tried right after serve.py's proxy,
+   ahead of the slow public relay. Keep in sync with FEEDS in worker/opencode-proxy.js. */
+var EDGE_HOSTS = { 'news.google.com':1, 'openinsider.com':1, 'traderhub.openalice.ai':1, 'www.sec.gov':1 };
 var DIRECT_ONLY = {
   'scanner.tradingview.com':1, 'stockanalysis.com':1, 'api.coingecko.com':1,
   'api.frankfurter.dev':1, 'api.frankfurter.app':1, 'data.sec.gov':1
@@ -2171,6 +2174,7 @@ function fetchText(url, ms, init){
     attempts.push({ u:url, via:false });
     if(canTryProxy()) attempts.push({ u:PROXY_PATH + encodeURIComponent(url), via:true });
   }
+  if(EDGE_HOSTS[host]) attempts.splice(attempts.length && attempts[0].via ? 1 : 0, 0, { u:OC_PROXY + '/api/fetch?u=' + encodeURIComponent(url), via:false });
   if(!DIRECT_ONLY[host]) attempts.push({ u:'https://api.allorigins.win/raw?url=' + encodeURIComponent(url), via:false });   // CORS-open sources never need a third-party relay
   var i = 0;
   function step(){
@@ -2638,7 +2642,7 @@ function fillTRHMovers(){
   var host = document.getElementById('trh-movers');
   if(!host) return;
   if(homeState.trh){ host.innerHTML = homeState.trh; return; }
-  fetchJSON('/api/oa/boards?board=movers', 20000).then(function(j){
+  fetchJSON('/api/oa/boards?board=movers', 20000).catch(function(){ return fetchJSON('https://traderhub.openalice.ai/api/reference/movers', 20000); }).then(function(j){
     var g = (j.gainers || []).slice(0, 5), l = (j.losers || []).slice(0, 5);
     var row = function(x){
       var pct = x.percent_change != null ? x.percent_change * 100 : null;
@@ -2650,7 +2654,7 @@ function fillTRHMovers(){
     homeState.trh = h;
     host.innerHTML = h;
   }).catch(function(){
-    host.innerHTML = '<div class="kv-inline">TraderHub board unavailable (start serve.py, or offline).</div>';
+    host.innerHTML = '<div class="kv-inline">TraderHub board unavailable right now.</div>';
   });
 }
 
@@ -5117,7 +5121,7 @@ function filTitle(r){
 }
 function filSize(b){ return !b ? '' : b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1e3)) + ' KB'; }
 function filRow(acc){ return FIL.rows.filter(function(r){ return r.accession === acc; })[0]; }
-function filArch(r, doc){ return 'https://www.sec.gov/Archives/edgar/data/' + FIL.cik + '/' + r.accession.replace(/-/g, '') + '/' + (doc || r.primary_doc); }
+function filArch(r, doc, cik){ return 'https://www.sec.gov/Archives/edgar/data/' + (cik || FIL.cik) + '/' + r.accession.replace(/-/g, '') + '/' + (doc || r.primary_doc); }
 function filRecent(){ var r = load('fh3_fil_recent', []); return Array.isArray(r) ? r : []; }
 
 function filList(sym){
@@ -5141,9 +5145,9 @@ function filHtmlText(html){
   d.querySelectorAll('td,th').forEach(function(e){ e.append(' '); });
   return (d.body ? d.body.textContent : '').replace(/[ \t ]+/g, ' ').replace(/ *\n */g, '\n').replace(/\n+/g, '\n').trim();
 }
-function filDoc(r){
-  return fetchJSON('/api/filings/doc?s=' + encodeURIComponent(FIL.sym) + '&acc=' + encodeURIComponent(r.accession), 60000).catch(function(){
-    var url = filArch(r);   // ponytail: no-server path reads the primary doc, not the EX-99 press release
+function filDoc(r, sym, cik){
+  return fetchJSON('/api/filings/doc?s=' + encodeURIComponent(sym || FIL.sym) + '&acc=' + encodeURIComponent(r.accession), 60000).catch(function(){
+    var url = filArch(r, null, cik);   // ponytail: no-server path reads the primary doc, not the EX-99 press release
     return fetchText(url, 30000).then(function(html){
       return { doc:r.primary_doc, url:url, text:/\.html?$/i.test(r.primary_doc) ? filHtmlText(html) : html,
                partial:/\.html?$/i.test(r.primary_doc) && !/<\/html>\s*$/i.test(html) };   // the public relay stops at ~2 MB
@@ -5188,7 +5192,8 @@ function renderFilings(sym, acc){
   $('main').innerHTML = '<div class="section">' + skeletonRows(6, 120) + '</div>';
   return filList(sym).then(function(j){
     if(CUR.view !== 'filings' || FIL.sym !== sym) return;
-    FIL.rows = j.filings || []; FIL.cik = j.cik; FIL.name = j.name || labelOf(sym);
+    var since = ymd(new Date(Date.now() - 5 * 365.25 * 864e5));   // five years keeps big filers' lists light
+    FIL.rows = (j.filings || []).filter(function(r){ return r.filing_date >= since; }); FIL.cik = j.cik; FIL.name = j.name || labelOf(sym);
     var rec = filRecent().filter(function(x){ return x.s !== sym; });
     rec.unshift({ s:sym, n:FIL.name }); save('fh3_fil_recent', rec.slice(0, 6));
     paintFil(); renderRail();
@@ -5230,7 +5235,7 @@ function filMarvellHTML(inReader){
 function paintFil(){
   var s = FIL.sym;
   $('main').innerHTML = '<div class="section fil" id="filRoot"><div class="ins-head">' + guruLogo({ t:s }, 'ins-logo') +
-    '<div class="ins-id"><h2>' + esc(FIL.name || s) + '</h2><div class="gu-sub"><b>' + esc(s) + '</b> · CIK ' + FIL.cik + ' · ' + FIL.rows.length + ' filings · ' +
+    '<div class="ins-id"><h2>' + esc(FIL.name || s) + '</h2><div class="gu-sub"><b>' + esc(s) + '</b> · CIK ' + FIL.cik + ' · ' + FIL.rows.length + ' filings in 5 years · ' +
     '<a href="#/quote/' + encodeURIComponent(s) + '">Quote</a> · <a href="#/insiders/' + encodeURIComponent(s) + '">Insider trades</a></div></div>' +
     insSearchHTML(false) + '</div>' + filMarvellHTML(false) +
     '<div class="fil-tl card" id="filTl"></div>' +
@@ -8050,7 +8055,7 @@ function rsSyncForm(){
 function rsChip(){
   var st = RS.status || {};
   if(RS.running) return '<span class="status-chip live"><i class="dot"></i>researching…</span>';
-  if(st.offline) return '<span class="status-chip"><i class="dot"></i>start serve.py to use research</span>';
+  if(st.offline) return '<span class="status-chip live"><i class="dot"></i>browser mode</span>';
   if(!st.installed) return '<span class="status-chip"><i class="dot"></i>harness not installed</span>';
   return '<span class="status-chip live"><i class="dot"></i>harness ready \u00b7 ' + (rsFocusOn('auto') ? 'auto' : RS.focus.length + ' focus areas') + '</span>';
 }
@@ -8085,7 +8090,7 @@ function rsPanelHTML(){
     '<div class="rs-actions">' +
     '<button class="btn filled sm" data-act="rs-run"' + (RS.running ? ' disabled' : '') + '>' +
     (RS.running ? 'Researching…' : 'Run research') + '</button>' +
-    (st.installed ? '' : '<button class="btn sm" data-act="rs-setup">Install harness</button>') +
+    (st.installed || st.offline ? '' : '<button class="btn sm" data-act="rs-setup">Install harness</button>') +
     '<span class="mut" style="font-size:12px">' + rsHint() + '</span></div></div>';
   h += '<div id="rsOpts"><button class="ai-pick" id="rsOptsBtn" data-act="rsopts-toggle" aria-expanded="' + (RS.optsOpen ? 'true' : 'false') + '">' +
     '<span class="ap-k">Setup</span><span class="ap-name">' + esc(rsOptsText()) + '</span>' +
@@ -8103,7 +8108,7 @@ function rsPanelHTML(){
 
 function rsHint(){
   var st = RS.status || {};
-  if(st.offline) return 'Run <code>python3 serve.py</code> to enable deep research.';
+  if(st.offline) return 'Runs in your browser: news, prices, insider trades and the latest 10-K/10-Q are gathered here, then your model writes the report. <code>serve.py</code> unlocks the full multi-round agent.';
   if(!st.installed) return 'One-time install: uv fetches Python 3.12 and the harness deps.';
   if(!KEYS.key && (RS.provider || KEYS.provider) !== 'custom') return 'Add your model key under Keys first.';
   return 'Uses ' + esc(KEYS.provider || 'your provider') + ' · nothing leaves your machine except model calls.';
@@ -8265,6 +8270,7 @@ function rsRun(){
   var sk = skillRsResolve(RS.question);
   if(!sk.go) return;
   var askText = sk.question;
+  if((RS.status || {}).offline) return rsRunBrowser(askText);   // no serve.py: the browser does the gathering
   var prov = RS.provider || KEYS.provider || 'openrouter';
   RS.provider = prov;
   if(!RS.model) RS.model = RS_DEFAULT_MODEL[prov] || AI_DEFAULT_MODEL[prov] || '';
@@ -8316,6 +8322,94 @@ function rsRun(){
     if(RS.tasks && !RS.error && RS.report) rsTaskFinish(true); else if(RS.tasks) rsTaskFinish(false);
     rsFetchStatus();
     rsPaint();
+  });
+}
+
+/* Deep research without serve.py (the hosted site): gather the same kinds of evidence the
+   harness would (headlines, prices, insider trades, the latest 10-K/10-Q) in the browser,
+   then one call to the user's own model writes the report. */
+var RS_NOT_TICKERS = { A:1, I:1, AI:1, US:1, USA:1, UK:1, EU:1, CEO:1, CFO:1, COO:1, DCF:1, EPS:1, ETF:1, IPO:1, FCF:1, ROIC:1, ROE:1, GDP:1, CPI:1, FED:1, FOMC:1,
+  SEC:1, PE:1, PEG:1, YOY:1, TTM:1, FY:1, Q:1, IT:1, ON:1, OR:1, AND:1, THE:1, ARE:1, FOR:1, ALL:1, NOW:1, BE:1, SO:1, GO:1, AT:1, TO:1, AN:1, IS:1, OF:1, IN:1,
+  BY:1, UP:1, ANY:1, CAN:1, HAS:1, KEY:1, NEW:1, ONE:1, BIG:1, MD:1, EV:1, AR:1, VR:1, API:1, SAAS:1, M:1, B:1, K:1, T:1 };
+function rsTicker(q){
+  return secCikFor('AAPL').catch(function(){}).then(function(){   // loads the ticker map
+    var t = (String(q).match(/\b[A-Z]{1,5}(?:\.[A-Z])?\b/g) || []).filter(function(x){ return !RS_NOT_TICKERS[x] && cikCache && cikCache[x]; })[0];
+    return t || (CUR.view === 'quote' && CUR.sym ? dispSym(CUR.sym) : '');
+  });
+}
+function rsGather(sym, q){
+  var step = function(label, p){
+    rsStep('tool', label); rsPaintSoon();
+    var s = RS.steps[RS.steps.length - 1];
+    return p.then(function(v){ s.ok = !!v; rsPaintSoon(); return v || ''; }, function(){ s.ok = false; rsPaintSoon(); return ''; });
+  };
+  var jobs = [step('News headlines', fetchNews(sym ? sym + ' stock' : q.slice(0, 120), 15).then(function(items){
+    return items.length ? 'RECENT HEADLINES (Google News):\n' + items.map(function(i){ return '- ' + i.title + ' (' + i.src + ', ' + i.date + ') ' + i.link; }).join('\n') : '';
+  }))];
+  if(!sym) return Promise.all(jobs).then(function(p){ return p.filter(Boolean).join('\n\n'); });
+  jobs.push(step('Price history', Promise.all([fetchHistory(sym, '1Y'), loadQuotesFor([sym]).catch(function(){})]).then(function(res){
+    var rows = res[0] || [], qr = quoteRow(sym, false), out = [];
+    if(qr.q.c != null) out.push('Last price ' + qr.cells.price + ' (' + pct(qr.ch.pct) + ' today)' + (qr.q.mc ? ', market cap ' + compact(qr.q.mc) : ''));
+    if(rows.length){
+      var c = rows.map(function(r){ return r.c; }), last = c[c.length - 1], back = function(n){ return c[Math.max(0, c.length - 1 - n)]; };
+      out.push('1-year range ' + num(Math.min.apply(null, c), 2) + ' – ' + num(Math.max.apply(null, c), 2) + '; change 1M ' + pct((last / back(21) - 1) * 100) +
+        ', 3M ' + pct((last / back(63) - 1) * 100) + ', 1Y ' + pct((last / c[0] - 1) * 100));
+      out.push('Month-end closes: ' + rows.filter(function(r, i){ return i === rows.length - 1 || r.d.slice(0, 7) !== rows[i + 1].d.slice(0, 7); }).map(function(r){ return r.d.slice(0, 7) + ' ' + num(r.c, 2); }).join(', '));
+    }
+    return out.length ? 'PRICE (' + sym + '):\n' + out.join('\n') : '';
+  })));
+  jobs.push(step('Insider trades (Form 4)', insFetch(sym).then(function(rows){
+    var since = ymd(new Date(Date.now() - 180 * 864e5)), rs = rows.filter(function(r){ return r.d >= since && r.kind !== 'other'; });
+    if(!rs.length) return 'INSIDER TRADES (6 months): none on the open market.';
+    var tot = function(k){ return rs.filter(function(r){ return r.kind === k; }).reduce(function(a, r){ return a + Math.abs(r.val || 0); }, 0); };
+    return 'INSIDER TRADES (Form 4, last 6 months, OpenInsider): ' + rs.filter(function(r){ return r.kind === 'buy'; }).length + ' buys ' + insMoney(tot('buy')) + ', ' +
+      rs.filter(function(r){ return r.kind === 'sell'; }).length + ' sales ' + insMoney(tot('sell')) + '. Largest:\n' +
+      rs.slice().sort(function(a, b){ return Math.abs(b.val || 0) - Math.abs(a.val || 0); }).slice(0, 8).map(function(r){
+        return '- ' + r.d + ' ' + r.name + ' (' + r.title + ') ' + r.type + ' ' + num(Math.abs(r.qty || 0), 0) + ' sh @ $' + num(r.px, 2) + ' = ' + insMoney(r.val);
+      }).join('\n');
+  })));
+  jobs.push(step('SEC filings and latest report', filList(sym).then(function(j){
+    var rows = j.filings || [], key = rows.filter(function(r){ return filIn(r, 'key'); }).slice(0, 15);
+    var head = 'SEC FILINGS (' + (j.name || sym) + ', newest first):\n' + key.map(function(r){ return '- ' + r.filing_date + ' ' + r.form + ' ' + filTitle(r) + ' ' + filArch(r, null, j.cik); }).join('\n');
+    var rep = rows.filter(function(r){ return /^(10-K|10-Q|20-F)$/.test(r.form); })[0];
+    if(!rep) return head;
+    return filDoc(rep, sym, j.cik).then(function(d){
+      return head + '\n\nLATEST ' + rep.form + ' (filed ' + rep.filing_date + ', excerpt):\n' + filExcerpt(filLines(d.text), 40000);
+    }, function(){ return head; });
+  })));
+  return Promise.all(jobs).then(function(p){ return p.filter(Boolean).join('\n\n'); });
+}
+function rsRunBrowser(askText){
+  if(!aiReady()){ toast('Add your API key under Keys first'); return; }
+  RS.running = true; RS.steps = []; RS.report = ''; RS.tokens = ''; RS.error = null; RS.tEnd = 0; RS.t0 = Date.now();
+  RS.citations = []; RS.trajPath = null; RS.meta = { runId:'b' + Date.now().toString(36) }; RS.tasks = null;
+  var stopped = false;
+  RS.ctl = { abort:function(){ stopped = true; } };
+  thinkStart('rs');
+  rsStep('round', 'Browser research', 'no serve.py here, so Marvell gathers the data in this tab · ' + (KEYS.provider || '') + ' ' + (KEYS.model || ''));
+  rsPaint();
+  rsTicker(askText).then(function(sym){
+    rsStep('round', sym ? 'Researching ' + sym : 'No ticker found — using news only', sym ? labelOf(sym) : 'name a ticker, e.g. NVDA, for filings and insider data');
+    return rsGather(sym, askText).then(function(data){
+      if(stopped) throw new Error('stopped');
+      rsStep('tool', 'Write report'); rsPaint();
+      var prompt = 'You are Marvell, an equity research analyst. Answer the research question using the DATA below and well-established general knowledge. ' +
+        'Say plainly when something is missing rather than guessing numbers. Write a structured markdown report: a short answer first, then the analysis the question needs, ' +
+        'key risks, what to watch next, and a Sources list naming the filings, headlines and data used (with their URLs). Not investment advice.\n\n' +
+        'Question: ' + askText + rsFocusBrief() + '\n\n--- DATA (gathered ' + new Date().toISOString().slice(0, 10) + ') ---\n' + (data || '(no data could be fetched)');
+      return aiCall([{ role:'user', content:prompt }]);
+    });
+  }).then(function(text){
+    if(stopped) return;
+    var s = RS.steps[RS.steps.length - 1]; if(s) s.ok = !!text;
+    RS.report = text || ''; if(!text) RS.error = 'the model returned an empty answer';
+    setTimeout(function(){ var r = $('rsResult'); if(r) r.scrollIntoView({ behavior:'smooth', block:'start' }); }, 350);
+  }).catch(function(e){
+    RS.error = stopped ? null : String((e && e.message) || e);
+    rsStep('log', stopped ? 'Stopped by you' : 'Error: ' + RS.error, null, stopped ? undefined : false);
+  }).then(function(){
+    RS.running = false; RS.tEnd = Date.now(); RS.meta.elapsedSeconds = Math.round((RS.tEnd - RS.t0) / 1000); thinkStop('rs');
+    rsLogSave(); rsPaint();
   });
 }
 
