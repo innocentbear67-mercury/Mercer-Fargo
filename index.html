@@ -2711,8 +2711,14 @@ function fetchHistoryRaw(sym, range){
       throw new Error('no oa bars');
     });
   };
-  if(range === '1D' || range === '5D') return viaEDGE().catch(viaOA).catch(viaSA);
-  return viaEDGE().catch(viaSA).catch(viaOA);
+  var viaEdge = function(){
+    return viaEDGE(sym, range).then(function(rows){
+      if(rows && rows.length){ saveHistCache(sym, days, rows); return rows; }
+      throw new Error('no edge bars');
+    });
+  };
+  if(range === '1D' || range === '5D') return viaEdge().catch(viaOA).catch(viaSA);
+  return viaEdge().catch(viaSA).catch(viaOA);
 }
 
 /* --- symbol search (stockanalysis.com, CORS enabled) --------------------- */
@@ -4756,7 +4762,7 @@ function renderInsiders(sym){
 function insSearchHTML(big){
   return '<form class="ins-search' + (big ? ' big' : '') + '" id="insForm" role="search" autocomplete="off">' +
     '<div class="box"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>' +
-    '<input id="insQ" placeholder="' + (big ? 'Ticker or company name — try NVDA or Tempus AI' : 'Look up another company') + '" aria-label="Ticker or company name" ' +
+    '<input id="insQ" placeholder="' + (big ? 'Ticker or company name — try NVDA' : 'Look up another company') + '" aria-label="Ticker or company name" ' +
     'role="combobox" aria-expanded="false" aria-controls="insSug" aria-autocomplete="list" spellcheck="false">' +
     '<span class="ins-spin" aria-hidden="true"></span><kbd>Enter</kbd></div>' +
     '<div class="ins-sug" id="insSug" role="listbox" hidden></div></form>';
