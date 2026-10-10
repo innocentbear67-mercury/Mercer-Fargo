@@ -597,6 +597,9 @@ body.vol-dragging,body.vol-dragging *{cursor:grabbing!important;user-select:none
 /* ---------- Responsive -------------------------------------------------- */
 @media (max-width:1200px){
   :root{--fh-rail-w:212px}
+  .rsec-cnt{display:none}
+  .rsec-tog{gap:8px;padding-right:6px}
+  .rsec-ic{width:26px;height:26px}
   .main{padding:18px 18px 90px}
 }
 @media (max-width:1024px){
@@ -1333,6 +1336,41 @@ html{overflow-x:clip}
 .rail .rail-toggle span:last-child{display:inline-flex;align-items:center;gap:4px}
 .rail .rail-toggle .chev{transition:transform .25s}
 .rail .rail-toggle[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+/* rail sections */
+.rsec{margin:2px 0 4px}
+.rsec+.rsec{border-top:1px solid var(--fh-border-stroke-default);padding-top:4px}
+.rsec-head{display:flex;align-items:center;gap:2px}
+.rsec-tog{flex:1;display:flex;align-items:center;gap:10px;min-width:0;padding:8px 10px 8px 6px;border:0;border-radius:12px;background:transparent;cursor:pointer;
+  color:var(--fh-foreground-on-surface-emphasis);font-size:13.5px;font-weight:500;text-align:left;transition:background .15s}
+.rsec-tog:hover{background:var(--fh-states-neutral-hovered)}
+.rsec-ic{flex:0 0 auto;display:grid;place-items:center;width:28px;height:28px;border-radius:9px;color:var(--mf-gold);
+  background:linear-gradient(140deg,var(--mf-navy) 0%,var(--mf-navy-deep) 100%);box-shadow:inset 0 0 0 1px rgba(193,165,120,.35);transition:transform .25s}
+.rsec-tog:hover .rsec-ic{transform:rotate(-6deg) scale(1.06)}
+.rsec.open .rsec-ic{box-shadow:inset 0 0 0 1px var(--mf-gold)}
+.rsec-lbl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rsec-cnt{font-size:11.5px;font-weight:500;padding:1px 7px;border-radius:9px;background:var(--fh-states-neutral-hovered);color:var(--fh-foreground-on-surface-de-emphasis)}
+.rsec-tog .chev{flex:0 0 auto;color:var(--fh-foreground-on-surface-de-emphasis);transition:transform .25s}
+.rsec-tog[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+.rsec-add{flex:0 0 auto;display:grid;place-items:center;width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--fh-foreground-on-surface-de-emphasis);cursor:pointer}
+.rsec-add:hover{background:var(--fh-states-neutral-hovered);color:var(--mf-gold)}
+.rsec-body{padding:2px 0 6px 18px}
+.rail .rsec-body .rail-item{padding:7px 12px;font-size:13.5px;border-radius:10px}
+.rsec .rail-fold>div{position:relative}
+.rsec .rail-fold>div::before{content:'';position:absolute;left:9px;top:4px;bottom:10px;width:1px;background:var(--fh-border-stroke-default)}
+.rail .guru-item img{width:22px;height:22px}
+.ri-dot{flex:0 0 auto;width:7px;height:7px;border-radius:50%;background:var(--fh-border-stroke-emphasis);transition:background .2s}
+.rail-item.on .ri-dot,.rail-item:hover .ri-dot{background:var(--mf-gold)}
+.ri-glyph{flex:0 0 auto;display:grid;place-items:center;width:22px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.rail-item:hover .ri-glyph,.rail-item.on .ri-glyph{color:var(--mf-gold)}
+.rail .rail-item.on .ri-glyph{color:inherit}
+.ri-stack{display:flex;flex:0 0 auto}
+.ri-stack img{width:20px;height:20px;border-radius:50%;object-fit:cover;background:#000;border:1.5px solid var(--fh-background-canvas);margin-left:-7px}
+.ri-stack img:first-child{margin-left:0}
+.rail .gu-logo.ri-logo{width:22px;height:22px;border-radius:6px;font-size:9px;flex:0 0 auto}
+.rail .rail-item .lbl b{font-weight:600;margin-right:2px}
+.ri-empty{color:var(--fh-foreground-on-surface-de-emphasis)!important;font-style:italic}
+.rail .rail-item.sect-link{display:flex;padding:7px 12px;font-size:13px;color:var(--fh-foreground-on-surface-default)}
+.rail .rail-item.sect-link:hover{color:var(--fh-foreground-on-surface-emphasis)}
 .rail-fold{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,.8,.2,1)}
 .rail-fold.open{grid-template-rows:1fr}
 .rail-fold>div{overflow:hidden;min-height:0}
@@ -1447,6 +1485,259 @@ html{overflow-x:clip}
 .gu-crowd a:hover{border-color:var(--fh-colors-and-accents-primary);text-decoration:none}
 .gu-crowd .who{display:flex;margin-left:auto}
 .gu-crowd .who img{width:22px;height:22px;border-radius:50%;object-fit:cover;background:#000;border:2px solid var(--fh-background-surface);margin-left:-7px}
+/* Insider trading */
+.ins-hero{position:relative;z-index:2;padding:56px 36px 44px;border-radius:24px;border:1px solid var(--fh-border-stroke-default);
+  background:radial-gradient(130% 150% at 0% 0%,var(--mf-navy) 0%,var(--fh-background-surface) 72%);animation:guIn .5s both}
+.ins-hero h1{position:relative;font-family:var(--mf-serif);font-weight:500;font-size:clamp(32px,5vw,54px);line-height:1.06;margin:14px 0 12px;max-width:14ch;color:var(--fh-foreground-on-surface-emphasis)}
+.ins-hero h1 em{color:var(--mf-gold)}
+.ins-hero p{position:relative;max-width:54ch;margin:0 0 28px;font-size:15.5px;line-height:1.55;color:var(--fh-foreground-on-surface-default)}
+.ins-deco{position:absolute;right:0;top:30px;width:min(560px,58%);opacity:.55;pointer-events:none}
+.ins-deco path{fill:none;stroke:var(--mf-gold);stroke-width:2.5;stroke-dasharray:1;stroke-dashoffset:1;animation:guSweep 2.2s .15s cubic-bezier(.3,.7,.2,1) forwards}
+.ins-deco circle{transform-box:fill-box;transform-origin:center;animation:guPop .5s both;animation-delay:var(--d)}
+.ins-deco .buy,.ins-chart .bub.buy{fill:var(--fh-positive)}
+.ins-deco .sell,.ins-chart .bub.sell{fill:var(--fh-negative)}
+:root:not([data-theme="dark"]) .ins-hero{background:linear-gradient(120deg,var(--mf-navy) 0%,#2d4a78 100%)}
+:root:not([data-theme="dark"]) .ins-hero h1,:root:not([data-theme="dark"]) .ins-hero p,:root:not([data-theme="dark"]) .ins-recent>span{color:#fffdf7}
+.ins-search{position:relative;z-index:3;flex:1;max-width:360px;min-width:220px}
+.ins-search.big{max-width:660px}
+.ins-search .box{display:flex;align-items:center;gap:10px;height:42px;padding:0 14px;border-radius:21px;background:var(--fh-background-surface);
+  border:1px solid var(--fh-border-stroke-emphasis);color:var(--fh-foreground-on-surface-de-emphasis);transition:border-color .2s,box-shadow .2s}
+.ins-search.big .box{height:62px;padding:0 20px;border-radius:18px;box-shadow:var(--fh-elevation-3)}
+.ins-search .box:focus-within{border-color:var(--mf-gold);box-shadow:0 0 0 4px rgba(193,165,120,.2),var(--fh-elevation-3)}
+.ins-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--fh-foreground-on-surface-emphasis);font-size:14px}
+.ins-search.big input{font-size:18.5px}
+.ins-search kbd{font:11px/1 inherit;padding:5px 7px;border-radius:6px;border:1px solid var(--fh-border-stroke-default);color:var(--fh-foreground-on-surface-de-emphasis)}
+.ins-search:not(.big) kbd{display:none}
+.ins-spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--mf-gold);border-right-color:transparent;opacity:0;animation:insSpin .7s linear infinite}
+.ins-search.busy .ins-spin{opacity:1}
+.ins-sug{position:absolute;left:0;right:0;top:calc(100% + 8px);padding:6px;border-radius:16px;background:var(--fh-background-surface);
+  border:1px solid var(--fh-border-stroke-emphasis);box-shadow:var(--fh-elevation-3);max-height:380px;overflow:auto}
+.ins-sug button{display:grid;grid-template-columns:28px 64px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;padding:9px 10px;border:0;border-radius:11px;
+  background:transparent;color:inherit;text-align:left;font-size:14px;cursor:pointer;animation:guIn .3s both;animation-delay:var(--d)}
+.ins-sug button.on,.ins-sug button:hover{background:var(--fh-states-neutral-hovered)}
+.ins-sug button.on{box-shadow:inset 3px 0 0 var(--mf-gold)}
+.ins-sug b{color:var(--fh-foreground-on-surface-emphasis)}
+.ins-sug span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fh-foreground-on-surface-default)}
+.ins-sug i{font-style:normal;font-size:11px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.ins-recent{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:22px}
+.ins-recent>span{font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis);margin-right:4px}
+.ins-recent a{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:20px;background:var(--fh-background-surface);border:1px solid var(--fh-border-stroke-default);
+  color:inherit;font-size:13px;animation:guIn .4s both;animation-delay:var(--d);transition:border-color .2s,transform .2s}
+.ins-recent a:hover{border-color:var(--mf-gold);transform:translateY(-2px);text-decoration:none}
+.ins-recent .gu-logo{width:24px;height:24px;border-radius:50%}
+.ins-recent small{color:var(--fh-foreground-on-surface-de-emphasis);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ins-head{display:flex;flex-wrap:wrap;align-items:center;gap:18px;margin-bottom:18px;animation:guIn .4s both}
+.ins-head .ins-logo{width:64px;height:64px;border-radius:16px;font-size:20px}
+.ins-id{flex:1;min-width:220px}
+.ins-id h2{font-family:var(--mf-serif);font-size:30px;line-height:1.15;margin:0 0 2px;color:var(--fh-foreground-on-surface-emphasis)}
+.ins-px{display:flex;gap:10px;align-items:baseline;margin-top:6px}
+.ins-px span:first-child{font-size:24px;color:var(--fh-foreground-on-surface-emphasis)}
+.ins-sumrow{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px}
+.ins-sum{flex:1;min-width:260px;margin:0;font-size:16px;line-height:1.55}
+.ins-stats{margin:14px 0 16px}
+.ins-stats .gu-stat{animation:guIn .45s both;animation-delay:var(--d)}
+.ins-stats b.up{color:var(--fh-positive)} .ins-stats b.down{color:var(--fh-negative)}
+.ins-meter{display:block;height:6px;margin:6px 0 6px;border-radius:3px;background:var(--fh-negative);overflow:hidden}
+.ins-meter i{display:block;height:100%;width:var(--w);background:var(--fh-positive);transition:width .6s}
+.ins-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-bottom:6px}
+.ins-legend .gu-sub{margin-left:auto}
+.ins-legend button{display:flex;align-items:center;gap:7px;padding:5px 11px;border-radius:16px;border:1px solid var(--fh-border-stroke-default);background:transparent;
+  color:var(--fh-foreground-on-surface-de-emphasis);font-size:12.5px;cursor:pointer;transition:all .2s}
+.ins-legend button.on{color:var(--fh-foreground-on-surface-emphasis);border-color:var(--fh-border-stroke-emphasis)}
+.ins-legend button i{width:10px;height:10px;border-radius:50%;opacity:.35;transition:opacity .2s}
+.ins-legend button.on i{opacity:1}
+.ins-legend .lg-close i{height:3px;width:14px;border-radius:2px;background:var(--mf-gold)}
+.ins-legend .lg-buy i{background:var(--fh-positive)} .ins-legend .lg-sell i{background:var(--fh-negative)} .ins-legend .lg-other i{background:#8c8fa3}
+.ins-chart{position:relative;min-height:230px}
+.ins-chart svg{display:block;overflow:visible}
+.ins-chart .gl{stroke:var(--fh-border-stroke-default);stroke-dasharray:2 4}
+.ins-chart .ax{font-size:11px;fill:var(--fh-foreground-on-surface-de-emphasis);font-variant-numeric:tabular-nums}
+.ins-chart .area{fill:url(#insFill);animation:guIn .9s both}
+.ins-chart .ln{fill:none;stroke:var(--mf-gold);stroke-width:1.8;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:guSweep 1.2s cubic-bezier(.3,.7,.2,1) forwards}
+.ins-chart .bub{fill-opacity:.78;stroke:var(--fh-background-surface);stroke-width:1.5;cursor:pointer;transform-box:fill-box;transform-origin:center;
+  animation:guPop .45s both;animation-delay:var(--d);transition:transform .2s cubic-bezier(.2,.8,.2,1.4),fill-opacity .2s}
+.ins-chart .bub.other{fill:#8c8fa3}
+.ins-chart .bub:hover,.ins-chart .bub.hl{transform:scale(1.35);fill-opacity:1}
+.ins-chart .bub.sel{stroke:var(--mf-gold);stroke-width:3;fill-opacity:1}
+.ins-chart .xh{stroke:var(--fh-foreground-on-surface-de-emphasis);stroke-dasharray:3 3;opacity:0;pointer-events:none}
+.ins-chart .xd{fill:var(--mf-gold);stroke:var(--fh-background-surface);stroke-width:2;opacity:0;pointer-events:none}
+.ins-tip{position:absolute;z-index:5;pointer-events:none;min-width:180px;max-width:280px;padding:10px 12px;border-radius:12px;background:var(--fh-background-surface);
+  border:1px solid var(--fh-border-stroke-emphasis);box-shadow:var(--fh-elevation-3);font-size:12.5px;opacity:0;transform:scale(.94);transition:opacity .12s,transform .15s}
+.ins-tip.on{opacity:1;transform:none}
+.ins-tip .td{color:var(--fh-foreground-on-surface-de-emphasis)}
+.ins-tip .tp{font-size:20px;color:var(--fh-foreground-on-surface-emphasis)}
+.ins-tip .tt{margin:8px 0 3px;font-weight:600}
+.ins-tip .tt.buy{color:var(--fh-positive)} .ins-tip .tt.sell{color:var(--fh-negative)}
+.ins-tip .tr{display:flex;justify-content:space-between;gap:12px;line-height:1.5}
+.ins-tip .tr span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ins-tip .mut{color:var(--fh-foreground-on-surface-de-emphasis)}
+.ins-grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(0,2.4fr);gap:16px;margin-top:16px;align-items:start}
+.ins-who-axis{display:grid;grid-template-columns:1fr 1fr;font-size:11px;letter-spacing:.5px;text-transform:uppercase;padding:0 4px 4px}
+.ins-who-axis .up{text-align:right}
+.ins-who{display:grid;gap:5px;width:100%;padding:8px;border:0;border-radius:12px;background:transparent;color:inherit;text-align:left;cursor:pointer;
+  animation:guIn .4s both;animation-delay:var(--d);transition:background .15s}
+.ins-who:hover{background:var(--fh-states-neutral-hovered)}
+.ins-who.on{background:var(--fh-states-neutral-hovered);box-shadow:inset 3px 0 0 var(--mf-gold)}
+.ins-who .nm{display:flex;flex-direction:column;min-width:0;font-size:13px}
+.ins-who .nm b{color:var(--fh-foreground-on-surface-emphasis);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ins-who small{font-size:11.5px;color:var(--fh-foreground-on-surface-de-emphasis);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ins-who .bars{display:grid;grid-template-columns:1fr 1fr;gap:2px;height:8px}
+.ins-who .bars>span{display:flex;background:var(--fh-border-stroke-default);overflow:hidden}
+.ins-who .bars .s{justify-content:flex-end;border-radius:4px 0 0 4px}
+.ins-who .bars .b{border-radius:0 4px 4px 0}
+.ins-who .bars i{display:block;width:0;height:100%;animation:guBar .8s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--d)}
+.ins-who .s i{background:var(--fh-negative)} .ins-who .b i{background:var(--fh-positive)}
+.ins-who .vv{display:flex;justify-content:space-between;font-size:11.5px}
+.ins-tcard{min-width:0}
+.ins-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+.ins-tools input{flex:1;min-width:160px;max-width:280px;padding:8px 14px;border-radius:18px;border:1px solid var(--fh-border-stroke-emphasis);background:var(--fh-background-surface);color:inherit;font-size:13.5px}
+.ins-csv{margin-left:auto;display:inline-flex;align-items:center;gap:6px}
+.ins-pills{display:flex;gap:6px;flex-wrap:wrap}
+.ins-pills button{padding:5px 10px;border-radius:14px;border:1px solid var(--mf-gold);background:rgba(193,165,120,.14);color:var(--fh-foreground-on-surface-emphasis);font-size:12.5px;cursor:pointer}
+.ins-twrap{overflow-x:auto;margin:0 -4px}
+.ins-table{width:100%;min-width:760px;border-collapse:separate;border-spacing:0 3px;font-size:13.5px}
+.ins-table th{padding:0}
+.ins-table th button{display:flex;align-items:center;gap:4px;width:100%;padding:8px 10px;border:0;background:transparent;color:var(--fh-foreground-on-surface-de-emphasis);
+  font-size:12px;font-weight:500;letter-spacing:.3px;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.ins-table th.n button{justify-content:flex-end}
+.ins-table th button:hover,.ins-table th button.on{color:var(--fh-foreground-on-surface-emphasis)}
+.ins-table th button i{width:0;height:0;border:4px solid transparent;opacity:0}
+.ins-table th button.desc i{border-top-color:var(--mf-gold);margin-top:4px;opacity:1}
+.ins-table th button.asc i{border-bottom-color:var(--mf-gold);margin-bottom:4px;opacity:1}
+.ins-table td{padding:8px 10px;background:var(--fh-background-surface-container-de-emphasis,rgba(127,127,127,.06));vertical-align:middle;white-space:nowrap;transition:background .15s}
+.ins-table td:first-child{border-radius:10px 0 0 10px;box-shadow:inset 3px 0 0 var(--k,transparent)}
+.ins-table td:last-child{border-radius:0 10px 10px 0}
+.ins-table tr{animation:guIn .35s both;animation-delay:var(--d)}
+.ins-table tr.k-buy{--k:var(--fh-positive)} .ins-table tr.k-sell{--k:var(--fh-negative)} .ins-table tr.k-other{--k:#8c8fa3}
+.ins-table tbody tr:hover td{background:var(--fh-states-neutral-hovered)}
+.ins-table td.n{text-align:right;font-variant-numeric:tabular-nums}
+.ins-table small{display:block;font-size:11.5px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.ins-table td.n small.down{color:var(--fh-negative)} .ins-table td.n small.up{color:var(--fh-positive)}
+.ins-table .who{padding:0;border:0;background:none;color:var(--fh-foreground-on-surface-emphasis);font:inherit;font-weight:500;cursor:pointer}
+.ins-table .who:hover{color:var(--mf-gold);text-decoration:underline}
+.ins-pill{display:inline-block;padding:2px 9px;border-radius:10px;font-size:12px;font-weight:600;background:rgba(140,143,163,.18);color:var(--fh-foreground-on-surface-default)}
+.ins-pill.buy{background:rgba(27,175,122,.16);color:var(--fh-positive)}
+.ins-pill.sell{background:rgba(227,73,72,.16);color:var(--fh-negative)}
+.ins-tfoot{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+@keyframes insSpin{to{transform:rotate(360deg)}}
+@media (max-width:900px){ .ins-grid{grid-template-columns:1fr} }
+@media (max-width:760px){
+  .ins-hero{padding:36px 18px 28px}
+  .ins-deco{width:90%;opacity:.25}
+  .ins-head .ins-search{max-width:none;flex-basis:100%}
+  .ins-legend .gu-sub{display:none}
+}
+/* SEC filings */
+.fil-deco rect{fill:var(--fh-background-surface);stroke:var(--mf-gold);stroke-width:1.5;opacity:.9}
+.fil-deco g{animation:guIn .6s both;animation-delay:var(--d)}
+.fil-deco path{stroke-width:3;stroke-linecap:round;opacity:.7}
+.fil-ai{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;margin:0 0 14px;border-radius:16px;border:1px solid rgba(193,165,120,.45);
+  background:linear-gradient(110deg,rgba(26,46,80,.55),transparent 70%);animation:guIn .45s both}
+.fil-ai-ic{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;color:var(--mf-gold);background:var(--mf-navy);box-shadow:inset 0 0 0 1px rgba(193,165,120,.5)}
+.fil-ai-ic svg{animation:filTwinkle 3.2s ease-in-out infinite}
+.fil-ai-t{flex:1;min-width:180px;display:flex;flex-direction:column;font-size:14px;color:var(--fh-foreground-on-surface-emphasis)}
+.fil-ai-t small{font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.fil-ai-go{flex:0 0 auto}
+.fil-ai.in{margin:0;border-radius:0;border-width:0 0 1px;padding:10px 16px}
+.fil-ai.in .fil-ai-t{min-width:0;flex-basis:calc(100% - 50px)}
+.fil-ai-q{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+.fil-ai-q button{padding:5px 11px;border-radius:14px;border:1px solid var(--fh-border-stroke-emphasis);background:var(--fh-background-surface);color:var(--fh-foreground-on-surface-default);font-size:12.5px;cursor:pointer;transition:all .2s}
+.fil-ai-q button:hover{border-color:var(--mf-gold);color:var(--fh-foreground-on-surface-emphasis);transform:translateY(-1px)}
+.fil-tl{padding:14px 18px 30px;margin-bottom:14px}
+.fil-tl-h{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:13px;margin-bottom:18px;color:var(--fh-foreground-on-surface-emphasis)}
+.fil-tl-h b{font-weight:500}
+.fil-tl-k{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.fil-tl-k i{width:8px;height:8px;border-radius:50%;margin-left:8px}
+.fil-tl-track{position:relative;height:2px;margin:0 8px;background:var(--fh-border-stroke-default)}
+.fil-tl-y{position:absolute;top:12px;transform:translateX(-50%);font-size:11px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.fil-tl-y::before{content:'';position:absolute;left:50%;top:-16px;height:10px;width:1px;background:var(--fh-border-stroke-emphasis)}
+.fil-dot{position:absolute;top:1px;width:10px;height:10px;padding:0;border:2px solid var(--fh-background-surface);border-radius:50%;cursor:pointer;
+  transform:translate(-50%,-50%);animation:guPop .4s both;animation-delay:var(--d);transition:transform .2s cubic-bezier(.2,.8,.2,1.4)}
+.fil-dot.annual{width:15px;height:15px}
+.fil-dot.earn{top:-10px}
+.fil-dot.warn{top:12px}
+.fil-tl-track{margin-top:6px}
+.fil-dot:hover,.fil-dot.on{transform:translate(-50%,-50%) scale(1.5);z-index:2}
+.fil-dot.on{box-shadow:0 0 0 2px var(--mf-gold)}
+.fil-dot.annual,.fil-tl-k .annual{background:var(--mf-gold)}
+.fil-dot.quarterly,.fil-tl-k .quarterly{background:#6f8fc7}
+.fil-dot.earn,.fil-tl-k .earn{background:var(--fh-positive)}
+.fil-dot.warn,.fil-tl-k .warn{background:var(--fh-negative)}
+.fil-tip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%) scale(.9);min-width:150px;max-width:220px;padding:7px 10px;border-radius:10px;
+  background:var(--fh-background-surface);border:1px solid var(--fh-border-stroke-emphasis);box-shadow:var(--fh-elevation-3);font-size:11.5px;line-height:1.35;
+  color:var(--fh-foreground-on-surface-default);text-align:left;white-space:normal;pointer-events:none;opacity:0;transition:opacity .12s,transform .15s}
+.fil-tip b{display:block;color:var(--fh-foreground-on-surface-emphasis);font-weight:600}
+.fil-dot:hover .fil-tip{opacity:1;transform:translateX(-50%) scale(.67)}
+.fil-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+.fil-chips{display:flex;gap:6px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none}
+.fil-chips button{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:16px;border:1px solid var(--fh-border-stroke-default);
+  background:transparent;color:var(--fh-foreground-on-surface-default);font-size:13px;cursor:pointer;transition:all .2s}
+.fil-chips button span{font-size:11px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.fil-chips button:hover{border-color:var(--fh-border-stroke-emphasis)}
+.fil-chips button.on{background:var(--fh-states-branded-medium-selected);color:var(--fh-foreground-on-highlight);border-color:transparent;font-weight:500}
+.fil-chips button.on span{color:inherit;opacity:.75}
+.fil-tools input{width:220px;max-width:100%;padding:8px 14px;border-radius:18px;border:1px solid var(--fh-border-stroke-emphasis);background:var(--fh-background-surface);color:inherit;font-size:13.5px}
+.fil-split{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;scroll-margin-top:128px}
+.fil.reading .fil-split{grid-template-columns:minmax(280px,.8fr) minmax(0,1.4fr)}
+.fil-yr{display:flex;align-items:baseline;gap:8px;padding:16px 10px 6px;font-family:var(--mf-serif);font-size:20px;color:var(--fh-foreground-on-surface-emphasis)}
+.fil-yr span{font-family:inherit;font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.fil-row{display:grid;grid-template-columns:52px 64px minmax(0,1fr) auto 52px;gap:12px;align-items:center;width:100%;padding:10px;border:0;border-radius:12px;
+  background:transparent;color:inherit;text-align:left;font-size:13.5px;cursor:pointer;animation:guIn .35s both;animation-delay:var(--d);transition:background .15s,transform .2s}
+.fil-row:hover{background:var(--fh-states-neutral-hovered);transform:translateX(3px)}
+.fil-row.on{background:var(--fh-states-neutral-hovered);box-shadow:inset 3px 0 0 var(--mf-gold)}
+.fil-row .fd,.fil-row .fs{font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis);font-variant-numeric:tabular-nums}
+.fil-row .fs{text-align:right}
+.fb{justify-self:start;padding:2px 8px;border-radius:7px;font-size:11.5px;font-weight:600;letter-spacing:.2px;white-space:nowrap;
+  background:rgba(140,143,163,.16);color:var(--fh-foreground-on-surface-default)}
+.c-annual .fb{background:rgba(193,165,120,.2);color:var(--mf-gold)}
+.c-quarterly .fb{background:rgba(111,143,199,.2);color:#8fa9d8}
+.c-current .fb{background:rgba(27,175,122,.14);color:var(--fh-positive)}
+.ft{display:flex;flex-direction:column;min-width:0}
+.ft b{font-weight:500;color:var(--fh-foreground-on-surface-emphasis);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ft small{font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.fe{font-size:11px;font-weight:600;padding:2px 8px;border-radius:9px;background:rgba(27,175,122,.14);color:var(--fh-positive)}
+.fe.w{background:rgba(227,73,72,.16);color:var(--fh-negative)}
+.fil-row.warn .ft b::before{content:'';display:inline-block;width:6px;height:6px;margin:0 7px 2px 0;border-radius:50%;background:var(--fh-negative)}
+.fil.reading .fil-row{grid-template-columns:46px 58px minmax(0,1fr)}
+.fil.reading .fil-row .fe,.fil.reading .fil-row .fs{display:none}
+.fil-reader{position:sticky;top:128px;display:flex;flex-direction:column;height:calc(100vh - 144px);border-radius:18px;overflow:hidden;
+  background:var(--fh-background-surface);border:1px solid var(--fh-border-stroke-default);box-shadow:var(--fh-elevation-3);animation:filSlide .35s cubic-bezier(.2,.8,.2,1) both}
+.fil-reader[hidden]{display:none}
+.fil-rh{display:flex;align-items:center;gap:10px;padding:12px 10px 12px 16px;border-bottom:1px solid var(--fh-border-stroke-default)}
+.fil-rt{flex:1;min-width:0;display:flex;flex-direction:column}
+.fil-rt b{font-family:var(--mf-serif);font-size:18px;font-weight:500;color:var(--fh-foreground-on-surface-emphasis);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fil-rt small{font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.fil-find{display:flex;align-items:center;gap:6px;margin:10px 16px 6px;padding:0 6px 0 12px;height:36px;border-radius:18px;border:1px solid var(--fh-border-stroke-emphasis);color:var(--fh-foreground-on-surface-de-emphasis)}
+.fil-find:focus-within{border-color:var(--mf-gold)}
+.fil-find input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--fh-foreground-on-surface-emphasis);font-size:13.5px}
+.fil-find .n{font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.fil-find button{display:grid;place-items:center;width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer}
+.fil-find button:hover{background:var(--fh-states-neutral-hovered);color:var(--fh-foreground-on-surface-emphasis)}
+.fil-secs{display:flex;gap:6px;overflow-x:auto;padding:4px 16px 10px;scrollbar-width:thin;border-bottom:1px solid var(--fh-border-stroke-default)}
+.fil-secs:empty{display:none}
+.fil-secs button{flex:0 0 auto;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 10px;border-radius:12px;border:1px solid var(--fh-border-stroke-default);
+  background:transparent;color:var(--fh-foreground-on-surface-default);font-size:12px;cursor:pointer}
+.fil-secs button:hover{border-color:var(--mf-gold);color:var(--fh-foreground-on-surface-emphasis)}
+.fil-body{flex:1;overflow-y:auto;padding:14px 22px 40px;font-size:14.5px;line-height:1.65;color:var(--fh-foreground-on-surface-default);overscroll-behavior:contain}
+.fil-part{margin:0 0 14px;padding:10px 12px;border-radius:10px;font-size:13px;background:rgba(193,165,120,.14);color:var(--fh-foreground-on-surface-default)}
+.fil-body p{margin:0 0 9px;border-radius:6px;transition:background 1.2s}
+.fil-body p.h{margin:22px 0 10px;font-family:var(--mf-serif);font-size:18px;line-height:1.3;color:var(--fh-foreground-on-surface-emphasis)}
+.fil-body p.flash{background:rgba(193,165,120,.22);transition:none}
+.fil-body mark{background:rgba(193,165,120,.35);color:inherit;border-radius:3px;padding:0 1px}
+.fil-body mark.cur{background:var(--mf-gold);color:#141414}
+@keyframes filSlide{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes filTwinkle{0%,100%{transform:none}50%{transform:rotate(18deg) scale(1.15)}}
+@media (max-width:1024px){
+  .fil.reading .fil-split{grid-template-columns:minmax(0,1fr)}
+  .fil-reader{position:fixed;inset:0;height:auto;z-index:200;border-radius:0;border:0}
+  body.fil-reading{overflow:hidden}
+}
+@media (max-width:760px){
+  .fil-row{grid-template-columns:46px 58px minmax(0,1fr)}
+  .fil-row .fe,.fil-row .fs{display:none}
+  .fil-tools input{width:100%}
+  .fil-body{padding:12px 16px 40px}
+}
 @keyframes guIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes guPop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
 @keyframes guSweep{to{stroke-dashoffset:0}}
@@ -1860,7 +2151,7 @@ function fetchWithTimeout(url, ms, init){
 /* Hosts that refuse browser requests (no CORS) go through the proxy first;
    everything else is fetched directly, which is faster and keeps the proxy
    request count low. */
-var PROXY_FIRST = { 'news.google.com':1 };
+var PROXY_FIRST = { 'news.google.com':1, 'openinsider.com':1 };
 var DIRECT_ONLY = {
   'scanner.tradingview.com':1, 'stockanalysis.com':1, 'api.coingecko.com':1,
   'api.frankfurter.dev':1, 'api.frankfurter.app':1, 'data.sec.gov':1
@@ -2303,9 +2594,24 @@ function fetchHistory(sym, range){
    When the hub is served by serve.py, /api/oa/* proxies the same upstreams
    OpenAlice uses: hosted TraderHub for reference boards and the Yahoo Finance
    chart API (yfinance's upstream) for quotes and bars, server-side. */
+/* Edge chart endpoint (worker/): Yahoo bars via Cloudflare with edge cache,
+   so the static site gets fast charts on any device without serve.py.
+   Same {bars} shape as /api/oa/chart. */
+function viaEDGE(sym, range){
+  var s = dispSym(sym);
+  return fetchJSON(OC_PROXY + '/api/chart?symbol=' + encodeURIComponent(s) + '&range=' + encodeURIComponent(range), 8000)
+    .then(function(j){
+      if(j && j.error) throw new Error(j.error);
+      var bars = (j && j.bars) || [];
+      if(!bars.length) throw new Error('no edge bars');
+      return bars.map(function(b){
+        return { d:b.d, t:b.t || null, o:numOf(b.o), h:numOf(b.h), l:numOf(b.l), c:numOf(b.c), v:numOf(b.v) || 0 };
+      }).filter(function(r){ return r.d && r.c != null; });
+    });
+}
 function oaHist(sym, range){
   var s = dispSym(sym);
-  return fetchJSON('/api/oa/chart?symbol=' + encodeURIComponent(s) + '&range=' + encodeURIComponent(range), 16000)
+  return fetchJSON('/api/oa/chart?symbol=' + encodeURIComponent(s) + '&range=' + encodeURIComponent(range), 9000)
     .then(function(j){
       var bars = (j && j.bars) || [];
       return bars.map(function(b){
@@ -2379,7 +2685,7 @@ function fetchHistoryRaw(sym, range){
       });
   }
   var viaSA = function(){
-  return fetchJSON('https://stockanalysis.com/api/symbol/s/' + encodeURIComponent(saSlug(s)) + '/history?range=' + saRange(days), 16000)
+  return fetchJSON('https://stockanalysis.com/api/symbol/s/' + encodeURIComponent(saSlug(s)) + '/history?range=' + saRange(days), 9000)
     .then(function(j){
       var raw = (j && j.data) || [];
       if(raw && !Array.isArray(raw) && Array.isArray(raw.data)) raw = raw.data;
@@ -2405,8 +2711,8 @@ function fetchHistoryRaw(sym, range){
       throw new Error('no oa bars');
     });
   };
-  if(range === '1D' || range === '5D') return viaOA().catch(viaSA);
-  return viaSA().catch(viaOA);
+  if(range === '1D' || range === '5D') return viaEDGE().catch(viaOA).catch(viaSA);
+  return viaEDGE().catch(viaSA).catch(viaOA);
 }
 
 /* --- symbol search (stockanalysis.com, CORS enabled) --------------------- */
@@ -2465,12 +2771,11 @@ var SEC_CONCEPTS = {
 var cikCache = null;
 function secCikFor(sym){
   var s = dispSym(sym);
-  var loadMap = cikCache ? Promise.resolve(cikCache) : fetchJSON('https://www.sec.gov/files/company_tickers.json', 15000).then(function(j){
+  /* www.sec.gov answers browsers, relays and UA-less proxies with 403, so the map ships with the
+     site; refresh it with `python3 edgar_filings.py export-tickers`. */
+  var loadMap = cikCache ? Promise.resolve(cikCache) : fetchJSON('assets/sec_tickers.json', 15000).then(function(j){
     cikCache = {};
-    Object.keys(j).forEach(function(k){
-      var row = j[k];
-      if(row && row.ticker) cikCache[String(row.ticker).toUpperCase()] = String(row.cik_str).padStart(10, '0');
-    });
+    Object.keys(j).forEach(function(t){ cikCache[t] = String(j[t]).padStart(10, '0'); });
     return cikCache;
   });
   return loadMap.then(function(map){
@@ -3045,6 +3350,8 @@ function parseRoute(){
   if(name === 'earnings') return { name:'earnings' };
   if(name === 'research') return { name:'research' };
   if(name === 'investors') return { name:'investors', id:parts[1] || '' };
+  if(name === 'insiders') return { name:'insiders', sym:(parts[1] || '').toUpperCase() };
+  if(name === 'filings') return { name:'filings', sym:(parts[1] || '').toUpperCase(), acc:parts[2] || '' };
   if(name === 'keys') return { name:'settings', sec:'ai' };
   if(name === 'feedback' || name === 'help') return { name:'contact', kind:name };
   if(name === 'settings') return { name:'settings', sec:parts[1] || 'profile' };
@@ -3064,6 +3371,7 @@ function route(){
   renderSubnav();
   renderRail();
   if($('guTip')) $('guTip').classList.remove('on');
+  document.body.classList.remove('fil-reading');
   window.scrollTo({ top:0 });
   var p;
   if(r.name === 'home') p = renderHome();
@@ -3077,6 +3385,8 @@ function route(){
   else if(r.name === 'settings') p = renderSettingsPage(r.sec);
   else if(r.name === 'contact') p = renderContactPage(r.kind);
   else if(r.name === 'investors') p = renderInvestors(r.id);
+  else if(r.name === 'insiders') p = renderInsiders(r.sym);
+  else if(r.name === 'filings') p = renderFilings(r.sym, r.acc);
   else p = renderResearchPage();
   return Promise.resolve(p).then(function(){
     if(seq === routeSeq) renderRail();
@@ -3113,53 +3423,100 @@ function renderSubnav(){
   }).join('');
 }
 
+/* Rail glyphs: one brand tile per section, plus a small icon per sector. */
+var RAIL_ICON = {
+  lists:'M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h12v2H3v-2zm15-1.5 2.5 2.5 3.5-4',
+  pfs:'M10 4h4a2 2 0 0 1 2 2v1h4a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h4V6a2 2 0 0 1 2-2zm0 3h4V6h-4v1zm-6 4v2h16v-2H4z',
+  smart:'M12 2 9.2 8.6 2 9.2l5.5 4.8L5.8 21 12 17.3 18.2 21l-1.7-7L22 9.2l-7.2-.6L12 2z',
+  insider:'M12 4.5C7 4.5 2.7 7.6 1 12c1.7 4.4 6 7.5 11 7.5s9.3-3.1 11-7.5c-1.7-4.4-6-7.5-11-7.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
+  sectors:'M11 2v10h10A10 10 0 0 0 11 2zm-2 2.1A9 9 0 1 0 19.9 15H9V4.1z',
+  filings:'M6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm7 1.5V9h5.5L13 3.5zM8 12v2h8v-2H8zm0 4v2h8v-2H8z'
+};
+var SECTOR_ICON = {
+  'Technology':'M7 2v2H5a1 1 0 0 0-1 1v2H2v2h2v2H2v2h2v2H2v2h2v2a1 1 0 0 0 1 1h2v2h2v-2h2v2h2v-2h2v2h2v-2h2a1 1 0 0 0 1-1v-2h2v-2h-2v-2h2v-2h-2V9h2V7h-2V5a1 1 0 0 0-1-1h-2V2h-2v2h-2V2h-2v2H9V2H7zm1 6h8v8H8V8z',
+  'Communications':'M12 3a9 9 0 0 0-9 9h2a7 7 0 0 1 14 0h2a9 9 0 0 0-9-9zm0 4a5 5 0 0 0-5 5h2a3 3 0 0 1 6 0h2a5 5 0 0 0-5-5zm-1 6v8h2v-8h-2z',
+  'Discretionary':'M7 4V2h10v2h3a1 1 0 0 1 1 1v15a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1h3zm2 0h6V4H9zm-1 4a4 4 0 0 0 8 0h-2a2 2 0 0 1-4 0H8z',
+  'Staples':'M3 4h2l2.7 10.6a2 2 0 0 0 2 1.4h7.7a2 2 0 0 0 1.9-1.5L21 8H7.2L6.6 5.6A2 2 0 0 0 4.7 4H3zm7 15a2 2 0 1 0 0 .1zm8 0a2 2 0 1 0 0 .1z',
+  'Financials':'M12 2 2 7v2h20V7L12 2zM4 11v7h3v-7H4zm6.5 0v7h3v-7h-3zM17 11v7h3v-7h-3zM2 20v2h20v-2H2z',
+  'Health care':'M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7V3z',
+  'Industrials':'M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3h-4l-.4 2.7a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1L11 21h4l.4-2.7c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5-2.2-1.8zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z',
+  'Energy':'M13 2 4 14h7l-1 8 9-12h-7l1-8z',
+  'Materials':'M12 2 3 7v10l9 5 9-5V7l-9-5zm0 2.3L18.6 8 12 11.7 5.4 8 12 4.3zM5 9.7l6 3.4v6.6l-6-3.3V9.7zm8 10V13.1l6-3.4v6.7l-6 3.3z',
+  'Utilities':'M9 2v6H6v4a6 6 0 0 0 5 5.9V22h2v-4.1a6 6 0 0 0 5-5.9V8h-3V2h-2v6h-2V2H9z',
+  'Real estate':'M12 3 2 12h3v8h5v-6h4v6h5v-8h3L12 3z'
+};
+function railSvg(d, s){ return '<svg width="' + (s || 18) + '" height="' + (s || 18) + '" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="' + d + '"/></svg>'; }
+/* A collapsible rail section. Open state is remembered per section; the section
+   holding the current page always opens so the active item is never hidden. */
+function railSec(id, label, count, body, opts){
+  opts = opts || {};
+  var open = opts.active || load('fh3_rail_' + id, opts.open !== false);
+  return '<section class="rsec' + (open ? ' open' : '') + '" data-sec="' + id + '"><div class="rsec-head">' +
+    '<button class="rsec-tog" data-act="rail-sec" data-sec="' + id + '" aria-expanded="' + open + '" aria-controls="rf_' + id + '">' +
+      '<span class="rsec-ic">' + railSvg(RAIL_ICON[id], 16) + '</span><span class="rsec-lbl">' + label + '</span>' +
+      (count != null ? '<span class="rsec-cnt">' + count + '</span>' : '') +
+      '<svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15.5 5 8.5 6.4 7.1 12 12.7l5.6-5.6L19 8.5z"/></svg></button>' +
+    (opts.add ? '<button class="rsec-add" data-act="' + opts.add[0] + '" title="' + opts.add[1] + '" aria-label="' + opts.add[1] + '">' + railSvg('M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z', 16) + '</button>' : '') +
+    '</div><div class="rail-fold' + (open ? ' open' : '') + '" id="rf_' + id + '"><div class="rsec-body">' + body + '</div></div></section>';
+}
+
 function renderRail(){
-  var html = '';
-  html += '<button class="rail-new" data-act="newlist">' +
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> New watchlist</button>';
-  html += '<div class="rail-head"><span>Watchlists</span><span>' + Object.keys(LISTS).length + '</span></div>';
+  var html = '', body = '';
   Object.keys(LISTS).forEach(function(id){
     var l = LISTS[id];
     var on = CUR.view === 'list' && CUR.list === id;
-    html += '<button class="rail-item' + (on ? ' on' : '') + '" data-act="openlist" data-id="' + esc(id) + '">' +
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>' +
-      '<span class="lbl">' + esc(l.name) + '</span><span class="cnt">' + l.syms.length + '</span></button>';
+    body += '<button class="rail-item' + (on ? ' on' : '') + '" data-act="openlist" data-id="' + esc(id) + '">' +
+      '<span class="ri-dot"></span><span class="lbl">' + esc(l.name) + '</span><span class="cnt">' + l.syms.length + '</span></button>';
     if(on){
       l.syms.slice(0, 12).forEach(function(s){
         var q = DATA.quotes[dispSym(s)] || {};
         var ch = chgFrom(q);
-        html += '<button class="sym-chip" data-act="quote" data-sym="' + esc(dispSym(s)) + '">' +
+        body += '<button class="sym-chip" data-act="quote" data-sym="' + esc(dispSym(s)) + '">' +
           '<span class="sc">' + esc(dispSym(s)) + '</span>' +
           '<span class="scv num ' + (ch.pct == null ? 'mut' : (ch.pct >= 0 ? 'up' : 'down')) + '">' + (ch.pct == null ? '' : pct(ch.pct)) + '</span></button>';
       });
     }
   });
-  html += '<div class="rail-head"><span>Portfolios</span></div>';
-  html += '<button class="rail-new" data-act="newpf">' +
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Create a portfolio</button>';
+  html += railSec('lists', 'Watchlists', Object.keys(LISTS).length, body, { add:['newlist', 'New watchlist'], active:CUR.view === 'list' });
+
+  body = '';
   Object.keys(PFS).forEach(function(id){
     var p = PFS[id];
-    var on = CUR.view === 'portfolio' && CUR.pf === id;
-    html += '<button class="rail-item' + (on ? ' on' : '') + '" data-act="openpf" data-id="' + esc(id) + '">' +
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8l-2-2z"/></svg>' +
-      '<span class="lbl">' + esc(p.name) + '</span><span class="cnt">' + p.holdings.length + '</span></button>';
+    body += '<button class="rail-item' + (CUR.view === 'portfolio' && CUR.pf === id ? ' on' : '') + '" data-act="openpf" data-id="' + esc(id) + '">' +
+      '<span class="ri-dot"></span><span class="lbl">' + esc(p.name) + '</span><span class="cnt">' + p.holdings.length + '</span></button>';
   });
-  var smOpen = load('fh3_smart_open', true);
-  html += '<button class="rail-head rail-toggle" data-act="smart-toggle" aria-expanded="' + smOpen + '" aria-controls="smartList"><span>Smart Money</span>' +
-    '<span>' + GURUS.length + '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15.5 5 8.5 6.4 7.1 12 12.7l5.6-5.6L19 8.5z"/></svg></span></button>';
-  html += '<div class="rail-fold' + (smOpen ? ' open' : '') + '" id="smartList"><div>';
-  html += '<a class="rail-item' + (CUR.view === 'investors' && !CUR.guru ? ' on' : '') + '" href="#/investors">' +
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3zm-8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 2 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z"/></svg>' +
-    '<span class="lbl">All investors</span></a>';
+  if(!body) body = '<button class="rail-item ri-empty" data-act="newpf"><span class="lbl">Create your first portfolio</span></button>';
+  html += railSec('pfs', 'Portfolios', Object.keys(PFS).length, body, { add:['newpf', 'Create a portfolio'], active:CUR.view === 'portfolio' });
+
+  body = '<a class="rail-item' + (CUR.view === 'investors' && !CUR.guru ? ' on' : '') + '" href="#/investors"><span class="ri-stack">' +
+    GURUS.slice(0, 3).map(function(g){ return '<img src="' + guruImg(g) + '" alt="" loading="lazy">'; }).join('') + '</span><span class="lbl">All investors</span></a>';
   GURUS.forEach(function(g){
-    html += '<a class="rail-item guru-item' + (CUR.view === 'investors' && CUR.guru === g.id ? ' on' : '') + '" href="#/investors/' + g.id + '">' +
+    body += '<a class="rail-item guru-item' + (CUR.view === 'investors' && CUR.guru === g.id ? ' on' : '') + '" href="#/investors/' + g.id + '">' +
       '<img src="' + guruImg(g) + '" alt="" loading="lazy"><span class="lbl">' + esc(g.name) + '</span></a>';
   });
-  html += '</div></div>';
-  html += '<div class="rail-head"><span>Sectors</span></div>';
-  SECTORS.forEach(function(s){
-    html += '<a class="sect-link" href="#/screener" data-act="sector" data-sector="' + esc(s) + '">' + esc(s) + '</a>';
-  });
+  html += railSec('smart', 'Smart Money', GURUS.length, body, { open:false, active:CUR.view === 'investors' });
+
+  var rec = insRecent().slice(0, 4);
+  body = '<a class="rail-item' + (CUR.view === 'insiders' && !INS.sym ? ' on' : '') + '" href="#/insiders">' +
+    '<span class="ri-glyph">' + railSvg('M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z', 16) + '</span><span class="lbl">Search insiders</span></a>' +
+    rec.map(function(r){
+      return '<a class="rail-item' + (CUR.view === 'insiders' && INS.sym === r.s ? ' on' : '') + '" href="#/insiders/' + encodeURIComponent(r.s) + '">' + guruLogo({ t:r.s }, 'ri-logo') +
+        '<span class="lbl"><b>' + esc(r.s) + '</b> ' + esc(r.n || '') + '</span></a>';
+    }).join('');
+  html += railSec('insider', 'Insider Trading', null, body, { active:CUR.view === 'insiders' });
+
+  body = '<a class="rail-item' + (CUR.view === 'filings' && !FIL.sym ? ' on' : '') + '" href="#/filings">' +
+    '<span class="ri-glyph">' + railSvg('M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z', 16) + '</span><span class="lbl">Search filings</span></a>' +
+    filRecent().slice(0, 4).map(function(r){
+      return '<a class="rail-item' + (CUR.view === 'filings' && FIL.sym === r.s ? ' on' : '') + '" href="#/filings/' + encodeURIComponent(r.s) + '">' + guruLogo({ t:r.s }, 'ri-logo') +
+        '<span class="lbl"><b>' + esc(r.s) + '</b> ' + esc(r.n || '') + '</span></a>';
+    }).join('');
+  html += railSec('filings', 'Filings & Reports', null, body, { active:CUR.view === 'filings' });
+
+  body = SECTORS.map(function(s){
+    return '<a class="rail-item sect-link" href="#/screener" data-act="sector" data-sector="' + esc(s) + '"><span class="ri-glyph">' + railSvg(SECTOR_ICON[s] || RAIL_ICON.sectors, 15) + '</span><span class="lbl">' + esc(s) + '</span></a>';
+  }).join('');
+  html += railSec('sectors', 'Sectors', SECTORS.length, body, { open:false });
   html += '<div class="rail-foot">Quotes, market caps and history: Nasdaq public endpoints via serve.py · crypto: CoinGecko · FX: ECB (Frankfurter) · ' +
     'news: Google News RSS · fundamentals: SEC XBRL or your own CSV/AI input. Nothing is invented. Not investment advice.</div>';
   $('rail').innerHTML = html;
@@ -4308,6 +4665,726 @@ function screenUniverse(){
     if(f.maxMc !== '' && !(r.mc <= parseFloat(f.maxMc) * 1e9)) return false;
     return true;
   });
+}
+
+/* ------------------------------------------------------- insider trading */
+/* Form 4 trades from OpenInsider's screener page. It sends no CORS headers, so
+   it goes through serve.py's proxy, or the public relay on the hosted site. */
+var INS = { sym:'', name:'', rows:[], hist:[], period:180, type:'all', who:'', day:'', q:'', sort:'d', dir:-1, shown:40,
+            show:{ close:true, buy:true, sell:true, other:false } };
+var INS_PERIODS = [[90, '3M'], [180, '6M'], [365, '1Y'], [730, '2Y']];
+var INS_KIND = { P:'buy', S:'sell' };
+
+function insUrl(sym){
+  return 'http://openinsider.com/screener?s=' + encodeURIComponent(sym) +
+    '&fd=730&xp=1&xs=1&xa=1&xd=1&xg=1&xf=1&xm=1&xx=1&xc=1&xw=1&cnt=1000&page=1';
+}
+/* serve.py's /api/insiders (openinsider_scraper.py: retries, paging, 30-min cache) first;
+   the hosted static site has no such endpoint, so parse OpenInsider in the browser there. */
+function insFetch(sym){
+  return fetchJSON('/api/insiders?s=' + encodeURIComponent(sym), 30000).then(function(j){
+    return (j.rows || []).map(function(r){
+      return { filed:r.filed, d:r.trade_date, name:r.insider, title:r.title, type:r.trade_type, kind:r.kind,
+               px:r.price, qty:r.qty, own:r.owned, dOwn:r.delta_own, val:r.value, url:r.filing_url };
+    });
+  }).catch(function(){ return fetchText(insUrl(sym), 25000).then(insParse); });
+}
+function insNum(t){ var v = parseFloat(String(t || '').replace(/[$,+%]/g, '')); return isFinite(v) ? v : null; }
+function insParse(html){
+  var t = new DOMParser().parseFromString(html, 'text/html').querySelector('table.tinytable');
+  if(!t) return [];
+  var seen = {};
+  return [].slice.call(t.querySelectorAll('tbody tr')).map(function(tr){
+    var c = tr.children;
+    if(c.length < 12) return null;
+    var tx = function(i){ return (c[i].textContent || '').replace(/\s+/g, ' ').trim(); };
+    var a = c[1].querySelector('a'), code = tx(6).charAt(0);
+    return { filed:tx(1).slice(0, 10), d:tx(2), name:tx(4), title:tx(5), type:tx(6).replace(/^[A-Z] - /, ''), kind:INS_KIND[code] || 'other',
+             px:insNum(tx(7)), qty:insNum(tx(8)), own:insNum(tx(9)), dOwn:tx(10), val:insNum(tx(11)),
+             url:a ? String(a.getAttribute('href') || '').replace(/^http:/, 'https:') : '' };
+  }).filter(function(r){
+    if(!r || !/^\d{4}-\d\d-\d\d$/.test(r.d)) return false;
+    var k = [r.d, r.name, r.qty, r.px, r.own].join('|');   // joint filers repeat the same trade: count it once
+    return seen[k] ? false : (seen[k] = 1);
+  });
+}
+/* Unit check for the parser: run insSelfTest() in the console. */
+function insSelfTest(){
+  var r = insParse('<table class="tinytable"><tbody><tr><td></td><td><a href="http://www.sec.gov/x.xml">2026-09-29 16:15:06</a></td><td>2026-09-25</td><td>TEM</td>' +
+    '<td>Doe Jane</td><td>CEO</td><td>S - Sale+OE</td><td>$85.00</td><td>-10,281</td><td>76,740</td><td>-12%</td><td>-$873,885</td></tr></tbody></table>')[0];
+  console.assert(r && r.kind === 'sell' && r.type === 'Sale+OE' && r.qty === -10281 && r.val === -873885 && r.px === 85 && r.url === 'https://www.sec.gov/x.xml', 'insParse', r);
+  return r;
+}
+
+function insMoney(v){ return v == null ? '—' : (v < 0 ? '−' : '') + '$' + compact(Math.abs(v)); }
+function insDate(d, short){ return new Date(d + 'T00:00:00').toLocaleDateString('en-US', short ? { month:'short', day:'numeric' } : { month:'short', day:'numeric', year:'numeric' }); }
+function insFrom(){ return ymd(new Date(Date.now() - INS.period * 864e5)); }
+function insInPeriod(){ var f = insFrom(); return INS.rows.filter(function(r){ return r.d >= f; }); }
+function insRecent(){ var r = load('fh3_ins_recent', []); return Array.isArray(r) ? r : []; }
+
+function renderInsiders(sym){
+  sym = String(sym || '').toUpperCase();
+  if(!sym) return paintInsLanding();
+  if(INS.sym !== sym){
+    var name = INS.pickName && INS.pickName.s === sym ? INS.pickName.n : '';
+    INS = Object.assign({}, INS, { sym:sym, name:name, rows:[], hist:[], type:'all', who:'', day:'', q:'', sort:'d', dir:-1, shown:40 });
+  }
+  $('main').innerHTML = '<div class="section">' + skeletonRows(5, 120) + '</div>';
+  return Promise.all([
+    insFetch(sym),
+    fetchHistory(sym, '5Y').catch(function(){ return []; }),
+    loadQuotesFor([sym]).catch(function(){}),
+    INS.name ? null : searchSymbols(sym).then(function(l){ var m = l.filter(function(x){ return x.sym === sym; })[0]; return m && m.name; })
+  ]).then(function(res){
+    if(CUR.view !== 'insiders' || INS.sym !== sym) return;
+    INS.rows = res[0];
+    INS.hist = (res[1] || []).filter(function(r){ return r.c != null; });
+    if(res[3]) INS.name = res[3];
+    if(!INS.name && labelOf(sym) !== sym) INS.name = labelOf(sym);
+    var rec = insRecent().filter(function(x){ return x.s !== sym; });
+    rec.unshift({ s:sym, n:INS.name || '' }); save('fh3_ins_recent', rec.slice(0, 6));
+    paintIns();
+  }).catch(function(e){
+    if(CUR.view !== 'insiders') return;
+    $('main').innerHTML = '<div class="section">' + insSearchHTML(false) + '<div class="card empty" style="margin-top:16px">Could not load insider filings for <b>' + esc(sym) +
+      '</b> (' + esc(e.message) + '). OpenInsider is reached through <code>python3 serve.py</code> or a public relay; try again in a moment.</div></div>';
+    insBindSearch();
+  });
+}
+
+/* --- search: ticker or company name, live suggestions, arrow keys --- */
+function insSearchHTML(big){
+  return '<form class="ins-search' + (big ? ' big' : '') + '" id="insForm" role="search" autocomplete="off">' +
+    '<div class="box"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>' +
+    '<input id="insQ" placeholder="' + (big ? 'Ticker or company name — try NVDA or Tempus AI' : 'Look up another company') + '" aria-label="Ticker or company name" ' +
+    'role="combobox" aria-expanded="false" aria-controls="insSug" aria-autocomplete="list" spellcheck="false">' +
+    '<span class="ins-spin" aria-hidden="true"></span><kbd>Enter</kbd></div>' +
+    '<div class="ins-sug" id="insSug" role="listbox" hidden></div></form>';
+}
+function insBindSearch(base){
+  base = base || 'insiders';
+  var f = $('insForm'), q = $('insQ'), box = $('insSug'), items = [], at = -1, timer = 0, seq = 0;
+  if(!f) return;
+  function pick(it){ INS.pickName = { s:it.sym, n:it.name }; go('#/' + base + '/' + encodeURIComponent(it.sym)); }
+  function draw(){
+    box.hidden = !items.length; q.setAttribute('aria-expanded', String(!!items.length));
+    box.innerHTML = items.map(function(it, i){
+      return '<button type="button" role="option" class="' + (i === at ? 'on' : '') + '" data-i="' + i + '" style="--d:' + (i * 30) + 'ms">' + guruLogo({ t:it.sym }) +
+        '<b>' + esc(it.sym) + '</b><span>' + esc(it.name || '') + '</span><i>' + (it.kind === 'etf' ? 'ETF' : 'Stock') + '</i></button>';
+    }).join('');
+  }
+  q.oninput = function(){
+    var v = q.value.trim(), my = ++seq;
+    clearTimeout(timer);
+    if(!v){ items = []; at = -1; draw(); f.classList.remove('busy'); return; }
+    timer = setTimeout(function(){
+      f.classList.add('busy');
+      searchSymbols(v).then(function(l){ if(my !== seq) return; f.classList.remove('busy'); items = l.filter(function(x){ return x.kind === 'stock'; }).concat(l.filter(function(x){ return x.kind !== 'stock'; })); at = items.length ? 0 : -1; draw(); });
+    }, 180);
+  };
+  q.onkeydown = function(e){
+    if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ if(!items.length) return; e.preventDefault(); at = (at + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length; draw(); }
+    else if(e.key === 'Escape'){ items = []; draw(); e.stopPropagation(); }
+  };
+  q.onblur = function(){ setTimeout(function(){ items = []; draw(); }, 150); };
+  box.onmousedown = function(e){ var b = e.target.closest('[data-i]'); if(b){ e.preventDefault(); pick(items[+b.getAttribute('data-i')]); } };
+  f.onsubmit = function(e){
+    e.preventDefault();
+    var v = q.value.trim().toUpperCase();
+    if(at >= 0 && items[at]) return pick(items[at]);
+    if(/^[A-Z.\-]{1,6}$/.test(v)) return pick({ sym:v });
+    if(v) toast('No company matches “' + q.value.trim() + '”');
+  };
+}
+
+function paintInsLanding(){
+  var rec = insRecent();
+  /* decorative price path with insider dots, drawn once on arrival */
+  var pts = [[0,150],[40,132],[80,140],[120,104],[160,118],[200,86],[240,96],[280,62],[320,78],[360,50],[400,64],[440,30],[480,44],[520,22]];
+  var deco = '<svg class="ins-deco" viewBox="0 0 520 170" aria-hidden="true"><path pathLength="1" d="M' + pts.map(function(p){ return p.join(' '); }).join(' L') + '"/>' +
+    [[3, 'buy'], [5, 'sell'], [7, 'sell'], [9, 'buy'], [11, 'sell'], [12, 'sell']].map(function(x, i){
+      var p = pts[x[0]]; return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (5 + i % 3 * 2) + '" class="' + x[1] + '" style="--d:' + (600 + i * 180) + 'ms"/>';
+    }).join('') + '</svg>';
+  $('main').innerHTML = '<div class="section"><div class="ins-hero">' + deco +
+    '<span class="gu-tag">SEC Form 4 · updated daily</span>' +
+    '<h1>Follow the people who <em>know the business</em> best.</h1>' +
+    '<p>Every share bought or sold by officers, directors and 10% owners, plotted against the price. Search any US-listed company.</p>' +
+    insSearchHTML(true) +
+    (rec.length ? '<div class="ins-recent"><span>Recent</span>' + rec.map(function(r, i){
+      return '<a href="#/insiders/' + encodeURIComponent(r.s) + '" style="--d:' + (i * 40) + 'ms">' + guruLogo({ t:r.s }) + '<b>' + esc(r.s) + '</b>' + (r.n ? '<small>' + esc(r.n) + '</small>' : '') + '</a>';
+    }).join('') + '</div>' : '') +
+    '</div></div>' + footerHTML();
+  insBindSearch();
+  setTimeout(function(){ var q = $('insQ'); if(q) q.focus(); }, 60);
+}
+
+/* --- detail page --- */
+function paintIns(){
+  var s = INS.sym, qr = quoteRow(s, false);
+  var html = '<div class="section" id="insRoot"><div class="ins-head">' + guruLogo({ t:s }, 'ins-logo') +
+    '<div class="ins-id"><h2>' + esc(INS.name || s) + '</h2><div class="gu-sub"><b>' + esc(s) + '</b> · Insider trading · <a href="#/quote/' + encodeURIComponent(s) + '">Quote</a> · <a href="#/filings/' + encodeURIComponent(s) + '">SEC filings</a></div>' +
+    (qr.q.c != null ? '<div class="ins-px"><span class="num">' + qr.cells.price + '</span><span class="num ' + qr.cls + '">' + qr.cells.change + ' (' + pct(qr.ch.pct) + ')</span></div>' : '') +
+    '</div>' + insSearchHTML(false) + '</div>' +
+    '<div class="ins-sumrow"><p class="ins-sum" id="insSum"></p><div class="gu-seg" role="tablist" aria-label="Period">' +
+      INS_PERIODS.map(function(p){ return '<button data-ip="' + p[0] + '" class="' + (INS.period === p[0] ? 'on' : '') + '">' + p[1] + '</button>'; }).join('') + '</div></div>' +
+    '<div class="gu-stats ins-stats" id="insStats"></div>' +
+    '<div class="card ins-chart-card"><div class="ins-legend" id="insLegend"></div><div class="ins-chart" id="insChart"></div></div>' +
+    '<div class="ins-grid"><div class="card"><div class="section-head" style="margin:0 0 8px"><h3 style="margin:0">Who’s trading</h3></div><div id="insWho"></div></div>' +
+    '<div class="card ins-tcard"><div class="ins-tools"><div class="gu-seg" role="tablist" aria-label="Trade type">' +
+      [['all', 'All'], ['buy', 'Buys'], ['sell', 'Sales'], ['other', 'Other']].map(function(t){ return '<button data-it="' + t[0] + '" class="' + (INS.type === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') +
+    '</div><input id="insFilter" placeholder="Filter by insider or title" value="' + esc(INS.q) + '"><div class="ins-pills" id="insPills"></div><button class="btn text ins-csv" data-icsv="1" title="Download the filings shown as CSV"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>CSV</button></div><div id="insTable"></div></div></div>' +
+    '<p class="gu-sub" style="margin-top:12px">Source: SEC Form 4 filings via OpenInsider. Prices are per-share as reported; values exclude option exercise cost. Not investment advice.</p>' +
+    '</div>' + footerHTML();
+  $('main').innerHTML = html;
+  insBindSearch();
+  insPaintAll();
+
+  var root = $('insRoot');
+  root.addEventListener('click', function(e){
+    var b = e.target.closest('[data-ip],[data-it],[data-is],[data-iw],[data-il],[data-ix],[data-imore],[data-icsv]');
+    if(!b) return;
+    if(b.hasAttribute('data-ip')){ INS.period = +b.getAttribute('data-ip'); INS.day = ''; $$('[data-ip]').forEach(function(x){ x.classList.toggle('on', x === b); }); insPaintAll(); }
+    else if(b.hasAttribute('data-it')){ INS.type = b.getAttribute('data-it'); INS.shown = 40; $$('[data-it]').forEach(function(x){ x.classList.toggle('on', x === b); }); insPaintTable(); }
+    else if(b.hasAttribute('data-is')){ var k = b.getAttribute('data-is'); INS.dir = INS.sort === k ? -INS.dir : (k === 'name' || k === 'type' ? 1 : -1); INS.sort = k; insPaintTable(); }
+    else if(b.hasAttribute('data-iw')){ var w = b.getAttribute('data-iw'); INS.who = INS.who === w ? '' : w; INS.shown = 40; insPaintWho(); insPaintTable(); }
+    else if(b.hasAttribute('data-il')){ var l = b.getAttribute('data-il'); INS.show[l] = !INS.show[l]; insPaintChart(); }
+    else if(b.hasAttribute('data-ix')){ INS[b.getAttribute('data-ix')] = ''; insPaintWho(); insPaintTable(); }
+    else if(b.hasAttribute('data-imore')){ INS.shown += 60; insPaintTable(); }
+    else if(b.hasAttribute('data-icsv')) insCSV();
+  });
+  $('insFilter').oninput = function(){ INS.q = this.value.trim().toLowerCase(); INS.shown = 40; insPaintTable(); };
+  /* table row <-> chart bubble cross-highlight */
+  $('insTable').onmouseover = function(e){
+    var tr = e.target.closest('tr[data-k]');
+    $$('#insChart .hl').forEach(function(x){ x.classList.remove('hl'); });
+    if(tr){ var m = document.querySelector('#insChart [data-k="' + tr.getAttribute('data-k') + '"]'); if(m) m.classList.add('hl'); }
+  };
+  $('insTable').onmouseleave = function(){ $$('#insChart .hl').forEach(function(x){ x.classList.remove('hl'); }); };
+}
+
+function insPaintAll(){ insPaintSummary(); insPaintChart(); insPaintWho(); insPaintTable(); }
+
+function insPaintSummary(){
+  var rs = insInPeriod(), b = { n:0, v:0 }, sl = { n:0, v:0 }, people = {};
+  rs.forEach(function(r){
+    if(r.kind === 'buy'){ b.n++; b.v += Math.abs(r.val || 0); }
+    if(r.kind === 'sell'){ sl.n++; sl.v += Math.abs(r.val || 0); }
+    if(r.kind !== 'other') people[r.name] = 1;
+  });
+  var lbl = { 90:'3 months', 180:'6 months', 365:'year', 730:'2 years' }[INS.period];
+  var net = b.v - sl.v, ratio = b.v + sl.v ? b.v / (b.v + sl.v) : null;
+  $('insSum').innerHTML = !rs.length ? 'No Form 4 filings for ' + esc(INS.sym) + ' over the last ' + lbl + '.' :
+    'Over the last ' + lbl + ', ' + esc(INS.sym) + ' insiders made <b class="down">' + sl.n + ' sale' + (sl.n === 1 ? '' : 's') + '</b> worth <b class="down">' + insMoney(sl.v) +
+    '</b> and <b class="up">' + b.n + ' purchase' + (b.n === 1 ? '' : 's') + '</b> worth <b class="up">' + insMoney(b.v) + '</b> on the open market.';
+  var tilt = ratio == null ? '—' : ratio >= .6 ? 'Buying' : ratio <= .4 ? 'Selling' : 'Mixed';
+  $('insStats').innerHTML = [
+    [(net >= 0 ? '+' : '') + insMoney(net), 'Net insider flow', net >= 0 ? 'up' : 'down'],
+    ['<span class="ins-meter" title="Share of buy value"><i style="--w:' + Math.round((ratio || 0) * 100) + '%"></i></span>' + tilt, 'Buy / sell balance'],
+    [String(Object.keys(people).length), 'Insiders trading'],
+    [String(rs.filter(function(r){ return r.kind === 'other'; }).length), 'Grants, tax & other'],
+    [rs[0] ? insDate(rs[0].d) : '—', 'Latest trade']
+  ].map(function(x, i){ return '<div class="gu-stat" style="--d:' + (i * 50) + 'ms"><b class="num ' + (x[2] || '') + '">' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join('');
+}
+
+function insGroups(rows){
+  var m = {};
+  rows.forEach(function(r){
+    if(!INS.show[r.kind]) return;
+    var k = r.d + r.kind, g = m[k] || (m[k] = { k:k, d:r.d, kind:r.kind, v:0, px:0, n:0, rows:[] });
+    g.v += Math.abs(r.val || 0); g.px += r.px || 0; g.n++; g.rows.push(r);
+  });
+  return Object.keys(m).map(function(k){ var g = m[k]; g.px /= g.n; return g; }).sort(function(a, b){ return a.d < b.d ? -1 : 1; });
+}
+
+function insPaintChart(){
+  var box = $('insChart');
+  if(!box) return;
+  $('insLegend').innerHTML = [['close', 'Closing price'], ['buy', 'Purchase'], ['sell', 'Sale'], ['other', 'Grant / tax / other']].map(function(l){
+    return '<button data-il="' + l[0] + '" class="lg-' + l[0] + (INS.show[l[0]] ? ' on' : '') + '" aria-pressed="' + INS.show[l[0]] + '"><i></i>' + l[1] + '</button>';
+  }).join('') + '<span class="gu-sub">Bubble size = trade value · click a bubble to see its trades</span>';
+  var from = insFrom(), hist = INS.hist.filter(function(r){ return r.d >= from; });
+  var groups = insGroups(insInPeriod());
+  var W = Math.max(300, box.clientWidth), H = W < 600 ? 230 : 320, P = { l:6, r:52, t:18, b:26 };
+  if(!hist.length && !groups.length){ box.innerHTML = '<div class="empty" style="padding:40px 0;text-align:center">No price history or trades to plot.</div>'; return; }
+  var t0 = new Date(from + 'T00:00:00').getTime(), t1 = Date.now();
+  var X = function(d){ return P.l + (new Date(d + 'T00:00:00').getTime() - t0) / (t1 - t0) * (W - P.l - P.r); };
+  var closeAt = function(d){                                  // last close on or before d
+    var lo = 0, hi = hist.length - 1, ans = null;
+    while(lo <= hi){ var mid = (lo + hi) >> 1; if(hist[mid].d <= d){ ans = hist[mid].c; lo = mid + 1; } else hi = mid - 1; }
+    return ans;
+  };
+  groups.forEach(function(g){ g.y = closeAt(g.d); if(g.y == null) g.y = g.px || null; });
+  groups = groups.filter(function(g){ return g.y != null; });
+  var vals = hist.map(function(r){ return r.c; }).concat(groups.map(function(g){ return g.y; }));
+  var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), pad = (hi - lo) * .12 || hi * .1 || 1;
+  lo = Math.max(0, lo - pad); hi += pad;
+  var Y = function(v){ return P.t + (1 - (v - lo) / (hi - lo)) * (H - P.t - P.b); };
+  var svg = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '"><defs><linearGradient id="insFill" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0" stop-color="var(--mf-gold)" stop-opacity=".28"/><stop offset="1" stop-color="var(--mf-gold)" stop-opacity="0"/></linearGradient></defs>';
+  for(var i = 0; i <= 4; i++){
+    var v = lo + (hi - lo) * i / 4, y = Y(v);
+    svg += '<line class="gl" x1="' + P.l + '" x2="' + (W - P.r) + '" y1="' + y + '" y2="' + y + '"/><text class="ax" x="' + (W - P.r + 8) + '" y="' + (y + 4) + '">' + num(v, v < 10 ? 2 : 0) + '</text>';
+  }
+  var months = Math.round(INS.period / 30), step = Math.max(1, Math.ceil(months / (W < 600 ? 4 : 7))), seen = 0;
+  for(var m = new Date(t0); m.getTime() <= t1; m.setMonth(m.getMonth() + 1, 1)){
+    if(m.getTime() < t0 || seen++ % step) continue;
+    var mx = X(ymd(m));
+    svg += '<text class="ax" x="' + mx + '" y="' + (H - 6) + '" text-anchor="middle">' + m.toLocaleDateString('en-US', INS.period > 365 ? { month:'short', year:'2-digit' } : m.getMonth() ? { month:'short' } : { year:'numeric' }) + '</text>';
+  }
+  if(hist.length && INS.show.close){
+    var line = hist.map(function(r, i){ return (i ? 'L' : 'M') + X(r.d).toFixed(1) + ' ' + Y(r.c).toFixed(1); }).join('');
+    svg += '<path class="area" d="' + line + 'L' + X(hist[hist.length - 1].d).toFixed(1) + ' ' + (H - P.b) + 'L' + X(hist[0].d).toFixed(1) + ' ' + (H - P.b) + 'Z"/>' +
+      '<path class="ln" pathLength="1" d="' + line + '"/>';
+  }
+  var maxV = Math.max.apply(null, groups.map(function(g){ return g.v; }).concat([1]));
+  /* biggest first so small bubbles stay clickable on top */
+  groups.slice().sort(function(a, b){ return b.v - a.v; }).forEach(function(g, j){
+    var r = 4 + 13 * Math.sqrt(g.v / maxV);
+    svg += '<circle class="bub ' + g.kind + (INS.day === g.d ? ' sel' : '') + '" data-k="' + g.k + '" cx="' + X(g.d).toFixed(1) + '" cy="' + Y(g.y).toFixed(1) + '" r="' + r.toFixed(1) +
+      '" style="--d:' + Math.min(900, 300 + j * 12) + 'ms"/>';
+  });
+  svg += '<line class="xh" id="insXh" y1="' + P.t + '" y2="' + (H - P.b) + '"/><circle class="xd" id="insXd" r="4"/></svg>';
+  box.innerHTML = svg + '<div class="ins-tip" id="insTip"></div>';
+  var byK = {}; groups.forEach(function(g){ byK[g.k] = g; });
+  var el = box.querySelector('svg'), tip = $('insTip'), xh = $('insXh'), xd = $('insXd');
+  function tipAt(x, y, html){
+    tip.innerHTML = html; tip.classList.add('on');
+    var tw = tip.offsetWidth, th = tip.offsetHeight;
+    tip.style.left = Math.max(0, Math.min(W - tw, x + 14 + tw > W ? x - tw - 14 : x + 14)) + 'px';
+    tip.style.top = Math.max(0, Math.min(H - th, y - th / 2)) + 'px';
+  }
+  function tradesHTML(g){
+    return '<div class="tt ' + g.kind + '">' + g.n + ' ' + (g.kind === 'buy' ? 'purchase' : g.kind === 'sell' ? 'sale' : 'other filing') + (g.n === 1 ? '' : 's') + ' · ' + insMoney(g.v) + '</div>' +
+      g.rows.slice(0, 4).map(function(r){ return '<div class="tr"><span>' + esc(r.name) + '</span><b class="num">' + (r.qty == null ? '' : num(Math.abs(r.qty), 0)) + (r.px ? ' @ $' + num(r.px, 2) : '') + '</b></div>'; }).join('') +
+      (g.rows.length > 4 ? '<div class="tr mut">+' + (g.rows.length - 4) + ' more</div>' : '');
+  }
+  el.onmousemove = function(e){
+    var rc = el.getBoundingClientRect(), x = e.clientX - rc.left, b = e.target.closest('.bub');
+    if(b){
+      var g = byK[b.getAttribute('data-k')];
+      xh.style.opacity = xd.style.opacity = 0;
+      return tipAt(+b.getAttribute('cx'), +b.getAttribute('cy'), '<div class="td">' + insDate(g.d) + ' · close $' + num(g.y, 2) + '</div>' + tradesHTML(g));
+    }
+    if(!hist.length || !INS.show.close){ tip.classList.remove('on'); return; }
+    var best = hist[0], bd = Infinity;
+    hist.forEach(function(r){ var dd = Math.abs(X(r.d) - x); if(dd < bd){ bd = dd; best = r; } });
+    var hx = X(best.d), hy = Y(best.c);
+    xh.setAttribute('x1', hx); xh.setAttribute('x2', hx); xd.setAttribute('cx', hx); xd.setAttribute('cy', hy);
+    xh.style.opacity = xd.style.opacity = 1;
+    var same = ['buy', 'sell', 'other'].map(function(k){ return byK[best.d + k]; }).filter(Boolean);
+    tipAt(hx, hy, '<div class="td">' + insDate(best.d) + '</div><div class="tp num">$' + num(best.c, 2) + '</div>' + same.map(tradesHTML).join(''));
+  };
+  el.onmouseleave = function(){ tip.classList.remove('on'); xh.style.opacity = xd.style.opacity = 0; };
+  el.onclick = function(e){
+    var b = e.target.closest('.bub');
+    if(!b) return;
+    var d = byK[b.getAttribute('data-k')].d;
+    INS.day = INS.day === d ? '' : d; INS.shown = 40;
+    $$('#insChart .bub').forEach(function(x){ x.classList.toggle('sel', !!INS.day && x.getAttribute('data-k').indexOf(INS.day) === 0); });
+    insPaintTable();
+    if(INS.day) $('insTable').scrollIntoView({ behavior:'smooth', block:'nearest' });
+  };
+}
+
+function insPaintWho(){
+  var m = {};
+  insInPeriod().forEach(function(r){
+    if(r.kind === 'other') return;
+    var p = m[r.name] || (m[r.name] = { name:r.name, title:r.title, b:0, s:0, n:0 });
+    p[r.kind === 'buy' ? 'b' : 's'] += Math.abs(r.val || 0); p.n++;
+  });
+  var ps = Object.keys(m).map(function(k){ return m[k]; }).sort(function(a, b){ return (b.b + b.s) - (a.b + a.s); }).slice(0, 8);
+  var max = Math.max.apply(null, ps.map(function(p){ return Math.max(p.b, p.s); }).concat([1]));
+  $('insWho').innerHTML = !ps.length ? '<div class="gu-sub">No open-market buys or sales in this period.</div>' :
+    '<div class="ins-who-axis"><span class="down">Sold</span><span class="up">Bought</span></div>' +
+    ps.map(function(p, i){
+      return '<button class="ins-who' + (INS.who === p.name ? ' on' : '') + '" data-iw="' + esc(p.name) + '" style="--d:' + (i * 50) + 'ms" title="Show only ' + esc(p.name) + '’s trades">' +
+        '<span class="nm"><b>' + esc(p.name) + '</b><small>' + esc(p.title) + ' · ' + p.n + ' trade' + (p.n === 1 ? '' : 's') + '</small></span>' +
+        '<span class="bars"><span class="s"><i style="--w:' + (p.s / max * 100).toFixed(1) + '%"></i></span><span class="b"><i style="--w:' + (p.b / max * 100).toFixed(1) + '%"></i></span></span>' +
+        '<span class="vv num"><span class="down">' + (p.s ? insMoney(-p.s) : '') + '</span><span class="up">' + (p.b ? insMoney(p.b) : '') + '</span></span></button>';
+    }).join('');
+}
+
+function insCSV(){
+  var rs = insFiltered(), head = ['filed', 'trade_date', 'ticker', 'insider', 'title', 'trade_type', 'kind', 'price', 'qty', 'owned', 'delta_own', 'value', 'filing_url'];
+  if(!rs.length) return toast('No filings to export');
+  var name = INS.sym + '_insiders_' + ymd(new Date()).replace(/-/g, '') + '.csv';
+  download(name, [head].concat(rs.map(function(r){
+    return [r.filed, r.d, INS.sym, r.name, r.title, r.type, r.kind, r.px, r.qty, r.own, r.dOwn, r.val, r.url];
+  })).map(function(r){ return r.map(csvCell).join(','); }).join('\n'));
+  toast('Exported ' + rs.length + ' filings to ' + name);
+}
+
+function insFiltered(){
+  var rs = insInPeriod().filter(function(r){
+    return (INS.type === 'all' || r.kind === INS.type) && (!INS.who || r.name === INS.who) && (!INS.day || r.d === INS.day) &&
+      (!INS.q || (r.name + ' ' + r.title).toLowerCase().indexOf(INS.q) >= 0);
+  });
+  var k = INS.sort, dir = INS.dir;
+  rs.sort(function(a, b){
+    var x = a[k], y = b[k];
+    if(k === 'val' || k === 'qty'){ x = Math.abs(x || 0); y = Math.abs(y || 0); }
+    if(x == null) return 1; if(y == null) return -1;
+    return (x < y ? -1 : x > y ? 1 : 0) * dir || (a.filed < b.filed ? 1 : -1);
+  });
+  return rs;
+}
+
+function insPaintTable(){
+  var rs = insFiltered(), k = INS.sort, dir = INS.dir;
+  var pills = [];
+  if(INS.who) pills.push(['who', INS.who]);
+  if(INS.day) pills.push(['day', insDate(INS.day)]);
+  $('insPills').innerHTML = pills.map(function(p){ return '<button data-ix="' + p[0] + '">' + esc(p[1]) + ' <span aria-hidden="true">×</span></button>'; }).join('');
+  var cols = [['name', 'Insider'], ['type', 'Type'], ['qty', 'Shares'], ['px', 'Price'], ['val', 'Value'], ['own', 'Held after'], ['d', 'Traded'], ['filed', 'Filed']];
+  var head = '<tr>' + cols.map(function(c, i){
+    return '<th' + (i > 1 ? ' class="n"' : '') + '><button data-is="' + c[0] + '" class="' + (k === c[0] ? 'on ' + (dir > 0 ? 'asc' : 'desc') : '') + '">' + c[1] + '<i></i></button></th>';
+  }).join('') + '</tr>';
+  var body = rs.slice(0, INS.shown).map(function(r, i){
+    var dn = /^-/.test(r.dOwn), cls = r.kind === 'buy' ? 'up' : r.kind === 'sell' ? 'down' : 'mut';
+    return '<tr class="k-' + r.kind + '" data-k="' + r.d + r.kind + '" style="--d:' + Math.min(i, 20) * 18 + 'ms">' +
+      '<td><button class="who" data-iw="' + esc(r.name) + '">' + esc(r.name) + '</button><small>' + esc(r.title) + '</small></td>' +
+      '<td><span class="ins-pill ' + r.kind + '">' + esc(r.type) + '</span></td>' +
+      '<td class="n">' + (r.qty == null ? '—' : num(Math.abs(r.qty), 0)) + (r.dOwn ? '<small class="' + (dn ? 'down' : r.dOwn === 'New' || /^\+|^>/.test(r.dOwn) ? 'up' : '') + '">' + esc(r.dOwn.replace(/^-/, '−')) + '</small>' : '') + '</td>' +
+      '<td class="n">' + (r.px ? '$' + num(r.px, 2) : '—') + '</td>' +
+      '<td class="n ' + cls + '"><b>' + (r.val ? insMoney(r.val) : '—') + '</b></td>' +
+      '<td class="n">' + (r.own == null ? '—' : num(r.own, 0)) + '</td>' +
+      '<td class="n">' + insDate(r.d) + '</td>' +
+      '<td class="n">' + (r.url ? '<a href="' + esc(r.url) + '" target="_blank" rel="noopener" title="Open SEC Form 4">' + insDate(r.filed, true) + ' <span aria-hidden="true">↗</span></a>' : insDate(r.filed, true)) + '</td></tr>';
+  }).join('');
+  $('insTable').innerHTML = !rs.length ? '<div class="empty" style="padding:28px 0;text-align:center">No trades match these filters.</div>' :
+    '<div class="ins-twrap"><table class="ins-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' +
+    '<div class="ins-tfoot"><span class="gu-sub">Showing ' + Math.min(INS.shown, rs.length) + ' of ' + rs.length + ' filings</span>' +
+    (rs.length > INS.shown ? '<button class="btn text" data-imore="1">Show more</button>' : '') + '</div>';
+}
+
+var insResizeT = 0;
+window.addEventListener('resize', function(){
+  clearTimeout(insResizeT);
+  insResizeT = setTimeout(function(){ if(CUR.view === 'insiders' && $('insChart')) insPaintChart(); }, 150);
+});
+
+/* --------------------------------------------------------- SEC filings */
+/* serve.py's /api/filings (edgar_filings.py: cached EDGAR submissions, EX-99 press
+   releases for earnings, clean text) first; without it, read EDGAR from the browser. */
+var FIL = { sym:'', name:'', cik:0, rows:[], cat:'key', q:'', open:'', doc:null, find:'', hit:0 };
+var FIL_CATS = [['key', 'Key filings'], ['earnings', 'Earnings'], ['annual', 'Annual'], ['quarterly', 'Quarterly'], ['current', 'Current'],
+  ['proxy', 'Proxy'], ['owner', 'Ownership'], ['all', 'All']];
+var FIL_FORM = { '10-K':'Annual report', '10-Q':'Quarterly report', '8-K':'Current report', '6-K':'Foreign issuer report',
+  '20-F':'Annual report (foreign issuer)', '40-F':'Annual report (Canadian issuer)', 'DEF 14A':'Proxy statement', 'DEFA14A':'Additional proxy material',
+  'S-1':'Registration statement', 'S-3':'Shelf registration', 'S-8':'Employee stock plan registration', 'S-4':'Merger registration', 'FWP':'Free writing prospectus', 'SD':'Conflict minerals report', '424B5':'Prospectus supplement',
+  '3':'Initial insider ownership', '4':'Insider transaction', '5':'Annual insider ownership', '144':'Planned insider sale',
+  'SC 13G':'Passive 5%+ stake', 'SC 13D':'Active 5%+ stake', 'SCHEDULE 13G':'Passive 5%+ stake', 'SCHEDULE 13D':'Active 5%+ stake',
+  '11-K':'Employee plan annual report', 'ARS':'Annual report to shareholders', 'CORRESP':'Company letter to the SEC', 'UPLOAD':'SEC staff letter' };
+var FIL_ITEM = { '1.01':'Material agreement', '1.02':'Agreement terminated', '2.01':'Acquisition or disposal', '2.02':'Quarterly results',
+  '2.03':'New debt obligation', '2.05':'Restructuring costs', '2.06':'Impairment', '3.01':'Listing standards notice', '3.02':'Unregistered share sale',
+  '4.01':'Auditor change', '4.02':'Prior financials unreliable', '5.01':'Change in control', '5.02':'Executive or director change',
+  '5.03':'Charter or bylaw change', '5.07':'Shareholder vote results', '7.01':'Regulation FD disclosure', '8.01':'Other events' };
+var FIL_WARN = { '2.06':1, '3.01':1, '4.01':1, '4.02':1 };   // items an investor should never miss
+var FIL_ASK = [
+  ['Summarize', 'Summarize this filing in plain English: what happened, the key numbers, and why it matters to a shareholder.'],
+  ['What changed?', 'What is new or different here compared with what the company reported before? Call out changes in guidance, risks, accounting and tone.'],
+  ['Red flags', 'Find what an investor could easily miss: red flags, unusual items, buried risks, related-party dealings, going-concern or restatement language. Quote the exact passages.'],
+  ['Explain it simply', 'Explain the hardest parts of this filing to someone new to investing, with short examples.']
+];
+
+function filCat(r){
+  var f = r.form;
+  if(/^(10-K|20-F|40-F)/.test(f)) return 'annual';
+  if(/^10-Q/.test(f)) return 'quarterly';
+  if(/^(8-K|6-K)/.test(f)) return 'current';
+  if(/^(DEF|DEFA|PRE|DEFM)\s?14/.test(f)) return 'proxy';
+  if(/^(3|4|5|144|SC 13[DG]|SCHEDULE 13[DG])(\/A)?$/.test(f)) return 'owner';
+  return 'other';
+}
+function filEarn(r){ return /^8-K/.test(r.form) && /2\.02/.test(r.items || ''); }
+function filIn(r, cat){
+  var c = filCat(r);
+  return cat === 'all' || c === cat || (cat === 'earnings' && filEarn(r)) || (cat === 'key' && /annual|quarterly|current|proxy/.test(c));
+}
+function filItems(r){ return String(r.items || '').split(',').map(function(i){ return i.trim(); }).filter(function(i){ return FIL_ITEM[i]; }); }
+function filTitle(r){
+  var its = filItems(r);
+  if(its.length) return its.map(function(i){ return FIL_ITEM[i]; }).join(' · ');
+  var base = r.form.replace(/\/A$/, '');
+  return FIL_FORM[r.form] || (FIL_FORM[base] ? FIL_FORM[base] + ' (amended)' : '') || r.description || r.form;
+}
+function filSize(b){ return !b ? '' : b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1e3)) + ' KB'; }
+function filRow(acc){ return FIL.rows.filter(function(r){ return r.accession === acc; })[0]; }
+function filArch(r, doc){ return 'https://www.sec.gov/Archives/edgar/data/' + FIL.cik + '/' + r.accession.replace(/-/g, '') + '/' + (doc || r.primary_doc); }
+function filRecent(){ var r = load('fh3_fil_recent', []); return Array.isArray(r) ? r : []; }
+
+function filList(sym){
+  return fetchJSON('/api/filings?s=' + encodeURIComponent(sym), 30000).catch(function(){
+    return secCikFor(sym).then(function(cik10){
+      return fetchJSON('https://data.sec.gov/submissions/CIK' + cik10 + '.json', 20000).then(function(d){
+        var rc = (d.filings || {}).recent || {}, col = function(k, i, def){ return (rc[k] || [])[i] || def; };
+        return { ticker:sym, cik:+cik10, name:d.name, filings:(rc.accessionNumber || []).map(function(a, i){
+          return { accession:a, filing_date:col('filingDate', i, ''), form:col('form', i, ''), primary_doc:col('primaryDocument', i, ''),
+                   description:col('primaryDocDescription', i, ''), report_date:col('reportDate', i, ''), items:col('items', i, ''), size:col('size', i, 0) };
+        }) };
+      });
+    });
+  });
+}
+/* Same block-aware text extraction as edgar_filings.html_to_text, for the no-server path. */
+function filHtmlText(html){
+  var d = new DOMParser().parseFromString(String(html).replace(/^\s*<DOCUMENT>[\s\S]*?<TEXT>/i, ''), 'text/html');
+  d.querySelectorAll('script,style,ix\\:header').forEach(function(e){ e.remove(); });
+  d.querySelectorAll('p,div,br,tr,li,h1,h2,h3,h4,h5,h6,table').forEach(function(e){ e.append('\n'); });
+  d.querySelectorAll('td,th').forEach(function(e){ e.append(' '); });
+  return (d.body ? d.body.textContent : '').replace(/[ \t ]+/g, ' ').replace(/ *\n */g, '\n').replace(/\n+/g, '\n').trim();
+}
+function filDoc(r){
+  return fetchJSON('/api/filings/doc?s=' + encodeURIComponent(FIL.sym) + '&acc=' + encodeURIComponent(r.accession), 60000).catch(function(){
+    var url = filArch(r);   // ponytail: no-server path reads the primary doc, not the EX-99 press release
+    return fetchText(url, 30000).then(function(html){
+      return { doc:r.primary_doc, url:url, text:/\.html?$/i.test(r.primary_doc) ? filHtmlText(html) : html,
+               partial:/\.html?$/i.test(r.primary_doc) && !/<\/html>\s*$/i.test(html) };   // the public relay stops at ~2 MB
+    });
+  });
+}
+
+/* Split extracted text into display lines; "Item 7." alone on a line joins its title. */
+function filLines(text){
+  var raw = String(text || '').split('\n'), out = [];
+  for(var i = 0; i < raw.length; i++){
+    var t = raw[i].trim();
+    if(!t) continue;
+    if(/^item\s+\d+[a-c]?\.?$/i.test(t) && raw[i + 1] && raw[i + 1].length < 120){ t += ' ' + raw[i + 1].trim(); i++; }
+    out.push({ t:t, h:t.length < 140 && /^(part\s+[iv]+\b|item\s+\d+[a-c]?[.:\s])/i.test(t) });
+  }
+  return out;
+}
+/* Jump list: last occurrence of each heading, so the table of contents doesn't win. */
+function filSections(lines){
+  var last = {};
+  lines.forEach(function(l, i){ if(l.h && /^item/i.test(l.t)) last[l.t.toLowerCase().replace(/\s+/g, ' ')] = i; });
+  return Object.keys(last).map(function(k){ return { i:last[k], t:lines[last[k]].t }; }).sort(function(a, b){ return a.i - b.i; });
+}
+/* What Marvell gets: the whole text when it fits, else risk factors + MD&A (where things hide). */
+function filExcerpt(lines, max){
+  var full = lines.map(function(l){ return l.t; }).join('\n');
+  if(full.length <= max) return full;
+  var secs = filSections(lines), part = function(re, cap){
+    var s = secs.filter(function(x){ return re.test(x.t); }).pop();
+    return s ? lines.slice(s.i).map(function(l){ return l.t; }).join('\n').slice(0, cap) : '';
+  };
+  var risk = part(/risk factors/i, max / 2), pick = [risk, part(/management.s discussion/i, max - risk.length)].filter(Boolean);   // MD&A gets what risk factors leave
+  return pick.length ? pick.join('\n\n[…]\n\n') + '\n\n[Excerpt: risk factors and MD&A of a longer document]' : full.slice(0, max) + '\n[truncated]';
+}
+
+function renderFilings(sym, acc){
+  sym = String(sym || '').toUpperCase();
+  if(!sym) return paintFilLanding();
+  if(FIL.sym === sym && FIL.rows.length){ paintFil(); if(acc) filOpen(acc); return; }
+  FIL = { sym:sym, name:'', cik:0, rows:[], cat:'key', q:'', open:'', doc:null, find:'', hit:0 };
+  $('main').innerHTML = '<div class="section">' + skeletonRows(6, 120) + '</div>';
+  return filList(sym).then(function(j){
+    if(CUR.view !== 'filings' || FIL.sym !== sym) return;
+    FIL.rows = j.filings || []; FIL.cik = j.cik; FIL.name = j.name || labelOf(sym);
+    var rec = filRecent().filter(function(x){ return x.s !== sym; });
+    rec.unshift({ s:sym, n:FIL.name }); save('fh3_fil_recent', rec.slice(0, 6));
+    paintFil(); renderRail();
+    if(acc) filOpen(acc);
+  }).catch(function(e){
+    if(CUR.view !== 'filings') return;
+    $('main').innerHTML = '<div class="section">' + insSearchHTML(false) + '<div class="card empty" style="margin-top:16px">Could not load SEC filings for <b>' + esc(sym) +
+      '</b> (' + esc(e.message) + '). Only US-listed companies file on EDGAR.</div></div>';
+    insBindSearch('filings');
+  });
+}
+
+function paintFilLanding(){
+  var rec = filRecent();
+  var deco = '<svg class="ins-deco fil-deco" viewBox="0 0 520 170" aria-hidden="true">' + [0, 1, 2].map(function(i){
+    var x = 300 + i * 46, y = 22 + i * 14;
+    return '<g style="--d:' + (i * 160) + 'ms"><rect x="' + x + '" y="' + y + '" width="150" height="132" rx="10"/>' +
+      [0, 1, 2, 3, 4].map(function(k){ return '<path pathLength="1" d="M' + (x + 18) + ' ' + (y + 28 + k * 18) + ' h' + (k === 4 ? 60 : 112) + '"/>'; }).join('') + '</g>';
+  }).join('') + '</svg>';
+  $('main').innerHTML = '<div class="section"><div class="ins-hero">' + deco +
+    '<span class="gu-tag">SEC EDGAR · straight from the source</span>' +
+    '<h1>Read the filings, <em>not the headlines</em>.</h1>' +
+    '<p>10-Ks, 10-Qs, 8-Ks and earnings releases as they land on EDGAR. Search a company, open any report, and let Marvell point out what matters.</p>' +
+    insSearchHTML(true) +
+    (rec.length ? '<div class="ins-recent"><span>Recent</span>' + rec.map(function(r, i){
+      return '<a href="#/filings/' + encodeURIComponent(r.s) + '" style="--d:' + (i * 40) + 'ms">' + guruLogo({ t:r.s }) + '<b>' + esc(r.s) + '</b>' + (r.n ? '<small>' + esc(r.n) + '</small>' : '') + '</a>';
+    }).join('') + '</div>' : '') + '</div></div>' + footerHTML();
+  insBindSearch('filings');
+  setTimeout(function(){ var q = $('insQ'); if(q) q.focus(); }, 60);
+}
+
+function filMarvellHTML(inReader){
+  return '<div class="fil-ai' + (inReader ? ' in' : '') + '"><span class="fil-ai-ic">' + railSvg('M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2zm6 12l.9 2.6L21.5 18l-2.6.9L18 21.5l-.9-2.6L14.5 18l2.6-.9L18 14z', 16) + '</span>' +
+    '<span class="fil-ai-t"><b>Use Marvell to find what you missed</b>' + (inReader ? '' : '<small>Open a filing, or ask about the whole record</small>') + '</span>' +
+    (inReader ? '<span class="fil-ai-q">' + FIL_ASK.map(function(a, i){ return '<button data-fask="' + i + '">' + a[0] + '</button>'; }).join('') + '</span>' : '') +
+    '<button class="btn filled fil-ai-go" data-fask="open">Ask Marvell</button></div>';
+}
+
+function paintFil(){
+  var s = FIL.sym;
+  $('main').innerHTML = '<div class="section fil" id="filRoot"><div class="ins-head">' + guruLogo({ t:s }, 'ins-logo') +
+    '<div class="ins-id"><h2>' + esc(FIL.name || s) + '</h2><div class="gu-sub"><b>' + esc(s) + '</b> · CIK ' + FIL.cik + ' · ' + FIL.rows.length + ' filings · ' +
+    '<a href="#/quote/' + encodeURIComponent(s) + '">Quote</a> · <a href="#/insiders/' + encodeURIComponent(s) + '">Insider trades</a></div></div>' +
+    insSearchHTML(false) + '</div>' + filMarvellHTML(false) +
+    '<div class="fil-tl card" id="filTl"></div>' +
+    '<div class="fil-tools"><div class="fil-chips" id="filChips" role="tablist" aria-label="Filing type"></div>' +
+    '<input id="filQ" placeholder="Filter filings" value="' + esc(FIL.q) + '" aria-label="Filter filings"></div>' +
+    '<div class="fil-split"><div class="fil-list" id="filList"></div><aside class="fil-reader" id="filReader" hidden></aside></div>' +
+    '<p class="gu-sub" style="margin-top:14px">Source: SEC EDGAR. Filings are the company’s own words; Marvell’s readings are AI-generated and can be wrong. Not investment advice.</p>' +
+    '</div>' + footerHTML();
+  insBindSearch('filings');
+  filPaintTl(); filPaintList();
+  var root = $('filRoot');
+  root.addEventListener('click', function(e){
+    var b = e.target.closest('[data-fcat],[data-facc],[data-fask],[data-fx],[data-fsec],[data-ffind]');
+    if(!b) return;
+    if(b.hasAttribute('data-fcat')){ FIL.cat = b.getAttribute('data-fcat'); filPaintList(); }
+    else if(b.hasAttribute('data-facc')) filOpen(b.getAttribute('data-facc'));
+    else if(b.hasAttribute('data-fask')) filAsk(b.getAttribute('data-fask'));
+    else if(b.hasAttribute('data-fx')) filClose();
+    else if(b.hasAttribute('data-fsec')) filJump($('fp' + b.getAttribute('data-fsec')));
+    else if(b.hasAttribute('data-ffind')) filStep(+b.getAttribute('data-ffind'));
+  });
+  root.addEventListener('keydown', function(e){
+    if(e.target.id === 'filFind' && e.key === 'Enter'){ e.preventDefault(); filStep(e.shiftKey ? -1 : 1); }
+    else if(e.key === 'Escape' && FIL.open){ e.stopPropagation(); filClose(); }
+  });
+  $('filQ').oninput = function(){ FIL.q = this.value.trim().toLowerCase(); filPaintList(); };
+}
+
+/* Three-year strip of the filings that matter; bigger dot = annual report. */
+function filPaintTl(){
+  var t1 = Date.now(), t0 = t1 - 3 * 365 * 864e5, X = function(d){ return (new Date(d + 'T00:00:00').getTime() - t0) / (t1 - t0) * 100; };
+  var dots = FIL.rows.filter(function(r){ var c = filCat(r); return (c === 'annual' || c === 'quarterly' || filEarn(r) || filItems(r).some(function(i){ return FIL_WARN[i]; })) && X(r.filing_date) >= 0; });
+  var yrs = '', y = new Date(t0).getFullYear() + 1;
+  for(; y <= new Date(t1).getFullYear(); y++) yrs += '<span class="fil-tl-y" style="left:' + X(y + '-01-01').toFixed(2) + '%">' + y + '</span>';
+  $('filTl').innerHTML = '<div class="fil-tl-h"><b>Last three years</b><span class="fil-tl-k"><i class="annual"></i>Annual<i class="quarterly"></i>Quarterly<i class="earn"></i>Earnings<i class="warn"></i>Flag</span></div>' +
+    '<div class="fil-tl-track">' + yrs + dots.map(function(r, i){
+      var k = filItems(r).some(function(x){ return FIL_WARN[x]; }) ? 'warn' : filEarn(r) ? 'earn' : filCat(r);
+      return '<button class="fil-dot ' + k + (FIL.open === r.accession ? ' on' : '') + '" data-facc="' + r.accession + '" style="left:' + X(r.filing_date).toFixed(2) + '%;--d:' + Math.min(i * 25, 600) + 'ms">' +
+        '<span class="fil-tip"><b>' + esc(r.form) + ' · ' + insDate(r.filing_date) + '</b>' + esc(filTitle(r)) + '</span></button>';
+    }).join('') + '</div>';
+}
+
+function filPaintList(){
+  var counts = {};
+  FIL_CATS.forEach(function(c){ counts[c[0]] = FIL.rows.filter(function(r){ return filIn(r, c[0]); }).length; });
+  $('filChips').innerHTML = FIL_CATS.filter(function(c){ return counts[c[0]] || c[0] === 'key' || c[0] === 'all'; }).map(function(c){
+    return '<button role="tab" aria-selected="' + (FIL.cat === c[0]) + '" class="' + (FIL.cat === c[0] ? 'on' : '') + '" data-fcat="' + c[0] + '">' + c[1] + '<span>' + counts[c[0]] + '</span></button>';
+  }).join('');
+  var rs = FIL.rows.filter(function(r){
+    return filIn(r, FIL.cat) && (!FIL.q || (r.form + ' ' + filTitle(r) + ' ' + r.description + ' ' + r.filing_date).toLowerCase().indexOf(FIL.q) >= 0);
+  });
+  var html = '', yr = '';
+  rs.slice(0, 300).forEach(function(r, i){
+    var y = r.filing_date.slice(0, 4), warn = filItems(r).some(function(x){ return FIL_WARN[x]; });
+    if(y !== yr){ yr = y; html += '<div class="fil-yr">' + y + '<span>' + rs.filter(function(x){ return x.filing_date.slice(0, 4) === y; }).length + '</span></div>'; }
+    html += '<button class="fil-row c-' + filCat(r) + (FIL.open === r.accession ? ' on' : '') + (warn ? ' warn' : '') + '" data-facc="' + r.accession + '" style="--d:' + Math.min(i, 24) * 15 + 'ms">' +
+      '<span class="fd">' + insDate(r.filing_date, true) + '</span><span class="fb">' + esc(r.form) + '</span>' +
+      '<span class="ft"><b>' + esc(filTitle(r)) + '</b>' + (r.report_date && /annual|quarterly/.test(filCat(r)) ? '<small>Period ended ' + insDate(r.report_date) + '</small>' : '') + '</span>' +
+      (filEarn(r) ? '<span class="fe">Earnings</span>' : warn ? '<span class="fe w">Flag</span>' : '<span></span>') +
+      '<span class="fs">' + filSize(r.size) + '</span></button>';
+  });
+  $('filList').innerHTML = rs.length ? html + (rs.length > 300 ? '<div class="gu-sub" style="padding:10px">Showing the newest 300 — narrow with the filter.</div>' : '')
+    : '<div class="empty" style="padding:30px 0;text-align:center">No filings match.</div>';
+}
+
+function filOpen(acc){
+  var r = filRow(acc);
+  if(!r) return toast('That filing is not in the recent EDGAR record');
+  FIL.open = acc; FIL.find = ''; FIL.hit = 0;
+  try{ history.replaceState(null, '', '#/filings/' + encodeURIComponent(FIL.sym) + '/' + acc); }catch(e){}
+  $$('#filRoot [data-facc]').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-facc') === acc); });
+  $('filRoot').classList.add('reading');
+  document.body.classList.add('fil-reading');
+  var rd = $('filReader');
+  rd.hidden = false;
+  rd.innerHTML = '<div class="fil-rh"><span class="fb">' + esc(r.form) + '</span><div class="fil-rt"><b>' + esc(filTitle(r)) + '</b><small>Filed ' + insDate(r.filing_date) +
+    (r.report_date ? ' · period ended ' + insDate(r.report_date) : '') + '</small></div>' +
+    '<a class="icon-btn" id="filSec" href="' + esc(filArch(r)) + '" target="_blank" rel="noopener" title="Open on SEC.gov" aria-label="Open on SEC.gov">' + railSvg('M14 3v2h3.6l-9.8 9.8 1.4 1.4L19 6.4V10h2V3h-7zM5 5h6V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6h-2v6H5V5z') + '</a>' +
+    '<button class="icon-btn" data-fx="1" title="Close (Esc)" aria-label="Close reader">' + railSvg('M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z') + '</button></div>' +
+    filMarvellHTML(true) +
+    '<div class="fil-find"><span class="ic">' + railSvg('M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z', 16) + '</span>' +
+    '<input id="filFind" placeholder="Find in document" aria-label="Find in document"><span class="n" id="filHits"></span>' +
+    '<button data-ffind="-1" aria-label="Previous match">' + railSvg('M7.4 15.4 12 10.8l4.6 4.6L18 14l-6-6-6 6z', 16) + '</button><button data-ffind="1" aria-label="Next match">' + railSvg('M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z', 16) + '</button></div>' +
+    '<div class="fil-secs" id="filSecs"></div><div class="fil-body" id="filBody">' + skeletonRows(10, 90) + '</div>';
+  var t = 0;
+  $('filFind').oninput = function(){ var v = this.value; clearTimeout(t); t = setTimeout(function(){ FIL.find = v.trim(); filPaintBody(); }, 180); };
+  if(innerWidth < 1024) rd.scrollTop = 0; else $('filRoot').querySelector('.fil-split').scrollIntoView({ behavior:'smooth', block:'start' });
+  filDoc(r).then(function(d){
+    if(FIL.open !== acc) return;
+    FIL.doc = { acc:acc, url:d.url || filArch(r), name:d.doc, lines:filLines(d.text), partial:d.partial };
+    $('filSec').href = FIL.doc.url;
+    var secs = filSections(FIL.doc.lines);
+    $('filSecs').innerHTML = secs.map(function(s){ return '<button data-fsec="' + s.i + '" title="' + esc(s.t) + '">' + esc(s.t.replace(/^(item\s+\d+[a-c]?)\.?\s*/i, '$1 · ')) + '</button>'; }).join('');
+    filPaintBody();
+  }).catch(function(e){
+    if(FIL.open !== acc) return;
+    var why = /^unreachable/.test(e.message) ? 'SEC.gov doesn\u2019t let browsers fetch it directly, and the public relay gave up on a file this size' : esc(e.message);
+    $('filBody').innerHTML = '<div class="fil-part">Couldn\u2019t load this document here: ' + why + '. <a href="' + esc(filArch(r)) + '" target="_blank" rel="noopener">Read it on SEC.gov</a>, or run the app with <code>serve.py</code> to read it in place.</div>';
+  });
+}
+function filClose(){
+  FIL.open = ''; FIL.doc = null;
+  try{ history.replaceState(null, '', '#/filings/' + encodeURIComponent(FIL.sym)); }catch(e){}
+  $('filReader').hidden = true; $('filRoot').classList.remove('reading'); document.body.classList.remove('fil-reading');
+  $$('#filRoot [data-facc].on').forEach(function(x){ x.classList.remove('on'); });
+}
+function filPaintBody(){
+  var lines = FIL.doc.lines, q = FIL.find, n = 0;
+  var re = q ? new RegExp(esc(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi') : null;
+  $('filBody').innerHTML = (FIL.doc.partial ? '<div class="fil-part">Showing the first part of a long filing. <a href="' + esc(FIL.doc.url) + '" target="_blank" rel="noopener">Read the full document on SEC.gov</a>, or run the app with <code>serve.py</code>.</div>' : '') + lines.map(function(l, i){
+    var h = esc(l.t);
+    if(re) h = h.replace(re, function(m){ n++; return '<mark>' + m + '</mark>'; });
+    return '<p id="fp' + i + '"' + (l.h ? ' class="h"' : '') + '>' + h + '</p>';
+  }).join('');
+  $('filHits').textContent = q ? (n ? '1 of ' + n : 'No matches') : '';
+  FIL.hit = 0;
+  if(n) filStep(0);
+}
+function filStep(d){
+  var ms = $$('#filBody mark');
+  if(!ms.length) return;
+  FIL.hit = (FIL.hit + d + ms.length) % ms.length;
+  ms.forEach(function(m, i){ m.classList.toggle('cur', i === FIL.hit); });
+  $('filHits').textContent = (FIL.hit + 1) + ' of ' + ms.length;
+  filJump(ms[FIL.hit]);
+}
+/* Scroll inside the reader without moving the page. */
+function filJump(el){
+  var body = $('filBody');
+  if(!el || !body) return;
+  body.scrollTo({ top:el.offsetTop - body.offsetTop - body.clientHeight / 3, behavior:'smooth' });
+  if(el.tagName === 'P'){ el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+}
+
+/* Marvell: attach the open document (or the filing index) and ask. */
+function filAsk(which){
+  var r = FIL.open && filRow(FIL.open), att;
+  if(r && FIL.doc && FIL.doc.acc === r.accession){
+    att = { kind:'text', name:FIL.sym + ' ' + r.form + ' ' + r.filing_date, text:FIL.sym + ' ' + r.form + ' (' + filTitle(r) + '), filed ' + r.filing_date +
+      (r.report_date ? ', period ended ' + r.report_date : '') + '. Source: ' + FIL.doc.url + '\n\n' + filExcerpt(FIL.doc.lines, 80000) };
+  } else if(r){
+    return toast('Still loading the document…');
+  } else {
+    att = { kind:'text', name:FIL.sym + ' filing index', text:'SEC filings for ' + (FIL.name || FIL.sym) + ' (' + FIL.sym + '), newest first:\n' +
+      FIL.rows.filter(function(x){ return filIn(x, 'key'); }).slice(0, 120).map(function(x){
+        return x.filing_date + '  ' + x.form + '  ' + filTitle(x) + (x.report_date ? '  (period ' + x.report_date + ')' : '');
+      }).join('\n') };
+  }
+  ATT = ATT.filter(function(a){ return a.name !== att.name; });
+  ATT.push(att); attPaint();
+  if(typeof rsShowTab === 'function') rsShowTab('chat');
+  if(which === 'open'){
+    openDrawer(true);
+    var p = $('prompt');
+    if(p && !p.value) p.placeholder = r ? 'Ask anything about this ' + r.form + '…' : 'Ask about ' + FIL.sym + '’s filings…';
+    toast((r ? r.form : 'Filing index') + ' attached — ask Marvell anything');
+    return;
+  }
+  var a = FIL_ASK[+which];
+  aiRun('custom', a[1], { shown:a[0] + ' · ' + att.name });
 }
 
 function renderScreener(){
@@ -7488,8 +8565,8 @@ function bindEvents(){
       case 'quote': ev.preventDefault(); go('#/quote/' + encodeURIComponent(sym)); break;
       case 'openlist': go('#/list/' + el.getAttribute('data-id')); break;
       case 'openpf': go('#/portfolio/' + el.getAttribute('data-id')); break;
-      case 'smart-toggle': { var open = !load('fh3_smart_open', true); save('fh3_smart_open', open);
-        el.setAttribute('aria-expanded', open); $('smartList').classList.toggle('open', open); break; }
+      case 'rail-sec': { var sid = el.getAttribute('data-sec'), open = el.getAttribute('aria-expanded') !== 'true'; save('fh3_rail_' + sid, open);
+        el.setAttribute('aria-expanded', open); el.closest('.rsec').classList.toggle('open', open); $('rf_' + sid).classList.toggle('open', open); break; }
       case 'market': CFG.market = el.getAttribute('data-group'); saveCfg(); renderSubnav();
         go(CUR.view === 'markets' ? '#/markets/' + CFG.market : '#/'); break;
       case 'sector': ev.preventDefault(); CUR.screen = Object.assign(defaultScreen(), { sector:el.getAttribute('data-sector') }); go('#/screener'); break;

@@ -27,6 +27,9 @@ The hosted copy is static, so a few features need the local server (`python3 ser
 the market-wide screener scan, Google News headlines, OpenCode Zen/Go models, and Deep
 research. Everything else (quotes, charts, crypto, FX, SEC financials, the Agent with
 OpenRouter / OpenAI / Anthropic / xAI / Gemini / DeepSeek / Groq keys) works as-is.
+Charts on the hosted copy come from the Cloudflare worker (`worker/`,
+`GET /api/chart` → Yahoo with edge cache) with stockanalysis.com as fallback,
+so no local server is needed for them.
 
 > **Not investment advice.** Market data is free and delayed, and may be incomplete or wrong.
 > AI answers can be wrong. Nothing here is a recommendation to buy or sell anything.
@@ -55,6 +58,20 @@ need the server.
 python3 serve.py --port 9000        # different port
 python3 serve.py --host 0.0.0.0     # reachable from your phone on the same Wi-Fi
 ```
+
+**Insider trading** (`#/insiders`) is served by `openinsider_scraper.py` through
+`serve.py`'s `/api/insiders` endpoint, which needs `pip install requests beautifulsoup4 lxml`.
+Without them (or on the hosted copy) the page parses OpenInsider in the browser instead.
+The scraper also runs on its own: `python3 openinsider_scraper.py TEM --out exports/`
+writes CSV and JSON.
+
+**Filings & Reports** (`#/filings`) lists a company's SEC filings and opens any of them in a
+reader with find-in-document, section jumps and Marvell. `serve.py` serves them through
+`edgar_filings.py` (`/api/filings`, `/api/filings/doc`; needs `requests`, and `bs4`/`lxml` for
+the cleanest text). Earnings 8-Ks open their EX-99 press release. Set `SEC_CONTACT=you@example.com`
+so SEC's fair-access rules can reach you. The hosted copy reads EDGAR directly instead: very
+large documents may not load there, and the ticker→CIK map ships as `assets/sec_tickers.json`
+(refresh with `python3 edgar_filings.py export-tickers`).
 
 ---
 

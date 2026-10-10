@@ -44,6 +44,7 @@ import argparse
 import gzip
 import io
 import json
+import re
 import os
 import shutil
 import subprocess
@@ -84,6 +85,7 @@ ALLOWED_HOSTS = {
     "stooq.pl",
     "api.twelvedata.com",
     "traderhub.openalice.ai",
+    "openinsider.com",
     # OpenCode Zen / Go — the AI gateway sends no CORS headers, so the browser
     # reaches it through this proxy. The caller's Authorization header is forwarded.
     "opencode.ai",
@@ -202,6 +204,12 @@ class Handler(SimpleHTTPRequestHandler):
             return self.oa_chart()
         if path == "/api/oa/quote":
             return self.oa_quote()
+        if path == "/api/insiders":
+            return self.insiders()
+        if path == "/api/filings":
+            return self.filings()
+        if path == "/api/filings/doc":
+            return self.filing_doc()
         if path == "/research/status":
             return self.json_out(harness_status())
         if path == "/research/runs":
@@ -362,6 +370,81 @@ class Handler(SimpleHTTPRequestHandler):
             self.wfile.write(body)
         except BrokenPipeError:
             pass
+
+    # --- insider trades (openinsider_scraper.py) -----------------------------
+
+    _ins_cache = {}            # (sym, days) -> (fetched_at, rows); ponytail: unbounded, fine for one user
+
+    def insiders(self):
+        """Form 4 rows for one ticker via openinsider_scraper.scrape(). The scraper
+        needs requests/bs4/lxml; without them this answers 501 and the page falls
+        back to parsing OpenInsider in the browser."""
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        try:
+            import openinsider_scraper as oi
+        except ImportError as e:
+            return self.json_error(501, "insider scraper unavailable: %s" % e)
+        try:
+            sym = oi.clean_ticker(qs.get("s", [""])[0])
+            days = max(1, min(3650, int(qs.get("days", ["730"])[0])))
+        except ValueError as e:
+            return self.json_error(400, str(e))
+        hit = self._ins_cache.get((sym, days))
+        if hit and time.time() - hit[0] < 30 * 60:
+            rows = hit[1]
+        else:
+            try:
+                rows = oi.scrape(sym, days=days)
+            except Exception as e:                                # noqa: BLE001
+                return self.json_error(502, "openinsider: %s" % e)
+            self._ins_cache[(sym, days)] = (time.time(), rows)
+        return self.json_out({"ticker": sym, "days": days, "rows": rows})
+
+    # --- SEC filings (edgar_filings.py) ---------------------------------------
+
+    EDGAR_CACHE = os.path.join(ROOT, ".work", "edgar")
+
+    def _edgar(self):
+        """(module, sym, cik, company, filings) or None after answering an error.
+        Needs `requests` (bs4/lxml optional); without it the page reads EDGAR itself."""
+        try:
+            import edgar_filings as ef
+        except ImportError as e:
+            self.json_error(501, "edgar scraper unavailable: %s" % e)
+            return None
+        sym = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query).get("s", [""])[0].upper().strip()
+        if not re.fullmatch(r"[A-Z][A-Z.\-]{0,9}", sym):
+            self.json_error(400, "bad ticker")
+            return None
+        try:
+            cik, name = ef.resolve(sym, self.EDGAR_CACHE)
+            rows = ef.all_filings(ef.submissions(cik, self.EDGAR_CACHE, 15, False))
+        except Exception as e:                                    # noqa: BLE001
+            self.json_error(404 if "unknown ticker" in str(e) else 502, str(e))
+            return None
+        return ef, sym, cik, name, rows
+
+    def filings(self):
+        got = self._edgar()
+        if got:
+            ef, sym, cik, name, rows = got
+            self.json_out({"ticker": sym, "cik": cik, "name": name, "filings": rows})
+
+    def filing_doc(self):
+        got = self._edgar()
+        if not got:
+            return
+        ef, sym, cik, name, rows = got
+        acc = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query).get("acc", [""])[0]
+        hit = [r for r in rows if r["accession"] == acc]   # only this company's own filings
+        if not hit:
+            return self.json_error(404, "no filing %s for %s" % (acc, sym))
+        try:
+            doc, text = ef.document_text(cik, hit[0], self.EDGAR_CACHE)
+        except Exception as e:                                    # noqa: BLE001
+            return self.json_error(502, str(e))
+        url = ef.ARCH.format(cik=cik, nodash=acc.replace("-", ""), name=doc)
+        self.json_out({"accession": acc, "form": hit[0]["form"], "doc": doc, "url": url, "text": text})
 
     # --- OpenAlice-style market data (hub-first reference, Yahoo bars) --------
 
