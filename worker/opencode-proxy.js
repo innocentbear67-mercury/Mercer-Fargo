@@ -58,6 +58,7 @@ export const FEEDS = [
   { re: /^https?:\/\/openinsider\.com\/screener\?/, ttl: 1800, http: true },
   { re: /^https:\/\/traderhub\.openalice\.ai\/api\/reference\/[a-z-]+$/, ttl: 300 },
   { re: /^https:\/\/data\.sec\.gov\/submissions\/CIK\d{10}\.json$/, ttl: 900, sec: true },
+  { re: /^https:\/\/data\.sec\.gov\/api\/xbrl\/companyfacts\/CIK\d{10}\.json$/, ttl: 3600, sec: true },
   { re: /^https:\/\/www\.sec\.gov\/Archives\/edgar\/data\/\d+\/\d{18}\/[\w.\-]+$/, ttl: 86400 * 30, sec: true },  // accessioned: immutable
 ];
 
@@ -72,6 +73,116 @@ async function feedResponse(u, env) {
   return new Response(res.body, { status: res.status, headers: out });   // streamed: big 10-Ks pass straight through
 }
 
+// (4) Web access for Marvell's harness: web search results and readable page text.
+// read is a general fetcher, so it is GET-only, public http(s) hosts only, size-capped,
+// returns text (never raw HTML), and rate-limited per IP.
+const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', '#39': "'" };
+export function decodeEnt(s) {
+  return String(s || '').replace(/&(#x[0-9a-f]+|#\d+|[a-z0-9]+);/gi, (m, e) => {
+    if (e[0] === '#') { const n = e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10); return n ? String.fromCodePoint(n) : m; }
+    return ENT[e.toLowerCase()] ?? m;
+  });
+}
+const strip = (x) => decodeEnt(String(x || '').replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+export function ddgParse(html) {
+  const out = [];
+  for (const b of String(html).split('class="result__a"').slice(1)) {
+    const m = b.match(/href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/);
+    if (!m) continue;
+    let href = decodeEnt(m[1]);
+    const u = href.match(/[?&]uddg=([^&]+)/);
+    if (u) href = decodeURIComponent(u[1]);
+    if (href.startsWith('//')) href = 'https:' + href;
+    if (!/^https?:\/\//.test(href) || /duckduckgo\.com\/y\.js/.test(href)) continue;   // skip ads
+    out.push({ title: strip(m[2]), url: href, snippet: strip((b.match(/class="result__snippet"[^>]*>([\s\S]*?)<\/a>/) || [])[1]) });
+    if (out.length >= 10) break;
+  }
+  return out;
+}
+export function bingParse(html) {
+  const out = [];
+  for (const b of String(html).split('class="b_algo"').slice(1)) {
+    const m = b.match(/<h2[^>]*>\s*<a[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/);
+    if (!m) continue;
+    let href = decodeEnt(m[1]);
+    const u = href.match(/[?&]u=a1([^&]+)/);   // bing.com/ck/a redirect: the target is base64url after "a1"
+    if (u) { try { href = atob(u[1].replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(u[1].length / 4) * 4, '=')); } catch (e) { continue; } }
+    if (!/^https?:\/\//.test(href)) continue;
+    out.push({ title: strip(m[2]), url: href, snippet: strip((b.match(/<p[^>]*>([\s\S]*?)<\/p>/) || [])[1]) });
+    if (out.length >= 10) break;
+  }
+  return out;
+}
+export function htmlText(html) {
+  const title = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '';
+  let body = html.replace(/<(script|style|noscript|svg|nav|footer|header|form|iframe)[\s\S]*?<\/\1>/gi, ' ').replace(/<!--[\s\S]*?-->/g, ' ');
+  body = body.replace(/<\/(p|div|h[1-6]|li|tr|br|section|article|table)>|<br\s*\/?>/gi, '\n').replace(/<(td|th)[^>]*>/gi, ' | ').replace(/<[^>]+>/g, ' ');
+  body = decodeEnt(body).replace(/[ \t\f\v]+/g, ' ').replace(/\n\s*/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  return { title: decodeEnt(title).replace(/\s+/g, ' ').trim(), text: body };
+}
+export function publicUrl(raw) {
+  let u;
+  try { u = new URL(raw); } catch (e) { return null; }
+  if (!/^https?:$/.test(u.protocol) || u.username || u.password) return null;
+  const h = u.hostname.toLowerCase();
+  if (h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.local') || h.endsWith('.internal') || !h.includes('.')) return null;
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(h) || h.includes(':') || h.startsWith('[')) return null;   // no literal IPs at all
+  return u;
+}
+const HITS = new Map();   // ponytail: per-isolate counter, best effort; use a Rate Limiting binding if abused
+function limited(req) {
+  const ip = req.headers.get('cf-connecting-ip') || 'x', now = Date.now(), win = HITS.get(ip) || [];
+  const recent = win.filter((t) => now - t < 60000);
+  recent.push(now); HITS.set(ip, recent);
+  if (HITS.size > 5000) HITS.clear();
+  return recent.length > 40;
+}
+// Bing first (most reliable in testing); DuckDuckGo blocks bursts of automated queries, so it is the fallback.
+const ENGINES = [
+  ['Bing', (q) => 'https://www.bing.com/search?q=' + encodeURIComponent(q) + '&setlang=en&cc=US', bingParse],
+  ['DuckDuckGo', (q) => 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(q), ddgParse],
+];
+async function searchResponse(q) {
+  q = String(q || '').trim().slice(0, 300);
+  if (!q) return json({ error: 'missing q' }, 400, 0);
+  const tried = [];
+  for (const [name, url, parse] of ENGINES) {
+    try {
+      const res = await fetch(url(q), { headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36', 'Accept-Language': 'en-US,en;q=0.9' } });
+      const results = res.ok ? parse(await res.text()) : [];
+      if (results.length) return json({ query: q, results, _meta: { source: name } }, 200, 600);
+      tried.push(name + (res.ok ? ': no results' : ': HTTP ' + res.status));
+    } catch (e) { tried.push(name + ': ' + String((e && e.message) || e).slice(0, 80)); }
+  }
+  return json({ error: 'search unavailable (' + tried.join('; ') + ')' }, 502, 0);
+}
+async function readResponse(raw, env) {
+  const u = publicUrl(raw);
+  if (!u) return json({ error: 'only public http(s) pages can be read' }, 400, 0);
+  const ua = /(^|\.)sec\.gov$/.test(u.hostname) ? 'MercerFargo research ' + ((env && env.SEC_CONTACT) || 'contact@example.com') : 'Mozilla/5.0';
+  let res, hops = 0, cur = u;
+  while (true) {   // follow redirects by hand so every hop passes publicUrl
+    res = await fetch(cur.href, { redirect: 'manual', headers: { 'User-Agent': ua, Accept: 'text/html,text/plain,application/json,*/*' }, cf: { cacheTtl: 900, cacheEverything: true } });
+    if (res.status < 300 || res.status > 399 || ++hops > 4) break;
+    const next = publicUrl(new URL(res.headers.get('location') || '', cur).href);
+    if (!next) return json({ error: 'redirected to a non-public address' }, 400, 0);
+    cur = next;
+  }
+  if (!res.ok) return json({ error: 'page HTTP ' + res.status, url: cur.href }, 502, 0);
+  const type = res.headers.get('content-type') || '';
+  if (!/text\/|json|xml/.test(type)) return json({ error: 'not a text page (' + type.split(';')[0] + ')', url: cur.href }, 415, 0);
+  const reader = res.body.getReader(), chunks = []; let size = 0;
+  while (size < 3000000) { const c = await reader.read(); if (c.done) break; chunks.push(c.value); size += c.value.length; }
+  reader.cancel().catch(() => {});
+  const buf = new Uint8Array(size); let o = 0; for (const c of chunks) { buf.set(c.subarray(0, size - o), o); o += c.length; }
+  const body = new TextDecoder().decode(buf);
+  const page = /html/.test(type) ? htmlText(body) : { title: '', text: body };
+  if (page.text.length < 400 && /just a moment|attention required|access denied|captcha|enable javascript/i.test(page.title + ' ' + page.text)) {
+    return json({ error: 'this site blocks automated reading; try another source', url: cur.href }, 403, 0);
+  }
+  const max = 20000;
+  return json({ url: cur.href, title: page.title, text: page.text.slice(0, max), truncated: page.text.length > max }, 200, 900);
+}
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -81,6 +192,10 @@ export default {
     }
     if (url.pathname === '/api/fetch' && req.method === 'GET') {
       return feedResponse(url.searchParams.get('u') || '', env);
+    }
+    if ((url.pathname === '/api/search' || url.pathname === '/api/read') && req.method === 'GET') {
+      if (limited(req)) return json({ error: 'too many requests, wait a minute' }, 429, 0);
+      return url.pathname === '/api/search' ? searchResponse(url.searchParams.get('q')) : readResponse(url.searchParams.get('u') || '', env);
     }
     // Existing OpenCode relay, unchanged.
     const target = url.searchParams.get('u') || '';

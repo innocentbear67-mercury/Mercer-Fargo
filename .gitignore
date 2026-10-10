@@ -4,8 +4,6 @@ __pycache__/
 .work/
 .claude/
 index-v*-backup.html
-# upstream Google Research FinanceHarness is cloned here separately (CC BY-NC 4.0), see README
-harness/
 
 # Cloudflare wrangler cache (holds account id and email)
 worker/.wrangler/

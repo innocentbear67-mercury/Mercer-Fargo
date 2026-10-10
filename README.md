@@ -2,10 +2,10 @@
 A market terminal in the Google Finance tradition — same layout discipline, its own
 brand: the header search and market tab strip, horizontal quote cards, a quote page
 with Overview / Analysis / Earnings / Financials / Holdings / Research tabs,
-watchlists, portfolios, a screener, a compare view, a BYOK AI panel and the local
-FinanceHarness deep-research agent.
-Everything ships in one file: **`index.html`**. No build step, no framework, no
-account, and no API keys required for market data.
+watchlists, portfolios, a screener, a compare view, and Marvell, a BYOK AI agent with
+live data tools, web search and Deep Research.
+The app is **`index.html`** plus Marvell's agent loop in **`harness.js`**. No build step, no
+framework, no account, and no API keys required for market data.
 
 **Brand:** charcoal black is the default theme — canvas `#141414` up through
 surfaces at `#1C1C1C`, `#2A2A2A` and the brand swatch `#333333`; antique gold
@@ -23,10 +23,10 @@ Open it, press the key button in the header, paste your own model key and pick a
 provider, model and effort. Your key stays in your browser's localStorage and is sent only
 to the provider you chose. Nothing is stored on a server.
 
-The hosted copy is static, so a few features need the local server (`python3 serve.py`):
-the market-wide screener scan, Google News headlines, OpenCode Zen/Go models, and Deep
-research. Everything else (quotes, charts, crypto, FX, SEC financials, the Agent with
-OpenRouter / OpenAI / Anthropic / xAI / Gemini / DeepSeek / Groq keys) works as-is.
+The hosted copy is static; the Cloudflare worker (`worker/`) fills the gaps: charts, news,
+movers, insiders, SEC data, and Marvell's web search and page reading. Everything works there
+with OpenRouter / OpenAI / Anthropic / xAI / Gemini / DeepSeek / Groq keys (OpenCode needs the
+relay or `serve.py`).
 Charts on the hosted copy come from the Cloudflare worker (`worker/`,
 `GET /api/chart` → Yahoo with edge cache) with stockanalysis.com as fallback,
 so no local server is needed for them.
@@ -34,8 +34,7 @@ so no local server is needed for them.
 > **Not investment advice.** Market data is free and delayed, and may be incomplete or wrong.
 > AI answers can be wrong. Nothing here is a recommendation to buy or sell anything.
 
-**Licence:** the app code is MIT (see `LICENSE`). The optional Deep research agent is Google
-Research's FinanceHarness, fetched separately under CC BY-NC 4.0, so it is non-commercial only.
+**Licence:** MIT (see `LICENSE`).
 
 ---
 
@@ -48,7 +47,7 @@ python3 serve.py            # http://127.0.0.1:8000
 
 `serve.py` is a small standard-library server (no packages to install). It serves
 the page, adds a `/proxy` endpoint for the two feeds a browser cannot call directly,
-and bridges the page to the local FinanceHarness research agent (details below).
+and gives Marvell web search and page reading (`/api/search`, `/api/read`).
 
 You can also just double-click `index.html`. Quotes, history, crypto, FX and SEC
 filings still work; only the market-wide screener scan and Google News headlines
@@ -228,15 +227,15 @@ only be used from within OpenCode"), so paid models need credits on the account.
 
 **Model picker (Oct 2026 catalog).** The model line under the chat opens a grouped
 picker like the one in OpenCode: provider sections, ★ favorites, FLASH/MAX/MED
-badges, and a per-model submenu (chevron) with a **Thinking** toggle plus a
-7-step **Effort** scale (Minimal → Ultra). Current defaults per provider:
+badges, and a per-model submenu (chevron) with a 7-step **Effort** scale
+(Minimal → Ultra). Thinking is always on, so there is no toggle; Minimal is the lowest. Current defaults per provider:
 OpenRouter `deepseek/deepseek-v4.1-flash`, OpenAI `gpt-6.1-sol`, Anthropic
 `claude-sonnet-5-5`, DeepSeek `deepseek-flash` (V4.1 Flash; legacy `deepseek-chat` /
 `deepseek-reasoner` were retired Jul 2026), Gemini `gemini-3.8-flash` (2.5-series
 retires Oct 20, 2026), Groq `openai/gpt-oss-120b`, OpenCode `deepseek-v4.1-flash`.
-Effort Medium preserves the previous temperature/token behavior; reasoning-capable
-endpoints get the matching knob (OpenCode `reasoning_effort`, Anthropic thinking
-budget, Gemini thinking budget). reasoning models (GPT-5/6, o-series) skip
+Every request carries the provider's reasoning knob at that effort (OpenRouter
+`reasoning`, OpenAI/OpenCode/Groq `reasoning_effort`, DeepSeek `thinking`, Anthropic
+thinking budget, Gemini thinking budget, responses `reasoning`). reasoning models (GPT-5/6, o-series) skip
 `temperature`, which their APIs reject. "Refresh models" pulls the live
 OpenRouter catalog; "Add custom model…" stores ids under Custom.
 
@@ -245,11 +244,11 @@ OpenRouter catalog; "Add custom model…" stores ids under Custom.
 ## Files
 
 ```
-index.html                 the whole app (markup, CSS, data layer, views, AI, research panel)
-serve.py                   static server, /proxy allow-list, /research bridge
-bridge/fh_bridge.py        turns the page's provider/key into a harness profile
-harness/                   NOT in this repo: your clone of Google Research's FinanceHarness (CC BY-NC 4.0)
-  finance_harness/         see "Deep research install" below
+index.html                 the app (markup, CSS, data layer, views, AI, research panel)
+harness.js                 Marvell's agent loop: provider adapters, tools, sources, review pass
+docs/marvell-guide.md      the app guide Marvell reads with its read_docs tool
+serve.py                   static server, /proxy allow-list, /api/search and /api/read
+worker/                    Cloudflare worker: charts, feed relay, web search and page reading
 README.md                  this file
 .work/                     working files, notes and test fixtures
   plan.md                  the implementation and design plan
@@ -262,87 +261,33 @@ README.md                  this file
   reference/gfinance.css   theme tokens copied from Google Finance for reference
 ```
 
-## Deep research — Google Research's FinanceHarness, your own model
+## Marvell harness — the agent behind chat and Deep Research
 
-The Research page carries a **Deep research** panel that runs
-[FinanceHarness](https://github.com/google-research/google-research/tree/master/finance_harness),
-Google Research's model-agnostic financial research agent, on this machine. It is a
-different kind of tool from the chat helper below: instead of one prompt, it runs a
-bounded agent loop — it searches the web, reads and cites pages, pulls fundamentals
-through the equity tools and can build a DCF — then returns a cited report.
+`harness.js` is a browser-side agent loop modelled on Google Research's FinanceHarness
+(loop → tool calls → results → repeat, with round and time caps, a live plan, numbered
+sources and a final grounding pass), rebuilt for this site so it runs the same on the
+hosted copy and locally.
 
-**It uses your key, not ours.** Pick your provider in the panel (or in Keys), and
-the server hands the harness a profile built from that provider, model and key. The
-key travels over loopback to the local server and then straight to your provider; it
-is never written to disk or logged. Anthropic's own API is not OpenAI-compatible, so
-route Claude through OpenRouter.
+* **Your key, your provider.** Native tool calling for OpenAI-style chat (OpenRouter, OpenAI,
+  xAI, DeepSeek, Groq, OpenCode, custom), OpenAI responses, Anthropic and Gemini.
+* **Thinking is always on.** Every request asks for reasoning at the chosen effort; Minimal is
+  the floor and there is no off switch. A provider that rejects the reasoning field gets one
+  retry without it; models that cannot reason simply answer.
+* **Not limited to the open page.** Data tools take any ticker: `get_quote`, `get_price_history`,
+  `get_financials` (SEC XBRL), `list_filings` / `read_filing` (EDGAR), `get_insider_trades`
+  (Form 4), `get_news`, `screen_stocks`, `get_investor_holdings` (13F), plus `calculate` and `dcf`.
+* **Web access, always loaded.** `web_search` (Bing, with DuckDuckGo as fallback) and `read_webpage` go through `/api/search` and `/api/read` — `serve.py`
+  locally, the worker on the hosted site. Page reading is GET-only, public hosts only
+  (no IPs, localhost or private ranges; redirects re-checked), text-only and size-capped.
+* **Drives the app.** `open_quote`, `navigate`, `compare`, `set_chart`, `run_screener`,
+  `open_filing` and `read_current_page` run straight away. `propose_changes` (create/add/delete
+  portfolios and watchlists) only shows an Apply card; nothing changes until the user clicks.
+* **Knows the app.** `read_docs` reads `docs/marvell-guide.md`.
+* **Chat** (Agent tab): up to 15 rounds, 4 minutes; the thinking indicator shows the current step.
+  **Deep Research**: up to 40 rounds, 10 minutes, a live plan (`update_plan`), cited report,
+  then a grounding review; runs are saved in this browser (Research Log, Past runs).
 
-**It lives in a side panel.** Click the sparkle button in the header — or *Open the
-panel* on the Research page — and the panel slides in from the right; click it again
-to close. It is the same drawer as the AI Assistant, with an **Assistant / Deep
-research** tab switch, and it stays put while you move around the terminal: open a
-quote, compare charts, run a screen, and the run keeps streaming in the background.
-The header button shows a **pulsing gold dot while a run is in flight** and a **green
-dot when a report is ready**, so you can watch the market and the agent at once.
-**Settings stay out of the way.** Both panes open with one compact pill — the Assistant
-shows `OpenRouter · Sonnet 4 · Med effort`, the research pane shows `Setup  Auto ·
-OpenRouter · Sonnet 4 · Med`. Provider, model, thinking effort, the API key field and the
-base URL only appear when that pill is clicked, and they collapse again on a second
-click, on Esc, or as soon as you click anywhere else — the drawer itself stays open.
-Picking a model or effort never requires a separate dialog.
-
-**The panel pushes the page, it does not cover it.** Opening the panel splits the
-window into a **7:3 layout** — roughly 70% terminal, 30% agent (`--panel-w:
-clamp(300px, 30vw, 640px)`). `body.panel-open` takes a matching `padding-right`, so
-tables, charts and the market rail reflow into the left 70% and everything stays
-readable while a run streams. The app bar itself keeps its full width and sits above
-the panel. Below about 860px there is no room to split, so the panel overlays
-instead. Closing the panel (sparkle button, the panel's ×, or `Esc`) restores the
-full-width layout.
-
-**Chat sessions are the history.** Every conversation with the assistant is stored
-as a session with an id, a title, a timestamp and the symbols it touched. The
-**Research** page is now history only: a *Chat sessions* list — open a session to
-continue it in the panel or delete it when done, start a **New chat**, or
-**Export CSV** — plus a *Deep research runs* list fed by `/research/runs`, with
-**Open the panel** to start something new. No AI work is launched from that page;
-chat and deep research both live in the right-hand panel.
-
-```bash
-cd finance-byok
-python3 serve.py            # then open http://127.0.0.1:8000/#/research
-```
-
-* **Install**: the harness is not bundled. Fetch it once (sparse clone, ~tens of MB):
-  `git clone --depth 1 --filter=blob:none --sparse https://github.com/google-research/google-research harness && git -C harness sparse-checkout set finance_harness`,
-  then press **Install harness** in the panel, which runs `uv sync` and streams the
-  output (`uv` also fetches the Python 3.12 the harness needs). The rest of the app
-  works without it.
-* **Modes**: `auto` (web + tools), `research` (web research with the self-grounding
-  pass), `analytical` (numbers first: fundamentals, comps, DCF).
-* **Runner model vs reader model**: the reader is the cheaper model `visit` uses to
-  extract a page. Leave it blank to use the runner model.
-* **Trajectories**: every run is saved as JSON in `.work/research/` and can be
-  reopened from **Past runs**. The full message log, tool log and citations are in
-  there.
-* **Licence**: FinanceHarness is **CC BY-NC 4.0 — non-commercial use only**. Personal,
-  academic and other non-commercial use is fine; commercial use, or using its output
-  to give commercial investment advice, is not. If this site is going to make money,
-  replace the harness or get a licence from Google.
-
-### How the bridge is wired
-
-```
-index.html  --POST /research/run-->  serve.py  --stdin JSON-->  bridge/fh_bridge.py
-    ^                                                                   |
-    +---------------- SSE: tokens, tool calls, report -------------------+
-```
-
-`serve.py` adds four endpoints (`/research/status`, `/research/setup`,
-`/research/run`, `/research/cancel` plus `/research/runs`). `fh_bridge.py` builds a
-`ModelProfile` for your provider, calls `run_research()` with the harness's own
-`on_event` callback, and streams newline-delimited JSON back up. Nothing is patched
-inside the vendored harness; the profile is the seam it already exposes.
+After changing `worker/opencode-proxy.js`, redeploy it: `cd worker && npx wrangler deploy`.
 
 ## Notes and limits
 

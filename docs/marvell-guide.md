@@ -10,8 +10,11 @@ It runs on the user's own API key (BYOK) and the provider they chose; there is n
 
 Its job:
 - Explain markets, stocks, portfolios, filings and the app itself in plain, coach-like language.
-- Ground every number in the DATA block, attachments or this guide. Never invent prices, filings, ratings or dates.
-- Operate the app when asked (open pages, compare, create portfolios/watchlists) via action blocks. Writes need the user's Apply click.
+- Ground every number in tool results, the DATA block, attachments or this guide. Never invent prices, filings, ratings or dates.
+- Fetch what the question needs, for any company or topic, not just the page that is open: data tools for quotes, history,
+  SEC financials and filings, insider trades, news, screens and 13F holdings; web_search + read_webpage for everything else.
+- Operate the app: open pages, quotes, charts, compare, screener and filings straight away; propose portfolio/watchlist
+  changes with propose_changes, which only take effect when the user clicks Apply.
 - Point users to the right page or button when they ask "how do I…".
 
 What it does not do: tell a user to buy or sell, size positions, promise returns, give tax or legal advice,
@@ -128,21 +131,26 @@ No AI runs from this page itself.
 
 ## agent-chat
 The **Agent** tab of the Marvell panel. Open it with *Research with Marvell*; ⤢ for full screen; *New session* starts fresh.
-- Type a question. Marvell receives the current page context (symbol, price, stats, watchlist, portfolio, headlines) automatically.
+- Type a question. Marvell receives the current page context (symbol, price, stats, watchlist, portfolio, headlines) and the last few turns of the session, and can fetch anything else with its tools.
+- While it works, the thinking indicator shows the current step (e.g. "🔎 Searching…", "📄 Reading…"). Answers that use fetched data end with a numbered Sources list.
 - **Attach** (paperclip): images, PDF, CSV, TXT, MD, JSON and more. Images need a vision-capable model.
 - **Quick analyses** (lightning button): Summary, Bull vs bear, Earnings, Valuation, Risk scan, Sentiment, My watchlist, Portfolio, Deep Search.
 - **Deep Search**: fetches fresh headlines for the question first, then answers.
-- **Model pill** under the box: switch provider/model, Thinking on/off and Effort (Minimal → Ultra).
+- **Model pill** under the box: switch provider/model and Effort (Minimal → Ultra). Thinking is always on; Minimal is the lowest setting.
 - **Mic**: dictate a question.
 - **Skills**: type `/` (see `skills`).
-- Actions: Marvell can open pages instantly; creating/adding/deleting shows an approval card (**Apply** / dismiss).
-Each message is answered on its own with the current page data; earlier turns are shown but not re-sent to the model.
+- Actions: Marvell opens pages instantly; creating/adding/deleting shows an approval card (**Apply** / Dismiss).
+Limits per message: up to 15 tool rounds or about 4 minutes, then it answers with what it has.
 
 ## deep-research
 The **Deep Research** tab of the Marvell panel, or *Start deep research on SYM* on a quote's Research tab. Produces a structured, cited report.
-- **Local (`python3 serve.py`)**: runs Google Research's FinanceHarness agent with the user's key — web search, reading and citing pages, fundamentals, DCF. Modes: auto, research, analytical. Must be installed once (*Install harness*). Non-commercial licence (CC BY-NC 4.0).
-- **Hosted site (no serve.py)**: Marvell gathers data in the browser — quotes, news, insider trades (Form 4), SEC filings and an excerpt of the latest 10-K/10-Q — then writes the report.
-The header button shows a pulsing gold dot while running and a green dot when the report is ready. Reports can be copied or downloaded and are saved to the Research Log.
+- Pick focus areas (Auto, Macro, Competitors, Fundamentals, Earnings, Insiders, News & Politics) and a model under *Setup*.
+- Marvell writes a plan (shown as a checklist that ticks off), then searches the web, reads pages and filings, pulls prices,
+  financials and insider data for any companies involved, computes figures, writes the report with [n] citations,
+  and finally re-checks the report against its sources.
+- Runs the same on the hosted site and locally; up to 40 rounds or 10 minutes. *Stop* ends it early.
+- The header button shows a pulsing gold dot while running and a green dot when the report is ready. Reports can be copied
+  or downloaded and are saved in this browser (Research Log and *Past runs*).
 `/learn` cannot run here; it moves to Agent chat.
 
 ## skills
@@ -162,7 +170,8 @@ Header key button or Settings → AI & API keys (`#/settings/ai`).
 Providers: OpenRouter, OpenAI, Anthropic, xAI (Grok), Gemini, DeepSeek, Groq, OpenCode Go, OpenCode Zen, Custom (any OpenAI-compatible endpoint).
 Steps: pick a provider, paste the key, **Save**, **Test** (the dot turns green when it works), pick a default model and effort.
 OpenRouter lists free models (marked *free*) — a good start for new users. *Refresh models* pulls the live catalog; *Add custom model…* stores other ids.
-Keys stay in this browser and go only to the chosen provider. OpenCode Go/Zen and Deep Research's harness need `serve.py`; a Go key must use the OpenCode Go provider.
+Keys stay in this browser and go only to the chosen provider. OpenCode Go/Zen need `serve.py` or the relay; a Go key must use the OpenCode Go provider.
+Thinking is always on: every request asks the model to reason at the chosen effort (Minimal → Ultra). Models that cannot reason just answer.
 Errors usually mean a wrong key, a wrong model name, no credits, or a provider that blocks browser calls.
 
 ## accounts-and-profile
@@ -182,11 +191,12 @@ All free and delayed (typically ~15 minutes for US stocks). Nothing is fabricate
 - Screener, gainers/losers, most valuable: TradingView market scan. Crypto: CoinGecko. FX: ECB (Frankfurter).
 - News: Google News RSS locally; Yahoo Finance on the hosted site.
 - Financial statements: SEC XBRL (or the user's CSV). Filings: SEC EDGAR. Insider trades: OpenInsider (Form 4). Smart Money: 13F filings and public disclosures.
+- Web: Bing search (DuckDuckGo fallback) and page text, via serve.py or the worker.
 - Not available: real-time ticks, transcripts, fund holdings, full analyst estimates (user-entered or AI-drafted, always labelled).
 
 ## hosted-vs-local
-- **Hosted** (https://innocentbear67-mercury.github.io/Mercer-Fargo/): static site plus a Cloudflare worker for charts, news, movers, insiders and filings. Works with OpenRouter, OpenAI, Anthropic, xAI, Gemini, DeepSeek and Groq keys. Deep Research uses browser mode.
-- **Local** (`python3 serve.py`, then http://127.0.0.1:8000): adds the full screener scan, Google News, OpenCode Go/Zen models and the FinanceHarness Deep Research agent.
+- **Hosted** (https://innocentbear67-mercury.github.io/Mercer-Fargo/): static site plus a Cloudflare worker for charts, news, movers, insiders, SEC data, web search and page reading. Works with OpenRouter, OpenAI, Anthropic, xAI, Gemini, DeepSeek and Groq keys.
+- **Local** (`python3 serve.py`, then http://127.0.0.1:8000): adds the full screener scan, Google News and OpenCode Go/Zen models; web search and page reading run through serve.py.
 - Opening `index.html` directly from disk: quotes, history, crypto, FX and SEC data work; screener and news don't.
 
 ## troubleshooting
@@ -197,4 +207,5 @@ All free and delayed (typically ~15 minutes for US stocks). Nothing is fabricate
 - **Prices look stale**: free feeds are delayed; check the status chip in the header.
 - **Data disappeared**: it lives in browser storage; clearing site data or a private window loses it. Export CSVs to keep a copy.
 - **Image attachment ignored**: the model can't read images; pick a vision model.
-- **Deep Research unavailable locally**: install the harness (*Install harness* in the panel).
+- **Web search fails**: Bing is tried first, then DuckDuckGo. If both fail, try again in a minute.
+- **"This site blocks automated reading"**: some sites refuse bots; Marvell should try another source.
