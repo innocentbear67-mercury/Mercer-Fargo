@@ -54,6 +54,7 @@ async function chartResponse(symbol, rng) {
 // GET only, cached at the edge for `ttl` seconds.
 export const FEEDS = [
   { re: /^https:\/\/news\.google\.com\/rss\/search\?/, ttl: 600 },
+  { re: /^https:\/\/feeds\.finance\.yahoo\.com\/rss\/2\.0\/headline\?s=[\w^.,=%-]+&region=US&lang=en-US$/, ttl: 600 },  // Google News blocks Cloudflare's IPs
   { re: /^https?:\/\/openinsider\.com\/screener\?/, ttl: 1800, http: true },
   { re: /^https:\/\/traderhub\.openalice\.ai\/api\/reference\/[a-z-]+$/, ttl: 300 },
   { re: /^https:\/\/data\.sec\.gov\/submissions\/CIK\d{10}\.json$/, ttl: 900, sec: true },

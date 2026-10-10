@@ -2154,7 +2154,7 @@ function fetchWithTimeout(url, ms, init){
 var PROXY_FIRST = { 'news.google.com':1, 'openinsider.com':1 };
 /* Feeds the hosted worker relays (worker/ /api/fetch): tried right after serve.py's proxy,
    ahead of the slow public relay. Keep in sync with FEEDS in worker/opencode-proxy.js. */
-var EDGE_HOSTS = { 'news.google.com':1, 'openinsider.com':1, 'traderhub.openalice.ai':1, 'www.sec.gov':1 };
+var EDGE_HOSTS = { 'news.google.com':1, 'feeds.finance.yahoo.com':1, 'openinsider.com':1, 'traderhub.openalice.ai':1, 'www.sec.gov':1 };
 var DIRECT_ONLY = {
   'scanner.tradingview.com':1, 'stockanalysis.com':1, 'api.coingecko.com':1,
   'api.frankfurter.dev':1, 'api.frankfurter.app':1, 'data.sec.gov':1
@@ -2757,10 +2757,19 @@ function parseRSS(xml){
   }
   return items;
 }
+/* Yahoo Finance headlines by ticker: the hosted site's source, because Google News answers
+   Cloudflare's shared IPs with an "unusual traffic" page. Queries without tickers get the indices. */
+function yahooNewsUrl(query){
+  var syms = (String(query).match(/\b[A-Z][A-Z.\-]{0,5}\b/g) || []).filter(function(t){ return !/^(OR|AND|NOT|S|P)$/.test(t); });
+  return 'https://feeds.finance.yahoo.com/rss/2.0/headline?s=' + encodeURIComponent((syms.length ? syms.slice(0, 8) : ['^GSPC', '^DJI', '^IXIC']).join(',')) + '&region=US&lang=en-US';
+}
 function fetchNews(query, limit){
-  return fetchText(newsUrl(query), 14000).then(function(xml){
-    return parseRSS(xml).slice(0, limit || 10);
-  });
+  var google = function(){ return fetchText(newsUrl(query), 14000).then(function(xml){ var it = parseRSS(xml); if(!it.length) throw new Error('no headlines'); return it; }); };
+  var yahoo = function(){ return fetchText(yahooNewsUrl(query), 14000).then(function(xml){
+    var it = parseRSS(xml); if(!it.length) throw new Error('no headlines');
+    return it.map(function(i){ i.src = 'Yahoo Finance'; return i; });
+  }); };
+  return (canTryProxy() ? google().catch(yahoo) : yahoo().catch(google)).then(function(it){ return it.slice(0, limit || 10); });
 }
 
 /* --- fundamentals ------------------------------------------------------- */
