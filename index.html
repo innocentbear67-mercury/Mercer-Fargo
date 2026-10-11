@@ -627,6 +627,13 @@ tr:hover .wl-add,.wl-add:focus-visible,.wl-add.on{opacity:1}
 .menu .mi:hover{background:var(--fh-states-neutral-hovered)}
 .menu .mi.on{background:var(--fh-states-branded-medium-selected);color:var(--fh-foreground-on-highlight)}
 .menu .mhead{padding:10px 14px 6px;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis)}
+.chs-menu{min-width:0;width:min(640px,calc(100vw - 16px));padding:14px 18px 10px}
+.chs-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px}
+.chs-i{display:flex;align-items:center;gap:14px;border:0;background:transparent;padding:14px 4px;font-size:16px;text-align:left;color:var(--fh-foreground-on-surface-default);border-radius:8px;cursor:pointer}
+.chs-i:hover{background:var(--fh-states-neutral-hovered)}
+.chs-i i{flex:none;width:26px;height:26px;border-radius:7px;border:2px solid var(--fh-border-stroke-default);box-sizing:border-box;position:relative}
+.chs-i.on i{background:#e9ebfa;border-color:#e9ebfa}
+.chs-i.on i::after{content:"";position:absolute;left:7px;top:2px;width:6px;height:12px;border:solid #141414;border-width:0 3px 3px 0;transform:rotate(45deg)}
 .menu .msep{height:1px;background:var(--fh-border-stroke-default);margin:6px 8px}
 .dlg-wrap{position:fixed;inset:0;z-index:80;background:var(--fh-background-scrim);display:flex;align-items:center;justify-content:center;padding:20px}
 .dlg{background:var(--fh-background-surface-elevated);border-radius:20px;box-shadow:var(--fh-elevation-3);width:min(620px,100%);max-height:86vh;display:flex;flex-direction:column;overflow:hidden}
@@ -2078,6 +2085,8 @@ body.rs-drag iframe{pointer-events:none}
 .ch-host .ch-hl-t{font-size:12px;font-weight:600;fill:var(--fh-foreground-on-surface-default);paint-order:stroke;stroke:var(--fh-background-surface);stroke-width:3px;font-variant-numeric:tabular-nums}
 .ch-host .ch-mk{cursor:pointer}
 .ch-host .ch-mk circle{fill:var(--mf-gold);stroke:var(--fh-background-surface);stroke-width:1.5;transition:r .12s}
+.ch-host .ch-mk.buy circle{fill:var(--fh-positive)}
+.ch-host .ch-mk.buy text{fill:#fff}
 .ch-host .ch-mk text{font-size:10.5px;font-weight:700;fill:#1b1508;pointer-events:none}
 .ch-host .ch-mk.future circle{fill:var(--fh-background-surface);stroke:var(--mf-gold);stroke-width:1.6;stroke-dasharray:2.5 2}
 .ch-host .ch-mk.future text{fill:var(--mf-gold)}
@@ -2979,7 +2988,12 @@ function saveHistCache(sym, days, data){
   save(LS.hist, all);
 }
 
-var RANGE_DAYS = { '1D':7, '5D':12, '1M':40, '6M':200, 'YTD':260, '1Y':380, '5Y':1900, 'MAX':6000 };
+var RANGE_DAYS = { 'M1':6, 'M5':7, 'M15':12, 'H1':181, 'H4':181, '1D':7, '5D':12, '1M':40, '6M':200, 'YTD':260, '1Y':380, '5Y':1900, 'MAX':6000 };
+/* Timeframe pills: 1min is the shortest. '1D' stays valid for saved settings but no longer has a pill. */
+var RANGE_PILLS = ['M1', 'M5', 'M15', 'H1', 'H4', '5D', '1M', '6M', 'YTD', '1Y', '5Y', 'MAX'];
+var RANGE_LABEL = { M1:'1min', M5:'5min', M15:'15min', H1:'1hr', H4:'4hr', '1D':'5min' };
+var RANGE_INTRA = { M1:1, M5:1, M15:1, H1:1, H4:1, '1D':1, '5D':1 };
+function rlab(r){ return RANGE_LABEL[r] || r; }
 function saRange(days){
   if(days <= 70) return '3M';
   if(days <= 140) return '6M';
@@ -2993,7 +3007,7 @@ function saSlug(sym){
 }
 
 /* Intraday bars cached before timestamps were kept can't label times: fetch again. */
-function histUsable(rows, range, sym){ return rows && (range === '1D' || range === '5D') && rows.length && !rows[rows.length - 1].t && !isFx(dispSym(sym)) ? null : rows; }
+function histUsable(rows, range, sym){ return rows && RANGE_INTRA[range] && rows.length && !rows[rows.length - 1].t && !isFx(dispSym(sym)) ? null : rows; }
 
 /* Public entry point: also mirrors the series into DATA.hist so views that read
    DATA.hist directly (quote stats, compare table and chart) see it too. */
@@ -3083,7 +3097,7 @@ function fetchHistoryRaw(sym, range){
   if(TV_MISS[s] && !CG[s] && !isFx(s) && Date.now() - TV_MISS[s] < 600000) return Promise.resolve([]);   // unknown symbol: skip the slow relay chain
 
   if(CG[s]){
-    var d2 = range === '1D' ? 1 : (range === '5D' ? 7 : (range === '1M' ? 30 : (range === '6M' ? 180 : (range === '5Y' ? 1825 : (range === 'MAX' ? 3650 : 365)))));
+    var d2 = (range === '1D' || range === 'M1' || range === 'M5') ? 1 : (range === 'M15' ? 7 : (range === 'H1' || range === 'H4') ? 30 : (range === '5D' ? 7 : (range === '1M' ? 30 : (range === '6M' ? 180 : (range === '5Y' ? 1825 : (range === 'MAX' ? 3650 : 365))))));
     return fetchJSON('https://api.coingecko.com/api/v3/coins/' + CG[s] + '/market_chart?vs_currency=usd&days=' + d2, 14000)
       .then(function(j){
         var pts = (j.prices || []).map(function(p){
@@ -3139,6 +3153,7 @@ function fetchHistoryRaw(sym, range){
     });
   };
   if(range === '1D' || range === '5D') return viaEdge().catch(viaOA).catch(viaSA);
+  if(RANGE_INTRA[range]) return viaEdge().catch(viaOA);   // stockanalysis is daily-only: no fallback for intraday timeframes
   return viaEdge().catch(viaSA).catch(viaOA);
 }
 
@@ -3345,9 +3360,10 @@ var CHART_PALETTE = ['#3364f0', '#e32935', '#1f8b1a', '#de7300', '#7816f7'];
    one of them. Drag or swipe sideways to scroll, wheel / pinch to zoom. When the window runs past the
    data or gets too dense it moves to the resolution that fits, and the price axis, % axis, date axis,
    volume, moving averages, overlays and compare lines re-fit to what is on screen. */
-var CH_LV = { m5:{ span:2, name:'5 min' }, m15:{ span:12, name:'15 min' }, d:{ span:1000, name:'Daily' }, w:{ span:4000, name:'Weekly' }, mo:{ span:Infinity, name:'Monthly' } };
-var CH_ORDER = ['m5', 'm15', 'd', 'w', 'mo'];
-var CH_RANGE = { '1D':['m5', 0], '5D':['m15', 0], '1M':['d', 31], '6M':['d', 183], 'YTD':['d', -1], '1Y':['d', 366], '5Y':['w', 0], 'MAX':['mo', 0] };   // resolution, days shown (0 = all)
+var CH_LV = { m1:{ span:2, name:'1 min' }, m5:{ span:2, name:'5 min' }, m15:{ span:12, name:'15 min' }, h1:{ span:60, name:'1 hour' }, h4:{ span:150, name:'4 hour' }, d:{ span:1000, name:'Daily' }, w:{ span:4000, name:'Weekly' }, mo:{ span:Infinity, name:'Monthly' } };
+var CH_ORDER = ['m1', 'm5', 'm15', 'h1', 'h4', 'd', 'w', 'mo'];
+var CH_INTRA = { m1:1, m5:1, m15:1, h1:1, h4:1 };
+var CH_RANGE = { 'M1':['m1', 1], 'M5':['m5', 0], 'M15':['m15', 0], 'H1':['h1', 30], 'H4':['h4', 90], '1D':['m5', 0], '5D':['m15', 0], '1M':['d', 31], '6M':['d', 183], 'YTD':['d', -1], '1Y':['d', 366], '5Y':['w', 0], 'MAX':['mo', 0] };   // resolution, days shown (0 = all)
 var CH_DATA = {}, CH_BUSY = {};
 
 function chRows(rows){
@@ -3376,15 +3392,27 @@ function chCached(key, make){
 function chLoad(sym, lv){   // listed symbols (stocks, funds, crypto, FX) through the app's own history feeds
   var s = dispSym(sym), wide = CG[s] || isFx(s);   // crypto and FX: their 5-year feed is already daily
   return chCached('q|' + s + '|' + lv, function(){
-    return lv === 'm5' ? fetchHistory(s, '1D') : lv === 'm15' ? fetchHistory(s, '5D')
+    if((lv === 'm1' || lv === 'h1' || lv === 'h4') && (isFx(s) || (CG[s] && lv === 'm1'))) return Promise.resolve([]);   // no intraday feed for these
+    return lv === 'm1' ? fetchHistory(s, 'M1') : lv === 'm5' ? fetchHistory(s, '1D') : lv === 'm15' ? fetchHistory(s, '5D')
+      : lv === 'h1' ? fetchHistory(s, 'H1') : lv === 'h4' ? fetchHistory(s, 'H1').then(chAgg4)
       : lv === 'd' ? (wide ? fetchHistory(s, '5Y') : chDaily(s).catch(function(){ return fetchHistory(s, '1Y'); }))
       : lv === 'w' ? (wide ? Promise.resolve([]) : fetchHistory(s, '5Y')) : fetchHistory(s, 'MAX');
   });
 }
 function chLoadY(sym, lv){   // Yahoo symbols (^N225, ES=F, EURUSD=X) straight from the edge worker
   return chCached('y|' + sym + '|' + lv, function(){
-    return mkFetch(sym, { m5:'1D', m15:'5D', d:'1Y', w:'5Y', mo:'MAX' }[lv]).then(function(r){ return r.bars; });
+    return mkFetch(sym, { m1:'M1', m5:'1D', m15:'5D', h1:'H1', h4:'H1', d:'1Y', w:'5Y', mo:'MAX' }[lv]).then(function(r){ return lv === 'h4' ? chAgg4(r.bars) : r.bars; });
   });
+}
+function chAgg4(rows){   // 1-hour bars -> 4-hour bars: four in a row within one UTC day
+  var out = [], cur = null, n = 0;
+  (rows || []).forEach(function(b){
+    if(!b || b.c == null) return;
+    var o = b.o != null ? b.o : b.c, h = b.h != null ? b.h : b.c, l = b.l != null ? b.l : b.c;
+    if(cur && cur.d === b.d && n < 4){ cur.h = Math.max(cur.h, h); cur.l = Math.min(cur.l, l); cur.c = b.c; cur.v = (cur.v || 0) + (b.v || 0); n++; return; }
+    cur = { t:b.t, d:b.d, o:o, h:h, l:l, c:b.c, v:b.v || 0 }; n = 1; out.push(cur);
+  });
+  return out;
 }
 function chStep(r){ var n = r.length; return n > 1 ? (r[n - 1].t - r[0].t) / (n - 1) : 86400; }
 function chT(r, i){   // time at a (fractional, possibly off-the-end) bar index
@@ -3407,11 +3435,52 @@ function chAsOf(rows, t){   // last bar at or before t
 }
 function chNice(x){ var p = Math.pow(10, Math.floor(Math.log10(x))), m = x / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p; }
 function chResName(r){   // name the bar size from the data itself (Yahoo's full history is quarterly, not monthly)
-  var d = chStep(r) / 86400;
-  return d < 1 / 100 ? '5 min' : d < 1 / 30 ? '15 min' : d < .5 ? 'Hourly' : d < 2.5 ? 'Daily' : d < 10 ? 'Weekly' : d < 45 ? 'Monthly' : 'Quarterly';
+  if(!r.__rn){   // median gap between bars: overnight and weekend gaps don't skew it
+    var g = []; for(var i = 1; i < r.length; i++) g.push(r[i].t - r[i - 1].t);
+    g.sort(function(a, b){ return a - b; }); r.__rn = (g[g.length >> 1] || 86400) / 86400;
+  }
+  var d = r.length > 8 ? r.__rn : chStep(r) / 86400;
+  return d < 1 / 1000 ? '1 min' : d < 1 / 100 ? '5 min' : d < 1 / 30 ? '15 min' : d < .09 ? 'Hourly' : d < .5 ? '4 hour' : d < 2.5 ? 'Daily' : d < 10 ? 'Weekly' : d < 45 ? 'Monthly' : 'Quarterly';
 }
 function chPctTxt(p){ return (p > 0 ? '+' : '') + num(p, Math.abs(p) < 10 ? 2 : 1) + '%'; }
-var CH_UNITS = [[300, 'm'], [900, 'm'], [1800, 'm'], [3600, 'h'], [7200, 'h'], [14400, 'h'], [86400, 'd'], [604800, 'wk'], [2629800, 'mo'], [7889400, 'mo'], [15778800, 'mo'], [31557600, 'y'], [63115200, 'y'], [157788000, 'y'], [315576000, 'y']];
+var CH_UNITS = [[60, 'm'], [120, 'm'], [300, 'm'], [900, 'm'], [1800, 'm'], [3600, 'h'], [7200, 'h'], [14400, 'h'], [86400, 'd'], [604800, 'wk'], [2629800, 'mo'], [7889400, 'mo'], [15778800, 'mo'], [31557600, 'y'], [63115200, 'y'], [157788000, 'y'], [315576000, 'y']];
+
+/* ---- Chart settings: right-click (two-finger click on a Mac) any chart. One set for every chart, saved in this browser. ---- */
+var CHS_ITEMS = [['trades', 'Trade Markings'], ['cost', 'Position Cost Line'], ['price', 'Price Line'], ['prev', 'Prev Close Line'], ['alert', 'Price Alert Line'],
+  ['notes', 'Drawings & Notes'], ['hilo', 'High & Low Prices'], ['div', 'Dividends'], ['split', 'Stock Split'], ['earn', 'Earnings']];
+var CHS = load('fh3_chs', {}) || {};
+var CH_ALL = [];   // every chart on screen, so a settings change repaints them all
+function chsOn(k){ return CHS[k] !== false; }
+function pfCost(sym){   // average cost of the shares held in all portfolios, or null when there is no position
+  var s = dispSym(sym), q = 0, cost = 0;
+  Object.keys(PFS).forEach(function(id){ PFS[id].holdings.forEach(function(h){ if(dispSym(h.s) === s && h.q > 0 && h.px > 0){ q += h.q; cost += h.q * h.px; } }); });
+  return q ? cost / q : null;
+}
+function pfTrades(sym){   // green "B" markers on the day a held position was bought (holdings that have a buy date)
+  var s = dispSym(sym), out = [], today = ymd(new Date());
+  Object.keys(PFS).forEach(function(id){ PFS[id].holdings.forEach(function(h){
+    if(dispSym(h.s) !== s || !h.d || h.d > today) return;
+    out.push({ t:Date.parse(h.d + 'T00:00:00Z') / 1000, k:'B', cls:'buy', html:'<b>Bought · ' + esc(h.d) + '</b><br>' + num(h.q, h.q % 1 ? 4 : 0) + ' shares' + (h.px ? ' @ $' + num(h.px, 2) : '') + '<br><span class="mut">' + esc(PFS[id].name) + '</span>' });
+  }); });
+  return out;
+}
+function chsMenu(ev){
+  ev.preventDefault();
+  var el = document.createElement('div');
+  el.className = 'menu chs-menu';
+  el.innerHTML = '<div class="mhead">Chart settings</div><div class="chs-grid">' + CHS_ITEMS.map(function(m){
+    return '<button type="button" class="chs-i' + (chsOn(m[0]) ? ' on' : '') + '" role="checkbox" aria-checked="' + chsOn(m[0]) + '" data-act="chs" data-k="' + m[0] + '"><i></i>' + m[1] + '</button>';
+  }).join('') + '</div>';
+  $('menuRoot').innerHTML = ''; $('menuRoot').appendChild(el);
+  el.style.left = Math.max(8, Math.min(ev.clientX, innerWidth - el.offsetWidth - 8)) + 'px';
+  el.style.top = Math.max(8, Math.min(ev.clientY, innerHeight - el.offsetHeight - 8)) + 'px';
+}
+function chsToggle(k, btn){
+  CHS[k] = !chsOn(k); save('fh3_chs', CHS);
+  btn.classList.toggle('on', chsOn(k)); btn.setAttribute('aria-checked', chsOn(k));
+  CH_ALL = CH_ALL.filter(function(c){ return c.svg && c.svg.isConnected; });
+  CH_ALL.forEach(function(c){ c.soon(); });
+}
 
 /* Make one chart in `host`. o: series() -> [{ sym, col }] (first = main), load(sym, lv), start() -> [lv, days],
    mode() -> candles | line | area, pct (lines as % from the first visible bar), ma() -> [{ p, col }],
@@ -3419,6 +3488,8 @@ var CH_UNITS = [[300, 'm'], [900, 'm'], [1800, 'm'], [3600, 'h'], [7200, 'h'], [
 function chartView(host, o){
   var c = { o:o, lv:'d', i0:0, i1:1, homed:false, home:null, geo:null, raf:0, ma:{}, drag:false, key:'' };
   host.__ch = c;
+  CH_ALL.push(c);
+  host.addEventListener('contextmenu', chsMenu);
   var $q = function(sel){ return host.querySelector(sel); };
   c.rows = function(sym, lv){ var s = (sym || o.series()[0].sym); return CH_DATA[o.cacheKey(s, lv || c.lv)] || []; };
   c.main = function(){ return c.rows(null, c.lv); };
@@ -3532,7 +3603,7 @@ function chartView(host, o){
     if(b <= a) return [];
     var spp = (r[b].t - r[a].t) / Math.max(1, X(b) - X(a)), need = spp * 90, u = CH_UNITS[CH_UNITS.length - 1];
     for(var k = 0; k < CH_UNITS.length; k++) if(CH_UNITS[k][0] >= need){ u = CH_UNITS[k]; break; }
-    var intra = c.lv === 'm5' || c.lv === 'm15';
+    var intra = !!CH_INTRA[c.lv];
     var key = function(x){
       var y = +x.d.slice(0, 4), m = +x.d.slice(5, 7) - 1;
       if(u[1] === 'y') return Math.floor(y / Math.round(u[0] / 31557600));
@@ -3648,12 +3719,12 @@ function chartView(host, o){
       if(mode === 'area' && line) plot.push('<path d="' + line + 'L' + X(b).toFixed(1) + ' ' + (padT + plotH) + 'L' + X(a).toFixed(1) + ' ' + (padT + plotH) + 'Z" fill="' + col + '" opacity=".13"/>');
       if(line) plot.push('<path d="' + line + '" fill="none" stroke="' + col + '" stroke-width="' + (pctMode ? 2 : 1.8) + '" stroke-linejoin="round"/>');
     }
-    if(!pctMode && c.lv === 'm5' && o.prevClose && o.prevClose() && o.prevClose() > lo && o.prevClose() < hi)
+    if(!pctMode && chsOn('prev') && (c.lv === 'm5' || c.lv === 'm1') && o.prevClose && o.prevClose() && o.prevClose() > lo && o.prevClose() < hi)
       plot.push('<line x1="' + padL + '" x2="' + (padL + plotW) + '" y1="' + Y(o.prevClose()).toFixed(1) + '" y2="' + Y(o.prevClose()).toFixed(1) + '" stroke="var(--fh-foreground-on-surface-de-emphasis)" stroke-dasharray="4 4"/>');
     mas.forEach(function(m){ plot.push('<path d="' + path(function(i){ return m.v[i]; }) + '" fill="none" stroke="' + m.col + '" stroke-width="1.5" opacity=".9"/>'); });
     others.forEach(function(s){ plot.push('<path d="' + path(function(i){ return s.v[i - a]; }) + '" fill="none" stroke="' + s.col + '" stroke-width="' + (pctMode ? 2 : 1.5) + '"' + (pctMode ? '' : ' stroke-dasharray="5 3"') + '/>'); });
     // highest and lowest price in view, each with a small label on a leader line
-    if(!pctMode){
+    if(!pctMode && chsOn('hilo')){
       var va = clamp(Math.ceil(i0), 0, n - 1), vb = clamp(Math.floor(i1), 0, n - 1), iH = va, iL = va;
       for(var m2 = va; m2 <= vb; m2++){
         if((barMode ? bars[m2].h : r[m2].c) > (barMode ? bars[iH].h : r[iH].c)) iH = m2;
@@ -3670,24 +3741,41 @@ function chartView(host, o){
     if(o.markers && !pctMode){
       var stack = {};
       (o.markers(c) || []).forEach(function(mk){
+        if(!chsOn({ D:'div', S:'split', E:'earn', B:'trades' }[mk.k] || 'earn')) return;
         var fi = chI(r, mk.t), bi = mk.t > r[n - 1].t ? fi : (chAsOf(r, mk.t) ? r.indexOf(chAsOf(r, mk.t)) : -1);
         if(bi < 0 || bi < i0 - 1 || bi > i1 + 1) return;
         var key2 = Math.round(bi), lvl = stack[key2] = (stack[key2] || 0) + 1, bx = bars[Math.min(n - 1, Math.round(bi))];
         var top = Y(val(barMode && bi <= n - 1 ? bx.h : (bi <= n - 1 ? r[Math.round(bi)].c : r[n - 1].c)));
         var cx2 = X(bi), cy = Math.max(padT + 9, top - 12 - (lvl - 1) * 19);
         c.mk.push(mk);
-        plot.push('<g class="ch-mk' + (mk.future ? ' future' : '') + '" data-mk="' + (c.mk.length - 1) + '"><circle cx="' + cx2.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="8"/>' +
+        plot.push('<g class="ch-mk' + (mk.future ? ' future' : '') + (mk.cls ? ' ' + mk.cls : '') + '" data-mk="' + (c.mk.length - 1) + '"><circle cx="' + cx2.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="8"/>' +
           '<text x="' + cx2.toFixed(1) + '" y="' + (cy + 3.6).toFixed(1) + '" text-anchor="middle">' + mk.k + '</text></g>');
       });
     }
     // last value: dashed line across and a tag on each axis
     var last = r[n - 1].c, lastUp = (q.pct != null ? q.pct : last - r[Math.max(0, n - 2)].c) >= 0;
     var lv2 = val(last), ly = clamp(Y(lv2), padT, padT + plotH), lc = pctMode ? (mainS.col || upCol) : (lastUp ? upCol : dnCol);
-    plot.push('<line x1="' + padL + '" x2="' + (padL + plotW) + '" y1="' + ly.toFixed(1) + '" y2="' + ly.toFixed(1) + '" stroke="' + lc + '" stroke-dasharray="2 3" opacity=".7"/>');
+    if(chsOn('price')) plot.push('<line x1="' + padL + '" x2="' + (padL + plotW) + '" y1="' + ly.toFixed(1) + '" y2="' + ly.toFixed(1) + '" stroke="' + lc + '" stroke-dasharray="2 3" opacity=".7"/>');
     axis.push('<rect x="' + (padL + plotW + 2) + '" y="' + (ly - 10).toFixed(1) + '" width="' + (padR - 4) + '" height="20" rx="4" fill="' + lc + '"/>' +
       '<text class="axis tag" x="' + (padL + plotW + 8) + '" y="' + (ly + 4.5).toFixed(1) + '">' + (pctMode ? chPctTxt(lv2) : num(last, Math.abs(last) < 10 ? 4 : 2)) + '</text>');
     if(!pctMode) axis.push('<rect x="32" y="' + (ly - 10).toFixed(1) + '" width="' + (padL - 34) + '" height="20" rx="4" fill="' + (last >= base ? upCol : dnCol) + '"/>' +
       '<text class="axis tag pct" x="' + (padL - 6) + '" y="' + (ly + 4.5).toFixed(1) + '" text-anchor="end">' + chPctTxt((last / base - 1) * 100) + '</text>');
+    // your average cost (golden) and price alerts, drawn when they fall inside the visible price range
+    if(!pctMode){
+      var hline = function(v, col, dash, tag, txt){
+        var yy = Y(v).toFixed(1);
+        plot.push('<line x1="' + padL + '" x2="' + (padL + plotW) + '" y1="' + yy + '" y2="' + yy + '" stroke="' + col + '" stroke-width="1.6"' + (dash ? ' stroke-dasharray="' + dash + '"' : '') + '/>' +
+          '<text class="ch-hl-t" x="' + (padL + 8) + '" y="' + (Y(v) - 5).toFixed(1) + '" style="fill:' + col + '">' + txt + '</text>');
+        axis.push('<rect x="' + (padL + plotW + 2) + '" y="' + (Y(v) - 10).toFixed(1) + '" width="' + (padR - 4) + '" height="20" rx="4" fill="' + col + '"/>' +
+          '<text class="axis tag" x="' + (padL + plotW + 8) + '" y="' + (Y(v) + 4.5).toFixed(1) + '" style="fill:#1b1508">' + tag + '</text>');
+      };
+      var cost0 = chsOn('cost') ? pfCost(mainS.sym) : null;
+      if(cost0 && cost0 > lo && cost0 < hi) hline(cost0, 'var(--mf-gold)', '', num(cost0, Math.abs(cost0) < 10 ? 4 : 2), 'Avg cost ' + num(cost0, Math.abs(cost0) < 10 ? 4 : 2));
+      if(chsOn('alert')) ALERTS.forEach(function(al){
+        if(!al.on || (al.type !== 'above' && al.type !== 'below') || dispSym(al.sym) !== dispSym(mainS.sym) || !(al.val > lo && al.val < hi)) return;
+        hline(al.val, '#7aa7ff', '6 4', num(al.val, Math.abs(al.val) < 10 ? 4 : 2), 'Alert ' + (al.type === 'above' ? '↑ ' : '↓ ') + num(al.val, Math.abs(al.val) < 10 ? 4 : 2));
+      });
+    }
     // volume: its own band at the bottom, scaled to the visible bars
     if(o.volume){
       var vmax = 0; for(var v = a; v <= b; v++) if(r[v].v > vmax) vmax = r[v].v;
@@ -3724,7 +3812,7 @@ function chartView(host, o){
     tx[0].setAttribute('x', g.padL + g.plotW + 8); tx[0].setAttribute('y', y + 4.5); tx[0].textContent = g.pct ? chPctTxt(v) : num(v, Math.abs(v) < 10 ? 4 : 2);
     rc[1].setAttribute('opacity', g.pct ? 0 : 1); tx[1].textContent = g.pct ? '' : chPctTxt((v / g.base - 1) * 100);
     if(!g.pct){ rc[1].setAttribute('x', 32); rc[1].setAttribute('y', y - 10); rc[1].setAttribute('width', g.padL - 34); rc[1].setAttribute('height', 20); tx[1].setAttribute('x', g.padL - 6); tx[1].setAttribute('y', y + 4.5); }
-    var intra = c.lv === 'm5' || c.lv === 'm15', dp = Math.abs(row.c) < 10 ? 4 : 2, ch = prev ? row.c - prev.c : null;
+    var intra = !!CH_INTRA[c.lv], dp = Math.abs(row.c) < 10 ? 4 : 2, ch = prev ? row.c - prev.c : null;
     var res = chResName(r), head = intra ? o.time(row, true) : res === 'Monthly' ? monthName(row.d.slice(5, 7)) + ' ' + row.d.slice(0, 4) : res === 'Quarterly' ? 'Quarter from ' + monthName(row.d.slice(5, 7)) + ' ' + row.d.slice(0, 4) : (res === 'Weekly' ? 'Week of ' : '') + row.d;
     var mkEl = ev.target.closest && ev.target.closest('.ch-mk'), mk = mkEl && c.mk[+mkEl.getAttribute('data-mk')];
     if(mk){
@@ -3876,10 +3964,12 @@ function renderChart(){
       time:barTime,
       markers:function(c){   // loaded once per symbol; the chart redraws when they arrive
         // Keep corporate-event circles through 5Y; hide them on MAX to avoid clutter.
-        if(CUR.ind.events === false || CUR.range === 'MAX') return [];
-        var s = dispSym(CUR.sym);
-        if(!chEvents.got || chEvents.got.s !== s){ chEvents.got = { s:s, list:[] }; chEvents(s).then(function(l){ if(chEvents.got.s === s){ chEvents.got.list = l; c.soon(); } }); }
-        return chEvents.got.list;
+        var s = dispSym(CUR.sym), evs = [];
+        if(CUR.ind.events !== false && CUR.range !== 'MAX'){
+          if(!chEvents.got || chEvents.got.s !== s){ chEvents.got = { s:s, list:[] }; chEvents(s).then(function(l){ if(chEvents.got.s === s){ chEvents.got.list = l; c.soon(); } }); }
+          evs = chEvents.got.list;
+        }
+        return evs.concat(pfTrades(s));
       },
       empty:'No price history available for this range yet.<div style="margin-top:12px"><button class="btn text" data-act="retry-hist">Retry</button></div>'
     });
@@ -3984,12 +4074,12 @@ Object.keys(LISTS).forEach(function(k){ var l = LISTS[k]; if(!l || typeof l !== 
 if(!Object.keys(LISTS).length) LISTS.main = { name:'My watchlist', syms:['AAPL','MSFT','NVDA','TSLA','AMZN','META','GOOGL'] };
 Object.keys(PFS).forEach(function(k){ var p = PFS[k]; if(!p || typeof p !== 'object' || !Array.isArray(p.holdings)) delete PFS[k]; else {
   p.name = String(p.name || k);
-  p.holdings = p.holdings.filter(function(h){ return h && typeof h.s === 'string' && h.s && isFinite(h.q); }).map(function(h){ return { s:h.s, q:+h.q, px:isFinite(h.px) ? +h.px : 0 }; }); } });
+  p.holdings = p.holdings.filter(function(h){ return h && typeof h.s === 'string' && h.s && isFinite(h.q); }).map(function(h){ var o = { s:h.s, q:+h.q, px:isFinite(h.px) ? +h.px : 0 }; if(/^\d{4}-\d\d-\d\d$/.test(h.d || '')) o.d = h.d; return o; }); } });
 if(!Object.keys(PFS).length) PFS.main = { name:'Main portfolio', holdings:[] };
 var TASKS = load(LS.tasks, []).filter(function(t){ return t && typeof t === 'object'; });
 
 var CUR = {
-  view:'home', sym:'AAPL', tab:'overview', range:RANGE_DAYS[CFG.range] ? CFG.range : '1M',
+  view:'home', sym:'AAPL', tab:'overview', range:RANGE_DAYS[CFG.range] ? (CFG.range === '1D' ? 'M5' : CFG.range) : '1M',
   chart:/^(area|line|candles)$/.test(CFG.chart) ? CFG.chart : 'area', volY:0,
   ind:{ ma20:false, ma50:false, ma200:false }, cmp:{},
   list:'main', pf:'main', key:'AAPL', cols:{ pc:true, o:false, h:false, l:false, v:true, mc:false },
@@ -5386,8 +5476,8 @@ var MK_SECS = [
 ];
 var MK_REG = [['all', 'Global'], ['am', 'Americas'], ['eu', 'Europe'], ['ap', 'Asia-Pacific']];
 var MK_BOX = { all:[-180, 180, 82, -58], am:[-128, -30, 62, -40], eu:[-24, 42, 66, 32], ap:[66, 158, 46, -44] };   // lon, lon, lat, lat
-var MK_RNG = ['1D', '5D', '1M', '6M', '1Y', '5Y'];
-var MK = { q:{}, hist:{}, reg:'all', sel:'^GSPC', rng:'1D', sort:'def', vb:[0, 0, 1080, 420], t:0, timer:0, raf:0, flash:{} };
+var MK_RNG = ['M1', 'M5', 'M15', 'H1', 'H4', '5D', '1M', '6M', '1Y', '5Y'];
+var MK = { q:{}, hist:{}, reg:'all', sel:'^GSPC', rng:'M5', sort:'def', vb:[0, 0, 1080, 420], t:0, timer:0, raf:0, flash:{} };
 
 function mkName(s){
   var i = MK_IDX.filter(function(x){ return x[0] === s; })[0];
@@ -5451,7 +5541,7 @@ function mkLoad(){
   function next(){ if(k >= list.length) return Promise.resolve(); return mkLoadOne(list[k++]).then(next); }
   var lanes = []; for(var j = 0; j < 8; j++) lanes.push(next());
   return Promise.all(lanes).then(function(){   // fresh intraday bars for the charted market
-    ['m5', 'm15'].forEach(function(lv){ delete CH_DATA['y|' + MK.sel + '|' + lv]; });
+    ['m1', 'm5', 'm15', 'h1', 'h4'].forEach(function(lv){ delete CH_DATA['y|' + MK.sel + '|' + lv]; });
     if(MKCH && MKCH.homed) MKCH.loadAll(MKCH.lv).then(MKCH.soon);
     mkPaintSoon();
   });
@@ -5632,7 +5722,7 @@ function mkDetailHead(){
   return '<div class="mk-dh"><div class="mk-dt"><h2>' + esc(nm) + '</h2><span class="mut">' + esc(s) + (q.exch ? ' · ' + esc(q.exch) : '') + (q.cur ? ' · ' + esc(q.cur) : '') + '</span></div>' +
       '<button class="btn tonal sm" data-act="ai" data-kind="custom" data-q="' + esc(ask) + '">Ask Marvell</button></div>' +
     '<div class="mk-dp ' + mkCls(q) + '"><b class="num">' + mkFmt(s, q.c) + '</b><span class="num">' + arrowIcon(q.pct == null || q.pct >= 0, 14) + ' ' + mkChg(s, q) + '</span></div>' +
-    '<div class="seg mk-rng">' + MK_RNG.map(function(r){ return '<button class="' + (MK.rng === r ? 'on' : '') + '" data-act="mk-rng" data-r="' + r + '">' + r + '</button>'; }).join('') + '</div>';
+    '<div class="seg mk-rng">' + MK_RNG.map(function(r){ return '<button class="' + (MK.rng === r ? 'on' : '') + '" data-act="mk-rng" data-r="' + r + '">' + rlab(r) + '</button>'; }).join('') + '</div>';
 }
 function mkStatsHTML(){
   var s = MK.sel, q = MK.q[s] || {};
@@ -5646,7 +5736,7 @@ function mkChartSync(){
     id:'mk', key:function(){ return MK.sel + '|' + MK.rng; },
     cacheKey:function(sym, lv){ return 'y|' + sym + '|' + lv; }, load:chLoadY,
     series:function(){ return [{ sym:MK.sel }]; },
-    start:function(){ return CH_RANGE[MK.rng] || CH_RANGE['1D']; },
+    start:function(){ return CH_RANGE[MK.rng] || CH_RANGE['M5']; },
     mode:function(){ return 'area'; },
     prevClose:function(){ return (MK.q[MK.sel] || {}).ref; },
     quote:function(){ return MK.q[MK.sel] || {}; },
@@ -5672,7 +5762,7 @@ function mkPaint(){
   MK.flash = {};
 }
 function mkSelect(s){
-  MK.sel = s; MK.rng = '1D'; mkPaint();
+  MK.sel = s; MK.rng = 'M5'; mkPaint();
   var d = $('mkDetail'), r = d && d.getBoundingClientRect();
   if(r && (r.top < 60 || r.bottom > innerHeight)) d.scrollIntoView({ behavior:'smooth', block:'center' });
 }
@@ -7638,7 +7728,7 @@ function paintQuote(){
         ' Set alert' + (ALERTS.filter(function(a){ return a.sym === dispSym(sym) && a.on; }).length ? ' (' + ALERTS.filter(function(a){ return a.sym === dispSym(sym) && a.on; }).length + ')' : '') + '</button></div>' +
     '<div class="price-block"><span class="px num">' + (q.c == null ? '—' : money(q.c, cur)) + '</span>' +
       '<span class="d num ' + (up ? 'up' : 'down') + '">' + arrowIcon(up, 16) + (ch.abs == null ? '—' : (ch.abs >= 0 ? '+' : '') + num(ch.abs, 2) + ' (' + pct(ch.pct) + ')') + '</span>' +
-      '<span class="rng">' + esc(CUR.range) + '</span></div>' +
+      '<span class="rng">' + esc(rlab(CUR.range)) + '</span></div>' +
     '<div class="mkt-state"><span>' + esc(state || 'Market data') + '</span>' +
       (mk.marketCountDown ? '<span>·</span><span>' + esc(mk.marketCountDown) + '</span>' : '') +
       '<span>·</span><span>' + esc(cur) + '</span><span>·</span><span>' + esc(feed) + '</span>' +
@@ -7666,8 +7756,8 @@ function paintQuote(){
   html += '<div class="chart-box" id="chartHost"></div>';
 
   html += '<div class="range-row"><div class="pills">' +
-    Object.keys(RANGE_DAYS).map(function(r){
-      return '<button class="pill' + (CUR.range === r ? ' on' : '') + '" data-act="range" data-range="' + r + '">' + r + '</button>';
+    RANGE_PILLS.map(function(r){
+      return '<button class="pill' + (CUR.range === r ? ' on' : '') + '" data-act="range" data-range="' + r + '">' + rlab(r) + '</button>';
     }).join('') + '</div>' +
     '<div class="legend" id="chartLegend"></div></div>';
 
@@ -10067,11 +10157,14 @@ function pfImport(){
     var iS = head.findIndex(function(h){ return h.indexOf('sym') >= 0 || h === 'ticker'; });
     var iQ = head.findIndex(function(h){ return h.indexOf('qty') >= 0 || h.indexOf('share') >= 0; });
     var iP = head.findIndex(function(h){ return h.indexOf('cost') >= 0 || h.indexOf('price') >= 0 || h.indexOf('avg') >= 0; });
+    var iD = head.findIndex(function(h){ return h.indexOf('date') >= 0; });
     if(iS < 0){ toast('CSV needs a symbol column.'); return; }
     var added = 0;
     grid.slice(1).forEach(function(r){
       if(!r[iS]) return;
-      PFS[CUR.pf].holdings.push({ s:dispSym(r[iS].toUpperCase()), q:parseFloat(r[iQ]) || 0, px:parseFloat(r[iP]) || 0 });
+      var row = { s:dispSym(r[iS].toUpperCase()), q:parseFloat(r[iQ]) || 0, px:parseFloat(r[iP]) || 0 };
+      if(iD >= 0 && /^\d{4}-\d\d-\d\d$/.test((r[iD] || '').trim())) row.d = r[iD].trim();
+      PFS[CUR.pf].holdings.push(row);
       added++;
     });
     savePfs(); renderPortfolio(); toast(added + ' holdings imported');
@@ -10100,7 +10193,7 @@ function openAddHolding(pfId){
   var pf = PFS[pfId];
   var body = '<div class="mut" style="font-size:13.5px;margin-bottom:10px">Holdings stay in this browser. Cost basis is whatever you type.</div>' +
     field('Symbol', 'hSym', dispSym(CUR.sym), 'AAPL') + field('Shares', 'hQty', '10', '10') +
-    field('Average cost per share', 'hPx', '', '180.00');
+    field('Average cost per share', 'hPx', '', '180.00') + field('Buy date (optional, marks the chart)', 'hDate', '', 'YYYY-MM-DD', 'date');
   dialog('Add holding to ' + pf.name, body, '<button class="btn text" data-act="dlg-close">Cancel</button><button class="btn filled" data-act="h-save" data-pf="' + esc(pfId) + '">Add</button>');
 }
 
@@ -10709,7 +10802,7 @@ function bindEvents(){
     if(!el){ closeMenu(); return; }
     var act = el.getAttribute('data-act');
     var sym = el.getAttribute('data-sym');
-    if(act !== 'menu-cols' && act !== 'menu-chart' && act !== 'menu-compare' && act !== 'menu-ind' && act !== 'menu-more') closeMenu();
+    if(act !== 'menu-cols' && act !== 'menu-chart' && act !== 'menu-compare' && act !== 'menu-ind' && act !== 'menu-more' && act !== 'chs') closeMenu();
     switch(act){
       case 'nav': ev.preventDefault(); go(el.getAttribute('data-href')); break;
       case 'mk-sel': mkSelect(el.getAttribute('data-s')); break;
@@ -10822,6 +10915,7 @@ function bindEvents(){
           return '<button class="mi' + (CUR.chart === m[0] ? ' on' : '') + '" data-act="chart-mode" data-mode="' + m[0] + '">' + m[1] + '</button>';
         }).join('')); break;
       case 'chart-mode': CUR.chart = CFG.chart = el.getAttribute('data-mode'); saveCfg(); paintQuote(); break;
+      case 'chs': chsToggle(el.getAttribute('data-k'), el); break;
       case 'menu-ind': ev.stopPropagation(); menu(el, '<div class="mhead">Indicators</div>' +
         [['ma20', 'Moving average 20'], ['ma50', 'Moving average 50'], ['ma200', 'Moving average 200']].map(function(m){
           return '<button class="mi' + (CUR.ind[m[0]] ? ' on' : '') + '" data-act="ind" data-ind="' + m[0] + '">' + m[1] + '</button>';
@@ -10923,7 +11017,8 @@ function bindEvents(){
         var hSym = dispSym($('hSym').value.trim().toUpperCase());
         var hQ = parseFloat($('hQty').value) || 0, hPx = parseFloat($('hPx').value) || 0;
         if(!hSym || !hQ){ toast('Symbol and share count are required.'); break; }
-        PFS[el.getAttribute('data-pf')].holdings.push({ s:hSym, q:hQ, px:hPx });
+        var hRow = { s:hSym, q:hQ, px:hPx }, hD = $('hDate').value; if(/^\d{4}-\d\d-\d\d$/.test(hD)) hRow.d = hD;
+        PFS[el.getAttribute('data-pf')].holdings.push(hRow);
         savePfs(); closeDialog(); renderPortfolio(); renderRail(); toast('Holding added');
         break;
       }
@@ -10936,7 +11031,7 @@ function bindEvents(){
       case 'importpf': pfImport(); break;
       case 'pf-ask': pfAskDo(el.getAttribute('data-w')); break;
       case 'exportpf': {
-        var rows = [['symbol', 'shares', 'avg_cost']].concat(PFS[CUR.pf].holdings.map(function(h){ return [h.s, h.q, h.px]; }));
+        var rows = [['symbol', 'shares', 'avg_cost', 'buy_date']].concat(PFS[CUR.pf].holdings.map(function(h){ return [h.s, h.q, h.px, h.d || '']; }));
         download('portfolio.csv', rows.map(function(r){ return r.map(csvCell).join(','); }).join('\n'));
         break;
       }
