@@ -578,6 +578,13 @@ body.vol-dragging,body.vol-dragging *{cursor:grabbing!important;user-select:none
 .menu .mi:hover{background:var(--fh-states-neutral-hovered)}
 .menu .mi.on{background:var(--fh-states-branded-medium-selected);color:var(--fh-foreground-on-highlight)}
 .menu .mhead{padding:10px 14px 6px;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis)}
+.chs-menu{min-width:0;width:min(640px,calc(100vw - 16px));padding:14px 18px 10px}
+.chs-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px}
+.chs-i{display:flex;align-items:center;gap:14px;border:0;background:transparent;padding:14px 4px;font-size:16px;text-align:left;color:var(--fh-foreground-on-surface-default);border-radius:8px;cursor:pointer}
+.chs-i:hover{background:var(--fh-states-neutral-hovered)}
+.chs-i i{flex:none;width:26px;height:26px;border-radius:7px;border:2px solid var(--fh-border-stroke-default);box-sizing:border-box;position:relative}
+.chs-i.on i{background:#e9ebfa;border-color:#e9ebfa}
+.chs-i.on i::after{content:"";position:absolute;left:7px;top:2px;width:6px;height:12px;border:solid #141414;border-width:0 3px 3px 0;transform:rotate(45deg)}
 .menu .msep{height:1px;background:var(--fh-border-stroke-default);margin:6px 8px}
 .dlg-wrap{position:fixed;inset:0;z-index:80;background:var(--fh-background-scrim);display:flex;align-items:center;justify-content:center;padding:20px}
 .dlg{background:var(--fh-background-surface-elevated);border-radius:20px;box-shadow:var(--fh-elevation-3);width:min(620px,100%);max-height:86vh;display:flex;flex-direction:column;overflow:hidden}
@@ -3296,12 +3303,43 @@ function chResName(r){   // name the bar size from the data itself (Yahoo's full
 function chPctTxt(p){ return (p > 0 ? '+' : '') + num(p, Math.abs(p) < 10 ? 2 : 1) + '%'; }
 var CH_UNITS = [[60, 'm'], [120, 'm'], [300, 'm'], [900, 'm'], [1800, 'm'], [3600, 'h'], [7200, 'h'], [14400, 'h'], [86400, 'd'], [604800, 'wk'], [2629800, 'mo'], [7889400, 'mo'], [15778800, 'mo'], [31557600, 'y'], [63115200, 'y'], [157788000, 'y'], [315576000, 'y']];
 
+/* ---- Chart settings: right-click (two-finger click on a Mac) any chart. One set for every chart, saved in this browser. ---- */
+var CHS_ITEMS = [['trades', 'Trade Markings'], ['cost', 'Position Cost Line'], ['price', 'Price Line'], ['prev', 'Prev Close Line'], ['alert', 'Price Alert Line'],
+  ['notes', 'Drawings & Notes'], ['hilo', 'High & Low Prices'], ['div', 'Dividends'], ['split', 'Stock Split'], ['earn', 'Earnings']];
+var CHS = load('fh3_chs', {}) || {};
+var CH_ALL = [];   // every chart on screen, so a settings change repaints them all
+function chsOn(k){ return CHS[k] !== false; }
+function pfCost(sym){   // average cost of the shares held in all portfolios, or null when there is no position
+  var s = dispSym(sym), q = 0, cost = 0;
+  Object.keys(PFS).forEach(function(id){ PFS[id].holdings.forEach(function(h){ if(dispSym(h.s) === s && h.q > 0 && h.px > 0){ q += h.q; cost += h.q * h.px; } }); });
+  return q ? cost / q : null;
+}
+function chsMenu(ev){
+  ev.preventDefault();
+  var el = document.createElement('div');
+  el.className = 'menu chs-menu';
+  el.innerHTML = '<div class="mhead">Chart settings</div><div class="chs-grid">' + CHS_ITEMS.map(function(m){
+    return '<button type="button" class="chs-i' + (chsOn(m[0]) ? ' on' : '') + '" role="checkbox" aria-checked="' + chsOn(m[0]) + '" data-act="chs" data-k="' + m[0] + '"><i></i>' + m[1] + '</button>';
+  }).join('') + '</div>';
+  $('menuRoot').innerHTML = ''; $('menuRoot').appendChild(el);
+  el.style.left = Math.max(8, Math.min(ev.clientX, innerWidth - el.offsetWidth - 8)) + 'px';
+  el.style.top = Math.max(8, Math.min(ev.clientY, innerHeight - el.offsetHeight - 8)) + 'px';
+}
+function chsToggle(k, btn){
+  CHS[k] = !chsOn(k); save('fh3_chs', CHS);
+  btn.classList.toggle('on', chsOn(k)); btn.setAttribute('aria-checked', chsOn(k));
+  CH_ALL = CH_ALL.filter(function(c){ return c.svg && c.svg.isConnected; });
+  CH_ALL.forEach(function(c){ c.soon(); });
+}
+
 /* Make one chart in `host`. o: series() -> [{ sym, col }] (first = main), load(sym, lv), start() -> [lv, days],
    mode() -> candles | line | area, pct (lines as % from the first visible bar), ma() -> [{ p, col }],
    prevClose(), quote(), volume (uses the page's volume slider), overlay(ctx), hover(ctx, row, x, y), time(row, withDate). */
 function chartView(host, o){
   var c = { o:o, lv:'d', i0:0, i1:1, homed:false, home:null, geo:null, raf:0, ma:{}, drag:false, key:'' };
   host.__ch = c;
+  CH_ALL.push(c);
+  host.addEventListener('contextmenu', chsMenu);
   var $q = function(sel){ return host.querySelector(sel); };
   c.rows = function(sym, lv){ var s = (sym || o.series()[0].sym); return CH_DATA[o.cacheKey(s, lv || c.lv)] || []; };
   c.main = function(){ return c.rows(null, c.lv); };
@@ -3531,12 +3569,12 @@ function chartView(host, o){
       if(mode === 'area' && line) plot.push('<path d="' + line + 'L' + X(b).toFixed(1) + ' ' + (padT + plotH) + 'L' + X(a).toFixed(1) + ' ' + (padT + plotH) + 'Z" fill="' + col + '" opacity=".13"/>');
       if(line) plot.push('<path d="' + line + '" fill="none" stroke="' + col + '" stroke-width="' + (pctMode ? 2 : 1.8) + '" stroke-linejoin="round"/>');
     }
-    if(!pctMode && c.lv === 'm5' && o.prevClose && o.prevClose() && o.prevClose() > lo && o.prevClose() < hi)
+    if(!pctMode && chsOn('prev') && (c.lv === 'm5' || c.lv === 'm1') && o.prevClose && o.prevClose() && o.prevClose() > lo && o.prevClose() < hi)
       plot.push('<line x1="' + padL + '" x2="' + (padL + plotW) + '" y1="' + Y(o.prevClose()).toFixed(1) + '" y2="' + Y(o.prevClose()).toFixed(1) + '" stroke="var(--fh-foreground-on-surface-de-emphasis)" stroke-dasharray="4 4"/>');
     mas.forEach(function(m){ plot.push('<path d="' + path(function(i){ return m.v[i]; }) + '" fill="none" stroke="' + m.col + '" stroke-width="1.5" opacity=".9"/>'); });
     others.forEach(function(s){ plot.push('<path d="' + path(function(i){ return s.v[i - a]; }) + '" fill="none" stroke="' + s.col + '" stroke-width="' + (pctMode ? 2 : 1.5) + '"' + (pctMode ? '' : ' stroke-dasharray="5 3"') + '/>'); });
     // highest and lowest price in view, each with a small label on a leader line
-    if(!pctMode){
+    if(!pctMode && chsOn('hilo')){
       var va = clamp(Math.ceil(i0), 0, n - 1), vb = clamp(Math.floor(i1), 0, n - 1), iH = va, iL = va;
       for(var m2 = va; m2 <= vb; m2++){
         if((barMode ? bars[m2].h : r[m2].c) > (barMode ? bars[iH].h : r[iH].c)) iH = m2;
@@ -3553,6 +3591,7 @@ function chartView(host, o){
     if(o.markers && !pctMode){
       var stack = {};
       (o.markers(c) || []).forEach(function(mk){
+        if(!chsOn({ D:'div', S:'split', E:'earn' }[mk.k] || 'earn')) return;
         var fi = chI(r, mk.t), bi = mk.t > r[n - 1].t ? fi : (chAsOf(r, mk.t) ? r.indexOf(chAsOf(r, mk.t)) : -1);
         if(bi < 0 || bi < i0 - 1 || bi > i1 + 1) return;
         var key2 = Math.round(bi), lvl = stack[key2] = (stack[key2] || 0) + 1, bx = bars[Math.min(n - 1, Math.round(bi))];
@@ -3566,11 +3605,27 @@ function chartView(host, o){
     // last value: dashed line across and a tag on each axis
     var last = r[n - 1].c, lastUp = (q.pct != null ? q.pct : last - r[Math.max(0, n - 2)].c) >= 0;
     var lv2 = val(last), ly = clamp(Y(lv2), padT, padT + plotH), lc = pctMode ? (mainS.col || upCol) : (lastUp ? upCol : dnCol);
-    plot.push('<line x1="' + padL + '" x2="' + (padL + plotW) + '" y1="' + ly.toFixed(1) + '" y2="' + ly.toFixed(1) + '" stroke="' + lc + '" stroke-dasharray="2 3" opacity=".7"/>');
+    if(chsOn('price')) plot.push('<line x1="' + padL + '" x2="' + (padL + plotW) + '" y1="' + ly.toFixed(1) + '" y2="' + ly.toFixed(1) + '" stroke="' + lc + '" stroke-dasharray="2 3" opacity=".7"/>');
     axis.push('<rect x="' + (padL + plotW + 2) + '" y="' + (ly - 10).toFixed(1) + '" width="' + (padR - 4) + '" height="20" rx="4" fill="' + lc + '"/>' +
       '<text class="axis tag" x="' + (padL + plotW + 8) + '" y="' + (ly + 4.5).toFixed(1) + '">' + (pctMode ? chPctTxt(lv2) : num(last, Math.abs(last) < 10 ? 4 : 2)) + '</text>');
     if(!pctMode) axis.push('<rect x="32" y="' + (ly - 10).toFixed(1) + '" width="' + (padL - 34) + '" height="20" rx="4" fill="' + (last >= base ? upCol : dnCol) + '"/>' +
       '<text class="axis tag pct" x="' + (padL - 6) + '" y="' + (ly + 4.5).toFixed(1) + '" text-anchor="end">' + chPctTxt((last / base - 1) * 100) + '</text>');
+    // your average cost (golden) and price alerts, drawn when they fall inside the visible price range
+    if(!pctMode){
+      var hline = function(v, col, dash, tag, txt){
+        var yy = Y(v).toFixed(1);
+        plot.push('<line x1="' + padL + '" x2="' + (padL + plotW) + '" y1="' + yy + '" y2="' + yy + '" stroke="' + col + '" stroke-width="1.6"' + (dash ? ' stroke-dasharray="' + dash + '"' : '') + '/>' +
+          '<text class="ch-hl-t" x="' + (padL + 8) + '" y="' + (Y(v) - 5).toFixed(1) + '" style="fill:' + col + '">' + txt + '</text>');
+        axis.push('<rect x="' + (padL + plotW + 2) + '" y="' + (Y(v) - 10).toFixed(1) + '" width="' + (padR - 4) + '" height="20" rx="4" fill="' + col + '"/>' +
+          '<text class="axis tag" x="' + (padL + plotW + 8) + '" y="' + (Y(v) + 4.5).toFixed(1) + '" style="fill:#1b1508">' + tag + '</text>');
+      };
+      var cost0 = chsOn('cost') ? pfCost(mainS.sym) : null;
+      if(cost0 && cost0 > lo && cost0 < hi) hline(cost0, 'var(--mf-gold)', '', num(cost0, Math.abs(cost0) < 10 ? 4 : 2), 'Avg cost ' + num(cost0, Math.abs(cost0) < 10 ? 4 : 2));
+      if(chsOn('alert')) ALERTS.forEach(function(al){
+        if(!al.on || (al.type !== 'above' && al.type !== 'below') || dispSym(al.sym) !== dispSym(mainS.sym) || !(al.val > lo && al.val < hi)) return;
+        hline(al.val, '#7aa7ff', '6 4', num(al.val, Math.abs(al.val) < 10 ? 4 : 2), 'Alert ' + (al.type === 'above' ? '↑ ' : '↓ ') + num(al.val, Math.abs(al.val) < 10 ? 4 : 2));
+      });
+    }
     // volume: its own band at the bottom, scaled to the visible bars
     if(o.volume){
       var vmax = 0; for(var v = a; v <= b; v++) if(r[v].v > vmax) vmax = r[v].v;
@@ -10109,7 +10164,7 @@ function bindEvents(){
     if(!el){ closeMenu(); return; }
     var act = el.getAttribute('data-act');
     var sym = el.getAttribute('data-sym');
-    if(act !== 'menu-cols' && act !== 'menu-chart' && act !== 'menu-compare' && act !== 'menu-ind' && act !== 'menu-more') closeMenu();
+    if(act !== 'menu-cols' && act !== 'menu-chart' && act !== 'menu-compare' && act !== 'menu-ind' && act !== 'menu-more' && act !== 'chs') closeMenu();
     switch(act){
       case 'nav': ev.preventDefault(); go(el.getAttribute('data-href')); break;
       case 'mk-sel': mkSelect(el.getAttribute('data-s')); break;
@@ -10222,6 +10277,7 @@ function bindEvents(){
           return '<button class="mi' + (CUR.chart === m[0] ? ' on' : '') + '" data-act="chart-mode" data-mode="' + m[0] + '">' + m[1] + '</button>';
         }).join('')); break;
       case 'chart-mode': CUR.chart = CFG.chart = el.getAttribute('data-mode'); saveCfg(); paintQuote(); break;
+      case 'chs': chsToggle(el.getAttribute('data-k'), el); break;
       case 'menu-ind': ev.stopPropagation(); menu(el, '<div class="mhead">Indicators</div>' +
         [['ma20', 'Moving average 20'], ['ma50', 'Moving average 50'], ['ma200', 'Moving average 200']].map(function(m){
           return '<button class="mi' + (CUR.ind[m[0]] ? ' on' : '') + '" data-act="ind" data-ind="' + m[0] + '">' + m[1] + '</button>';
