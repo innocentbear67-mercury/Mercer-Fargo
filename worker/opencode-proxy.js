@@ -31,6 +31,27 @@ export function normalizeYahoo(j, symbol, ysym, r, i) {
   return { symbol, yahooSymbol: ysym, range: r, interval: i, currency: meta.currency, exchange: meta.fullExchangeName || meta.exchangeName, previousClose: meta.chartPreviousClose ?? meta.previousClose ?? null, bars, _meta: { source: 'Yahoo Finance chart via edge worker' } };
 }
 
+// Corporate actions from Yahoo's chart events: splits and dividends since listing, slimmed for the chart markers.
+export function yahooEvents(j) {
+  const ev = ((((j && j.chart) || {}).result || [])[0] || {}).events || {};
+  const day = (t) => new Date(t * 1000).toISOString().slice(0, 10);
+  const splits = Object.values(ev.splits || {}).map((x) => ({ t: x.date, d: day(x.date), num: x.numerator, den: x.denominator })).sort((a, b) => a.t - b.t);
+  const dividends = Object.values(ev.dividends || {}).map((x) => ({ t: x.date, d: day(x.date), amt: x.amount })).sort((a, b) => a.t - b.t);
+  return { splits, dividends };
+}
+async function eventsResponse(symbol) {
+  const s = String(symbol || '').toUpperCase().slice(0, 20), ysym = YMAP[s] || s;
+  if (!/^[\w.^=-]+$/.test(ysym)) return json({ error: 'bad symbol' }, 400, 0);
+  for (const host of ['query1.finance.yahoo.com', 'query2.finance.yahoo.com']) {
+    try {
+      const res = await fetch('https://' + host + '/v8/finance/chart/' + encodeURIComponent(ysym) + '?range=max&interval=3mo&events=div%2Csplit',
+        { headers: { 'User-Agent': 'Mozilla/5.0' }, cf: { cacheTtl: 43200, cacheEverything: true } });
+      if (res.ok) return json(Object.assign({ symbol: s }, yahooEvents(await res.json())), 200, 21600);
+    } catch (e) { /* try the other host */ }
+  }
+  return json({ error: 'yahoo unavailable' }, 502, 0);
+}
+
 async function chartResponse(symbol, rng) {
   const s = String(symbol || 'AAPL').toUpperCase();
   const ysym = YMAP[s] || s;
@@ -190,6 +211,7 @@ export default {
     if (url.pathname === '/api/chart' && req.method === 'GET') {
       return chartResponse(url.searchParams.get('symbol'), url.searchParams.get('range'));
     }
+    if (url.pathname === '/api/events' && req.method === 'GET') return eventsResponse(url.searchParams.get('symbol'));
     if (url.pathname === '/api/fetch' && req.method === 'GET') {
       return feedResponse(url.searchParams.get('u') || '', env);
     }

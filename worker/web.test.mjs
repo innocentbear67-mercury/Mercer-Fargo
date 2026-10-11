@@ -1,7 +1,7 @@
 // node --test worker/  — parsers and the public-URL guard behind /api/search and /api/read.
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { ddgParse, bingParse, htmlText, publicUrl } from './opencode-proxy.js';
+import { ddgParse, bingParse, htmlText, publicUrl, yahooEvents } from './opencode-proxy.js';
 
 test('ddgParse unwraps redirect links and skips ads', () => {
   const html = '<a class="result__a" href="https://duckduckgo.com/y.js?ad=1">Ad</a>' +
@@ -28,4 +28,13 @@ test('publicUrl refuses anything that is not a public http(s) host', () => {
     assert.equal(publicUrl(bad), null, bad);
   }
   assert.ok(publicUrl('https://investor.tsmc.com/english'));
+});
+
+test('yahooEvents keeps splits and dividends in date order', () => {
+  const j = { chart: { result: [{ events: { splits: { b: { date: 1598832000, numerator: 4, denominator: 1 } },
+    dividends: { y: { date: 1700000000, amount: 0.24 }, x: { date: 1600000000, amount: 0.2 } } } }] } };
+  const e = yahooEvents(j);
+  assert.deepEqual(e.splits, [{ t: 1598832000, d: '2020-08-31', num: 4, den: 1 }]);
+  assert.deepEqual(e.dividends.map((d) => d.amt), [0.2, 0.24]);
+  assert.deepEqual(yahooEvents({}), { splits: [], dividends: [] });
 });
