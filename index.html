@@ -578,6 +578,33 @@ body.vol-dragging,body.vol-dragging *{cursor:grabbing!important;user-select:none
 .menu .mi:hover{background:var(--fh-states-neutral-hovered)}
 .menu .mi.on{background:var(--fh-states-branded-medium-selected);color:var(--fh-foreground-on-highlight)}
 .menu .mhead{padding:10px 14px 6px;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis)}
+.ind-panel{display:none;align-items:flex-start;gap:12px;margin:8px 0 4px}
+.ind-panel.open{display:flex;animation:indDown .18s ease-out}
+@keyframes indDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+@keyframes indRight{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+.ind-top{flex:none;width:310px;background:var(--fh-background-surface-elevated);border:1px solid var(--fh-border-stroke-default);border-radius:12px;padding:8px}
+.ind-allbox{display:none;flex:1;min-width:0;background:var(--fh-background-surface-elevated);border:1px solid var(--fh-border-stroke-default);border-radius:12px;padding:8px;overflow-x:auto;overflow-y:hidden}
+.ind-allbox.show{display:block;animation:indRight .2s ease-out}
+.ind-cols{display:flex;gap:20px;width:max-content;align-items:flex-start}
+.ind-col{width:300px;flex:none}
+.ind-panel .mhead{padding:8px 10px 4px;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis)}
+.ind-i{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;padding:8px 10px;border-radius:8px;font-size:14px;text-align:left;color:var(--fh-foreground-on-surface-default);cursor:pointer}
+.ind-i:hover{background:var(--fh-states-neutral-hovered)}
+.ind-i i{flex:none;width:18px;height:18px;border-radius:5px;border:2px solid var(--fh-border-stroke-default);box-sizing:border-box;position:relative}
+.ind-i.on i{background:var(--mf-gold);border-color:var(--mf-gold)}
+.ind-i.on i::after{content:"";position:absolute;left:4px;top:0;width:4px;height:9px;border:solid #141414;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ind-showall{display:block;width:100%;margin-top:4px;border:0;border-top:1px solid var(--fh-border-stroke-default);background:transparent;padding:11px 10px 8px;text-align:left;font-size:14px;font-weight:600;color:var(--mf-gold);cursor:pointer}
+.ind-chip{display:inline-flex;align-items:center;gap:6px}
+.ind-chip button{border:0;background:transparent;color:inherit;font:inherit;padding:0;cursor:pointer}
+.ind-chip .x{font-size:16px;line-height:1;opacity:.6}.ind-chip .x:hover{opacity:1}
+#indPanes{margin:2px 0 6px}
+.ind-pane{border-top:1px solid var(--fh-border-stroke-default);position:relative}
+.ind-pane svg{display:block;width:100%;height:150px}
+.ind-head{display:flex;align-items:center;gap:10px;padding:6px 4px 0;font-size:12.5px;position:absolute;left:0;right:0;top:0;pointer-events:none;z-index:1}
+.ind-head button{pointer-events:auto;border:0;background:transparent;color:var(--fh-foreground-on-surface-de-emphasis);font-size:18px;line-height:1;cursor:pointer}
+.ind-head .sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+.ind-head .grow{flex:1}
+@media(max-width:760px){.ind-panel.open{flex-direction:column}.ind-top{width:100%;box-sizing:border-box}.ind-allbox{width:100%;box-sizing:border-box;flex:none}}
 .chs-menu{min-width:0;width:min(640px,calc(100vw - 16px));padding:14px 18px 10px}
 .chs-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px}
 .chs-i{display:flex;align-items:center;gap:14px;border:0;background:transparent;padding:14px 4px;font-size:16px;text-align:left;color:var(--fh-foreground-on-surface-default);border-radius:8px;cursor:pointer}
@@ -2089,6 +2116,7 @@ body.rs-drag iframe{pointer-events:none}
 </style>
   </head>
   <body>
+<script src="indicators.js"></script>
 <script>try{var c=JSON.parse(localStorage.getItem('fh3_cfg')||'{}'),t=c.theme||'dark';if(t==='auto')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 <div class="sys" id="bootScreen" role="status" aria-live="polite" aria-label="Loading MercerFargo">
   <div class="sys-in">
@@ -3522,6 +3550,8 @@ function chartView(host, o){
     }
     others.forEach(function(s){ s.v.forEach(see); });
     if(o.range) o.range(r, a, b).forEach(function(v){ see(val(v)); });
+    var ovs = !pctMode && o.overlays ? o.overlays(c, r) : [];   // indicators drawn on the price chart
+    ovs.forEach(function(ov){ if(ov.spec) IND.reach(ov.spec, a, b, see); });
     if(!isFinite(lo)){ lo = val(r[n - 1].c) * .95; hi = val(r[n - 1].c) * 1.05; }
     var pad = (hi - lo || Math.abs(hi) * .02 || 1) * .08; lo -= pad; hi += pad;
     var Y = function(v){ return padT + plotH - (v - lo) / (hi - lo) * plotH; };
@@ -3582,6 +3612,8 @@ function chartView(host, o){
     if(!pctMode && chsOn('prev') && (c.lv === 'm5' || c.lv === 'm1') && o.prevClose && o.prevClose() && o.prevClose() > lo && o.prevClose() < hi)
       plot.push('<line x1="' + padL + '" x2="' + (padL + plotW) + '" y1="' + Y(o.prevClose()).toFixed(1) + '" y2="' + Y(o.prevClose()).toFixed(1) + '" stroke="var(--fh-foreground-on-surface-de-emphasis)" stroke-dasharray="4 4"/>');
     mas.forEach(function(m){ plot.push('<path d="' + path(function(i){ return m.v[i]; }) + '" fill="none" stroke="' + m.col + '" stroke-width="1.5" opacity=".9"/>'); });
+    var og = { X:X, Y:Y, i0:i0, i1:i1, padL:padL, plotW:plotW, padT:padT, plotH:plotH, lo:lo, hi:hi, rows:r };
+    ovs.forEach(function(ov){ plot.push(ov.draw(og)); });
     others.forEach(function(s){ plot.push('<path d="' + path(function(i){ return s.v[i - a]; }) + '" fill="none" stroke="' + s.col + '" stroke-width="' + (pctMode ? 2 : 1.5) + '"' + (pctMode ? '' : ' stroke-dasharray="5 3"') + '/>'); });
     // highest and lowest price in view, each with a small label on a leader line
     if(!pctMode && chsOn('hilo')){
@@ -3636,8 +3668,9 @@ function chartView(host, o){
         hline(al.val, '#7aa7ff', '6 4', num(al.val, Math.abs(al.val) < 10 ? 4 : 2), 'Alert ' + (al.type === 'above' ? '↑ ' : '↓ ') + num(al.val, Math.abs(al.val) < 10 ? 4 : 2));
       });
     }
-    // volume: its own band at the bottom, scaled to the visible bars
-    if(o.volume){
+    // volume: its own band at the bottom, scaled to the visible bars (the Volume indicator switches it off)
+    if(o.volume && o.volOn && !o.volOn()){ $q('.ch-vol').innerHTML = ''; var sl0 = $('volSlider'); if(sl0) sl0.hidden = true; }
+    else if(o.volume){
       var vmax = 0; for(var v = a; v <= b; v++) if(r[v].v > vmax) vmax = r[v].v;
       var bandH = plotH * .24, vd = '';
       if(vmax > 0){
@@ -3822,6 +3855,7 @@ function renderChart(){
       prevClose:function(){ return (DATA.quotes[dispSym(CUR.sym)] || {}).pc; },
       quote:function(){ return DATA.quotes[dispSym(CUR.sym)] || {}; },
       time:barTime,
+      overlays:indOverlays, volOn:indVolOn, after:indPanes,
       markers:function(c){   // loaded once per symbol; the chart redraws when they arrive
         // Keep corporate-event circles through 5Y; hide them on MAX to avoid clutter.
         var s = dispSym(CUR.sym), evs = [];
@@ -3941,7 +3975,7 @@ var TASKS = load(LS.tasks, []).filter(function(t){ return t && typeof t === 'obj
 var CUR = {
   view:'home', sym:'AAPL', tab:'overview', range:RANGE_DAYS[CFG.range] ? (CFG.range === '1D' ? 'M5' : CFG.range) : '1M',
   chart:/^(area|line|candles)$/.test(CFG.chart) ? CFG.chart : 'area', volY:0,
-  ind:{ ma20:false, ma50:false, ma200:false }, cmp:{},
+  ind:{ ma20:false, ma50:false, ma200:false }, cmp:{}, inds:null, indOpen:false, indAll:false,
   list:'main', pf:'main', key:'AAPL', cols:{ pc:true, o:false, h:false, l:false, v:true, mc:false },
   sort:{ key:'', dir:-1 }, sec:null, screen:null, cmpSel:[]
 };
@@ -7249,13 +7283,14 @@ function paintQuote(){
       ((CHART_TYPES.filter(function(m){ return m[0] === CUR.chart; })[0] || CHART_TYPES[0])[1]) + ' ▾</button>' +
     '<button class="tbtn" data-act="menu-compare"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zm10 6h-6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V10a1 1 0 0 0-1-1z"/></svg> Compare ▾' +
       (Object.keys(CUR.cmp).length ? ' (' + Object.keys(CUR.cmp).length + ')' : '') + '</button>' +
-    '<button class="tbtn' + ((CUR.ind.ma20 || CUR.ind.ma50 || CUR.ind.ma200) ? ' on' : '') + '" data-act="menu-ind">' +
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 20V10h3v10H4zm6.5 0V4h3v16h-3zM17 20v-7h3v7h-3z"/></svg> Indicators ▾</button>' +
+    '<button class="tbtn' + (indActive().length ? ' on' : '') + '" data-act="ind-toggle" aria-expanded="' + !!CUR.indOpen + '" id="indBtn">' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 20V10h3v10H4zm6.5 0V4h3v16h-3zM17 20v-7h3v7h-3z"/></svg> Indicators' + (indActive().length ? ' (' + indActive().length + ')' : '') + ' ▾</button>' +
     '<span class="grow"></span>' +
     '<span class="mut" style="font-size:12px">' + (Q.hist && Q.hist.length ? Q.hist.length + ' points' : '') + '</span>' +
     '</div>';
 
-  html += '<div class="chart-box" id="chartHost"></div>';
+  html += indPanelHTML();
+  html += '<div class="chart-box" id="chartHost"></div><div id="indPanes"></div>';
 
   html += '<div class="range-row"><div class="pills">' +
     RANGE_PILLS.map(function(r){
@@ -7280,14 +7315,117 @@ function monthName(mm){
   var i = parseInt(mm, 10) - 1;
   return names[i] || mm;
 }
+/* ------------------------------------------------------------ indicators (maths and drawing: indicators.js) */
+CUR.inds = (function(){
+  var v = load('fh3_inds', null);
+  v = Array.isArray(v) ? v.filter(function(it){ return it && typeof IND !== 'undefined' && IND.byId[it.id]; }) : [{ id:'vol', p:{} }];
+  return v;
+})();
+function indActive(){ return CUR.inds.filter(function(it){ return it.id !== 'vol'; }); }
+function indVolOn(){ return CUR.inds.some(function(it){ return it.id === 'vol'; }); }
+function indSave(){ save('fh3_inds', CUR.inds); }
+function indPanelHTML(){
+  var item = function(d){ return '<button type="button" class="ind-i' + (CUR.inds.some(function(it){ return it.id === d.id; }) ? ' on' : '') + '" role="checkbox" data-act="ind2" data-id="' + d.id + '"><i></i><span>' + esc(d.name) + '</span></button>'; };
+  var top = IND.top10.map(function(id){ return item(IND.byId[id]); }).join('');
+  var cols = IND.cats.map(function(c){
+    var ds = IND.defs.filter(function(d){ return d.cat === c; });
+    return ds.length ? '<div class="ind-col"><div class="mhead">' + esc(c) + '</div>' + ds.map(item).join('') + '</div>' : '';
+  }).join('');
+  return '<div class="ind-panel' + (CUR.indOpen ? ' open' : '') + '" id="indPanel">' +
+    '<div class="ind-top"><div class="mhead">Indicators</div>' + top +
+      '<button type="button" class="ind-showall" data-act="ind-all" id="indShowAll">' + (CUR.indAll ? '‹ Hide all indicators' : 'Show All Indicators ›') + '</button></div>' +
+    '<div class="ind-allbox' + (CUR.indAll ? ' show' : '') + '" id="indAllBox"><div class="ind-cols">' + cols + '</div></div></div>';
+}
+function indPanelSync(){   // open / close / ticks, without repainting the page
+  var p = $('indPanel'); if(!p) return;
+  p.classList.toggle('open', !!CUR.indOpen);
+  $('indAllBox').classList.toggle('show', !!CUR.indAll);
+  $('indShowAll').textContent = CUR.indAll ? '‹ Hide all indicators' : 'Show All Indicators ›';
+  var b = $('indBtn'); if(b){ b.setAttribute('aria-expanded', !!CUR.indOpen); b.classList.toggle('on', indActive().length > 0); b.lastChild.textContent = ' Indicators' + (indActive().length ? ' (' + indActive().length + ')' : '') + ' ▾'; }
+  $$('#indPanel .ind-i').forEach(function(el){ var on = CUR.inds.some(function(it){ return it.id === el.getAttribute('data-id'); }); el.classList.toggle('on', on); el.setAttribute('aria-checked', on); });
+}
+function indToggle(id, force){
+  var at = CUR.inds.findIndex(function(it){ return it.id === id; }), want = force == null ? at < 0 : force;
+  if(!want){ if(at >= 0) CUR.inds.splice(at, 1); }
+  else if(at < 0){
+    var it = { id:id, p:IND.defaults(id) };
+    if(id === 'avwap' || id === 'frvp'){   // anchored at the left edge of what is on screen now
+      var r = QCH && QCH.main ? QCH.main() : []; if(r.length) it.at = r[clamp(Math.ceil(QCH.i0), 0, r.length - 1)].t;
+    }
+    CUR.inds.push(it);
+  }
+  indSave(); indPanelSync(); renderChartLegend(); if(QCH) QCH.soon();
+}
+function indEdit(id){
+  var it = CUR.inds.filter(function(x){ return x.id === id; })[0], d = IND.byId[id]; if(!it) return;
+  var keys = Object.keys(d.p);
+  askText(d.short + ' settings', keys.join(', '), keys.map(function(k){ return it.p[k] != null ? it.p[k] : d.p[k]; }).join(', '), function(v){
+    var nums = String(v).split(/[\s,]+/).filter(Boolean).map(parseFloat);
+    keys.forEach(function(k, i){ if(isFinite(nums[i]) && nums[i] > 0) it.p[k] = nums[i]; });
+    indSave(); renderChartLegend(); if(QCH) QCH.soon();
+  });
+}
+/* One computed spec per indicator and view; recomputed only when the bars or the settings change. */
+function indSpecs(c){
+  var r = c.main(), out = [];
+  if(r.length < 2) return out;
+  var sym = dispSym(CUR.sym), intra = !!CH_INTRA[c.lv], last = r[r.length - 1], st = Q.stats || {};
+  c.indc = c.indc || {};
+  if(Object.keys(c.indc).length > 60) c.indc = {};
+  var spy = null;
+  if(CUR.inds.some(function(it){ return it.id === 'corr'; })){
+    var sr = CH_DATA['q|SPY|' + c.lv];
+    if(sym === 'SPY') spy = r.map(function(x){ return x.c; });
+    else if(!sr) chLoad('SPY', c.lv).then(c.soon);
+    else if(sr.length > 1) spy = r.map(function(x){ var o = chAsOf(sr, x.t); return o ? o.c : null; });
+  }
+  CUR.inds.forEach(function(it){
+    var d = IND.byId[it.id]; if(!d || d.kind === 'band') return;
+    var key = [sym, c.lv, r.length, last.c, last.t, it.id, JSON.stringify(it.p), it.at || '', st.hi52, st.lo52, spy ? 1 : 0].join('|');
+    var spec = c.indc[key];
+    if(!spec){
+      try{ spec = IND.compute(it.id, r, it.p, { intra:intra, lv:c.lv, at:it.at || r[0].t, hi52:st.hi52, lo52:st.lo52, spy:spy }); }catch(e){ spec = {}; }
+      c.indc[key] = spec;
+    }
+    out.push({ it:it, def:d, spec:spec });
+  });
+  return out;
+}
+function indOverlays(c, r){
+  return indSpecs(c).filter(function(x){ return x.def.kind === 'ov' || x.def.kind === 'prof'; }).map(function(x){
+    return { spec:x.spec, draw:function(g){
+      return x.def.kind === 'prof' ? IND.profile(x.spec, g, x.def, x.it.p, { key:function(i){ var d = r[i].d; return CH_INTRA[c.lv] ? d : c.lv === 'd' ? d.slice(0, 7) : d.slice(0, 4); } }) : IND.overlay(x.spec, g);
+    } };
+  });
+}
+/* Oscillators: one pane each under the chart, sharing its time axis. */
+function indPanes(c){
+  var host = $('indPanes'), g = c.geo; if(!host || !g) return;
+  var items = indSpecs(c).filter(function(x){ return x.def.kind === 'pn'; });
+  if(!items.length){ if(host.innerHTML) host.innerHTML = ''; return; }
+  var H = 150, padT = 10, padB = 14, n = c.main().length;
+  host.innerHTML = items.map(function(x, k){
+    var G = { W:g.W, H:H, padL:g.padL, plotW:g.plotW, padT:padT, plotH:H - padT - padB, X:g.X, i0:c.i0, i1:c.i1, n:n, clip:'ipc' + k };
+    var res = IND.pane(x.spec, G);
+    return '<div class="ind-pane"><div class="ind-head"><span class="sw" style="background:' + x.def.col + '"></span><b>' + esc(IND.label(x.it.id, x.it.p)) + '</b>' +
+      (x.spec.note ? '<span class="mut"> ' + esc(x.spec.note) + '</span>' : '') +
+      res.head.map(function(h){ return '<span class="num" style="color:' + h.col + '">' + esc(h.t) + '</span>'; }).join('') +
+      '<span class="grow"></span><button data-act="ind-rm" data-id="' + x.it.id + '" aria-label="Remove ' + esc(x.def.short) + '">×</button></div>' +
+      '<svg viewBox="0 0 ' + g.W + ' ' + H + '" preserveAspectRatio="none"><defs><clipPath id="ipc' + k + '"><rect x="' + g.padL + '" y="' + padT + '" width="' + g.plotW + '" height="' + (H - padT - padB) + '"/></clipPath></defs>' + res.svg + '</svg></div>';
+  }).join('');
+}
+
 function renderChartLegend(){
   var el = $('chartLegend');
   if(!el) return;
   var q = DATA.quotes[dispSym(CUR.sym)] || {};
   var items = ['<span><span class="sw" style="background:' + ((chgFrom(q).pct == null || chgFrom(q).pct >= 0) ? 'var(--fh-positive)' : 'var(--fh-negative)') + '"></span>' + esc(dispSym(CUR.sym)) + '</span>'];
-  if(CUR.ind.ma20) items.push('<span><span class="sw" style="background:' + CHART_PALETTE[0] + '"></span>MA 20</span>');
-  if(CUR.ind.ma50) items.push('<span><span class="sw" style="background:' + CHART_PALETTE[3] + '"></span>MA 50</span>');
-  if(CUR.ind.ma200) items.push('<span><span class="sw" style="background:' + CHART_PALETTE[2] + '"></span>MA 200</span>');
+  indActive().forEach(function(it){
+    var d = IND.byId[it.id], has = Object.keys(d.p).length;
+    items.push('<span class="ind-chip"><span class="sw" style="background:' + d.col + '"></span>' +
+      (has ? '<button data-act="ind-edit" data-id="' + it.id + '" title="Change settings">' + esc(IND.label(it.id, it.p)) + '</button>' : esc(IND.label(it.id, it.p))) +
+      '<button class="x" data-act="ind-rm" data-id="' + it.id + '" aria-label="Remove ' + esc(d.short) + '">×</button></span>');
+  });
   var i = 0;
   Object.keys(CUR.cmp).forEach(function(k){
     i++;
@@ -10179,7 +10317,7 @@ function bindEvents(){
     if(!el){ closeMenu(); return; }
     var act = el.getAttribute('data-act');
     var sym = el.getAttribute('data-sym');
-    if(act !== 'menu-cols' && act !== 'menu-chart' && act !== 'menu-compare' && act !== 'menu-ind' && act !== 'menu-more' && act !== 'chs') closeMenu();
+    if(act !== 'menu-cols' && act !== 'menu-chart' && act !== 'menu-compare' && act !== 'menu-more' && act !== 'chs') closeMenu();
     switch(act){
       case 'nav': ev.preventDefault(); go(el.getAttribute('data-href')); break;
       case 'mk-sel': mkSelect(el.getAttribute('data-s')); break;
@@ -10293,10 +10431,11 @@ function bindEvents(){
         }).join('')); break;
       case 'chart-mode': CUR.chart = CFG.chart = el.getAttribute('data-mode'); saveCfg(); paintQuote(); break;
       case 'chs': chsToggle(el.getAttribute('data-k'), el); break;
-      case 'menu-ind': ev.stopPropagation(); menu(el, '<div class="mhead">Indicators</div>' +
-        [['ma20', 'Moving average 20'], ['ma50', 'Moving average 50'], ['ma200', 'Moving average 200']].map(function(m){
-          return '<button class="mi' + (CUR.ind[m[0]] ? ' on' : '') + '" data-act="ind" data-ind="' + m[0] + '">' + m[1] + '</button>';
-        }).join('') + '<div class="mhead">Events</div><button class="mi' + (CUR.ind.events !== false ? ' on' : '') + '" data-act="ind" data-ind="events">Earnings, dividends &amp; splits (E / D / S)</button>'); break;
+      case 'ind-toggle': CUR.indOpen = !CUR.indOpen; if(!CUR.indOpen) CUR.indAll = false; indPanelSync(); break;
+      case 'ind-all': CUR.indAll = !CUR.indAll; indPanelSync(); break;
+      case 'ind2': indToggle(el.getAttribute('data-id')); break;
+      case 'ind-rm': indToggle(el.getAttribute('data-id'), false); break;
+      case 'ind-edit': indEdit(el.getAttribute('data-id')); break;
       case 'ind': {
         var k = el.getAttribute('data-ind');
         CUR.ind[k] = k === 'events' ? CUR.ind.events === false : !CUR.ind[k];
