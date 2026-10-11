@@ -746,6 +746,11 @@ body.vol-dragging,body.vol-dragging *{cursor:grabbing!important;user-select:none
 .rs-report code{background:var(--fh-background-surface-container);padding:1px 5px;border-radius:5px;font-size:12.5px}
 .rs-report hr{border:0;border-top:1px solid var(--fh-border-stroke-default);margin:14px 0}
 .rs-cites{margin:14px 0 0;padding:14px 0 0;border-top:1px solid var(--fh-border-stroke-default);font-size:12.5px}
+.rs-cites summary{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis);margin:0;cursor:pointer;list-style:none;user-select:none}
+.rs-cites summary::-webkit-details-marker{display:none}
+.rs-cites summary::before{content:'\25B8  '}
+.rs-cites[open] summary::before{content:'\25BE  '}
+.rs-cites[open] summary{margin-bottom:8px}
 .rs-cites h5{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis);margin:0 0 8px}
 .rs-cites ol{margin:0 0 0 20px;padding:0}
 .rs-cites li{margin:4px 0;color:var(--fh-foreground-on-surface-de-emphasis)}
@@ -8235,16 +8240,26 @@ function rsReportHTML(){
   if(!RS.running && !RS.error && body) h = rsDoneHTML() + h;
   h += '<div class="rs-report" id="rsReportBody">' + rsMarkdown(body) + (RS.running ? '<span class="mut">▍</span>' : '') + '</div>';
   if(RS.citations && RS.citations.length){
-    h += '<div class="rs-cites"><h5>Sources (' + RS.citations.length + ')</h5><ol>' +
+    h += '<details class="rs-cites"' + (RS.citesOpen ? ' open' : '') + '><summary>Sources (' + RS.citations.length + ')</summary><ol>' +
       RS.citations.map(function(c){
         return '<li id="rs-cite-' + c.index + '"><a href="' + esc(c.url) + '" target="_blank" rel="noopener">' +
           esc(c.title || c.url) + '</a></li>';
-      }).join('') + '</ol></div>';
+      }).join('') + '</ol></details>';
   }
   h += '<div class="rs-actions">' +
     '</div>';
   return h;
 }
+
+/* The report's Sources section is collapsed; remember it across repaints, and let a [n] marker open it. */
+document.addEventListener('toggle', function(e){ var t = e.target; if(t && t.classList && t.classList.contains('rs-cites') && t.tagName === 'DETAILS') RS.citesOpen = t.open; }, true);
+document.addEventListener('click', function(e){
+  var a = e.target.closest && e.target.closest('a[href^="#rs-cite-"]');
+  if(!a) return;
+  e.preventDefault();
+  var d = document.querySelector('details.rs-cites'); if(d) d.open = true;
+  var li = document.getElementById(a.getAttribute('href').slice(1)); if(li) li.scrollIntoView({ block:'center', behavior:'smooth' });
+});
 
 function rsSyncButtons(){
   var run = document.querySelector('[data-act="rs-run"]');
