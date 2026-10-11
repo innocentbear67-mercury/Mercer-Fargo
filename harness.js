@@ -305,14 +305,14 @@ var MH = (function(){
     },
     navigate:{
       modes:'chat', label:function(a){ return '↗ Opening ' + a.page + (a.symbol ? ' ' + a.symbol : ''); },
-      description:'Open a page: home, portfolio (id optional), watchlist (id), screener, compare, earnings, markets (group), research (Research Log), settings (section), investors (id, e.g. buffett), insiders (symbol), filings (symbol).',
+      description:'Open a page: home, portfolio (id optional), watchlist (id), screener, compare, earnings, markets (section: indices, futures, commodities, forex, bonds, crypto), research (Research Log), settings (section), investors (id, e.g. buffett), insiders (symbol), filings (symbol).',
       params:S({ page:STR('Page', ['home', 'portfolio', 'watchlist', 'screener', 'compare', 'earnings', 'markets', 'research', 'settings', 'investors', 'insiders', 'filings']),
-        id:STR('Portfolio/watchlist id or name, market group (US, Europe, Asia, Latin America, Currencies, Crypto, Commodities), settings section (profile, ai, appearance, data, briefings, skills, export) or investor id'),
+        id:STR('Portfolio/watchlist id or name, markets section (indices, futures, commodities, forex, bonds, crypto), settings section (profile, ai, appearance, data, briefings, skills, export) or investor id'),
         symbol:STR('Ticker for insiders/filings') }, ['page']),
       run:function(a, ctx){
         var p = a.page, id = String(a.id || ''), s = symOf(a.symbol);
         if(p === 'home' || p === 'screener' || p === 'compare' || p === 'earnings' || p === 'research' || p === 'portfolio') return ctx.act({ do:'open_page', page:p, id:id });
-        var to = p === 'watchlist' ? '#/list/' + (actFind(LISTS, id) || CUR.list) : p === 'markets' ? '#/markets/' + (MARKET_GROUPS.filter(function(g){ return g.id.toLowerCase() === id.toLowerCase(); }).map(function(g){ return g.id; })[0] || CFG.market)
+        var to = p === 'watchlist' ? '#/list/' + (actFind(LISTS, id) || CUR.list) : p === 'markets' ? '#/market/' + (/^(indices|futures|commodities|forex|bonds|crypto)$/.test(id.toLowerCase()) ? id.toLowerCase() : '')
           : p === 'settings' ? '#/settings/' + (/^(profile|ai|appearance|data|briefings|skills|export)$/.test(id) ? id : 'profile') : p === 'investors' ? '#/investors/' + (guruById(id.toLowerCase()) ? id.toLowerCase() : '')
           : p === 'insiders' ? '#/insiders/' + s : p === 'filings' ? '#/filings/' + s : '';
         if(!to) throw new Error('unknown page');

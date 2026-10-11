@@ -1,0 +1,11 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Page not found · MercerFargo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- GitHub Pages serves this for any missing path; hand it to the app's own 404 page. -->
+<script>
+  var p = location.pathname, seg = p.split('/')[1] || '';
+  var base = /\.github\.io$/.test(location.hostname) && seg ? '/' + seg + '/' : '/';
+  location.replace(base + '#/404/' + encodeURIComponent(p.slice(base.length) || '/'));
+</script>
+<noscript><p style="font-family:Georgia,serif;text-align:center;margin-top:20vh">Page not found. <a href="./">Go to MercerFargo</a></p></noscript>

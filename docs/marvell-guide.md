@@ -35,23 +35,23 @@ Everything (watchlists, portfolios, chats, keys) is stored in the user's browser
 ## navigation
 - **Header**: logo (home), search box, market status chip, theme toggle (light/dark), **Research with Marvell**, key button, ⋯ menu, account avatar.
 - **Search box**: type a ticker (AAPL) or company name to open its quote page. Anything else (a question) is sent to Marvell as a Deep Search.
-- **Sub-nav tabs**: *Monitoring Terminal* (home) and *Research Log*, then market tabs US / Europe / Asia / Latin America / Currencies / Crypto / Commodities.
-- **Left rail** (collapsible; ☰ on phones): Watchlists, Portfolios, Smart Money, Insider Trading, Filings & Reports, Sectors.
-- **⋯ menu**: Home, Portfolio, Screener, Compare, Earnings calendar, Research Log, Markets, AI keys & defaults, Settings, Take the tour, Give feedback, Get help.
-- Routes (URL hash): `#/`, `#/quote/SYM/tab`, `#/list/ID`, `#/portfolio/ID`, `#/markets/GROUP`, `#/screener`, `#/compare`, `#/earnings`, `#/research`, `#/investors/ID`, `#/insiders/SYM`, `#/filings/SYM`, `#/settings/SECTION`, `#/help`, `#/feedback`.
+- **Sub-nav tabs**: *Monitoring Terminal* (home) and *Research Log*.
+- **Left rail** (collapsible; ☰ on phones): Market, Watchlists, Portfolios, Smart Money, Insider Trading, Filings & Reports, Sectors.
+- **⋯ menu**: Home, Portfolio, Screener, Compare, Earnings calendar, Research Log, Market, AI keys & defaults, Settings, Take the tour, Give feedback, Get help.
+- Routes (URL hash): `#/`, `#/quote/SYM/tab`, `#/list/ID`, `#/portfolio/ID`, `#/market/SECTION`, `#/screener`, `#/compare`, `#/earnings`, `#/research`, `#/investors/ID`, `#/insiders/SYM`, `#/filings/SYM`, `#/settings/SECTION`, `#/help`, `#/feedback`.
 
 ## home
 Route `#/` (tab *Monitoring Terminal*). Shows, top to bottom:
 - **Your portfolio** at a glance: value, today's move and what drove it, with ranges (all time, year to date, 3 months…) and whether the user is beating the S&P 500. Empty state offers *Add a holding* / *Import CSV*.
-- Quote cards for the selected market group (US: SPY, QQQ, DIA, IWM, VTI — index ETFs stand in for the indexes).
 - **Top movers in your watchlists**: sortable table with a *Columns* picker and trend sparklines.
 - Daily gainers, daily losers, most valuable companies, market-wide movers.
 - **Market news** with *Dive deeper with AI* and *Refresh*.
 
-## markets
-Route `#/markets/GROUP` (US, Europe, Asia, Latin America, Currencies, Crypto, Commodities), or the market tabs under the header.
-Shows the group's quote cards, an index table, most valuable companies, trending in the user's watchlist, gainers and losers.
-Button: **AI market summary**. The default group is set in Settings → Appearance.
+## market
+Route `#/market/SECTION` (indices, futures, commodities, forex, bonds, crypto), or the **Market** section in the left rail.
+A world map of global indices (S&P 500, Nasdaq, Dow, TSX, Bovespa, FTSE 100, DAX, CAC 40, Nikkei 225, Hang Seng, Shanghai, KOSPI, STI, Nifty 50, ASX 200 and more) with live % change, region tabs (Global, Americas, Europe, Asia-Pacific) that zoom the map, and an index list.
+Below: cards for index futures, commodities, forex, US Treasury yields and crypto. Clicking any index or card charts it in the detail panel (1D, 5D, 1M, 6M, 1Y, 5Y) with an **Ask Marvell** button.
+Data: Yahoo Finance bars via the edge worker, delayed, refreshed every minute while the page is open.
 
 ## quote-page
 Route `#/quote/SYM/TAB`. Opened from search, any ticker link, or Marvell's `open_quote` action.
