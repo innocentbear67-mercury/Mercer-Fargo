@@ -283,6 +283,7 @@ hosted copy and locally.
   and `open_filing` run straight away. Marvell cannot see the screen or the app's cached data; it fetches market facts with its tools, and uses the provider's built-in web search where one exists. `propose_changes` (create/add/delete
   portfolios and watchlists) only shows an Apply card; nothing changes until the user clicks.
 * **Knows the app.** `read_docs` reads `docs/marvell-guide.md`.
+* **Remembers you.** Memory (Settings → Memory) holds a nickname, age, what you do, notes, your portfolios, watchlists, skills and short summaries of your Deep Research runs. It is saved with your account in this browser, goes into every chat, and both you and Marvell (`update_memory`) can edit it. `read_memory` returns the full text.
 * **Chat** (Agent tab): up to 15 rounds, 4 minutes; the thinking indicator shows the current step.
   **Deep Research**: up to 40 rounds, 10 minutes, a live plan (`update_plan`), cited report,
   then a grounding review; runs are saved in this browser (Research Log, Past runs).
