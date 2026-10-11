@@ -2007,6 +2007,8 @@ body.rs-drag iframe{pointer-events:none}
 .ch-host .ch-hl-t{font-size:12px;font-weight:600;fill:var(--fh-foreground-on-surface-default);paint-order:stroke;stroke:var(--fh-background-surface);stroke-width:3px;font-variant-numeric:tabular-nums}
 .ch-host .ch-mk{cursor:pointer}
 .ch-host .ch-mk circle{fill:var(--mf-gold);stroke:var(--fh-background-surface);stroke-width:1.5;transition:r .12s}
+.ch-host .ch-mk.buy circle{fill:var(--fh-positive)}
+.ch-host .ch-mk.buy text{fill:#fff}
 .ch-host .ch-mk text{font-size:10.5px;font-weight:700;fill:#1b1508;pointer-events:none}
 .ch-host .ch-mk.future circle{fill:var(--fh-background-surface);stroke:var(--mf-gold);stroke-width:1.6;stroke-dasharray:2.5 2}
 .ch-host .ch-mk.future text{fill:var(--mf-gold)}
@@ -3314,6 +3316,14 @@ function pfCost(sym){   // average cost of the shares held in all portfolios, or
   Object.keys(PFS).forEach(function(id){ PFS[id].holdings.forEach(function(h){ if(dispSym(h.s) === s && h.q > 0 && h.px > 0){ q += h.q; cost += h.q * h.px; } }); });
   return q ? cost / q : null;
 }
+function pfTrades(sym){   // green "B" markers on the day a held position was bought (holdings that have a buy date)
+  var s = dispSym(sym), out = [], today = ymd(new Date());
+  Object.keys(PFS).forEach(function(id){ PFS[id].holdings.forEach(function(h){
+    if(dispSym(h.s) !== s || !h.d || h.d > today) return;
+    out.push({ t:Date.parse(h.d + 'T00:00:00Z') / 1000, k:'B', cls:'buy', html:'<b>Bought · ' + esc(h.d) + '</b><br>' + num(h.q, h.q % 1 ? 4 : 0) + ' shares' + (h.px ? ' @ $' + num(h.px, 2) : '') + '<br><span class="mut">' + esc(PFS[id].name) + '</span>' });
+  }); });
+  return out;
+}
 function chsMenu(ev){
   ev.preventDefault();
   var el = document.createElement('div');
@@ -3591,14 +3601,14 @@ function chartView(host, o){
     if(o.markers && !pctMode){
       var stack = {};
       (o.markers(c) || []).forEach(function(mk){
-        if(!chsOn({ D:'div', S:'split', E:'earn' }[mk.k] || 'earn')) return;
+        if(!chsOn({ D:'div', S:'split', E:'earn', B:'trades' }[mk.k] || 'earn')) return;
         var fi = chI(r, mk.t), bi = mk.t > r[n - 1].t ? fi : (chAsOf(r, mk.t) ? r.indexOf(chAsOf(r, mk.t)) : -1);
         if(bi < 0 || bi < i0 - 1 || bi > i1 + 1) return;
         var key2 = Math.round(bi), lvl = stack[key2] = (stack[key2] || 0) + 1, bx = bars[Math.min(n - 1, Math.round(bi))];
         var top = Y(val(barMode && bi <= n - 1 ? bx.h : (bi <= n - 1 ? r[Math.round(bi)].c : r[n - 1].c)));
         var cx2 = X(bi), cy = Math.max(padT + 9, top - 12 - (lvl - 1) * 19);
         c.mk.push(mk);
-        plot.push('<g class="ch-mk' + (mk.future ? ' future' : '') + '" data-mk="' + (c.mk.length - 1) + '"><circle cx="' + cx2.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="8"/>' +
+        plot.push('<g class="ch-mk' + (mk.future ? ' future' : '') + (mk.cls ? ' ' + mk.cls : '') + '" data-mk="' + (c.mk.length - 1) + '"><circle cx="' + cx2.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="8"/>' +
           '<text x="' + cx2.toFixed(1) + '" y="' + (cy + 3.6).toFixed(1) + '" text-anchor="middle">' + mk.k + '</text></g>');
       });
     }
@@ -3814,10 +3824,12 @@ function renderChart(){
       time:barTime,
       markers:function(c){   // loaded once per symbol; the chart redraws when they arrive
         // Keep corporate-event circles through 5Y; hide them on MAX to avoid clutter.
-        if(CUR.ind.events === false || CUR.range === 'MAX') return [];
-        var s = dispSym(CUR.sym);
-        if(!chEvents.got || chEvents.got.s !== s){ chEvents.got = { s:s, list:[] }; chEvents(s).then(function(l){ if(chEvents.got.s === s){ chEvents.got.list = l; c.soon(); } }); }
-        return chEvents.got.list;
+        var s = dispSym(CUR.sym), evs = [];
+        if(CUR.ind.events !== false && CUR.range !== 'MAX'){
+          if(!chEvents.got || chEvents.got.s !== s){ chEvents.got = { s:s, list:[] }; chEvents(s).then(function(l){ if(chEvents.got.s === s){ chEvents.got.list = l; c.soon(); } }); }
+          evs = chEvents.got.list;
+        }
+        return evs.concat(pfTrades(s));
       },
       empty:'No price history available for this range yet.<div style="margin-top:12px"><button class="btn text" data-act="retry-hist">Retry</button></div>'
     });
@@ -3922,7 +3934,7 @@ Object.keys(LISTS).forEach(function(k){ var l = LISTS[k]; if(!l || typeof l !== 
 if(!Object.keys(LISTS).length) LISTS.main = { name:'My watchlist', syms:['AAPL','MSFT','NVDA','TSLA','AMZN','META','GOOGL'] };
 Object.keys(PFS).forEach(function(k){ var p = PFS[k]; if(!p || typeof p !== 'object' || !Array.isArray(p.holdings)) delete PFS[k]; else {
   p.name = String(p.name || k);
-  p.holdings = p.holdings.filter(function(h){ return h && typeof h.s === 'string' && h.s && isFinite(h.q); }).map(function(h){ return { s:h.s, q:+h.q, px:isFinite(h.px) ? +h.px : 0 }; }); } });
+  p.holdings = p.holdings.filter(function(h){ return h && typeof h.s === 'string' && h.s && isFinite(h.q); }).map(function(h){ var o = { s:h.s, q:+h.q, px:isFinite(h.px) ? +h.px : 0 }; if(/^\d{4}-\d\d-\d\d$/.test(h.d || '')) o.d = h.d; return o; }); } });
 if(!Object.keys(PFS).length) PFS.main = { name:'Main portfolio', holdings:[] };
 var TASKS = load(LS.tasks, []).filter(function(t){ return t && typeof t === 'object'; });
 
@@ -9523,11 +9535,14 @@ function pfImport(){
     var iS = head.findIndex(function(h){ return h.indexOf('sym') >= 0 || h === 'ticker'; });
     var iQ = head.findIndex(function(h){ return h.indexOf('qty') >= 0 || h.indexOf('share') >= 0; });
     var iP = head.findIndex(function(h){ return h.indexOf('cost') >= 0 || h.indexOf('price') >= 0 || h.indexOf('avg') >= 0; });
+    var iD = head.findIndex(function(h){ return h.indexOf('date') >= 0; });
     if(iS < 0){ toast('CSV needs a symbol column.'); return; }
     var added = 0;
     grid.slice(1).forEach(function(r){
       if(!r[iS]) return;
-      PFS[CUR.pf].holdings.push({ s:dispSym(r[iS].toUpperCase()), q:parseFloat(r[iQ]) || 0, px:parseFloat(r[iP]) || 0 });
+      var row = { s:dispSym(r[iS].toUpperCase()), q:parseFloat(r[iQ]) || 0, px:parseFloat(r[iP]) || 0 };
+      if(iD >= 0 && /^\d{4}-\d\d-\d\d$/.test((r[iD] || '').trim())) row.d = r[iD].trim();
+      PFS[CUR.pf].holdings.push(row);
       added++;
     });
     savePfs(); renderPortfolio(); toast(added + ' holdings imported');
@@ -9556,7 +9571,7 @@ function openAddHolding(pfId){
   var pf = PFS[pfId];
   var body = '<div class="mut" style="font-size:13.5px;margin-bottom:10px">Holdings stay in this browser. Cost basis is whatever you type.</div>' +
     field('Symbol', 'hSym', dispSym(CUR.sym), 'AAPL') + field('Shares', 'hQty', '10', '10') +
-    field('Average cost per share', 'hPx', '', '180.00');
+    field('Average cost per share', 'hPx', '', '180.00') + field('Buy date (optional, marks the chart)', 'hDate', '', 'YYYY-MM-DD', 'date');
   dialog('Add holding to ' + pf.name, body, '<button class="btn text" data-act="dlg-close">Cancel</button><button class="btn filled" data-act="h-save" data-pf="' + esc(pfId) + '">Add</button>');
 }
 
@@ -10376,7 +10391,8 @@ function bindEvents(){
         var hSym = dispSym($('hSym').value.trim().toUpperCase());
         var hQ = parseFloat($('hQty').value) || 0, hPx = parseFloat($('hPx').value) || 0;
         if(!hSym || !hQ){ toast('Symbol and share count are required.'); break; }
-        PFS[el.getAttribute('data-pf')].holdings.push({ s:hSym, q:hQ, px:hPx });
+        var hRow = { s:hSym, q:hQ, px:hPx }, hD = $('hDate').value; if(/^\d{4}-\d\d-\d\d$/.test(hD)) hRow.d = hD;
+        PFS[el.getAttribute('data-pf')].holdings.push(hRow);
         savePfs(); closeDialog(); renderPortfolio(); renderRail(); toast('Holding added');
         break;
       }
@@ -10389,7 +10405,7 @@ function bindEvents(){
       case 'importpf': pfImport(); break;
       case 'pf-ask': pfAskDo(el.getAttribute('data-w')); break;
       case 'exportpf': {
-        var rows = [['symbol', 'shares', 'avg_cost']].concat(PFS[CUR.pf].holdings.map(function(h){ return [h.s, h.q, h.px]; }));
+        var rows = [['symbol', 'shares', 'avg_cost', 'buy_date']].concat(PFS[CUR.pf].holdings.map(function(h){ return [h.s, h.q, h.px, h.d || '']; }));
         download('portfolio.csv', rows.map(function(r){ return r.map(csvCell).join(','); }).join('\n'));
         break;
       }
