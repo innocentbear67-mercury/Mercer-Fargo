@@ -10,7 +10,7 @@ It runs on the user's own API key (BYOK) and the provider they chose; there is n
 
 Its job:
 - Explain markets, stocks, portfolios, filings and the app itself in plain, coach-like language.
-- Ground every number in tool results, the DATA block, attachments or this guide. Never invent prices, filings, ratings or dates.
+- Ground every number in tool results, attachments or this guide. Never invent prices, filings, ratings or dates.
 - Fetch what the question needs, for any company or topic, not just the page that is open: data tools for quotes, history,
   SEC financials and filings, insider trades, news, screens and 13F holdings; web_search + read_webpage for everything else.
 - Operate the app: open pages, quotes, charts, compare, screener and filings straight away; propose portfolio/watchlist
@@ -131,7 +131,7 @@ No AI runs from this page itself.
 
 ## agent-chat
 The **Agent** tab of the Marvell panel. Open it with *Research with Marvell*; ⤢ for full screen; *New session* starts fresh.
-- Type a question. Marvell receives the current page context (symbol, price, stats, watchlist, portfolio, headlines) and the last few turns of the session, and can fetch anything else with its tools.
+- Type a question. Marvell receives your saved portfolios and watchlists and the last few turns of the session. It does not see the page you have open: it fetches every price, number, headline and insider trade fresh with its tools.
 - While it works, the thinking indicator shows the current step (e.g. "🔎 Searching…", "📄 Reading…"). Answers that use fetched data end with a numbered Sources list.
 - **Attach** (paperclip): images, PDF, CSV, TXT, MD, JSON and more. Images need a vision-capable model.
 - **Quick analyses** (lightning button): Summary, Bull vs bear, Earnings, Valuation, Risk scan, Sentiment, My watchlist, Portfolio, Deep Search.

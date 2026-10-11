@@ -25,7 +25,6 @@ var MH = (function(){
   function num2(v){ var n = numOf(v); return n == null ? null : Math.round(n * 100) / 100; }
   function big(v){ var n = numOf(v); return n == null ? null : compact(n); }
   function symOf(x){ var s = dispSym(String(x || '').trim().toUpperCase()); return /^[A-Z0-9.\-=^:\/]{1,15}$/.test(s) ? s : ''; }
-  var NAV = { t:0 };   // when the harness last navigated, so read_current_page waits for the new view
   function host(u){ try{ return new URL(u).hostname.replace(/^www\./, ''); }catch(e){ return u; } }
   function withTimeout(p, ms, what){
     return Promise.race([p, new Promise(function(_, rej){ setTimeout(function(){ rej(new Error(what + ' timed out')); }, ms); })]);
@@ -280,26 +279,6 @@ var MH = (function(){
         return ids.map(function(id){ return DOCS[id]; }).join('\n\n');
       }
     },
-    read_current_page:{
-      modes:'chat', label:function(){ return '👀 Reading the page'; },
-      description:'Read what is on the user\'s screen right now (route and visible text). Use after opening a page if you need its numbers.',
-      params:S({}),
-      run:function(){
-        // Pages render after navigation (and quote pages fetch first): wait until the new view is on screen.
-        var t0 = Date.now();
-        function ready(){
-          var m = $('main'), txt = m ? m.innerText : '';
-          var quoteOk = CUR.view !== 'quote' || txt.indexOf(dispSym(CUR.sym) + ':') >= 0;
-          return Date.now() - NAV.t > 900 && quoteOk && txt.length > 200;
-        }
-        return new Promise(function(done){
-          (function poll(){ if(ready() || Date.now() - t0 > 6000) done(); else setTimeout(poll, 250); })();
-        }).then(function(){
-          var m = $('main');
-          return 'Route: ' + (location.hash || '#/') + '\n\n' + clip(m ? m.innerText.replace(/\n{2,}/g, '\n') : '', 9000);
-        });
-      }
-    },
     open_quote:{
       modes:'chat', label:function(a){ return '↗ Opening ' + a.symbol; },
       description:'Open a symbol\'s quote page for the user, optionally on a tab and chart range.',
@@ -386,15 +365,17 @@ var MH = (function(){
   };
 
   /* ---- prompts ---------------------------------------------------------- */
-  var CHAT_PROMPT = '\n\nTOOLS: you run inside the Marvell harness with live tools. You are NOT limited to the page the user has open: for any company, fund, crypto or market question, ' +
-    'fetch real data (get_quote, get_price_history, get_financials, list_filings, read_filing, get_insider_trades, get_news, get_investor_holdings, screen_stocks) and use web_search plus read_webpage for anything else, ' +
-    'recent, or non-US. Every number in your answer must come from a tool result, the DATA block or an attachment; cite tool sources as [n]. Use calculate or dcf for arithmetic.\n' +
-    'APP CONTROL: you can drive MercerFargo. When the user wants to see something, or a page would clearly help, open it (open_quote, navigate, compare, set_chart, run_screener, open_filing); ' +
-    'read_current_page shows what is on screen. Portfolio and watchlist changes go through propose_changes and wait for the user\'s Apply click; say what you proposed. ' +
+  var CHAT_PROMPT = '\n\nTOOLS: you run inside the Marvell harness with live tools. You cannot see the app\'s screen or its cached data, and the user may change topic at any time: answer the LATEST message. ' +
+    'For every quote, number, news item, insider trade, filing or market fact, call the data tools (get_quote, get_price_history, get_financials, list_filings, read_filing, get_insider_trades, get_news, get_investor_holdings, screen_stocks) in this turn, ' +
+    'even if an earlier turn already covered it, because earlier answers go stale. Use web search (and read_webpage) for anything else, recent, or non-US. ' +
+    'Never say you only have the data on the page. Only say something is unavailable after a tool failed or returned nothing, and name the tool. ' +
+    'Every number in your answer must come from a tool result or an attachment; cite data-tool sources as [n] and web search results as inline links. Use calculate or dcf for arithmetic.\n' +
+    'APP CONTROL: you can drive MercerFargo. When the user wants to see something, or a page would clearly help, open it (open_quote, navigate, compare, set_chart, run_screener, open_filing). ' +
+    'Portfolio and watchlist changes go through propose_changes and wait for the user\'s Apply click; say what you proposed. ' +
     'Use read_docs when unsure how the app works or what you may do (sections: ' + '%DOCS%' + ').\n' +
-    'Work efficiently: call independent tools in parallel, stop as soon as you can answer well, and never claim a page shows something you have not read.';
+    'Work efficiently: call independent tools in parallel, stop as soon as you can answer well, and never claim a page shows something you have not fetched.';
   var RESEARCH_PROMPT = '\n\nDEEP RESEARCH MODE: produce a thorough, well-sourced report. First call update_plan with 3-6 concrete steps and keep it current. ' +
-    'Gather evidence with the tools: real numbers from the data tools, SEC filings for company facts, web_search plus read_webpage for news, guidance, competitors, industry and macro context. ' +
+    'Gather evidence with the tools: real numbers from the data tools, SEC filings for company facts, web search plus read_webpage for news, guidance, competitors, industry and macro context (cite web search results as inline links). ' +
     'Prefer primary sources, cross-check key figures, and compute with calculate/dcf. Then write the final report in markdown: a short answer first, then the analysis the question needs, ' +
     'key risks, and what to watch next. Cite every specific figure or claim as [n] using the source numbers from tool results. Do not write a Sources list; the app appends it.';
   var REVIEW_PROMPT = 'Before this is final, reread your report against the tool results above. For any specific figure or claim you cannot tie to one of them, attribute it to whoever stated it ' +
@@ -420,13 +401,23 @@ var MH = (function(){
     });
     return out.map(function(m){ return m._tools ? fn(m._tools) : m; });
   }
+  /* Web search on the provider's side: the model searches on its own servers, always on. Providers without it
+     (Gemini, Groq, DeepSeek, OpenCode, custom) keep the site's own web_search tool. */
+  function nativeSearch(ep, model){
+    if(ep.zen) return '';
+    if(ep.wire === 'a') return /claude-(opus-(5|4-[678])|sonnet-(5|4-6)|haiku-5)/.test(model) ? 'web_search_20260209' : 'web_search_20250305';
+    if(ep.wire === 'r') return ep.prov === 'openai' || ep.prov === 'xai' ? 'web_search' : '';
+    if(ep.wire === 'o' && ep.prov === 'openrouter') return 'openrouter:web_search';
+    return '';
+  }
   function buildRequest(ep, model, sys, hist, tools, o){
-    var names = Object.keys(tools), maxT = o.maxTokens, none = !!o.noTools;
+    var names = Object.keys(tools).filter(function(n){ return !(o.native && n === 'web_search'); }), maxT = o.maxTokens, none = !!o.noTools;
     if(ep.wire === 'a' || ep.wire === 'm'){
       var msgs = groupTools(hist, function(ts){ return { role:'user', content:ts.map(function(t){ return { type:'tool_result', tool_use_id:t.id, content:t.content, is_error:!!t.err }; }) }; })
         .map(function(m){ return m.role === 'assistant' ? { role:'assistant', content:m.raw } : m.role === 'user' && m.content !== undefined && !Array.isArray(m.content) ? aiShape([m], 'a')[0] : m; });
       var b = { model:model, max_tokens:maxT, system:sys, messages:msgs,
         tools:names.map(function(n){ return { name:n, description:tools[n].description, input_schema:tools[n].params }; }) };
+      if(o.native) b.tools.push({ type:o.native, name:'web_search', max_uses:6 });
       if(none) b.tool_choice = { type:'none' };
       return b;
     }
@@ -454,6 +445,7 @@ var MH = (function(){
       });
       var r = { model:model, instructions:sys, input:input, max_output_tokens:maxT,
         tools:names.map(function(n){ return { type:'function', name:n, description:tools[n].description, parameters:tools[n].params }; }) };
+      if(o.native) r.tools.push({ type:o.native });
       if(none) r.tool_choice = 'none';
       return r;
     }
@@ -469,6 +461,7 @@ var MH = (function(){
       } else messages.push({ role:'tool', tool_call_id:m.id, content:m.content });
     });
     var c = { model:model, messages:messages, tools:names.map(function(n){ return { type:'function', function:{ name:n, description:tools[n].description, parameters:tools[n].params } }; }) };
+    if(o.native) c.tools.push({ type:o.native, parameters:{ max_results:5 } });
     c[ep.prov === 'openai' ? 'max_completion_tokens' : 'max_tokens'] = maxT;
     if(none) c.tool_choice = 'none';
     return c;
@@ -478,7 +471,7 @@ var MH = (function(){
     if(ep.wire === 'a' || ep.wire === 'm'){
       var content = j.content || [];
       return { raw:content, text:content.filter(function(c){ return c.type === 'text'; }).map(function(c){ return c.text; }).join('\n').trim(),
-        calls:content.filter(function(c){ return c.type === 'tool_use'; }).map(function(c){ return { id:c.id, name:c.name, args:c.input || {} }; }), cut:j.stop_reason === 'max_tokens' };
+        calls:content.filter(function(c){ return c.type === 'tool_use'; }).map(function(c){ return { id:c.id, name:c.name, args:c.input || {} }; }), cut:j.stop_reason === 'max_tokens', pause:j.stop_reason === 'pause_turn' };
     }
     if(ep.wire === 'g'){
       var cand = (j.candidates || [])[0] || {}, parts = (cand.content || {}).parts || [];
@@ -518,7 +511,7 @@ var MH = (function(){
     var maxRounds = o.maxRounds || (mode === 'research' ? 40 : 15), deadline = Date.now() + (o.maxMs || (mode === 'research' ? 600000 : 240000));
     var hist = (o.history || []).map(function(m){ return { role:m.role, content:m.content, text:m.content, calls:[], raw:m.role === 'assistant' ? aiAssistantRaw(ep, m.content) : null }; });
     hist.push({ role:'user', content:o.user, images:o.images || [] });
-    var sources = [], acts = [], rounds = 0, stop = o.stop || {};
+    var sources = [], acts = [], rounds = 0, stop = o.stop || {}, nat = nativeSearch(ep, model), natOff = false;
     var ctx = {
       source:function(title, url){
         var hit = sources.filter(function(x){ return x.url === url && url; })[0];
@@ -530,12 +523,12 @@ var MH = (function(){
       act:function(raw){
         var n = actNorm(raw);
         if(!n || !actInstant(n)) throw new Error('invalid target');
-        actRun(n); NAV.t = Date.now(); acts.push({ a:n, st:'auto' });
-        return actLabel(n) + '. You cannot see the new page yet; call read_current_page if you need its contents.';
+        actRun(n); acts.push({ a:n, st:'auto' });
+        return actLabel(n) + '. You cannot see the screen; fetch any numbers with your data tools.';
       },
       go:function(hash, label){
         if($('drawer').classList.contains('full')) setFull(false);
-        go(hash); NAV.t = Date.now(); return label + '. Call read_current_page if you need its contents.';
+        go(hash); return label + '. You cannot see the screen; fetch any numbers with your data tools.';
       },
       plan:function(steps){ if(o.onPlan) o.onPlan(steps); }
     };
@@ -543,9 +536,17 @@ var MH = (function(){
     function call(noTools, extraUser){
       var h = extraUser ? hist.concat([{ role:'user', content:extraUser, images:[] }]) : hist;
       trimHistory(hist, mode === 'research' ? 300000 : 120000);
-      var body = buildRequest(ep, model, sys, h, tools, { maxTokens:maxTokens, noTools:noTools });
-      aiReason(ep, model, body, effortKey);
-      return aiPost(ep, o.key, body).then(function(j){ return parseReply(ep, j); });
+      function send(native){
+        var body = buildRequest(ep, model, sys, h, tools, { maxTokens:maxTokens, noTools:noTools, native:native });
+        aiReason(ep, model, body, effortKey);
+        return aiPost(ep, o.key, body).then(function(j){ return parseReply(ep, j); });
+      }
+      if(!nat || natOff) return send('');
+      // If the provider rejects its built-in search (not enabled for the account, old model), fall back to the site's web_search tool.
+      return send(nat).catch(function(e){
+        if(!/tool|search|unsupported|invalid|not (enabled|allowed)|400/i.test(String((e && e.message) || e))) throw e;
+        natOff = true; return send('');
+      });
     }
     function execAll(calls){
       return Promise.all(calls.map(function(c){
@@ -574,6 +575,15 @@ var MH = (function(){
       step({ kind:'round', label:'Round ' + rounds, round:rounds });
       return call(false).then(function(r){
         if(stop.stopped) return '';
+        if(ep.wire === 'a' && Array.isArray(r.raw)) r.raw.forEach(function(b){
+          if(b.type !== 'server_tool_use' || b.name !== 'web_search') return;
+          var rec = { kind:'tool', name:'web_search', label:'🔎 Searching “' + String((b.input || {}).query || '').slice(0, 80) + '”', args:b.input };
+          step(rec); rec.ok = true; step(rec);
+        });
+        if(!r.calls.length && r.pause){   // the provider paused a long server-side search turn: send it back to continue
+          hist.push({ role:'assistant', text:r.text, calls:[], raw:r.raw });
+          return loop();
+        }
         if(!r.calls.length){
           if(!r.text && r.cut) throw new Error('The model ran out of output tokens while thinking. Raise the effort level or pick another model.');
           return r.text;

@@ -280,7 +280,7 @@ hosted copy and locally.
   locally, the worker on the hosted site. Page reading is GET-only, public hosts only
   (no IPs, localhost or private ranges; redirects re-checked), text-only and size-capped.
 * **Drives the app.** `open_quote`, `navigate`, `compare`, `set_chart`, `run_screener`,
-  `open_filing` and `read_current_page` run straight away. `propose_changes` (create/add/delete
+  and `open_filing` run straight away. Marvell cannot see the screen or the app's cached data; it fetches market facts with its tools, and uses the provider's built-in web search where one exists. `propose_changes` (create/add/delete
   portfolios and watchlists) only shows an Apply card; nothing changes until the user clicks.
 * **Knows the app.** `read_docs` reads `docs/marvell-guide.md`.
 * **Chat** (Agent tab): up to 15 rounds, 4 minutes; the thinking indicator shows the current step.
