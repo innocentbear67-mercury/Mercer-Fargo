@@ -518,6 +518,11 @@ body.vol-dragging,body.vol-dragging *{cursor:grabbing!important;user-select:none
 .msg ul{margin:6px 0 6px 18px;padding:0}
 .msg li{margin:3px 0}
 .msg code{background:var(--fh-background-surface-container-high);border-radius:4px;padding:0 4px;font-size:12.5px}
+.md-tbl{margin:12px 0;overflow-x:auto;border:1px solid var(--fh-border-stroke-default);border-radius:12px;white-space:normal}
+.md-tbl table{width:100%;border-collapse:collapse;font-size:.95em;line-height:1.45}
+.md-tbl th,.md-tbl td{padding:11px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--fh-border-stroke-default);min-width:84px}
+.md-tbl th{font-weight:600;color:var(--fh-foreground-on-surface-emphasis);white-space:nowrap}
+.md-tbl tbody tr:last-child td{border-bottom:0}
 .msg .srcs{margin:14px 0 0;padding-top:8px;border-top:1px solid var(--fh-border-stroke-default);font-size:12.5px;line-height:1.5}
 .msg .srcs summary{cursor:pointer;list-style:none;opacity:.75;user-select:none}
 .msg .srcs summary::-webkit-details-marker{display:none}
@@ -7249,6 +7254,29 @@ function jsonFrom(text){
 }
 
 /* --- chat rendering ----------------------------------------------------- */
+/* Markdown tables, shared by the chat and Deep Research renderers: "| a | b |" blocks (with a |---| row) are pulled out of the
+   already-escaped lines, left as a one-line placeholder, then rendered as a real table by whichever renderer owns the text. */
+function mdSplitRow(l){ return l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(function(c){ return c.trim(); }); }
+function mdTables(lines){
+  var out = [], tables = [];
+  for(var i = 0; i < lines.length; i++){
+    var l = lines[i], sep = lines[i + 1];
+    if(l.indexOf('|') >= 0 && sep != null && sep.indexOf('|') >= 0 && /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(sep)){
+      var head = mdSplitRow(l), rows = [];
+      var al = mdSplitRow(sep).map(function(c){ return /^:-*:$/.test(c) ? 'center' : /-:$/.test(c) ? 'right' : ''; });
+      for(i += 2; i < lines.length && lines[i].trim() && lines[i].indexOf('|') >= 0; i++) rows.push(mdSplitRow(lines[i]));
+      i--;
+      tables.push({ head:head, al:al, rows:rows });
+      out.push('\u0001T' + (tables.length - 1) + '\u0001');
+    } else out.push(l);
+  }
+  return { lines:out, tables:tables };
+}
+function mdTableHTML(t, inl){
+  function cell(tag, c, i){ return '<' + tag + (t.al[i] ? ' style="text-align:' + t.al[i] + '"' : '') + '>' + inl(c || '') + '</' + tag + '>'; }
+  return '<div class="md-tbl"><table><thead><tr>' + t.head.map(function(c, i){ return cell('th', c, i); }).join('') + '</tr></thead><tbody>' +
+    t.rows.map(function(r){ return '<tr>' + t.head.map(function(_, i){ return cell('td', r[i], i); }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+}
 /* Tiny markdown renderer, block by block. Blank lines between list items stay one list (no stray empty bullets);
    headings, bullet and numbered lists, **bold**, *italic*, `code` and http(s) links. */
 function mdInline(t){
@@ -7257,10 +7285,11 @@ function mdInline(t){
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 }
 function mdToHTML(md){
-  var lines = esc(md).split('\n'), blocks = [], para = null, list = null, gap = false;
-  lines.forEach(function(raw){
+  var tb = mdTables(esc(md).split('\n')), blocks = [], para = null, list = null, gap = false;
+  tb.lines.forEach(function(raw){
     var line = raw.replace(/\s+$/, ''), m;
-    if(!line.trim()){ gap = true; para = null; return; }   // a blank line ends a paragraph but not a list
+    if(!line.trim()){ gap = true; para = null; return; }
+    if((m = line.match(/^\u0001T(\d+)\u0001$/))){ blocks.push({ t:'tbl', i:+m[1] }); para = list = null; gap = false; return; }   // a blank line ends a paragraph but not a list
     if((m = line.match(/^#{1,3} +(.+)$/))){ blocks.push({ t:'h', x:m[1] }); para = list = null; gap = false; return; }
     if((m = line.match(/^\s*([-*]|\d+[.)]) +(.*)$/))){
       var kind = /\d/.test(m[1]) ? 'ol' : 'ul';
@@ -7278,6 +7307,7 @@ function mdToHTML(md){
   return blocks.map(function(b, i){
     var prev = blocks[i - 1];
     if(b.t === 'h') return '<h4>' + mdInline(b.x) + '</h4>';
+    if(b.t === 'tbl') return mdTableHTML(tb.tables[b.i], mdInline);
     if(b.t === 'p') return (prev && prev.t === 'p' ? '<br><br>' : '') + b.lines.map(mdInline).join('<br>');
     return '<' + b.t + '>' + b.items.map(function(x){ return '<li>' + mdInline(x) + '</li>'; }).join('') + '</' + b.t + '>';
   }).join('');
@@ -8204,7 +8234,7 @@ function rsInline(t){
 }
 
 function rsMarkdown(md){
-  var lines = esc(String(md || '')).split('\n');
+  var tb = mdTables(esc(String(md || '')).split('\n')), lines = tb.lines;
   var out = [], mode = null;
   function close(){
     if(mode === 'ul' || mode === 'ol') out.push('</' + mode + '>');
@@ -8214,6 +8244,7 @@ function rsMarkdown(md){
   lines.forEach(function(raw){
     var line = raw.replace(/\s+$/, ''), m;
     if(!line.trim()){ close(); return; }
+    if((m = line.match(/^\u0001T(\d+)\u0001$/))){ close(); out.push(mdTableHTML(tb.tables[+m[1]], rsInline)); return; }
     if((m = line.match(/^(#{1,6})\s+(.*)$/))){ close(); out.push('<h4>' + rsInline(m[2]) + '</h4>'); return; }
     if(/^\s*[-*]\s+/.test(line)){
       if(mode !== 'ul'){ close(); out.push('<ul>'); mode = 'ul'; }
