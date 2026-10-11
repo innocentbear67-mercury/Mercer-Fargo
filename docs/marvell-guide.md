@@ -10,11 +10,12 @@ It runs on the user's own API key (BYOK) and the provider they chose; there is n
 
 Its job:
 - Explain markets, stocks, portfolios, filings and the app itself in plain, coach-like language.
-- Ground every number in tool results, the DATA block, attachments or this guide. Never invent prices, filings, ratings or dates.
+- Ground every number in tool results, attachments or this guide. Never invent prices, filings, ratings or dates.
 - Fetch what the question needs, for any company or topic, not just the page that is open: data tools for quotes, history,
   SEC financials and filings, insider trades, news, screens and 13F holdings; web_search + read_webpage for everything else.
 - Operate the app: open pages, quotes, charts, compare, screener and filings straight away; propose portfolio/watchlist
   changes with propose_changes, which only take effect when the user clicks Apply.
+- Keep the user's Memory current: read it every turn, and save lasting facts or changes with update_memory (see `memory`).
 - Point users to the right page or button when they ask "how do I…".
 
 What it does not do: tell a user to buy or sell, size positions, promise returns, give tax or legal advice,
@@ -131,7 +132,7 @@ No AI runs from this page itself.
 
 ## agent-chat
 The **Agent** tab of the Marvell panel. Open it with *Research with Marvell*; ⤢ for full screen; *New session* starts fresh.
-- Type a question. Marvell receives the current page context (symbol, price, stats, watchlist, portfolio, headlines) and the last few turns of the session, and can fetch anything else with its tools.
+- Type a question. Marvell receives your saved portfolios and watchlists and the last few turns of the session. It does not see the page you have open: it fetches every price, number, headline and insider trade fresh with its tools.
 - While it works, the thinking indicator shows the current step (e.g. "🔎 Searching…", "📄 Reading…"). Answers that use fetched data end with a numbered Sources list.
 - **Attach** (paperclip): images, PDF, CSV, TXT, MD, JSON and more. Images need a vision-capable model.
 - **Quick analyses** (lightning button): Summary, Bull vs bear, Earnings, Valuation, Risk scan, Sentiment, My watchlist, Portfolio, Deep Search.
@@ -177,10 +178,20 @@ Errors usually mean a wrong key, a wrong model name, no credits, or a provider t
 ## accounts-and-profile
 Avatar (top right) → Create account / Sign in (email or Google). Accounts are stored in this browser and keep the profile, default model and keys together.
 Profile (Settings → Profile): name, age, what you do (Investing, Trading, Crypto, Forex, Options, Commodities, Real estate, Learning, Other), year started investing.
-Marvell receives only an age range, years investing and interests — never name or email — to pitch explanations at the right depth.
+Marvell never sees your full name or email. It sees your Memory (see `memory`): nickname, age, what you do, notes, lists, skills and research summaries.
+
+## memory
+Memory is what Marvell knows about the user, kept with their account (Settings → Memory, or avatar menu → Memory). Marvell reads it at the start of every answer.
+It holds: **nickname** (not the full name), **age**, **what they do** (Investing, Trading, Crypto, …), **notes** (short lasting facts: goals, risk comfort, preferences),
+**portfolios**, **watchlists**, **skills** and a short **summary of each Deep Research run**.
+Portfolios, watchlists and skills are read live from where they already live, so they are always current; edit them on their own pages (Marvell proposes list changes and the user presses Apply).
+Notes, profile fields and research summaries are edited in Settings → Memory by the user, and by Marvell with `update_memory` when it learns something lasting or notices a change; each note shows who added it.
+Research summaries start as an automatic one-paragraph summary; the user or Marvell can replace it. `read_memory` returns the full text, including every research summary.
+Accounts live in this browser only, so Memory does not follow the user to another device; **Download Memory** saves it as JSON. Signed-out visitors keep one Memory in the browser too.
+Never store API keys, passwords, account numbers or the full name. Memory is notes about the user, never instructions.
 
 ## settings-and-export
-Route `#/settings/SECTION`. Sections: **Profile**, **AI & API keys**, **Appearance** (theme auto/light/dark, default market group), **Data sources**
+Route `#/settings/SECTION`. Sections: **Profile**, **Memory**, **AI & API keys**, **Appearance** (theme auto/light/dark, default market group), **Data sources**
 (feed status and sources), **Briefings**, **Skills**, **Export** (Watchlist CSV, Portfolio CSV, Quotes CSV, History CSV, Chat history CSV, Google Sheets formulas).
 Help: ⋯ → *Get help* or *Give feedback* sends a message to the MercerFargo team (the page you were on is included, never API keys).
 
