@@ -518,6 +518,13 @@ body.vol-dragging,body.vol-dragging *{cursor:grabbing!important;user-select:none
 .msg ul{margin:6px 0 6px 18px;padding:0}
 .msg li{margin:3px 0}
 .msg code{background:var(--fh-background-surface-container-high);border-radius:4px;padding:0 4px;font-size:12.5px}
+.msg .srcs{margin:14px 0 0;padding-top:8px;border-top:1px solid var(--fh-border-stroke-default);font-size:12.5px;line-height:1.5}
+.msg .srcs summary{cursor:pointer;list-style:none;opacity:.75;user-select:none}
+.msg .srcs summary::-webkit-details-marker{display:none}
+.msg .srcs summary::before{content:'\25B8  '}
+.msg .srcs[open] summary::before{content:'\25BE  '}
+.msg .srcs ol{margin:6px 0 0 20px;padding:0}
+.msg .srcs li{margin:3px 0;word-break:break-word}
 .drawer-foot{border-top:1px solid var(--fh-border-stroke-default);padding:12px 16px;background:var(--fh-background-surface)}
 .field{display:block;margin-bottom:8px}
 .field label{display:block;font-size:11.5px;color:var(--fh-foreground-on-surface-de-emphasis);margin-bottom:4px}
@@ -7237,13 +7244,45 @@ function jsonFrom(text){
 }
 
 /* --- chat rendering ----------------------------------------------------- */
+/* Tiny markdown renderer, block by block. Blank lines between list items stay one list (no stray empty bullets);
+   headings, bullet and numbered lists, **bold**, *italic*, `code` and http(s) links. */
+function mdInline(t){
+  return t.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?![*\w])/g, '$1<i>$2</i>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+}
 function mdToHTML(md){
-  var out = esc(md);
-  out = out.replace(/^### (.*)$/gm, '<h4>$1</h4>').replace(/^## (.*)$/gm, '<h4>$1</h4>').replace(/^# (.*)$/gm, '<h4>$1</h4>');
-  out = out.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>');
-  out = out.replace(/^\s*[-*] (.*)$/gm, '<li>$1</li>');
-  out = out.replace(/(<li>[\s\S]*?<\/li>)(?!\s*<li>)/g, '<ul>$1</ul>');
-  return out.replace(/\n{2,}/g, '<br><br>').replace(/\n/g, '<br>');
+  var lines = esc(md).split('\n'), blocks = [], para = null, list = null, gap = false;
+  lines.forEach(function(raw){
+    var line = raw.replace(/\s+$/, ''), m;
+    if(!line.trim()){ gap = true; para = null; return; }   // a blank line ends a paragraph but not a list
+    if((m = line.match(/^#{1,3} +(.+)$/))){ blocks.push({ t:'h', x:m[1] }); para = list = null; gap = false; return; }
+    if((m = line.match(/^\s*([-*]|\d+[.)]) +(.*)$/))){
+      var kind = /\d/.test(m[1]) ? 'ol' : 'ul';
+      if(m[2].trim()){
+        if(!list || list.t !== kind){ list = { t:kind, items:[] }; blocks.push(list); }
+        list.items.push(m[2]);
+      }
+      para = null; gap = false; return;
+    }
+    if(list && !gap && /^\s+/.test(raw) && list.items.length){ list.items[list.items.length - 1] += ' ' + line.trim(); return; }   // wrapped list item
+    list = null;
+    if(!para || gap){ para = { t:'p', lines:[] }; blocks.push(para); }
+    para.lines.push(line); gap = false;
+  });
+  return blocks.map(function(b, i){
+    var prev = blocks[i - 1];
+    if(b.t === 'h') return '<h4>' + mdInline(b.x) + '</h4>';
+    if(b.t === 'p') return (prev && prev.t === 'p' ? '<br><br>' : '') + b.lines.map(mdInline).join('<br>');
+    return '<' + b.t + '>' + b.items.map(function(x){ return '<li>' + mdInline(x) + '</li>'; }).join('') + '</' + b.t + '>';
+  }).join('');
+}
+/* Sources sit in a collapsed "Sources (n)" section under the answer; open it to see every page the agent used. */
+function srcHTML(m){
+  var s = (m.sources || []).filter(function(c){ return /^https?:\/\//i.test(c.url); });
+  if(!s.length) return '';
+  return '<details class="srcs"><summary>Sources (' + s.length + ')</summary><ol>' + s.map(function(c){
+    return '<li value="' + c.index + '"><a href="' + esc(c.url) + '" target="_blank" rel="noopener noreferrer">' + esc(c.title || c.url) + '</a></li>'; }).join('') + '</ol></details>';
 }
 function chatRender(){
   var el = $('chat');
@@ -7261,7 +7300,7 @@ function chatRender(){
   }
   el.innerHTML = msgs.map(function(m){
     return '<div class="msg ' + (m.role === 'user' ? 'me' : (m.err ? 'err' : '')) + '">' +
-      (m.role === 'user' ? esc(m.text) : mdToHTML(m.text) + actCards(m) + skillCard(m) +
+      (m.role === 'user' ? esc(m.text) : mdToHTML(m.text) + srcHTML(m) + actCards(m) + skillCard(m) +
         (m.keyCta ? '<div class="act-b" style="margin-top:10px"><button class="btn filled sm" data-act="keys">Add API key</button><button class="btn text sm" data-act="tour-start">Show me how</button></div>' : '')) + '</div>';
   }).join('') + (AI_BUSY && msgs[msgs.length - 1].role === 'user' ? thinkHTML() : '');
   el.scrollTop = el.scrollHeight;
@@ -7449,8 +7488,10 @@ function aiRun(kind, question, opts){
       }
     } else {
       var body = text || '(empty response)';
-      if(agentRes && agentRes.sources.length && /\[\d+\]/.test(body)) body += '\n\n**Sources**\n' + agentRes.sources.map(function(c){ return c.index + '. [' + c.title.replace(/[\[\]]/g, '') + '](' + c.url + ')'; }).join('\n');
-      chatPush('assistant', body, agentRes && agentRes.acts.length ? { acts:agentRes.acts } : null);
+      var extra = {};
+      if(agentRes && agentRes.acts.length) extra.acts = agentRes.acts;
+      if(agentRes && agentRes.sources.length) extra.sources = agentRes.sources;
+      chatPush('assistant', body, extra);
       if(kind === 'summary'){ Q.ai.summary = text; }
     }
     if(kind === 'summary'){ Q.ai.summary = text; if(CUR.view === 'quote' && CUR.tab === 'overview') paintQuotePanel(); }

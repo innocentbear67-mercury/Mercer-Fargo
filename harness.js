@@ -576,6 +576,7 @@ var MH = (function(){
       return call(false).then(function(r){
         if(stop.stopped) return '';
         if(ep.wire === 'a' && Array.isArray(r.raw)) r.raw.forEach(function(b){
+          if(b.type === 'web_search_tool_result' && Array.isArray(b.content)) b.content.forEach(function(x){ if(x && x.url) ctx.source(x.title, x.url); });
           if(b.type !== 'server_tool_use' || b.name !== 'web_search') return;
           var rec = { kind:'tool', name:'web_search', label:'🔎 Searching “' + String((b.input || {}).query || '').slice(0, 80) + '”', args:b.input };
           step(rec); rec.ok = true; step(rec);
