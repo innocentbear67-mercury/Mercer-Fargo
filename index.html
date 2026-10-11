@@ -440,6 +440,10 @@ table.fh .col-trend{width:120px}
 body.vol-dragging,body.vol-dragging *{cursor:grabbing!important;user-select:none}
 .vol-none{position:absolute;left:8px;bottom:30px;font-size:11px;color:var(--fh-foreground-on-surface-de-emphasis)}
 .chart-box .axis{fill:var(--fh-foreground-on-surface-de-emphasis);font-size:11px}
+.chart-box .cmp-svg{width:calc(100% - 58px)}
+.cmp-yaxis{position:absolute;top:0;right:0;width:56px;height:680px;pointer-events:none}
+.cmp-yaxis span{position:absolute;left:6px;transform:translateY(-50%);font-size:11px;line-height:1;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--fh-foreground-on-surface-de-emphasis)}
+@media (max-width:760px){ .cmp-yaxis{height:460px} }
 .chart-tip{
   position:absolute;pointer-events:none;background:var(--fh-background-surface-inverted);
   color:var(--fh-foreground-on-surface-inverted);font-size:12px;line-height:18px;border-radius:8px;
@@ -5547,7 +5551,7 @@ function drawCompareChart(syms){
     return { sym:s, pts:h.map(function(r){ return { d:r.d, v:(r.c / base - 1) * 100 }; }) };
   }).filter(Boolean);
   if(!series.length){ host.innerHTML = '<div class="empty">History unavailable for these symbols right now.</div>'; return; }
-  var W = 1000, H = 300, padL = 8, padR = 64, padT = 12, padB = 24;
+  var W = 1000, H = 300, padL = 8, padR = 4, padT = 12, padB = 24;
   var all = [];
   series.forEach(function(s){ s.pts.forEach(function(p){ all.push(p.v); }); });
   var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all), sp = (mx - mn) || 1;
@@ -5556,18 +5560,21 @@ function drawCompareChart(syms){
   var X = function(i){ return padL + (i / Math.max(1, maxLen - 1)) * (W - padL - padR); };
   var Y = function(v){ return padT + (H - padT - padB) - ((v - mn) / sp) * (H - padT - padB); };
   var out = [];
-  for(var g = 0; g <= 4; g++){
-    var yy = padT + ((H - padT - padB) / 4) * g;
-    var val = mx - (sp / 4) * g;
+  /* Round ticks (0%, 50%, 100%, ...). The labels are HTML beside the chart, not SVG text: the SVG is stretched to fit, which squashed the text. */
+  var rawStep = sp / 5, mag = Math.pow(10, Math.floor(Math.log(rawStep) / Math.LN10)), f = rawStep / mag;
+  var step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * mag, ticks = [], labels = [];
+  for(var tv = Math.ceil(mn / step) * step; tv <= mx + 1e-9; tv += step) ticks.push(Math.round(tv * 1e6) / 1e6 + 0);   // + 0 turns -0 into 0
+  ticks.forEach(function(v){
+    var yy = Y(v);
     out.push('<line class="gridline" x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '"/>');
-    out.push('<text class="axis" x="' + (W - padR + 8) + '" y="' + (yy + 4) + '">' + num(val, 1) + '%</text>');
-  }
+    labels.push('<span style="top:' + (yy / H * 100).toFixed(2) + '%">' + (v > 0 ? '+' : '') + num(v, step < 1 ? 1 : 0) + '%</span>');
+  });
   if(mn <= 0 && mx >= 0) out.push('<line x1="' + padL + '" y1="' + Y(0) + '" x2="' + (W - padR) + '" y2="' + Y(0) + '" stroke="var(--fh-foreground-on-surface-de-emphasis)" stroke-dasharray="4 4"/>');
   series.forEach(function(s, i){
     var d = s.pts.map(function(p, j){ return (j ? 'L' : 'M') + X(j).toFixed(1) + ' ' + Y(p.v).toFixed(1); }).join(' ');
     out.push('<path d="' + d + '" fill="none" stroke="' + CHART_PALETTE[i % CHART_PALETTE.length] + '" stroke-width="2"/>');
   });
-  host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' + out.join('') + '</svg>' +
+  host.innerHTML = '<svg class="cmp-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' + out.join('') + '</svg><div class="cmp-yaxis">' + labels.join('') + '</div>' +
     '<div class="legend" style="margin-top:8px">Normalized to 0% at the start of the series · 1 year of daily closes</div>';
 }
 
