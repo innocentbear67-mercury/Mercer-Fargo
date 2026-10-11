@@ -201,23 +201,44 @@ var MH = (function(){
       }
     },
     screen_stocks:{
-      modes:'chat research', label:function(){ return '🧮 Screening stocks'; },
-      description:'Filter ~1000 of the largest Nasdaq/NYSE/AMEX stocks by sector, market cap, price and day change; sort by market cap or day move. Good for peers, movers and ideas.',
-      params:S({ sector:STR('Sector text to match, e.g. "Electronic Technology"'), query:STR('Name or ticker text to match'), min_market_cap_b:NUM('Min market cap, $ billions'),
-        max_market_cap_b:NUM('Max market cap, $ billions'), min_price:NUM('Min price'), max_price:NUM('Max price'), min_change_pct:NUM('Min day change %'),
-        max_change_pct:NUM('Max day change %'), sort:STR('Sort order', ['market_cap', 'gainers', 'losers']), limit:NUM('Max rows, default 15') }),
-      run:function(a){
-        return loadScreener(1000).then(function(){
-          var q = String(a.query || '').toLowerCase(), sec = String(a.sector || '').toLowerCase();
-          var rows = screenRows().filter(function(r){
-            return (!sec || String(r.sector).toLowerCase().indexOf(sec) >= 0) && (!q || (r.sym + ' ' + r.name).toLowerCase().indexOf(q) >= 0) &&
-              (a.min_market_cap_b == null || (r.mc || 0) >= a.min_market_cap_b * 1e9) && (a.max_market_cap_b == null || (r.mc || 0) <= a.max_market_cap_b * 1e9) &&
-              (a.min_price == null || r.c >= a.min_price) && (a.max_price == null || r.c <= a.max_price) &&
-              (a.min_change_pct == null || r.pct >= a.min_change_pct) && (a.max_change_pct == null || r.pct <= a.max_change_pct);
-          });
-          rows.sort(a.sort === 'gainers' ? function(x, y){ return y.pct - x.pct; } : a.sort === 'losers' ? function(x, y){ return x.pct - y.pct; } : function(x, y){ return (y.mc || 0) - (x.mc || 0); });
-          return { matches:rows.length, rows:rows.slice(0, Math.min(50, a.limit || 15)).map(function(r){ return { symbol:r.sym, name:r.name, sector:r.sector, price:num2(r.c), changePct:num2(r.pct), marketCap:big(r.mc) }; }) };
-        }, function(){ throw new Error('the market scan is unavailable here; use get_quote on specific tickers or web_search'); });
+      modes:'chat research', label:function(a){ return '🧮 Screening ' + (a.filters && a.filters.sector || a.sector || 'all stocks'); },
+      description:'Screen EVERY US-listed stock or ETF (Nasdaq/NYSE/AMEX; live TradingView scan, Finviz fallback) with the same filters as the app\'s Screener. ' +
+        'filters maps a filter id to one option label, e.g. {"sector":"Technology","cap":"+Large (over $10B)","pe":"Under 20","div":"Over 2%","rsi":"Oversold (30)","perf":"Year +20%","sma200":"Price above SMA200"}. ' +
+        'Filter ids: ' + SCR_FILTERS.map(function(f){ return f.id + ' (' + f.l + ')'; }).join(', ') + '. ' +
+        'Sectors: ' + SECTORS.join(', ') + '. Option labels use Finviz wording ("Under N", "Over N", "Positive (>0%)", "Low (<15)", "Mega ($200B+)", "Today Up", "New High"); a wrong label returns that filter\'s valid options. ' +
+        'asset filter: Stocks (default), ETFs, ADRs. view picks the returned columns: ov overview, val valuation, fin financial, perf performance, tech technical, an analysts, etf.',
+      params:S({ filters:{ type:'object', description:'Filter id -> option label', additionalProperties:{ type:'string' } }, query:STR('Ticker or company name text'),
+        min_price:NUM('Min price'), max_price:NUM('Max price'), min_change_pct:NUM('Min day change %'), max_change_pct:NUM('Max day change %'),
+        min_market_cap_b:NUM('Min market cap, $ billions'), max_market_cap_b:NUM('Max market cap, $ billions'),
+        sort:STR('market_cap (default), gainers, losers, volume, or a column key: pe, fpe, peg, ps, pb, div, roe, roa, gm, nm, epsttm, salesttm, pw, pm, pq, pytd, py, rsi, beta, relvol, target'),
+        order:STR('Sort order for column keys', ['desc', 'asc']), view:STR('Columns', ['ov', 'val', 'fin', 'perf', 'tech', 'an', 'etf']), limit:NUM('Max rows, default 15, max 50') }),
+      run:function(a, ctx){
+        var f = scrSpec(a), lim = Math.max(1, Math.min(50, a.limit || 15));
+        return scrTV(f).catch(function(){ return scrFinviz(f); }).then(function(res){
+          var tv = res.src === 'tv';
+          var n = ctx.source((tv ? 'TradingView' : 'Finviz') + ' screener', tv ? 'https://www.tradingview.com/screener/' : 'https://finviz.com/screener');
+          var applied = scrActive(f).map(function(x){ return x.flt.l + ': ' + x.opt[0]; });
+          if(!tv) return { source:n, matches:res.total, filters:applied, notApplied:res.skipped, columns:res.head, rows:res.rows.slice(0, lim) };
+          var cols = scrView(f)[3].filter(function(k){ return k !== 'price' && k !== 'chg' && k !== 'pct'; });
+          return { source:n, matches:res.total, filters:applied, rows:res.rows.slice(0, lim).map(function(d){
+            var o = { symbol:d.sym, name:d.description, price:num2(d.close), changePct:num2(d.change) };
+            cols.forEach(function(k){ var c = SCR_COLS[k], v = c[4] ? c[4](d) : d[c[1]]; o[c[0]] = typeof v === 'number' ? (Math.abs(v) >= 1e6 ? compact(v) : num2(v)) : (v == null ? null : v); });
+            return o;
+          }) };
+        });
+      }
+    },
+    company_profile:{
+      modes:'chat research', label:function(a){ return '🏢 Company profile: ' + a.symbol; },
+      description:'Current company profile for a US-listed stock: CEO, employees, founded, headquarters, sector and industry, website and a business description. Use for who runs a company, where it is based or what it does; CEOs change, so never answer that from memory.',
+      params:S({ symbol:STR('Ticker') }, ['symbol']),
+      run:function(a, ctx){
+        var s = symOf(a.symbol);
+        if(!s) throw new Error('give a ticker');
+        return loadProfile(s).then(function(p){
+          var n = ctx.source((p.src || 'Company profile') + ': ' + s, p.src === 'stockanalysis.com' ? 'https://stockanalysis.com/stocks/' + saSlug(s) + '/company/' : 'https://www.wikidata.org/');
+          return { symbol:s, source:n, ceo:p.ceo || null, employees:p.emp || null, founded:p.founded || null, headquarters:p.hq || null, sector:p.sector || null, website:p.web || null, about:clip(p.about || '', 1500) || null };
+        }, function(){ throw new Error('no profile found for ' + s + '; try web_search'); });
       }
     },
     get_investor_holdings:{
@@ -341,14 +362,14 @@ var MH = (function(){
     },
     run_screener:{
       modes:'chat', label:function(){ return '↗ Running the screener'; },
-      description:'Open the Screener page with filters applied so the user can browse the results.',
-      params:S({ sector:STR('Sector'), query:STR('Symbol or name text'), min_price:NUM('Min price'), max_price:NUM('Max price'), min_change_pct:NUM('Min day change %'),
-        max_change_pct:NUM('Max day change %'), min_market_cap_b:NUM('Min market cap $B'), max_market_cap_b:NUM('Max market cap $B') }),
+      description:'Open the Screener page with filters applied so the user can browse the results. Takes the same filters/sort/view as screen_stocks (filter ids and option labels); fundamental, technical or ETF filters switch the page to Pro mode.',
+      params:S({ filters:{ type:'object', description:'Filter id -> option label, as in screen_stocks', additionalProperties:{ type:'string' } }, sector:STR('Sector, e.g. Technology'), query:STR('Symbol or name text'),
+        min_price:NUM('Min price'), max_price:NUM('Max price'), min_change_pct:NUM('Min day change %'), max_change_pct:NUM('Max day change %'),
+        min_market_cap_b:NUM('Min market cap $B'), max_market_cap_b:NUM('Max market cap $B'), sort:STR('As in screen_stocks'), order:STR('Sort order', ['desc', 'asc']), view:STR('Columns', ['ov', 'val', 'fin', 'perf', 'tech', 'an', 'etf']) }),
       run:function(a, ctx){
-        var v = function(x){ return x == null ? '' : String(x); };
-        CUR.screen = Object.assign(defaultScreen(), { sector:v(a.sector), q:v(a.query), minPx:v(a.min_price), maxPx:v(a.max_price), minPct:v(a.min_change_pct),
-          maxPct:v(a.max_change_pct), minMc:v(a.min_market_cap_b), maxMc:v(a.max_market_cap_b) });
-        return ctx.go('#/screener', 'Opened the screener with filters');
+        CUR.screen = scrSpec(a);
+        if(scrActive(CUR.screen).some(function(x){ return x.flt.g !== 'd'; })){ SCR_MODE = 'pro'; save('fh3_scrmode', 'pro'); }
+        return ctx.go('#/screener', 'Opened the screener with ' + (scrActive(CUR.screen).map(function(x){ return x.flt.l + ': ' + x.opt[0]; }).join(', ') || 'no filters'));
       }
     },
     open_filing:{
@@ -359,11 +380,14 @@ var MH = (function(){
     },
     propose_changes:{
       modes:'chat', label:function(){ return '✋ Proposing changes for approval'; },
-      description:'Create, add to or delete portfolios and watchlists. Nothing changes until the user presses Apply on the card shown with your answer. Each action: {do:"create_portfolio",name,holdings:[{symbol,shares,cost?}]} | {do:"add_holdings",portfolio,holdings} | {do:"delete_portfolio",portfolio} | {do:"create_watchlist",name,symbols} | {do:"add_to_watchlist",watchlist,symbols}. Use exactly the holdings the user gave; never invent shares or costs.',
-      params:S({ actions:ARR('Actions to propose', { type:'object', properties:{ do:STR('Action', ['create_portfolio', 'add_holdings', 'delete_portfolio', 'create_watchlist', 'add_to_watchlist']),
+      description:'Create, add to or delete portfolios and watchlists, and set price alerts. Nothing changes until the user presses Apply on the card shown with your answer. Each action: {do:"create_portfolio",name,holdings:[{symbol,shares,cost?}]} | {do:"add_holdings",portfolio,holdings} | {do:"delete_portfolio",portfolio} | {do:"create_watchlist",name,symbols} | {do:"add_to_watchlist",watchlist,symbols} | ' +
+        '{do:"create_alert",symbol,alert,value,frequency}. Alert types: ' + AL_GROUPS.map(function(g){ return g[1].map(function(t){ return t[0] + ' = ' + t[1] + (t[2] ? ' (' + t[2] + ')' : ''); }).join(', '); }).join(', ') +
+        '; value is a price for above/below, a percent for the rise/fall types, shares for vol, dollars for turn; news needs no value. frequency: once (default), day, always. Alerts are checked in the browser while the site is open. Use exactly the holdings the user gave; never invent shares or costs.',
+      params:S({ actions:ARR('Actions to propose', { type:'object', properties:{ do:STR('Action', ['create_portfolio', 'add_holdings', 'delete_portfolio', 'create_watchlist', 'add_to_watchlist', 'create_alert']),
         name:STR('Name for a new portfolio/watchlist'), portfolio:STR('Existing portfolio id or name'), watchlist:STR('Existing watchlist id or name'),
         holdings:ARR('Holdings', { type:'object', properties:{ symbol:STR('Ticker'), shares:NUM('Shares'), cost:NUM('Average cost per share') }, required:['symbol', 'shares'] }),
-        symbols:ARR('Tickers') }, required:['do'] }) }, ['actions']),
+        symbols:ARR('Tickers'), symbol:STR('Ticker for create_alert'), alert:STR('Alert type for create_alert'), value:NUM('Threshold for create_alert'),
+        frequency:STR('Alert frequency', ['once', 'day', 'always']) }, required:['do'] }) }, ['actions']),
       run:function(a, ctx){
         var out = (a.actions || []).slice(0, 8).map(function(o){
           var n = actNorm(o);
@@ -384,12 +408,14 @@ var MH = (function(){
 
   /* ---- prompts ---------------------------------------------------------- */
   var CHAT_PROMPT = '\n\nTOOLS: you run inside the Marvell harness with live tools. You cannot see the app\'s screen or its cached data, and the user may change topic at any time: answer the LATEST message. ' +
-    'For every quote, number, news item, insider trade, filing or market fact, call the data tools (get_quote, get_price_history, get_financials, list_filings, read_filing, get_insider_trades, get_news, get_investor_holdings, screen_stocks) in this turn, ' +
+    'For every quote, number, news item, insider trade, filing or market fact, call the data tools (get_quote, get_price_history, get_financials, list_filings, read_filing, get_insider_trades, get_news, get_investor_holdings, company_profile, screen_stocks) in this turn, ' +
     'even if an earlier turn already covered it, because earlier answers go stale. Use web search (and read_webpage) for anything else, recent, or non-US. ' +
     'Never say you only have the data on the page. Only say something is unavailable after a tool failed or returned nothing, and name the tool. ' +
     'Every number in your answer must come from a tool result or an attachment; cite data-tool sources as [n] and web search results as inline links. Use calculate or dcf for arithmetic.\n' +
     'APP CONTROL: you can drive MercerFargo. When the user wants to see something, or a page would clearly help, open it (open_quote, navigate, compare, set_chart, run_screener, open_filing). ' +
-    'Portfolio and watchlist changes go through propose_changes and wait for the user\'s Apply click; say what you proposed. ' +
+    'Portfolio, watchlist and price-alert changes go through propose_changes and wait for the user\'s Apply click; say what you proposed. ' +
+    'For stock ideas, peers or "find me stocks that..." use screen_stocks with real filters (valuation, growth, margins, dividends, technicals, ETFs) over the whole US market; offer run_screener so the user can browse the same screen. ' +
+    'For who runs a company or where it is based, call company_profile: leadership changes, so never answer from memory. ' +
     'Use read_docs when unsure how the app works or what you may do (sections: ' + '%DOCS%' + ').\n' +
     'MEMORY: the user\'s Memory (profile, notes, portfolios, watchlists, skills, research summaries) is in your instructions; call read_memory for the full research log. ' +
     'When you learn something lasting (nickname, goals, risk comfort, what they do) or notice a change, save it with update_memory and tell the user in one short line. ' +
@@ -409,7 +435,8 @@ var MH = (function(){
     if(Array.isArray(x)) return x.map(geminiSchema);
     if(!x || typeof x !== 'object') return x;
     var o = {};
-    Object.keys(x).forEach(function(k){ o[k] = k === 'type' ? String(x[k]).toUpperCase() : (k === 'properties' ? Object.keys(x[k]).reduce(function(p, n){ p[n] = geminiSchema(x[k][n]); return p; }, {}) : geminiSchema(x[k])); });
+    Object.keys(x).forEach(function(k){ if(k === 'additionalProperties') return;   // Gemini rejects it; the description carries the shape
+      o[k] = k === 'type' ? String(x[k]).toUpperCase() : (k === 'properties' ? Object.keys(x[k]).reduce(function(p, n){ p[n] = geminiSchema(x[k][n]); return p; }, {}) : geminiSchema(x[k])); });
     if(o.type === 'OBJECT' && !Object.keys(o.properties || {}).length) delete o.properties;
     return o;
   }

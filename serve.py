@@ -74,6 +74,7 @@ ALLOWED_HOSTS = {
     "api.twelvedata.com",
     "traderhub.openalice.ai",
     "openinsider.com",
+    "finviz.com",
     # OpenCode Zen / Go — the AI gateway sends no CORS headers, so the browser
     # reaches it through this proxy. The caller's Authorization header is forwarded.
     "opencode.ai",

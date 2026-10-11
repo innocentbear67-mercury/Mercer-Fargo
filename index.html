@@ -231,6 +231,22 @@ input,select,textarea{font:inherit;color:inherit}
 .status-chip.offline .dot{background:var(--fh-negative)}
 
 /* ---------- Market tab strip -------------------------------------------- */
+/* ticker tape: an exchange-board strip, dark in both themes */
+.tape{position:relative;height:30px;overflow:hidden;background:#05080d;border-bottom:1px solid #1c2430;font-family:var(--mf-serif);font-size:12.5px;line-height:30px;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
+.tape:empty{display:none}
+.tp-track{display:flex;width:max-content;animation:tapeRun 120s linear infinite}
+.tape:hover .tp-track,.tape:focus-within .tp-track{animation-play-state:paused}
+@keyframes tapeRun{to{transform:translateX(-50%)}}
+.tp-run{display:flex}
+.tp-i{display:inline-flex;align-items:baseline;gap:7px;padding:0 16px;color:#e8e6df;white-space:nowrap;text-decoration:none;border-right:1px solid #1c2430;font-variant-numeric:tabular-nums}
+.tp-i:hover{background:#111824;text-decoration:none}
+.tp-i b{color:#fff;font-weight:700;letter-spacing:.02em}
+.tp-px{color:#d6d3ca}
+.tp-ch.up{color:#3ddc6f}.tp-ch.down{color:#ff5c67}
+.tp-i.fl .tp-px{animation:tpFlash .9s ease-out}
+@keyframes tpFlash{from{color:var(--mf-gold)}}
+@media (prefers-reduced-motion:reduce){.tp-track{animation:none}.tape{overflow-x:auto;scrollbar-width:none}}
 .subnav{
   position:sticky;top:64px;z-index:35;background:var(--fh-background-surface);
   border-bottom:1px solid var(--fh-border-stroke-default);display:flex;align-items:center;gap:4px;
@@ -532,6 +548,39 @@ body.vol-dragging,body.vol-dragging *{cursor:grabbing!important;user-select:none
 .drawer-head .ttl{flex:1;font-size:16px;font-weight:500;color:var(--fh-foreground-on-surface-emphasis)}
 .drawer-body{flex:1;overflow-y:auto;padding:16px}
 .msg{border-radius:12px;padding:12px 14px;margin-bottom:10px;font-size:13.5px;line-height:21px;white-space:pre-wrap;word-wrap:break-word;border:1px solid var(--fh-border-stroke-default);background:var(--fh-background-surface-container-de-emphasis)}
+td.sym.wl-x{position:relative;padding-right:40px}
+.wl-add{position:absolute;right:6px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:0;border-radius:8px;
+  background:transparent;color:var(--fh-foreground-on-surface-de-emphasis);cursor:pointer;opacity:.45;transition:opacity .15s,background .15s}
+tr:hover .wl-add,.wl-add:focus-visible,.wl-add.on{opacity:1}
+.wl-add:hover{background:var(--fh-states-neutral-hovered);color:var(--fh-foreground-on-surface-emphasis)}
+.wl-add.on{color:var(--mf-gold)}
+@media (hover:none){.wl-add{opacity:.8}}
+.wl-pop{position:fixed;z-index:200;width:260px;max-width:calc(100vw - 16px);padding:6px 0;border-radius:12px;background:var(--fh-background-surface-elevated);
+  border:1px solid var(--fh-border-stroke-emphasis);box-shadow:var(--fh-elevation-3);font-size:14px;animation:guIn .16s both}
+.wl-top{display:flex;align-items:center;gap:10px;padding:10px 14px;margin:-6px 0 4px;border-radius:12px 12px 0 0;color:var(--fh-foreground-on-surface-default);border-bottom:1px solid var(--fh-border-stroke-default)}
+.wl-top.on{color:var(--fh-sentiment-positive,#3fb950);background:color-mix(in srgb,var(--fh-sentiment-positive,#3fb950) 10%,transparent)}
+.wl-ok{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:currentColor}.wl-ok svg{color:var(--fh-background-surface-elevated)}
+.wl-lbl{padding:8px 14px 4px;font-size:12.5px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.wl-list{max-height:260px;overflow:auto}
+.wl-row{display:flex;align-items:center;gap:12px;width:100%;padding:8px 14px;border:0;background:transparent;color:var(--fh-foreground-on-surface-emphasis);font:inherit;text-align:left;cursor:pointer}
+.wl-row:hover,.wl-row:focus-visible{background:var(--fh-states-neutral-hovered);outline:none}
+.wl-cb{flex:0 0 18px;height:18px;border-radius:4px;border:1.5px solid var(--fh-foreground-on-surface-de-emphasis);display:inline-flex;align-items:center;justify-content:center}
+.wl-cb.on{background:var(--mf-gold);border-color:var(--mf-gold);color:#141414}
+.wl-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wl-ct{font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.wl-sep{height:1px;background:var(--fh-border-stroke-default);margin:6px 0}
+.wl-create svg{flex:0 0 18px}
+.wl-new{display:flex;gap:6px;padding:4px 10px 6px}.wl-new .inp{flex:1;min-width:0;height:32px;padding:4px 8px}
+.wl-empty{padding:6px 14px;font-size:13px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.msg-tools{display:flex;gap:2px;margin:-4px 0 12px 4px}
+.mt-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:var(--fh-foreground-on-surface-de-emphasis);cursor:pointer}
+.mt-btn:hover{background:var(--fh-states-neutral-hovered);color:var(--fh-foreground-on-surface-emphasis)}
+.mt-btn.on{color:var(--mf-gold)}
+.mt-form{margin:-6px 0 14px;padding:12px;border-radius:12px;border:1px solid var(--fh-border-stroke-default);background:var(--fh-background-surface-container-de-emphasis)}
+.mt-q{font-size:13px;margin-bottom:8px;color:var(--fh-foreground-on-surface-emphasis)}
+.mt-form textarea{width:100%;box-sizing:border-box;resize:vertical;border-radius:8px;border:1px solid var(--fh-border-stroke-default);background:var(--fh-background-surface);color:inherit;font:inherit;font-size:13px;padding:8px}
+.mt-row{display:flex;justify-content:flex-end;gap:6px;margin-top:8px}
+.mt-thanks{margin:-6px 0 14px 6px;font-size:12.5px;color:var(--fh-sentiment-positive, #3fb950)}
 .msg.me{background:var(--fh-background-brand-surface-container-high);color:var(--fh-foreground-on-surface-emphasis);border-color:transparent}
 .msg.err{background:var(--fh-sentiment-negative-container);color:var(--fh-sentiment-on-negative-container);border-color:transparent}
 .msg h4{font-size:13.5px;margin:8px 0 4px;color:var(--fh-foreground-on-surface-emphasis)}
@@ -614,6 +663,26 @@ body.vol-dragging,body.vol-dragging *{cursor:grabbing!important;user-select:none
 }
 .heat .h b{font-size:13px;font-weight:500}
 .heat .h .p{font-size:11.5px;opacity:.92}
+.scr-card{padding:16px 18px}
+.scr-search{display:block;margin-bottom:14px}.scr-search .inp{width:100%;max-width:420px}
+.scr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px 20px}
+.scr-f{display:flex;align-items:center;gap:10px;min-width:0}
+.scr-f span{flex:0 0 112px;text-align:right;font-size:12.5px;line-height:1.2;color:var(--fh-foreground-on-surface-de-emphasis)}
+.scr-f select.inp{flex:1;min-width:0;padding:5px 8px;font-size:13px;height:32px}
+.scr-f select.on{border-color:var(--fh-colors-and-accents-primary);color:var(--fh-colors-and-accents-primary);font-weight:600}
+.scr-grp{margin:18px 0 8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis);font-weight:600}
+.scr-grp:first-child{margin-top:0}
+.scr-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.scr-chips:empty{display:none}
+.scr-chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 4px 3px 10px;border-radius:999px;background:var(--fh-background-surface-container)}
+.scr-chip button{background:none;border:0;color:inherit;cursor:pointer;opacity:.6;font-size:11px;padding:2px 5px}.scr-chip button:hover{opacity:1}
+.scr-mode{margin-left:auto}
+.scr-views{margin:16px 0 4px}
+#scrRes.loading{opacity:.55;transition:opacity .2s}
+.scr-tbl th.sortable{cursor:pointer;user-select:none}.scr-tbl th.sortable:hover,.scr-tbl th.on{color:var(--fh-foreground-on-surface-emphasis)}
+.scr-tbl tr[data-act]{cursor:pointer}.scr-tbl td,.scr-tbl th{white-space:nowrap}
+.scr-note{font-size:12px;margin:0 0 10px}
+.scr-pager{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px;font-size:13px}
+@media (max-width:600px){.scr-f span{flex-basis:96px}.scr-grid{grid-template-columns:1fr}}
 .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(186px,1fr));gap:14px}
 .fchip{display:flex;align-items:center;gap:8px}
 .fchip .pill{padding:7px 12px;font-size:13px}
@@ -1557,6 +1626,15 @@ html{overflow-x:clip}
 .ins-sug b{color:var(--fh-foreground-on-surface-emphasis)}
 .ins-sug span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fh-foreground-on-surface-default)}
 .ins-sug i{font-style:normal;font-size:11px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.search{position:relative}
+.hs-sug{top:calc(100% + 6px);min-width:min(460px,92vw);z-index:60}
+.bottombar .hs-sug{top:auto;bottom:calc(100% + 8px)}
+.hs-sug button{grid-template-columns:28px 62px minmax(0,1fr) auto}
+.hs-sug em{font-style:normal;text-align:right;font-size:13.5px;color:var(--fh-foreground-on-surface-emphasis);display:flex;flex-direction:column;line-height:1.2}
+.hs-sug em small{font-size:11.5px;font-weight:600}
+.hs-tag{font-size:10px;padding:1px 5px;border-radius:5px;background:var(--fh-background-surface-container);color:var(--fh-foreground-on-surface-de-emphasis);margin-left:4px}
+.hs-clr{margin-left:auto;background:none;border:0;color:var(--fh-colors-and-accents-primary);font:inherit;font-size:11px;cursor:pointer;text-transform:none;letter-spacing:0}
+.hs-hd{display:flex;align-items:center;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis);padding:8px 10px 4px}
 .ins-recent{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:22px}
 .ins-recent>span{font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis);margin-right:4px}
 .ins-recent a{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:20px;background:var(--fh-background-surface);border:1px solid var(--fh-border-stroke-default);
@@ -2132,6 +2210,7 @@ body.rs-drag iframe{pointer-events:none}
   </button>
   <button class="avatar-btn" id="signInBtn" title="Account">S</button>
 </header>
+<div class="tape" id="tape" role="region" aria-label="Market ticker"></div>
 
 <div class="subnav" id="subnav">
   <div class="sec-tabs" id="secTabs"></div>
@@ -2310,7 +2389,7 @@ const SECTORS = ['Technology','Communications','Discretionary','Staples','Financ
 /* Bundled profile facts for the most-viewed symbols. Anything missing is left
    empty on purpose — the UI shows "not loaded" instead of inventing values. */
 const PROFILES = {
-  AAPL:{ceo:'Tim Cook',emp:'164,000',founded:'Apr 1, 1976',hq:'Cupertino, California, United States',sector:'Technology Hardware, Storage & Peripherals',web:'https://www.apple.com',about:'Apple Inc. designs, manufactures and markets smartphones, personal computers, tablets, wearables and accessories, and sells a range of related services.'},
+  AAPL:{ceo:'John Ternus',emp:'166,000',founded:'Apr 1, 1976',hq:'Cupertino, California, United States',sector:'Technology Hardware, Storage & Peripherals',web:'https://www.apple.com',about:'Apple Inc. designs, manufactures and markets smartphones, personal computers, tablets, wearables and accessories, and sells a range of related services.'},
   MSFT:{ceo:'Satya Nadella',emp:'228,000',founded:'Apr 4, 1975',hq:'Redmond, Washington, United States',sector:'Software — Infrastructure',web:'https://www.microsoft.com',about:'Microsoft Corp. develops and licenses software, services, devices and solutions, including Azure cloud, Microsoft 365 and Windows.'},
   NVDA:{ceo:'Jensen Huang',emp:'29,600',founded:'Apr 5, 1993',hq:'Santa Clara, California, United States',sector:'Semiconductors',web:'https://www.nvidia.com',about:'NVIDIA Corp. designs graphics processing units and accelerated computing platforms for gaming, data centre and automotive markets.'},
   GOOGL:{ceo:'Sundar Pichai',emp:'182,000',founded:'Sep 4, 1998',hq:'Mountain View, California, United States',sector:'Interactive Media & Services',web:'https://abc.xyz',about:'Alphabet Inc. is the parent of Google, covering search, advertising, YouTube, Android, Google Cloud and other bets.'},
@@ -2492,9 +2571,9 @@ function fetchWithTimeout(url, ms, init){
 var PROXY_FIRST = { 'news.google.com':1, 'openinsider.com':1 };
 /* Feeds the hosted worker relays (worker/ /api/fetch): tried right after serve.py's proxy,
    ahead of the slow public relay. Keep in sync with FEEDS in worker/opencode-proxy.js. */
-var EDGE_HOSTS = { 'news.google.com':1, 'feeds.finance.yahoo.com':1, 'openinsider.com':1, 'traderhub.openalice.ai':1, 'www.sec.gov':1, 'data.sec.gov':1 };   // data.sec.gov stopped answering browsers directly
+var EDGE_HOSTS = { 'news.google.com':1, 'feeds.finance.yahoo.com':1, 'openinsider.com':1, 'traderhub.openalice.ai':1, 'www.sec.gov':1, 'data.sec.gov':1, 'finviz.com':1 };   // data.sec.gov stopped answering browsers directly
 var DIRECT_ONLY = {
-  'scanner.tradingview.com':1, 'stockanalysis.com':1, 'api.coingecko.com':1,
+  'scanner.tradingview.com':1, 'stockanalysis.com':1, 'api.coingecko.com':1, 'query.wikidata.org':1, 'en.wikipedia.org':1,
   'api.frankfurter.dev':1, 'api.frankfurter.app':1
 };
 
@@ -3072,6 +3151,67 @@ function searchSymbols(q){
       });
     }).catch(function(){ return []; });
 }
+
+/* --- company profile (live): stockanalysis.com's company page, which sends no
+   CORS headers, so it goes through serve.py's proxy or the worker relay. Cached a
+   week; the bundled PROFILES are only a fallback and are labelled as such. */
+var PROF_TTL = 7 * 864e5;
+function profCached(sym){ var c = load('fh3_prof', {})[dispSym(sym)]; return c && Date.now() - c.t < PROF_TTL ? c : null; }
+function profileOf(sym){ var c = profCached(sym); return c ? c.p : null; }
+function fetchRelayed(url, ms){
+  var tries = (canTryProxy() ? [PROXY_PATH + encodeURIComponent(url)] : []).concat([OC_PROXY + '/api/fetch?u=' + encodeURIComponent(url)]);
+  var step = function(i){
+    return fetchWithTimeout(tries[i], ms).then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .catch(function(e){ if(i + 1 < tries.length) return step(i + 1); throw e; });
+  };
+  return step(0);
+}
+function saProfile(s){
+  return fetchRelayed('https://stockanalysis.com/stocks/' + encodeURIComponent(saSlug(s)) + '/company/', 12000).then(function(html){
+    var doc = new DOMParser().parseFromString(html, 'text/html'), kv = {};
+    [].forEach.call(doc.querySelectorAll('tr'), function(tr){
+      if(tr.children.length === 2) kv[tr.children[0].textContent.trim()] = tr.children[1].textContent.replace(/\s+/g, ' ').trim();
+    });
+    if(!kv.CEO && !kv.Employees) throw new Error('no profile table');
+    var h1 = [].filter.call(doc.querySelectorAll('h1'), function(x){ return /Company Description/.test(x.textContent); })[0];
+    var about = h1 && h1.nextElementSibling ? [].map.call(h1.nextElementSibling.querySelectorAll('p'), function(p){ return p.textContent.trim(); }).join('\n\n') : '';
+    var adr = [].filter.call(doc.querySelectorAll('div,span,dt,td'), function(x){ return x.children.length === 0 && x.textContent.trim() === 'Address:'; })[0];
+    var hq = adr && adr.nextElementSibling ? adr.nextElementSibling.innerHTML.split(/<br\s*\/?>/i).map(function(x){ return x.replace(/<[^>]*>/g, '').trim(); }).filter(Boolean).join(', ') : '';   // lines split by <br>
+    return { ceo:kv.CEO || '', emp:kv.Employees || '', founded:kv.Founded || '', hq:hq || kv.Country || '',
+      sector:[kv.Sector, kv.Industry].filter(Boolean).join(' · '), web:kv.Website ? 'https://' + kv.Website.replace(/^https?:\/\//, '') : '', about:about, src:'stockanalysis.com' };
+  });
+}
+/* Hosted fallback: stockanalysis.com challenges Cloudflare's own IPs, so the worker
+   can't relay it. Wikidata (CORS-open) has the current CEO, and Wikipedia the summary. */
+function wdProfile(s){
+  var q = 'SELECT ?c (SAMPLE(?ceoN) AS ?ceo) (MAX(?emp) AS ?emps) (MIN(?inc) AS ?founded) (SAMPLE(?hqN) AS ?hq) (GROUP_CONCAT(DISTINCT ?web; separator=" ") AS ?webs) (SAMPLE(?art) AS ?article) WHERE {' +
+    ' ?c p:P414 ?st . ?st pq:P249 "' + s.replace(/[^A-Z0-9.\-]/g, '') + '" . ?st ps:P414 ?ex . VALUES ?ex { wd:Q82059 wd:Q13677 wd:Q1365001 }' +
+    ' OPTIONAL { ?c p:P169 ?cs . ?cs ps:P169 ?ceoI . FILTER NOT EXISTS { ?cs pq:P582 [] } ?ceoI rdfs:label ?ceoN FILTER(lang(?ceoN) IN ("en", "mul")) }' +   // some people only carry a language-neutral "mul" label
+    ' OPTIONAL { ?c wdt:P1128 ?emp } OPTIONAL { ?c wdt:P571 ?inc } OPTIONAL { ?c wdt:P856 ?web }' +
+    ' OPTIONAL { ?c wdt:P159 ?hqI . ?hqI rdfs:label ?hqN FILTER(lang(?hqN) = "en") }' +
+    ' OPTIONAL { ?art schema:about ?c ; schema:isPartOf <https://en.wikipedia.org/> } } GROUP BY ?c LIMIT 1';
+  return fetchJSON('https://query.wikidata.org/sparql?format=json&query=' + encodeURIComponent(q), 15000).then(function(j){
+    var b = ((j.results || {}).bindings || [])[0];
+    if(!b) throw new Error('not on Wikidata');
+    var v = function(k){ return b[k] ? b[k].value : ''; };
+    var webs = v('webs').split(' ').filter(Boolean).sort(function(x, y){ return x.length - y.length; });   // the plain domain beats per-country variants
+    var p = { ceo:v('ceo'), emp:v('emps') ? Number(v('emps')).toLocaleString() : '', founded:v('founded').slice(0, 4), hq:v('hq'), sector:'', web:webs[0] || '', about:'', src:'Wikidata' };
+    var title = v('article').split('/wiki/')[1];
+    if(!title) return p;
+    return fetchJSON('https://en.wikipedia.org/api/rest_v1/page/summary/' + title, 10000)
+      .then(function(w){ p.about = (w && w.extract) || ''; p.src = 'Wikidata and Wikipedia'; return p; }, function(){ return p; });
+  });
+}
+function loadProfile(sym){
+  var s = dispSym(sym);
+  if(profCached(s)) return Promise.resolve(profileOf(s));
+  if(loadProfile.busy[s]) return loadProfile.busy[s];
+  return loadProfile.busy[s] = saProfile(s).catch(function(){ return wdProfile(s); }).then(function(p){
+    var all = load('fh3_prof', {}); all[s] = { t:Date.now(), p:p }; save('fh3_prof', all);
+    return p;
+  }).finally(function(){ delete loadProfile.busy[s]; });
+}
+loadProfile.busy = {};
 
 /* --- key statistics (already stored by applyTV) -------------------------- */
 function loadSummary(sym){ return Promise.resolve((DATA.summary[dispSym(sym)] || {}).d || {}); }
@@ -4274,10 +4414,12 @@ function renderRail(){
     }).join('');
   html += railSec('filings', 'Filings & Reports', null, body, { active:CUR.view === 'filings' });
 
-  body = SECTORS.map(function(s){
-    return '<a class="rail-item sect-link" href="#/screener" data-act="sector" data-sector="' + esc(s) + '"><span class="ri-glyph">' + railSvg(SECTOR_ICON[s] || RAIL_ICON.sectors, 15) + '</span><span class="lbl">' + esc(s) + '</span></a>';
+  var scrSec = CUR.view === 'screener' && CUR.screen ? (CUR.screen.sel && CUR.screen.sel.sector) || CUR.screen.sector || '' : null;
+  body = [''].concat(SECTORS).map(function(s){
+    return '<a class="rail-item sect-link' + (scrSec === s ? ' on' : '') + '" href="#/screener" data-act="sector" data-sector="' + esc(s) + '"><span class="ri-glyph">' +
+      railSvg(s ? SECTOR_ICON[s] || RAIL_ICON.sectors : 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z', 15) + '</span><span class="lbl">' + esc(s || 'All stocks') + '</span></a>';
   }).join('');
-  html += railSec('sectors', 'Sectors', SECTORS.length, body, { open:false });
+  html += railSec('sectors', 'Screener', null, body, { open:false, active:CUR.view === 'screener' });
   html += '<div class="rail-foot">Quotes, market caps and history: Nasdaq public endpoints via serve.py · crypto: CoinGecko · FX: ECB (Frankfurter) · ' +
     'news: Google News RSS · fundamentals: SEC XBRL or your own CSV/AI input. Nothing is invented. Not investment advice.</div>';
   $('rail').innerHTML = html;
@@ -6129,46 +6271,455 @@ function guruHover(box, hs){
 }
 
 /* ----------------------------------------------------------- screener view */
+/* A server-side screen over every US listing. Each filter option carries a
+   TradingView scanner clause and, where Finviz has the same filter, its Finviz
+   code. TradingView answers browsers directly; if it fails, the same screen is
+   rebuilt as a Finviz URL and its results table is scraped through the relay. */
 
 function defaultScreen(){
-  return { sector:'', minPx:'', maxPx:'', minPct:'', maxPct:'', minMc:'', maxMc:'', q:'', sort:{ key:'mc', dir:-1 } };
+  return { sector:'', minPx:'', maxPx:'', minPct:'', maxPct:'', minMc:'', maxMc:'', q:'', sel:{}, view:'ov', sort:{ key:'market_cap_basic', dir:-1 }, page:0 };
+}
+var SCR_PAGE = 50;
+var SCR = { rows:[], total:0, src:'', err:'', seq:0, skipped:[] };
+var SCR_MODE = load('fh3_scrmode', 'basic');
+
+function scC(left, op, right){ return { left:left, operation:op, right:right }; }
+/* "Under x" / "Over x" ladder. v = [tvValue, label, finvizToken]. */
+function scLadder(field, fv, vals, pos){
+  var u = vals.map(function(v){ return ['Under ' + v[1], [scC(field, 'less', v[0])].concat(pos ? [scC(field, 'greater', 0)] : []), fv && fv + '_u' + v[2]]; });
+  var o = vals.map(function(v){ return ['Over ' + v[1], [scC(field, 'greater', v[0])], fv && fv + '_o' + v[2]]; });
+  return u.concat(o);
+}
+function scV(list, fmt, mult){ return list.map(function(x){ return [x * (mult || 1), fmt(x), String(x)]; }); }
+function scPct(x){ return x + '%'; }
+function scX(x){ return String(x); }
+function scK(x){ return x >= 1000 ? (x / 1000) + 'M' : x + 'K'; }
+function scM(x){ return x >= 1000 ? (x / 1000) + 'B' : x + 'M'; }
+/* Positive / negative plus a percent ladder: growth, margins, returns. */
+function scSigned(field, fv, vals){
+  return [['Positive (>0%)', [scC(field, 'greater', 0)], fv && fv + '_pos'], ['Negative (<0%)', [scC(field, 'less', 0)], fv && fv + '_neg']]
+    .concat(scLadder(field, fv, scV(vals, scPct)));
+}
+function scEq(field, val, fv){ return [val, [scC(field, 'equal', val)], fv]; }
+function scBool(list){ return list.map(function(x){ return [x[0], [scC(x[1], 'equal', 1)], x[2]]; }); }
+
+var RE_IND = ['Real Estate Investment Trusts', 'Real Estate Development'];
+var SCR_SECTORS = {
+  'Technology':[[scC('sector', 'in_range', ['Electronic Technology', 'Technology Services'])], 'sec_technology'],
+  'Communications':[[scC('sector', 'equal', 'Communications')], 'sec_communicationservices'],
+  'Discretionary':[[scC('sector', 'in_range', ['Retail Trade', 'Consumer Durables', 'Consumer Services'])], 'sec_consumercyclical'],
+  'Staples':[[scC('sector', 'in_range', ['Consumer Non-Durables', 'Distribution Services'])], 'sec_consumerdefensive'],
+  'Financials':[[scC('sector', 'equal', 'Finance'), scC('industry', 'not_in_range', RE_IND)], 'sec_financial'],
+  'Health care':[[scC('sector', 'in_range', ['Health Technology', 'Health Services'])], 'sec_healthcare'],
+  'Industrials':[[scC('sector', 'in_range', ['Producer Manufacturing', 'Industrial Services', 'Transportation', 'Commercial Services'])], 'sec_industrials'],
+  'Energy':[[scC('sector', 'equal', 'Energy Minerals')], 'sec_energy'],
+  'Materials':[[scC('sector', 'in_range', ['Process Industries', 'Non-Energy Minerals'])], 'sec_basicmaterials'],
+  'Utilities':[[scC('sector', 'equal', 'Utilities')], 'sec_utilities'],
+  'Real estate':[[scC('industry', 'in_range', RE_IND)], 'sec_realestate']
+};
+var TV_INDUSTRIES = ['Advertising/Marketing Services', 'Aerospace & Defense', 'Agricultural Commodities/Milling', 'Air Freight/Couriers', 'Airlines', 'Alternative Power Generation', 'Aluminum', 'Apparel/Footwear', 'Apparel/Footwear Retail', 'Auto Parts: OEM', 'Automotive Aftermarket', 'Beverages: Alcoholic', 'Beverages: Non-Alcoholic', 'Biotechnology', 'Broadcasting', 'Building Products', 'Cable/Satellite TV', 'Casinos/Gaming', 'Catalog/Specialty Distribution', 'Chemicals: Agricultural', 'Chemicals: Major Diversified', 'Chemicals: Specialty', 'Coal', 'Commercial Printing/Forms', 'Computer Communications', 'Computer Peripherals', 'Computer Processing Hardware', 'Construction Materials', 'Consumer Sundries', 'Containers/Packaging', 'Contract Drilling', 'Data Processing Services', 'Department Stores', 'Discount Stores', 'Drugstore Chains', 'Electric Utilities', 'Electrical Products', 'Electronic Components', 'Electronic Equipment/Instruments', 'Electronic Production Equipment', 'Electronics Distributors', 'Electronics/Appliance Stores', 'Electronics/Appliances', 'Engineering & Construction', 'Environmental Services', 'Finance/Rental/Leasing', 'Financial Conglomerates', 'Financial Publishing/Services', 'Food Distributors', 'Food Retail', 'Food: Major Diversified', 'Food: Meat/Fish/Dairy', 'Food: Specialty/Candy', 'Forest Products', 'Gas Distributors', 'Home Furnishings', 'Home Improvement Chains', 'Homebuilding', 'Hospital/Nursing Management', 'Hotels/Resorts/Cruise lines', 'Household/Personal Care', 'Industrial Conglomerates', 'Industrial Machinery', 'Industrial Specialties', 'Information Technology Services', 'Insurance Brokers/Services', 'Integrated Oil', 'Internet Retail', 'Internet Software/Services', 'Investment Banks/Brokers', 'Investment Managers', 'Investment Trusts/Mutual Funds', 'Life/Health Insurance', 'Major Banks', 'Major Telecommunications', 'Managed Health Care', 'Marine Shipping', 'Media Conglomerates', 'Medical Distributors', 'Medical Specialties', 'Medical/Nursing Services', 'Metal Fabrication', 'Miscellaneous', 'Miscellaneous Commercial Services', 'Miscellaneous Manufacturing', 'Motor Vehicles', 'Movies/Entertainment', 'Multi-Line Insurance', 'Office Equipment/Supplies', 'Oil & Gas Pipelines', 'Oil & Gas Production', 'Oil Refining/Marketing', 'Oilfield Services/Equipment', 'Other Consumer Services', 'Other Consumer Specialties', 'Other Metals/Minerals', 'Other Transportation', 'Packaged Software', 'Personnel Services', 'Pharmaceuticals: Generic', 'Pharmaceuticals: Major', 'Pharmaceuticals: Other', 'Precious Metals', 'Property/Casualty Insurance', 'Publishing: Books/Magazines', 'Publishing: Newspapers', 'Pulp & Paper', 'Railroads', 'Real Estate Development', 'Real Estate Investment Trusts', 'Recreational Products', 'Regional Banks', 'Restaurants', 'Savings Banks', 'Semiconductors', 'Services to the Health Industry', 'Specialty Insurance', 'Specialty Stores', 'Specialty Telecommunications', 'Steel', 'Telecommunications Equipment', 'Textiles', 'Tobacco', 'Tools & Hardware', 'Trucking', 'Trucks/Construction/Farm Machinery', 'Water Utilities', 'Wholesale Distributors', 'Wireless Telecommunications'];
+var SCR_COUNTRIES = [['USA', 'United States', 'usa'], ['China', 'China', 'china'], ['Canada', 'Canada', 'canada'], ['United Kingdom', 'United Kingdom', 'unitedkingdom'], ['Israel', 'Israel', 'israel'],
+  ['Netherlands', 'Netherlands', 'netherlands'], ['Ireland', 'Ireland', 'ireland'], ['Switzerland', 'Switzerland', 'switzerland'], ['Japan', 'Japan', 'japan'], ['Taiwan', 'Taiwan', 'taiwan'],
+  ['Brazil', 'Brazil', 'brazil'], ['India', 'India', 'india'], ['Germany', 'Germany', 'germany'], ['Bermuda', 'Bermuda', 'bermuda'], ['Cayman Islands', 'Cayman Islands', 'caymanislands'],
+  ['Singapore', 'Singapore', 'singapore'], ['Hong Kong', 'Hong Kong', 'hongkong'], ['Argentina', 'Argentina', 'argentina'], ['Mexico', 'Mexico', 'mexico'], ['South Korea', 'South Korea', 'southkorea'],
+  ['Australia', 'Australia', 'australia'], ['France', 'France', 'france']];
+
+function scPerf(){
+  var out = [];
+  [['Today', 'change', 'd'], ['Week', 'Perf.W', '1w'], ['Month', 'Perf.1M', '4w'], ['Quarter', 'Perf.3M', '13w'], ['Half', 'Perf.6M', '26w'], ['YTD', 'Perf.YTD', 'ytd'], ['Year', 'Perf.Y', '52w']].forEach(function(p){
+    out.push([p[0] + ' Up', [scC(p[1], 'greater', 0)], 'ta_perf_' + p[2] + 'up'], [p[0] + ' Down', [scC(p[1], 'less', 0)], 'ta_perf_' + p[2] + 'down']);
+    [10, 20, 50].forEach(function(v){ out.push([p[0] + ' +' + v + '%', [scC(p[1], 'greater', v)], 'ta_perf_' + p[2] + v + 'o'], [p[0] + ' −' + v + '%', [scC(p[1], 'less', -v)], 'ta_perf_' + p[2] + v + 'u']); });
+  });
+  return out;
+}
+function scUpDown(field, fv, vals){
+  return [['Up', [scC(field, 'greater', 0)], fv + '_u'], ['Down', [scC(field, 'less', 0)], fv + '_d']]
+    .concat(vals.map(function(v){ return ['Up ' + v + '%', [scC(field, 'greater', v)], fv + '_u' + v]; }))
+    .concat(vals.map(function(v){ return ['Down ' + v + '%', [scC(field, 'less', -v)], fv + '_d' + v]; }));
+}
+function scSma(n, others){
+  var f = 'SMA' + n, p = 'ta_sma' + n;
+  return [['Price above SMA' + n, [scC('close', 'greater', f)], p + '_pa'], ['Price below SMA' + n, [scC('close', 'less', f)], p + '_pb']]
+    .concat([].concat.apply([], others.map(function(o){
+      return [['SMA' + n + ' above SMA' + o, [scC(f, 'greater', 'SMA' + o)], p + '_sa' + o], ['SMA' + n + ' below SMA' + o, [scC(f, 'less', 'SMA' + o)], p + '_sb' + o]];
+    })));
+}
+function scHiLo(hi, lo, fv){ return [['New High', [scC('high', 'egreater', hi)], fv && fv + '_nh'], ['New Low', [scC('low', 'eless', lo)], fv && fv + '_nl']]; }
+
+/* g: d descriptive (basic), f fundamental, t technical, e ETF. Pro shows them all. */
+var SCR_FILTERS = [
+  { id:'exch', l:'Exchange', g:'d', o:[scEq('exchange', 'NASDAQ', 'exch_nasd'), scEq('exchange', 'NYSE', 'exch_nyse'), scEq('exchange', 'AMEX', 'exch_amex')] },
+  { id:'idx', l:'Index', g:'d', o:[['S&P 500', { set:'SYML:SP;SPX' }, 'idx_sp500'], ['NASDAQ 100', { set:'SYML:NASDAQ;NDX' }, 'idx_ndx'], ['DJIA', { set:'SYML:DJ;DJI' }, 'idx_dji'], ['Russell 2000', { set:'SYML:TVC;RUT' }, 'idx_rut']] },
+  { id:'sector', l:'Sector', g:'d', o:SECTORS.map(function(s){ return [s, SCR_SECTORS[s][0], SCR_SECTORS[s][1]]; }) },
+  { id:'ind', l:'Industry', g:'d', o:TV_INDUSTRIES.map(function(s){ return scEq('industry', s, null); }) },
+  { id:'geo', l:'Country', g:'d', o:[['Foreign (ex-USA)', [scC('country', 'not_equal', 'United States')], 'geo_notusa']].concat(SCR_COUNTRIES.map(function(c){ return [c[0], [scC('country', 'equal', c[1])], 'geo_' + c[2]]; })) },
+  { id:'cap', l:'Market Cap.', g:'d', o:[
+    ['Mega ($200B+)', [scC('market_cap_basic', 'greater', 200e9)], 'cap_mega'], ['Large ($10B–$200B)', [scC('market_cap_basic', 'in_range', [10e9, 200e9])], 'cap_large'],
+    ['Mid ($2B–$10B)', [scC('market_cap_basic', 'in_range', [2e9, 10e9])], 'cap_mid'], ['Small ($300M–$2B)', [scC('market_cap_basic', 'in_range', [3e8, 2e9])], 'cap_small'],
+    ['Micro ($50M–$300M)', [scC('market_cap_basic', 'in_range', [5e7, 3e8])], 'cap_micro'], ['Nano (under $50M)', [scC('market_cap_basic', 'less', 5e7)], 'cap_nano'],
+    ['+Large (over $10B)', [scC('market_cap_basic', 'greater', 10e9)], 'cap_largeover'], ['+Mid (over $2B)', [scC('market_cap_basic', 'greater', 2e9)], 'cap_midover'],
+    ['+Small (over $300M)', [scC('market_cap_basic', 'greater', 3e8)], 'cap_smallover'], ['+Micro (over $50M)', [scC('market_cap_basic', 'greater', 5e7)], 'cap_microover'],
+    ['−Large (under $200B)', [scC('market_cap_basic', 'less', 200e9)], 'cap_largeunder'], ['−Mid (under $10B)', [scC('market_cap_basic', 'less', 10e9)], 'cap_midunder'],
+    ['−Small (under $2B)', [scC('market_cap_basic', 'less', 2e9)], 'cap_smallunder'], ['−Micro (under $300M)', [scC('market_cap_basic', 'less', 3e8)], 'cap_microunder']] },
+  { id:'div', l:'Dividend Yield', g:'d', o:[['None (0%)', [scC('dividends_yield_current', 'not_in_range', [1e-6, 1000])], 'fa_div_none'], ['Positive (>0%)', [scC('dividends_yield_current', 'greater', 0)], 'fa_div_pos'],
+    ['High (>5%)', [scC('dividends_yield_current', 'greater', 5)], 'fa_div_high'], ['Very High (>10%)', [scC('dividends_yield_current', 'greater', 10)], 'fa_div_veryhigh']]
+    .concat([1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(function(v){ return ['Over ' + v + '%', [scC('dividends_yield_current', 'greater', v)], 'fa_div_o' + v]; })) },
+  { id:'recom', l:'Analyst Recom.', g:'d', o:[['Strong Buy (1)', [scC('recommendation_mark', 'eless', 1.5)], 'an_recom_strongbuy'], ['Buy or better', [scC('recommendation_mark', 'eless', 2)], 'an_recom_buybetter'],
+    ['Buy', [scC('recommendation_mark', 'in_range', [1.5, 2.5])], 'an_recom_buy'], ['Hold or better', [scC('recommendation_mark', 'eless', 3)], 'an_recom_holdbetter'],
+    ['Hold', [scC('recommendation_mark', 'in_range', [2.5, 3.5])], 'an_recom_hold'], ['Hold or worse', [scC('recommendation_mark', 'egreater', 2.5)], 'an_recom_holdworse'],
+    ['Sell', [scC('recommendation_mark', 'in_range', [3.5, 4.5])], 'an_recom_sell'], ['Sell or worse', [scC('recommendation_mark', 'egreater', 3.5)], 'an_recom_sellworse']] },
+  { id:'earn', l:'Earnings Date', g:'d', o:[['Today', [scC('earnings_release_next_date', 'in_day_range', [0, 0])], 'earningsdate_today'], ['Tomorrow', [scC('earnings_release_next_date', 'in_day_range', [1, 1])], 'earningsdate_tomorrow'],
+    ['Next 5 days', [scC('earnings_release_next_date', 'in_day_range', [0, 5])], 'earningsdate_nextdays5'], ['Next 30 days', [scC('earnings_release_next_date', 'in_day_range', [0, 30])], null],
+    ['Yesterday', [scC('earnings_release_date', 'in_day_range', [-1, -1])], 'earningsdate_yesterday'], ['Previous 5 days', [scC('earnings_release_date', 'in_day_range', [-5, 0])], 'earningsdate_prevdays5']] },
+  { id:'avgvol', l:'Average Volume', g:'d', o:scLadder('average_volume_90d_calc', 'sh_avgvol', scV([50, 100, 200, 300, 500, 750, 1000, 2000], scK, 1000)) },
+  { id:'relvol', l:'Relative Volume', g:'d', o:scLadder('relative_volume_10d_calc', 'sh_relvol', scV([0.5, 0.75, 1, 1.5, 2, 3, 5, 10], scX)) },
+  { id:'curvol', l:'Current Volume', g:'d', o:scLadder('volume', 'sh_curvol', scV([50, 100, 500, 1000, 2000, 5000, 10000], scK, 1000)) },
+  { id:'price', l:'Price $', g:'d', o:scLadder('close', 'sh_price', scV([1, 2, 3, 4, 5, 7, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100], function(x){ return '$' + x; })) },
+  { id:'target', l:'Target Price', g:'d', o:[['Above Price', [scC('price_target_average', 'greater', 'close')], 'targetprice_above'], ['Below Price', [scC('price_target_average', 'less', 'close')], 'targetprice_below']] },
+  { id:'ipo', l:'IPO Date', g:'d', o:[['Today', [scC('ipo_offer_date', 'in_day_range', [0, 0])], 'ipodate_today'], ['In the last week', [scC('ipo_offer_date', 'in_day_range', [-7, 0])], 'ipodate_prevweek'],
+    ['In the last month', [scC('ipo_offer_date', 'in_day_range', [-30, 0])], 'ipodate_prevmonth'], ['In the last quarter', [scC('ipo_offer_date', 'in_day_range', [-91, 0])], 'ipodate_prevquarter'],
+    ['In the last year', [scC('ipo_offer_date', 'in_day_range', [-365, 0])], 'ipodate_prevyear'], ['In the last 5 years', [scC('ipo_offer_date', 'in_day_range', [-1826, 0])], 'ipodate_prev5yrs']]
+    .concat([1, 5, 10, 20].map(function(y){ return ['More than ' + y + ' year' + (y > 1 ? 's' : '') + ' ago', [scC('ipo_offer_date', 'in_day_range', [-36500, -Math.round(y * 365.25)])], 'ipodate_more' + y]; })) },
+  { id:'shout', l:'Shares Outstanding', g:'d', o:scLadder('total_shares_outstanding', 'sh_outstanding', scV([1, 5, 10, 20, 50, 100, 200, 500, 1000], scM, 1e6)) },
+  { id:'float', l:'Float', g:'d', o:scLadder('float_shares_outstanding_current', 'sh_float', scV([1, 5, 10, 20, 50, 100, 200, 500, 1000], scM, 1e6)) },
+  { id:'asset', l:'Asset Type', g:'d', o:[['Stocks', [], 'ind_stocksonly'], ['ETFs', [], 'ind_exchangetradedfund'], ['ADRs', [], null]] },
+
+  { id:'pe', l:'P/E', g:'f', o:[['Low (<15)', [scC('price_earnings_ttm', 'in_range', [0, 15])], 'fa_pe_low'], ['Profitable (>0)', [scC('price_earnings_ttm', 'greater', 0)], 'fa_pe_profitable'], ['High (>50)', [scC('price_earnings_ttm', 'greater', 50)], 'fa_pe_high']]
+    .concat(scLadder('price_earnings_ttm', 'fa_pe', scV([5, 10, 15, 20, 25, 30, 35, 40, 45, 50], scX), true)) },
+  { id:'fpe', l:'Forward P/E', g:'f', o:[['Low (<15)', [scC('non_gaap_price_to_earnings_per_share_forecast_next_fy', 'in_range', [0, 15])], 'fa_fpe_low'], ['Profitable (>0)', [scC('non_gaap_price_to_earnings_per_share_forecast_next_fy', 'greater', 0)], 'fa_fpe_profitable'], ['High (>50)', [scC('non_gaap_price_to_earnings_per_share_forecast_next_fy', 'greater', 50)], 'fa_fpe_high']]
+    .concat(scLadder('non_gaap_price_to_earnings_per_share_forecast_next_fy', 'fa_fpe', scV([5, 10, 15, 20, 25, 30, 35, 40, 45, 50], scX), true)) },
+  { id:'peg', l:'PEG', g:'f', o:[['Low (<1)', [scC('price_earnings_growth_ttm', 'in_range', [0, 1])], 'fa_peg_low'], ['High (>2)', [scC('price_earnings_growth_ttm', 'greater', 2)], 'fa_peg_high']].concat(scLadder('price_earnings_growth_ttm', 'fa_peg', scV([1, 2, 3], scX), true)) },
+  { id:'ps', l:'P/S', g:'f', o:[['Low (<1)', [scC('price_sales_current', 'in_range', [0, 1])], 'fa_ps_low'], ['High (>10)', [scC('price_sales_current', 'greater', 10)], 'fa_ps_high']].concat(scLadder('price_sales_current', 'fa_ps', scV([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], scX), true)) },
+  { id:'pb', l:'P/B', g:'f', o:[['Low (<1)', [scC('price_book_fq', 'in_range', [0, 1])], 'fa_pb_low'], ['High (>5)', [scC('price_book_fq', 'greater', 5)], 'fa_pb_high']].concat(scLadder('price_book_fq', 'fa_pb', scV([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], scX), true)) },
+  { id:'pc', l:'Price/Cash', g:'f', o:[['Low (<3)', [scC('price_to_cash_ratio', 'in_range', [0, 3])], 'fa_pc_low'], ['High (>50)', [scC('price_to_cash_ratio', 'greater', 50)], 'fa_pc_high']].concat(scLadder('price_to_cash_ratio', 'fa_pc', scV([1, 2, 3, 4, 5, 10, 20, 50], scX), true)) },
+  { id:'pfcf', l:'Price/Free Cash Flow', g:'f', o:[['Low (<15)', [scC('price_free_cash_flow_ttm', 'in_range', [0, 15])], 'fa_pfcf_low'], ['High (>50)', [scC('price_free_cash_flow_ttm', 'greater', 50)], 'fa_pfcf_high']].concat(scLadder('price_free_cash_flow_ttm', 'fa_pfcf', scV([5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100], scX), true)) },
+  { id:'evebitda', l:'EV/EBITDA', g:'f', o:[['Negative (<0)', [scC('enterprise_value_ebitda_ttm', 'less', 0)], 'fa_evebitda_negative']].concat(scLadder('enterprise_value_ebitda_ttm', 'fa_evebitda', scV([5, 10, 15, 20, 25, 30, 40, 50], scX), true)) },
+  { id:'evsales', l:'EV/Sales', g:'f', o:scLadder('enterprise_value_to_revenue_ttm', 'fa_evsales', scV([1, 2, 3, 5, 10, 20], scX), true) },
+  { id:'divg', l:'Dividend Growth (1Y)', g:'f', o:scSigned('dps_common_stock_prim_issue_yoy_growth_fy', null, [5, 10, 15, 20, 25, 30]) },
+  { id:'divstreak', l:'Dividend Growth Streak', g:'f', o:[5, 10, 15, 25, 50].map(function(y){ return [y + '+ years', [scC('continuous_dividend_growth', 'egreater', y)], null]; }) },
+  { id:'epsfy', l:'EPS Growth This Year', g:'f', o:scSigned('earnings_per_share_diluted_yoy_growth_fy', 'fa_epsyoy', [5, 10, 15, 20, 25, 30, 50]) },
+  { id:'epsq', l:'EPS Growth Qtr Over Qtr', g:'f', o:scSigned('earnings_per_share_diluted_yoy_growth_fq', 'fa_epsqoq', [5, 10, 15, 20, 25, 30, 50]) },
+  { id:'epsttm', l:'EPS Growth TTM', g:'f', o:scSigned('earnings_per_share_diluted_yoy_growth_ttm', 'fa_epsyoyttm', [5, 10, 15, 20, 25, 30, 50]) },
+  { id:'eps5', l:'EPS Growth Past 5 Years', g:'f', o:scSigned('earnings_per_share_diluted_5y_growth_fy', 'fa_eps5years', [5, 10, 15, 20, 25, 30]) },
+  { id:'salesq', l:'Sales Growth Qtr Over Qtr', g:'f', o:scSigned('total_revenue_yoy_growth_fq', 'fa_salesqoq', [5, 10, 15, 20, 25, 30, 50]) },
+  { id:'salesttm', l:'Sales Growth TTM', g:'f', o:scSigned('total_revenue_yoy_growth_ttm', 'fa_salesyoyttm', [5, 10, 15, 20, 25, 30, 50]) },
+  { id:'sales5', l:'Sales Growth Past 5 Years', g:'f', o:scSigned('total_revenue_cagr_5y', 'fa_sales5years', [5, 10, 15, 20, 25, 30]) },
+  { id:'surprise', l:'Earnings & Revenue Surprise', g:'f', o:[
+    ['Both beat', [scC('eps_surprise_percent_fq', 'greater', 0), scC('revenue_surprise_percent_fq', 'greater', 0)], 'fa_epsrev_bp'], ['Both missed', [scC('eps_surprise_percent_fq', 'less', 0), scC('revenue_surprise_percent_fq', 'less', 0)], 'fa_epsrev_bn'],
+    ['EPS beat', [scC('eps_surprise_percent_fq', 'greater', 0)], 'fa_epsrev_ep'], ['EPS missed', [scC('eps_surprise_percent_fq', 'less', 0)], 'fa_epsrev_en'],
+    ['Revenue beat', [scC('revenue_surprise_percent_fq', 'greater', 0)], 'fa_epsrev_rp'], ['Revenue missed', [scC('revenue_surprise_percent_fq', 'less', 0)], 'fa_epsrev_rn']] },
+  { id:'roa', l:'Return on Assets', g:'f', o:scSigned('return_on_assets_fq', 'fa_roa', [5, 10, 15, 20, 25, 30, 40, 50]) },
+  { id:'roe', l:'Return on Equity', g:'f', o:scSigned('return_on_equity_fq', 'fa_roe', [5, 10, 15, 20, 25, 30, 40, 50]) },
+  { id:'roic', l:'Return on Invested Capital', g:'f', o:scSigned('return_on_invested_capital_fq', 'fa_roi', [5, 10, 15, 20, 25, 30, 40, 50]) },
+  { id:'curr', l:'Current Ratio', g:'f', o:[['High (>3)', [scC('current_ratio_fq', 'greater', 3)], 'fa_curratio_high'], ['Low (<1)', [scC('current_ratio_fq', 'less', 1)], 'fa_curratio_low']].concat(scLadder('current_ratio_fq', 'fa_curratio', scV([0.5, 1, 1.5, 2, 3, 4, 5, 10], scX))) },
+  { id:'quick', l:'Quick Ratio', g:'f', o:[['High (>3)', [scC('quick_ratio_fq', 'greater', 3)], 'fa_quickratio_high'], ['Low (<0.5)', [scC('quick_ratio_fq', 'less', 0.5)], 'fa_quickratio_low']].concat(scLadder('quick_ratio_fq', 'fa_quickratio', scV([0.5, 1, 1.5, 2, 3, 4, 5, 10], scX))) },
+  { id:'ltde', l:'LT Debt/Equity', g:'f', o:[['High (>0.5)', [scC('long_term_debt_to_equity_fq', 'greater', 0.5)], 'fa_ltdebteq_high'], ['Low (<0.1)', [scC('long_term_debt_to_equity_fq', 'less', 0.1)], 'fa_ltdebteq_low']].concat(scLadder('long_term_debt_to_equity_fq', 'fa_ltdebteq', scV([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1], scX))) },
+  { id:'de', l:'Debt/Equity', g:'f', o:[['High (>0.5)', [scC('debt_to_equity_fq', 'greater', 0.5)], 'fa_debteq_high'], ['Low (<0.1)', [scC('debt_to_equity_fq', 'less', 0.1)], 'fa_debteq_low']].concat(scLadder('debt_to_equity_fq', 'fa_debteq', scV([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1], scX))) },
+  { id:'gm', l:'Gross Margin', g:'f', o:scSigned('gross_margin_ttm', 'fa_grossmargin', [10, 20, 30, 40, 50, 60, 70, 80, 90]) },
+  { id:'om', l:'Operating Margin', g:'f', o:scSigned('operating_margin_ttm', 'fa_opermargin', [10, 20, 30, 40, 50, 60, 70, 80, 90]) },
+  { id:'nm', l:'Net Profit Margin', g:'f', o:scSigned('net_margin_ttm', 'fa_netmargin', [10, 20, 30, 40, 50, 60, 70, 80, 90]) },
+  { id:'payout', l:'Payout Ratio', g:'f', o:[['None (0%)', [scC('dividend_payout_ratio_ttm', 'equal', 0)], 'fa_payoutratio_none'], ['Positive (>0%)', [scC('dividend_payout_ratio_ttm', 'greater', 0)], 'fa_payoutratio_pos'],
+    ['Low (<20%)', [scC('dividend_payout_ratio_ttm', 'in_range', [0, 20])], 'fa_payoutratio_low'], ['High (>50%)', [scC('dividend_payout_ratio_ttm', 'greater', 50)], 'fa_payoutratio_high']]
+    .concat(scLadder('dividend_payout_ratio_ttm', 'fa_payoutratio', scV([10, 20, 30, 40, 50, 60, 70, 80, 90, 100], scPct))) },
+
+  { id:'perf', l:'Performance', g:'t', o:scPerf() },
+  { id:'perf2', l:'Performance 2', g:'t', o:scPerf() },
+  { id:'volat', l:'Volatility', g:'t', o:[3, 4, 5, 6, 7, 8, 9, 10, 12, 15].map(function(v){ return ['Week over ' + v + '%', [scC('Volatility.W', 'greater', v)], 'ta_volatility_wo' + v]; })
+    .concat([2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15].map(function(v){ return ['Month over ' + v + '%', [scC('Volatility.M', 'greater', v)], 'ta_volatility_mo' + v]; })) },
+  { id:'rsi', l:'RSI (14)', g:'t', o:[90, 80, 70, 60].map(function(v){ return ['Overbought (' + v + ')', [scC('RSI', 'greater', v)], 'ta_rsi_ob' + v]; })
+    .concat([10, 20, 30, 40].map(function(v){ return ['Oversold (' + v + ')', [scC('RSI', 'less', v)], 'ta_rsi_os' + v]; }))
+    .concat([['Not Overbought (<60)', [scC('RSI', 'less', 60)], 'ta_rsi_nob60'], ['Not Overbought (<50)', [scC('RSI', 'less', 50)], 'ta_rsi_nob50'], ['Not Oversold (>50)', [scC('RSI', 'greater', 50)], 'ta_rsi_nos50'], ['Not Oversold (>40)', [scC('RSI', 'greater', 40)], 'ta_rsi_nos40']]) },
+  { id:'gap', l:'Gap', g:'t', o:scUpDown('gap', 'ta_gap', [1, 2, 3, 4, 5, 10, 15, 20]) },
+  { id:'sma20', l:'20-Day Simple Moving Average', g:'t', o:scSma(20, [50, 200]) },
+  { id:'sma50', l:'50-Day Simple Moving Average', g:'t', o:scSma(50, [20, 200]) },
+  { id:'sma200', l:'200-Day Simple Moving Average', g:'t', o:scSma(200, [20, 50]) },
+  { id:'chg', l:'Change', g:'t', o:scUpDown('change', 'ta_change', [1, 2, 3, 4, 5, 10, 15, 20]) },
+  { id:'chgopen', l:'Change from Open', g:'t', o:scUpDown('change_from_open', 'ta_changeopen', [1, 2, 3, 4, 5, 10, 15, 20]) },
+  { id:'hl1m', l:'1-Month High/Low', g:'t', o:scHiLo('High.1M', 'Low.1M', 'ta_highlow20d') },
+  { id:'hl3m', l:'3-Month High/Low', g:'t', o:scHiLo('High.3M', 'Low.3M', 'ta_highlow50d') },
+  { id:'hl52', l:'52-Week High/Low', g:'t', o:scHiLo('price_52_week_high', 'price_52_week_low', 'ta_highlow52w') },
+  { id:'hlall', l:'All-Time High/Low', g:'t', o:scHiLo('High.All', 'Low.All', 'ta_alltime') },
+  { id:'candle', l:'Candlestick', g:'t', o:scBool([['Hammer', 'Candle.Hammer', 'ta_candlestick_h'], ['Inverted Hammer', 'Candle.InvertedHammer', 'ta_candlestick_ih'], ['Doji', 'Candle.Doji', 'ta_candlestick_d'],
+    ['Dragonfly Doji', 'Candle.Doji.Dragonfly', 'ta_candlestick_dd'], ['Gravestone Doji', 'Candle.Doji.Gravestone', 'ta_candlestick_gd'], ['Spinning Top White', 'Candle.SpinningTop.White', 'ta_candlestick_stw'],
+    ['Spinning Top Black', 'Candle.SpinningTop.Black', 'ta_candlestick_stb'], ['Marubozu White', 'Candle.Marubozu.White', 'ta_candlestick_mw'], ['Marubozu Black', 'Candle.Marubozu.Black', 'ta_candlestick_mb'],
+    ['Long Lower Shadow', 'Candle.LongShadow.Lower', 'ta_candlestick_lls'], ['Long Upper Shadow', 'Candle.LongShadow.Upper', 'ta_candlestick_lus'], ['Bullish Engulfing', 'Candle.Engulfing.Bullish', null],
+    ['Bearish Engulfing', 'Candle.Engulfing.Bearish', null], ['Morning Star', 'Candle.MorningStar', null], ['Evening Star', 'Candle.EveningStar', null], ['Shooting Star', 'Candle.ShootingStar', null],
+    ['Hanging Man', 'Candle.HangingMan', null], ['Three White Soldiers', 'Candle.3WhiteSoldiers', null], ['Three Black Crows', 'Candle.3BlackCrows', null]]) },
+  { id:'beta', l:'Beta', g:'t', o:[['Negative (<0)', [scC('beta_1_year', 'less', 0)], 'ta_beta_u0']].concat(scLadder('beta_1_year', 'ta_beta', scV([0.5, 1, 1.5, 2, 3, 4], scX))) },
+  { id:'atr', l:'Average True Range', g:'t', o:scLadder('ATR', 'ta_averagetruerange', scV([0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 4, 5], scX)) },
+  { id:'ah', l:'After-Hours Change', g:'t', o:scUpDown('postmarket_change', 'ah_change', [1, 2, 3, 5, 10]) },
+
+  { id:'sponsor', l:'Sponsor', g:'e', o:['BlackRock, Inc.', 'The Vanguard Group, Inc.', 'State Street Corp.', 'Invesco Ltd.', 'The Charles Schwab Corp.', 'First Trust Advisors LP', 'JPMorgan Chase & Co.', 'WisdomTree, Inc.', 'Dimensional Holdings, Inc.', 'The Goldman Sachs Group, Inc.', 'ARK Invest LLC', 'Pacer Advisors, Inc.']
+    .map(function(s){ return [s.replace(/^The |,? (Inc|Ltd|Corp|LP|LLC)\.?$|, Inc\.$/g, ''), [scC('issuer', 'equal', s)], null]; }) },
+  { id:'aum', l:'AUM', g:'e', o:scLadder('aum', null, scV([0.1, 0.5, 1, 5, 10, 50, 100], function(x){ return x < 1 ? '$' + x * 1000 + 'M' : '$' + x + 'B'; }, 1e9)) },
+  { id:'flows', l:'Net Fund Flows (1M)', g:'e', o:[['Inflows', [scC('fund_flows.1M', 'greater', 0)], null], ['Outflows', [scC('fund_flows.1M', 'less', 0)], null],
+    ['Inflows over $100M', [scC('fund_flows.1M', 'greater', 1e8)], null], ['Inflows over $1B', [scC('fund_flows.1M', 'greater', 1e9)], null],
+    ['Outflows over $100M', [scC('fund_flows.1M', 'less', -1e8)], null], ['Outflows over $1B', [scC('fund_flows.1M', 'less', -1e9)], null]] },
+  { id:'ret1y', l:'Total Return (1Y)', g:'e', o:scSigned('nav_total_return.1Y', null, [5, 10, 15, 20, 30, 50]) }
+];
+var SCR_GROUPS = [['d', 'Descriptive'], ['f', 'Fundamental'], ['t', 'Technical'], ['e', 'ETF']];
+var SCR_BY = {};
+SCR_FILTERS.forEach(function(x){ SCR_BY[x.id] = x; });
+
+/* Result views. Columns: [label, field (also the server-side sort key), format, extra fields, compute]. */
+var SCR_COLS = {
+  sector:['Sector', 'sector', 'txt'], industry:['Industry', 'industry', 'txt'], country:['Country', 'country', 'txt'],
+  mc:['Mkt Cap', 'market_cap_basic', 'cmp'], pe:['P/E', 'price_earnings_ttm', 'n2'], fpe:['Fwd P/E', 'non_gaap_price_to_earnings_per_share_forecast_next_fy', 'n2'],
+  peg:['PEG', 'price_earnings_growth_ttm', 'n2'], ps:['P/S', 'price_sales_current', 'n2'], pb:['P/B', 'price_book_fq', 'n2'], pc:['P/C', 'price_to_cash_ratio', 'n2'],
+  pfcf:['P/FCF', 'price_free_cash_flow_ttm', 'n2'], eveb:['EV/EBITDA', 'enterprise_value_ebitda_ttm', 'n2'], epsttm:['EPS g TTM', 'earnings_per_share_diluted_yoy_growth_ttm', 'pctc'],
+  salesttm:['Sales g TTM', 'total_revenue_yoy_growth_ttm', 'pctc'], div:['Div Yield', 'dividends_yield_current', 'pct'], roa:['ROA', 'return_on_assets_fq', 'pct'],
+  roe:['ROE', 'return_on_equity_fq', 'pct'], roic:['ROIC', 'return_on_invested_capital_fq', 'pct'], curr:['Curr R', 'current_ratio_fq', 'n2'], quick:['Quick R', 'quick_ratio_fq', 'n2'],
+  ltde:['LTDebt/Eq', 'long_term_debt_to_equity_fq', 'n2'], de:['Debt/Eq', 'debt_to_equity_fq', 'n2'], gm:['Gross M', 'gross_margin_ttm', 'pct'], om:['Oper M', 'operating_margin_ttm', 'pct'],
+  nm:['Profit M', 'net_margin_ttm', 'pct'], payout:['Payout', 'dividend_payout_ratio_ttm', 'pct'],
+  pw:['Perf W', 'Perf.W', 'pctc'], pm:['Perf M', 'Perf.1M', 'pctc'], pq:['Perf Q', 'Perf.3M', 'pctc'], ph:['Perf H', 'Perf.6M', 'pctc'], pytd:['Perf YTD', 'Perf.YTD', 'pctc'], py:['Perf Y', 'Perf.Y', 'pctc'],
+  volw:['Volat W', 'Volatility.W', 'pct'], volm:['Volat M', 'Volatility.M', 'pct'], avgvol:['Avg Volume', 'average_volume_90d_calc', 'cmp'], relvol:['Rel Volume', 'relative_volume_10d_calc', 'n2'],
+  beta:['Beta', 'beta_1_year', 'n2'], atr:['ATR', 'ATR', 'n2'], rsi:['RSI', 'RSI', 'n2'], gap:['Gap', 'gap', 'pctc'], chgopen:['From Open', 'change_from_open', 'pctc'],
+  sma20:['SMA20', null, 'pctc', ['SMA20'], function(d){ return d.close / d.SMA20 * 100 - 100; }], sma50:['SMA50', null, 'pctc', ['SMA50'], function(d){ return d.close / d.SMA50 * 100 - 100; }],
+  sma200:['SMA200', null, 'pctc', ['SMA200'], function(d){ return d.close / d.SMA200 * 100 - 100; }],
+  h52:['52W High', null, 'pctc', ['price_52_week_high'], function(d){ return d.close / d.price_52_week_high * 100 - 100; }],
+  l52:['52W Low', null, 'pctc', ['price_52_week_low'], function(d){ return d.close / d.price_52_week_low * 100 - 100; }],
+  target:['Target', 'price_target_average', 'px'], recom:['Recom', 'recommendation_mark', 'n2'], earn:['Earnings', 'earnings_release_next_date', 'date'],
+  issuer:['Sponsor', 'issuer', 'txt'], aum:['AUM', 'aum', 'cmp'], flows:['Flows 1M', 'fund_flows.1M', 'cmpc'], ret1y:['Return 1Y', 'nav_total_return.1Y', 'pctc'],
+  price:['Price', 'close', 'px'], chg:['Change', null, 'chg'], pct:['% Change', 'change', 'pctc'], vol:['Volume', 'volume', 'cmp']
+};
+var SCR_VIEWS = [
+  ['ov', 'Overview', 111, ['sector', 'industry', 'country', 'mc', 'pe', 'price', 'chg', 'pct', 'vol']],
+  ['val', 'Valuation', 121, ['mc', 'pe', 'fpe', 'peg', 'ps', 'pb', 'pc', 'pfcf', 'eveb', 'epsttm', 'salesttm', 'price', 'pct']],
+  ['fin', 'Financial', 161, ['mc', 'div', 'roa', 'roe', 'roic', 'curr', 'quick', 'ltde', 'de', 'gm', 'om', 'nm', 'payout', 'price', 'pct']],
+  ['perf', 'Performance', 141, ['pw', 'pm', 'pq', 'ph', 'pytd', 'py', 'volw', 'volm', 'avgvol', 'relvol', 'price', 'pct', 'vol']],
+  ['tech', 'Technical', 171, ['beta', 'atr', 'sma20', 'sma50', 'sma200', 'h52', 'l52', 'rsi', 'gap', 'chgopen', 'price', 'pct', 'vol']],
+  ['an', 'Analysts', 111, ['mc', 'target', 'recom', 'earn', 'epsttm', 'salesttm', 'price', 'pct']],
+  ['etf', 'ETF', 111, ['issuer', 'aum', 'flows', 'ret1y', 'div', 'price', 'pct', 'vol']]
+];
+function scrView(f){ return SCR_VIEWS.filter(function(v){ return v[0] === f.view; })[0] || SCR_VIEWS[0]; }
+
+/* Older callers (sidebar, Marvell's run_screener) set `sector` and min/max fields. */
+function scrNorm(f){
+  f.sel = f.sel || {}; f.sort = f.sort || { key:'market_cap_basic', dir:-1 }; f.view = f.view || 'ov'; f.page = f.page || 0;
+  if(f.sector){ f.sel.sector = f.sector; f.sector = ''; }
+  return f;
+}
+function scrActive(f){
+  return Object.keys(f.sel).map(function(id){
+    var flt = SCR_BY[id], opt = flt && flt.o.filter(function(o){ return o[0] === f.sel[id]; })[0];
+    return opt ? { flt:flt, opt:opt } : null;
+  }).filter(Boolean);
+}
+var SCR_LEGACY = [['minPx', 'close', 'egreater', 1, 'Price ≥ $', ''], ['maxPx', 'close', 'eless', 1, 'Price ≤ $', ''], ['minPct', 'change', 'egreater', 1, 'Change ≥ ', '%'], ['maxPct', 'change', 'eless', 1, 'Change ≤ ', '%'],
+  ['minMc', 'market_cap_basic', 'egreater', 1e9, 'Mkt cap ≥ $', 'B'], ['maxMc', 'market_cap_basic', 'eless', 1e9, 'Mkt cap ≤ $', 'B']];
+
+function scrBody(f){
+  var flt = [scC('exchange', 'in_range', ['NASDAQ', 'NYSE', 'AMEX']), scC('is_primary', 'equal', true)], set = null;
+  var asset = f.sel.asset || 'Stocks';
+  if(asset === 'ETFs') flt.push(scC('typespecs', 'has', ['etf']));
+  else if(asset === 'ADRs') flt.push(scC('type', 'equal', 'dr'));
+  else flt.push(scC('type', 'in_range', ['stock', 'dr']), scC('typespecs', 'has_none_of', ['preferred']));
+  scrActive(f).forEach(function(a){ if(a.opt[1].set) set = a.opt[1].set; else flt.push.apply(flt, a.opt[1]); });
+  SCR_LEGACY.forEach(function(l){ var v = parseFloat(f[l[0]]); if(isFinite(v)) flt.push(scC(l[1], l[2], v * l[3])); });
+  var cols = ['name', 'description', 'close', 'change'];
+  scrView(f)[3].forEach(function(k){ var c = SCR_COLS[k]; if(c[1] && cols.indexOf(c[1]) < 0) cols.push(c[1]); (c[3] || []).forEach(function(x){ if(cols.indexOf(x) < 0) cols.push(x); }); });
+  var body = { filter:flt, columns:cols, options:{ lang:'en' }, range:[f.page * SCR_PAGE, (f.page + 1) * SCR_PAGE],
+    sort:{ sortBy:f.sort.key, sortOrder:f.sort.dir > 0 ? 'asc' : 'desc', nullsFirst:false } };
+  if(set) body.symbols = { symbolset:[set] };
+  if(f.q) body.filter2 = { operator:'and', operands:[{ operation:{ operator:'or', operands:[
+    { expression:scC('name', 'match', f.q) }, { expression:scC('description', 'match', f.q) }] } }] };
+  return body;
+}
+function scrTV(f){
+  var body = scrBody(f);
+  /* text/plain keeps this a simple CORS request: the scanner allows any origin. */
+  return fetchWithTimeout('https://scanner.tradingview.com/america/scan', 15000, { method:'POST', headers:{ 'Content-Type':'text/plain' }, body:JSON.stringify(body) })
+    .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(j){
+      if(!j || !Array.isArray(j.data)) throw new Error((j && j.error) || 'bad scan');
+      return { src:'tv', total:j.totalCount || 0, per:SCR_PAGE, rows:j.data.map(function(r){
+        var d = {}; body.columns.forEach(function(c, i){ d[c] = r.d[i]; });
+        var full = r.s || '';
+        if(full) TVMAP[dispSym(d.name)] = full;
+        d.sym = dispSym(d.name); d.exch = full.split(':')[0];
+        return d;
+      }) };
+    });
+}
+/* Fallback: the same screen as a Finviz URL, its results table scraped. Filters
+   Finviz has no code for are dropped and listed. 20 rows per Finviz page. */
+function scrFinviz(f){
+  var codes = [], skipped = [];
+  scrActive(f).forEach(function(a){ if(a.opt[2]) codes.push(a.opt[2]); else skipped.push(a.flt.l); });
+  SCR_LEGACY.forEach(function(l){ if(f[l[0]] !== '' && f[l[0]] != null) skipped.push(l[4] + f[l[0]] + l[5]); });
+  if(!f.sel.asset) codes.push('ind_stocksonly');
+  var tick = /^[A-Za-z.\-]{1,6}(,[A-Za-z.\-]{1,6})*$/.test(f.q || '') ? f.q.toUpperCase() : '';
+  if(f.q && !tick) skipped.push('Search');
+  var url = 'https://finviz.com/screener?v=' + scrView(f)[2] + (codes.length ? '&f=' + codes.join(',') : '') + (tick ? '&t=' + tick : '') +
+    '&o=-marketcap' + (f.page ? '&r=' + (f.page * 20 + 1) : '');
+  return fetchText(url, 20000).then(function(html){
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+    var tbl = doc.querySelector('table.screener_table');
+    if(!tbl) throw new Error('Finviz returned no results table');
+    var head = [].map.call(tbl.querySelectorAll('thead th'), function(th){ return th.textContent.trim(); });
+    var rows = [].map.call(tbl.querySelectorAll('tbody tr'), function(tr){ return [].map.call(tr.children, function(td){ return td.textContent.trim(); }); })
+      .filter(function(r){ return r.length === head.length && r[1] !== head[1]; });   // finviz repeats the header row in tbody
+    var tot = ((doc.getElementById('screener-total') || {}).textContent || '').match(/\/\s*([\d,]+)/);
+    return { src:'fv', total:tot ? +tot[1].replace(/,/g, '') : rows.length, per:20, head:head, rows:rows, skipped:skipped };
+  });
+}
+function scrRun(){
+  var f = CUR.screen, seq = ++SCR.seq, box = $('scrRes');
+  if(box) box.classList.add('loading');
+  return scrTV(f).catch(function(e){ SCR.tvErr = e.message; return scrFinviz(f); }).then(function(res){
+    if(seq !== SCR.seq) return;
+    Object.assign(SCR, res, { err:'' });
+    if(res.src === 'tv') SCR.skipped = [];
+  }, function(e){
+    if(seq !== SCR.seq) return;
+    Object.assign(SCR, { rows:[], total:0, src:'', err:e.message || String(e) });
+  }).then(function(){ if(seq === SCR.seq) scrPaintRes(); });
 }
 
-/* Sidebar sectors are GICS-style; the TradingView scan uses its own names. */
-var SECTOR_MAP = {
-  'Technology':['Electronic Technology', 'Technology Services'], 'Communications':['Communications'],
-  'Discretionary':['Retail Trade', 'Consumer Durables', 'Consumer Services'], 'Staples':['Consumer Non-Durables', 'Distribution Services'],
-  'Financials':['Finance'], 'Health care':['Health Technology', 'Health Services'],
-  'Industrials':['Producer Manufacturing', 'Industrial Services', 'Transportation', 'Commercial Services'],
-  'Energy':['Energy Minerals'], 'Materials':['Process Industries', 'Non-Energy Minerals'], 'Utilities':['Utilities'], 'Real estate':['Finance']
-};
-function sectorMatch(r, sel){
-  if(r.sector === sel) return true;
-  var m = SECTOR_MAP[sel];
-  if(!m || m.indexOf(r.sector) < 0) return false;
-  return sel !== 'Real estate' || /\b(REIT|realty|propert|real estate|land|residential)\b/i.test(r.name || '');
+function scrFmt(kind, v, d){
+  if(kind === 'txt') return v == null || v === '' ? '—' : esc(v);
+  if(kind === 'date') return v ? new Date(v * 1000).toLocaleDateString(undefined, { month:'short', day:'numeric' }) : '—';
+  if(kind === 'chg'){ var c = d.close, p = d.change; v = (c != null && p != null) ? c - c / (1 + p / 100) : null; }
+  if(v == null || !isFinite(v)) return '—';
+  if(kind === 'cmp' || kind === 'cmpc') return (kind === 'cmpc' && v > 0 ? '+' : '') + compact(v);
+  if(kind === 'px') return money(v, 'USD');
+  if(kind === 'chg') return (v >= 0 ? '+' : '') + num(v, 2);
+  if(kind === 'pct') return num(v, 2) + '%';
+  if(kind === 'pctc') return pct(v);
+  return num(v, 2);
 }
-function screenUniverse(){
-  var f = CUR.screen || defaultScreen();
-  var snap = screenRows();
-  var list = snap.length
-    ? snap.map(function(r){ return { sym:r.sym, name:r.name, sector:r.sector || sectorOf(r.sym) || '', c:r.c, ch:r.ch, pct:r.pct, mc:r.mc }; })
-    : UNIVERSE.map(function(u){
-        var q = DATA.quotes[u[0]] || {};
-        var ch = chgFrom(q);
-        return { sym:u[0], name:u[1], sector:u[2], c:q.c, ch:ch.abs, pct:ch.pct, mc:q.mc };
-      });
-  return list.filter(function(r){
-    if(f.sector && !sectorMatch(r, f.sector)) return false;
-    if(f.q && r.sym.indexOf(f.q.toUpperCase()) < 0 && String(r.name).toLowerCase().indexOf(f.q.toLowerCase()) < 0) return false;
-    if(f.minPx !== '' && !(r.c >= parseFloat(f.minPx))) return false;
-    if(f.maxPx !== '' && !(r.c <= parseFloat(f.maxPx))) return false;
-    if(f.minPct !== '' && !(r.pct >= parseFloat(f.minPct))) return false;
-    if(f.maxPct !== '' && !(r.pct <= parseFloat(f.maxPct))) return false;
-    if(f.minMc !== '' && !(r.mc >= parseFloat(f.minMc) * 1e9)) return false;
-    if(f.maxMc !== '' && !(r.mc <= parseFloat(f.maxMc) * 1e9)) return false;
-    return true;
+function scrCls(kind, v, d){
+  if(kind === 'px' || kind === 'chg') v = d.change;
+  else if(!/c$/.test(kind)) return '';
+  return v == null || !isFinite(v) ? 'mut' : (v >= 0 ? 'up' : 'down');
+}
+
+function scrPaintRes(){
+  var box = $('scrRes'), f = CUR.screen;
+  if(!box) return;
+  box.classList.remove('loading');
+  var html = '', pages = Math.max(1, Math.ceil(SCR.total / (SCR.per || SCR_PAGE)));
+  html += '<div class="section-head scr-res-head"><h2>' + (SCR.err ? 'No results' : SCR.total.toLocaleString() + ' match' + (SCR.total === 1 ? '' : 'es')) + '</h2>' +
+    (SCR.src === 'fv' ? '<span class="status-chip"><i class="dot"></i>Finviz fallback</span>' : (SCR.src ? '<span class="status-chip live"><i class="dot"></i>Live scan</span>' : '')) +
+    (SCR.total ? '<button class="btn text sm" data-act="screen-addlist">Add page to list</button>' : '') + '</div>';
+  if(SCR.src === 'fv') html += '<div class="mut scr-note">TradingView\'s scanner did not answer (' + esc(SCR.tvErr || 'error') + '), so these results are scraped from Finviz' +
+    (SCR.skipped.length ? '. Not applied there: <b>' + SCR.skipped.map(esc).join(', ') + '</b>' : '') + '.</div>';
+  if(SCR.err){
+    html += '<div class="card empty">Neither TradingView nor Finviz answered: ' + esc(SCR.err) + ' <button class="btn text sm" data-act="scr-retry">Try again</button></div>';
+  } else if(SCR.src === 'fv'){
+    var h = SCR.head, ti = h.indexOf('Ticker'), ci = h.indexOf('Company'), pi = h.findIndex(function(x){ return /^Change/.test(x); });
+    html += '<div class="tbl-wrap"><table class="fh scr-tbl"><thead><tr><th>Symbols</th>' + h.map(function(x, i){ return i === 0 || i === ti || i === ci ? '' : '<th>' + esc(x) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      SCR.rows.map(function(r){
+        var cls = pi >= 0 ? (parseFloat(r[pi]) < 0 ? 'down' : (parseFloat(r[pi]) > 0 ? 'up' : '')) : '';
+        return '<tr data-act="quote" data-sym="' + esc(r[ti]) + '"><td class="sym"><span class="s">' + esc(r[ti]) + '</span><span class="n">' + esc(ci >= 0 ? r[ci] : '') + '</span></td>' +
+          r.map(function(x, i){ return i === 0 || i === ti || i === ci ? '' : '<td class="' + (i === pi || h[i] === 'Price' ? 'num ' + cls : (/^[-\d.,%BMK]+$/.test(x) ? 'num' : '')) + '">' + esc(x) + '</td>'; }).join('') + '</tr>';
+      }).join('') + '</tbody></table></div>';
+  } else {
+    var cols = scrView(f)[3];
+    var th = function(k, label, field){
+      var on = field && f.sort.key === field;
+      return '<th' + (field ? ' class="sortable' + (on ? ' on' : '') + '" data-act="scr-sort" data-k="' + esc(field) + '"' : '') + '>' + label + (on ? (f.sort.dir > 0 ? ' ▲' : ' ▼') : '') + '</th>';
+    };
+    html += '<div class="tbl-wrap"><table class="fh scr-tbl"><thead><tr>' + th('sym', 'Symbols', 'name') +
+      cols.map(function(k){ return th(k, SCR_COLS[k][0], SCR_COLS[k][1]); }).join('') + '</tr></thead><tbody>' +
+      (SCR.rows.length ? SCR.rows.map(function(d){
+        return '<tr data-act="quote" data-sym="' + esc(d.sym) + '"><td class="sym"><span class="s">' + esc(d.sym) + '</span><span class="n">' + esc(d.description || '') + '</span></td>' +
+          cols.map(function(k){
+            var c = SCR_COLS[k], v = c[4] ? c[4](d) : (c[1] ? d[c[1]] : null);
+            return '<td class="' + (c[2] === 'txt' ? 'mut' : 'num ') + scrCls(c[2], v, d) + '">' + scrFmt(c[2], v, d) + '</td>';
+          }).join('') + '</tr>';
+      }).join('') : '<tr><td colspan="' + (cols.length + 1) + '" class="empty">Nothing matches every filter. Loosen one and try again.</td></tr>') +
+      '</tbody></table></div>';
+  }
+  if(pages > 1) html += '<div class="scr-pager"><button class="btn text sm" data-act="scr-page" data-p="' + (f.page - 1) + '"' + (f.page ? '' : ' disabled') + '>← Prev</button>' +
+    '<span class="mut">Page ' + (f.page + 1) + ' of ' + pages.toLocaleString() + '</span>' +
+    '<button class="btn text sm" data-act="scr-page" data-p="' + (f.page + 1) + '"' + (f.page + 1 < pages ? '' : ' disabled') + '>Next →</button></div>';
+  box.innerHTML = html;
+}
+
+function scrFiltersHTML(f){
+  var groups = SCR_MODE === 'pro' ? SCR_GROUPS : SCR_GROUPS.slice(0, 1);
+  return groups.map(function(g){
+    var list = SCR_FILTERS.filter(function(x){ return x.g === g[0]; });
+    return (SCR_MODE === 'pro' ? '<h4 class="scr-grp">' + g[1] + '</h4>' : '') + '<div class="scr-grid">' + list.map(function(x){
+      var v = f.sel[x.id] || '';
+      return '<label class="scr-f"><span>' + esc(x.l) + '</span><select class="inp' + (v ? ' on' : '') + '" data-scr="' + x.id + '"><option value="">Any</option>' +
+        x.o.map(function(o){ return '<option' + (o[0] === v ? ' selected' : '') + '>' + esc(o[0]) + '</option>'; }).join('') + '</select></label>';
+    }).join('') + '</div>';
+  }).join('');
+}
+function scrChips(f){
+  var a = scrActive(f).map(function(x){ return '<span class="scr-chip">' + esc(x.flt.l) + ': <b>' + esc(x.opt[0]) + '</b><button data-act="scr-clear" data-id="' + x.flt.id + '" title="Remove">✕</button></span>'; });
+  SCR_LEGACY.forEach(function(l){ if(f[l[0]] !== '' && f[l[0]] != null) a.push('<span class="scr-chip">' + esc(l[4] + f[l[0]] + l[5]) + '<button data-act="scr-clear" data-id="' + l[0] + '" title="Remove">✕</button></span>'); });
+  return a.join('');
+}
+function renderScreener(){
+  var f = CUR.screen = scrNorm(CUR.screen || defaultScreen());
+  var sector = f.sel.sector || '';
+  var html = '<div class="section" id="scrBox"><div class="section-head"><h2>' + (sector ? esc(sector) + ' screener' : 'All stocks') + '</h2>' +
+    '<div class="rs-modes scr-mode"><button class="' + (SCR_MODE === 'basic' ? 'on' : '') + '" data-act="scr-mode" data-m="basic">Basic</button>' +
+    '<button class="' + (SCR_MODE === 'pro' ? 'on' : '') + '" data-act="scr-mode" data-m="pro">Pro</button></div>' +
+    '<button class="btn text sm" data-act="screen-reset">Reset</button>' +
+    '<button class="btn text sm" data-act="ai" data-kind="screener">AI read of these filters</button></div>' +
+    '<div class="card scr-card"><label class="scr-search"><input class="inp" id="fq" value="' + esc(f.q) + '" placeholder="Search symbol or company…" autocomplete="off"></label>' +
+    '<div id="scrFilters">' + scrFiltersHTML(f) + '</div>' +
+    '<div class="scr-chips" id="scrChips">' + scrChips(f) + '</div></div>' +
+    '<div class="seg scr-views">' + SCR_VIEWS.map(function(v){ return '<button class="' + (v[0] === f.view ? 'on' : '') + '" data-act="scr-view" data-v="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
+    '<div id="scrRes" class="loading">' + skeletonRows(8) + '</div></div>' + footerHTML();
+  $('main').innerHTML = html;
+  var box = $('scrBox'), qt = null;
+  box.addEventListener('change', function(ev){
+    var id = ev.target.getAttribute('data-scr');
+    if(!id) return;
+    if(ev.target.value) f.sel[id] = ev.target.value; else delete f.sel[id];
+    ev.target.classList.toggle('on', !!ev.target.value);
+    scrRefresh(id === 'sector' || id === 'asset');
   });
+  box.addEventListener('input', function(ev){
+    if(ev.target.id !== 'fq') return;
+    clearTimeout(qt);
+    qt = setTimeout(function(){ f.q = ev.target.value.trim(); f.page = 0; scrRun(); }, 350);
+  });
+  return scrRun();
+}
+/* Build a screen from plain arguments (Marvell's screen_stocks / run_screener).
+   filters: {filterId or label: option label}; labels match loosely (case, "-" for "−").
+   Unknown ids or options throw with the valid choices, so the model can correct itself. */
+function scrSpec(a){
+  a = a || {};
+  var f = scrNorm(defaultScreen()), bad = [];
+  var norm = function(x){ return String(x == null ? '' : x).toLowerCase().replace(/[−–]/g, '-').replace(/\s+/g, ' ').trim(); };
+  var filters = Object.assign({}, a.sector ? { sector:a.sector } : {}, a.filters || {});
+  Object.keys(filters).forEach(function(id){
+    var flt = SCR_BY[id] || SCR_FILTERS.filter(function(x){ return norm(x.l) === norm(id); })[0];
+    if(!flt){ bad.push('Unknown filter "' + id + '". Filter ids: ' + SCR_FILTERS.map(function(x){ return x.id; }).join(', ')); return; }
+    var want = norm(filters[id]);
+    var opt = flt.o.filter(function(o){ return norm(o[0]) === want; })[0] || flt.o.filter(function(o){ return norm(o[0]).indexOf(want) === 0; })[0];
+    if(!opt){ bad.push(flt.id + ' (' + flt.l + ') has no option "' + filters[id] + '". Options: ' + flt.o.map(function(o){ return o[0]; }).join(' | ')); return; }
+    f.sel[flt.id] = opt[0];
+  });
+  if(bad.length) throw new Error(bad.join('\n'));
+  f.q = String(a.query || '').trim();
+  [['minPx', 'min_price'], ['maxPx', 'max_price'], ['minPct', 'min_change_pct'], ['maxPct', 'max_change_pct'], ['minMc', 'min_market_cap_b'], ['maxMc', 'max_market_cap_b']].forEach(function(k){
+    f[k[0]] = a[k[1]] == null || a[k[1]] === '' ? '' : String(a[k[1]]);
+  });
+  if(a.view && SCR_VIEWS.some(function(v){ return v[0] === a.view; })) f.view = a.view;
+  else if(f.sel.asset === 'ETFs') f.view = 'etf';
+  var sk = String(a.sort || 'market_cap'), col = SCR_COLS[sk];
+  f.sort = sk === 'gainers' ? { key:'change', dir:-1 } : sk === 'losers' ? { key:'change', dir:1 } : sk === 'volume' ? { key:'volume', dir:-1 }
+    : col && col[1] ? { key:col[1], dir:a.order === 'asc' ? 1 : -1 } : { key:'market_cap_basic', dir:a.order === 'asc' ? 1 : -1 };
+  return f;
+}
+/* Re-run after a filter change. A sector or asset change also renames the page
+   and the rail highlight, so it re-renders the shell. */
+function scrRefresh(full){
+  var f = CUR.screen;
+  f.page = 0;
+  if(f.sel.asset === 'ETFs' && f.view !== 'etf') f.view = 'etf';
+  else if(f.sel.asset !== 'ETFs' && f.view === 'etf') f.view = 'ov';
+  if(full){ renderRail(); return renderScreener(); }
+  $('scrChips').innerHTML = scrChips(f);
+  return scrRun();
 }
 
 /* ------------------------------------------------------- insider trading */
@@ -6857,59 +7408,6 @@ function filAsk(which){
   aiRun('custom', a[1], { shown:a[0] + ' · ' + att.name });
 }
 
-function renderScreener(){
-  CUR.screen = CUR.screen || defaultScreen();
-  var f = CUR.screen;
-  $('main').innerHTML = '<div class="section">' + skeletonRows(8) + '</div>';
-  return loadUniverseQuotes().then(function(){
-    if(CUR.view !== 'screener') return;
-    var rows = screenUniverse();
-    rows = rows.sort(function(a, b){
-      var k = f.sort.key, d = f.sort.dir;
-      var get = function(r){ return k === 'pct' ? r.pct : (k === 'price' ? r.c : (k === 'mc' ? r.mc : (k === 'sym' ? r.sym : r.ch))); };
-      var x = get(a), y = get(b);
-      if(x == null) return 1; if(y == null) return -1;
-      return (x > y ? 1 : (x < y ? -1 : 0)) * d;
-    });
-    var html = '';
-    html += '<div class="section"><div class="section-head"><h2>Stock screener</h2>' +
-      (f.sector ? '<span class="status-chip live"><i class="dot"></i>' + esc(f.sector) + '</span>' : '') +
-      '<button class="btn text sm" data-act="screen-reset">' + (f.sector ? 'Clear sector' : 'Reset') + '</button>' +
-      '<button class="btn text sm" data-act="screen-addlist">Add results to list</button>' +
-      '<button class="btn text sm" data-act="ai" data-kind="screener">AI read of these filters</button></div>';
-    html += '<div class="card"><div class="filters">' +
-      '<label class="field"><span>Symbol or name</span><input class="inp" id="fq" value="' + esc(f.q) + '" placeholder="AAPL, Apple…"></label>' +
-      '<label class="field"><span>Price min</span><input class="inp" id="fminPx" value="' + esc(f.minPx) + '" placeholder="0"></label>' +
-      '<label class="field"><span>Price max</span><input class="inp" id="fmaxPx" value="' + esc(f.maxPx) + '" placeholder="1000"></label>' +
-      '<label class="field"><span>Day change % min</span><input class="inp" id="fminPct" value="' + esc(f.minPct) + '" placeholder="-10"></label>' +
-      '<label class="field"><span>Day change % max</span><input class="inp" id="fmaxPct" value="' + esc(f.maxPct) + '" placeholder="10"></label>' +
-      '<label class="field"><span>Market cap ≥ ($B)</span><input class="inp" id="fminMc" value="' + esc(f.minMc) + '" placeholder="10"></label>' +
-      '<label class="field"><span>Market cap ≤ ($B)</span><input class="inp" id="fmaxMc" value="' + esc(f.maxMc) + '" placeholder="2000"></label>' +
-      '<div style="display:flex;align-items:flex-end"><button class="btn tonal" data-act="screen-apply" style="width:100%">Apply filters</button></div>' +
-      '</div>' +
-      '<div class="mut" style="font-size:12px;margin-top:12px">Filters run over ' + (screenRows().length || UNIVERSE.length) +
-      ' Nasdaq/NYSE/AMEX listings from the TradingView market scan, sorted by market cap: price, day change and market cap are live, ' +
-      'sector comes from the scan. Anything the free feeds do not provide (P/E, dividend screens) is left out rather than faked.</div></div></div>';
-
-    var th = '<tr><th>Symbols</th><th>Sector</th><th>Price</th><th>Change</th><th>% Change</th><th>Mkt Cap</th></tr>';
-    var body = rows.slice(0, 300).map(function(r){
-      var up = r.pct == null ? true : r.pct >= 0;
-      return '<tr data-act="quote" data-sym="' + esc(r.sym) + '" style="cursor:pointer">' +
-        '<td class="sym"><span class="s">' + esc(r.sym) + '</span><span class="n">' + esc(r.name) + '</span></td>' +
-        '<td style="text-align:left" class="mut">' + esc(r.sector) + '</td>' +
-        '<td class="num ' + (r.pct == null ? '' : (up ? 'up' : 'down')) + '">' + (r.c == null ? '—' : money(r.c, 'USD')) + '</td>' +
-        '<td class="num ' + (r.pct == null ? 'mut' : (up ? 'up' : 'down')) + '">' + (r.ch == null ? '—' : (r.ch >= 0 ? '+' : '') + num(r.ch, 2)) + '</td>' +
-        '<td class="num ' + (r.pct == null ? 'mut' : (up ? 'up' : 'down')) + '">' + (r.pct == null ? '—' : pct(r.pct)) + '</td>' +
-        '<td class="num">' + (r.mc == null ? '—' : compact(r.mc)) + '</td></tr>';
-    }).join('');
-    html += '<div class="section"><div class="section-head"><h2>' + rows.length + ' matches</h2>' +
-      (rows.length > 300 ? '<span class="mut" style="font-size:12px">showing the first 300</span>' : '') + '</div>' +
-      '<div class="tbl-wrap"><table class="fh"><thead>' + th + '</thead><tbody>' + body + '</tbody></table></div></div>';
-    html += footerHTML();
-    $('main').innerHTML = html;
-  });
-}
-
 /* ------------------------------------------------------------ compare view */
 
 function renderCompare(){
@@ -7223,7 +7721,10 @@ function paintQuotePanel(){
 function overviewHTML(){
   var sym = dispSym(CUR.sym), q = DATA.quotes[sym] || {}, cur = currencyOf(sym);
   var st = Q.stats || {};
-  var prof = PROFILES[sym];
+  var prof = profileOf(sym) || PROFILES[sym];
+  if(!profileOf(sym) && !isCrypto(sym) && !isFx(sym)) loadProfile(sym).then(function(){
+    if(CUR.view === 'quote' && dispSym(CUR.sym) === sym && CUR.tab === 'overview'){ var el = $('profBox'); if(el) el.outerHTML = profileHTML(sym); }
+  }).catch(function(){});
   var ai = Q.ai || {};
   var html = '';
 
@@ -7313,19 +7814,23 @@ function overviewHTML(){
     '<div class="mut" style="font-size:12.5px;margin-bottom:6px">From web sources and news partners (Google News RSS)</div>' +
     newsListHTML(Q.news || [], 8) + '</div>';
 
-  html += '<div class="section"><h2>Profile</h2>' +
-    '<div class="card" style="margin-top:8px"><div style="font-size:14px;line-height:22px">' +
-      (prof ? esc(prof.about) : 'No bundled profile for this instrument. Ask AI to draft one from public sources — it will be labelled as AI-drafted.') + '</div>' +
-    '<div style="margin-top:10px"><a href="https://en.wikipedia.org/wiki/Special:Search?search=' + encodeURIComponent(labelOf(sym)) + '" target="_blank" rel="noopener">Wikipedia</a>' +
-    ' · <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=' + encodeURIComponent(labelOf(sym)) + '&type=10-K" target="_blank" rel="noopener">SEC filings</a></div></div></div>';
-
-  html += '<div class="section"><h2>About ' + esc(labelOf(sym)) + '</h2><div class="stat-grid" style="margin-top:8px">' +
-    statKV('CEO', prof ? prof.ceo : '—') + statKV('Employees', prof ? prof.emp : '—') +
-    statKV('Founded', prof ? prof.founded : '—') + statKV('Headquarters', prof ? prof.hq : '—') +
-    statKV('Sector', prof ? prof.sector : (sectorOf(sym) || '—')) +
-    statKV('Website', prof && prof.web ? '<a href="' + esc(prof.web) + '" target="_blank" rel="noopener">' + esc(prof.web.replace(/^https?:\/\//, '')) + '</a>' : '—') +
-    '</div><div class="movers-note">Bundled profile facts for major issuers; missing rows stay empty rather than guessed.</div></div>';
+  html += profileHTML(sym);
   return html;
+}
+function profileHTML(sym){
+  var live = profileOf(sym), prof = live || PROFILES[sym];
+  return '<div id="profBox"><div class="section"><h2>Profile</h2>' +
+    '<div class="card" style="margin-top:8px"><div style="font-size:14px;line-height:22px;white-space:pre-line">' +
+      (prof && prof.about ? esc(prof.about) : 'No profile loaded for this instrument yet.') + '</div>' +
+    '<div style="margin-top:10px"><a href="https://en.wikipedia.org/wiki/Special:Search?search=' + encodeURIComponent(labelOf(sym)) + '" target="_blank" rel="noopener">Wikipedia</a>' +
+    ' · <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=' + encodeURIComponent(labelOf(sym)) + '&type=10-K" target="_blank" rel="noopener">SEC filings</a></div></div></div>' +
+    '<div class="section"><h2>About ' + esc(labelOf(sym)) + '</h2><div class="stat-grid" style="margin-top:8px">' +
+    statKV('CEO', prof && prof.ceo || '—') + statKV('Employees', prof && prof.emp || '—') +
+    statKV('Founded', prof && prof.founded || '—') + statKV('Headquarters', prof && prof.hq || '—') +
+    statKV('Sector', prof && prof.sector || sectorOf(sym) || '—') +
+    statKV('Website', prof && prof.web ? '<a href="' + esc(prof.web) + '" target="_blank" rel="noopener">' + esc(prof.web.replace(/^https?:\/\/(www\.)?/, '')) + '</a>' : '—') +
+    '</div><div class="movers-note">' + (live ? 'Live company profile from ' + esc(live.src || 'stockanalysis.com') + ', refreshed weekly.' :
+      prof ? 'Bundled profile: may be out of date until the live profile loads.' : 'Missing rows stay empty rather than guessed.') + '</div></div></div>';
 }
 function statKV(k, v){ return '<div class="kv"><span>' + esc(k) + '</span><b>' + (typeof v === 'string' && v.charAt(0) === '<' ? v : esc(v)) + '</b></div>'; }
 
@@ -7967,7 +8472,7 @@ function aiContext(extra, appState){
     lines.push('App state \u2014 portfolios: ' + Object.keys(PFS).map(function(k){ return k + '=' + PFS[k].name + ' (' + PFS[k].holdings.length + ')'; }).join('; '));
     lines.push('Watchlists: ' + Object.keys(LISTS).map(function(k){ return k + '=' + LISTS[k].name + ' (' + LISTS[k].syms.length + ')'; }).join('; '));
   }
-  var prof = PROFILES[sym];
+  var prof = profileOf(sym) || PROFILES[sym];
   if(prof) lines.push('Profile: CEO ' + prof.ceo + ', ' + prof.emp + ' employees, HQ ' + prof.hq + ', sector ' + prof.sector);
   if(Q.news && Q.news.length){
     lines.push('Recent headlines:');
@@ -8464,6 +8969,11 @@ function actNorm(o){
   if(d === 'delete_portfolio'){ var did = actFind(PFS, o.portfolio); return did ? { do:d, id:did } : null; }
   if(d === 'create_watchlist'){ var ss = (o.symbols || []).map(actSym).filter(Boolean).slice(0, 100); return ss.length ? { do:d, name:actName(o.name) || 'New watchlist', symbols:ss } : null; }
   if(d === 'add_to_watchlist'){ var lid = actFind(LISTS, o.watchlist), s3 = (o.symbols || []).map(actSym).filter(Boolean).slice(0, 100); return lid && s3.length ? { do:d, id:lid, symbols:s3 } : null; }
+  if(d === 'create_alert'){
+    var as = actSym(o.symbol), def = alDef(String(o.alert || '')), av = def && def[2] ? alNum(o.value) : null;
+    if(!as || !def || (def[2] && (av == null || av < 0))) return null;
+    return { do:d, symbol:as, type:def[0], val:av, freq:AL_FREQ.some(function(x){ return x[0] === o.frequency; }) ? o.frequency : 'once' };
+  }
   return null;
 }
 function actInstant(a){ return a.do === 'open_quote' || a.do === 'open_page' || a.do === 'compare'; }
@@ -8476,6 +8986,7 @@ function actLabel(a){
   if(a.do === 'add_holdings') return 'Add ' + a.holdings.length + ' holding' + (a.holdings.length === 1 ? '' : 's') + ' to “' + PFS[a.id].name + '”';
   if(a.do === 'delete_portfolio') return 'Delete portfolio \u201c' + PFS[a.id].name + '\u201d \u00b7 ' + PFS[a.id].holdings.length + ' holding' + (PFS[a.id].holdings.length === 1 ? '' : 's') + ' (cannot be undone)';
   if(a.do === 'create_watchlist') return 'Create watchlist “' + a.name + '” · ' + a.symbols.length + ' symbols';
+  if(a.do === 'create_alert') return 'Set alert: ' + a.symbol + ' · ' + alText({ type:a.type, val:a.val }) + ' (' + AL_FREQ.filter(function(x){ return x[0] === a.freq; })[0][1] + ')';
   return 'Add ' + a.symbols.join(', ') + ' to “' + LISTS[a.id].name + '”';
 }
 function actRun(a){
@@ -8500,6 +9011,9 @@ function actRun(a){
     var lid = 'l' + Date.now().toString(36); LISTS[lid] = { name:a.name, syms:a.symbols.slice() }; saveLists(); renderRail(); go('#/list/' + lid);
   } else if(a.do === 'add_to_watchlist'){
     a.symbols.forEach(function(x){ if(LISTS[a.id].syms.indexOf(x) < 0) LISTS[a.id].syms.push(x); }); saveLists(); renderRail(); go('#/list/' + a.id);
+  } else if(a.do === 'create_alert'){
+    ALERTS.unshift({ id:'a' + Date.now().toString(36), created:Date.now(), sym:a.symbol, type:a.type, val:a.val, freq:a.freq, note:'', on:true, day:'', seen:'' });
+    alSave(); alStart();
   }
 }
 function actAuto(m){   // run navigation straight away, leave writes pending
@@ -8758,12 +9272,48 @@ function chatRender(){
       '<div class="ex">Explore</div><div class="chips">' + aiQuickHTML() + '</div></div>';
     return;
   }
-  el.innerHTML = msgs.map(function(m){
+  el.innerHTML = msgs.map(function(m, i){
     return '<div class="msg ' + (m.role === 'user' ? 'me' : (m.err ? 'err' : '')) + '">' +
       (m.role === 'user' ? esc(m.text) : mdToHTML(m.text) + srcHTML(m) + actCards(m) + skillCard(m) +
-        (m.keyCta ? '<div class="act-b" style="margin-top:10px"><button class="btn filled sm" data-act="keys">Add API key</button><button class="btn text sm" data-act="tour-start">Show me how</button></div>' : '')) + '</div>';
+        (m.keyCta ? '<div class="act-b" style="margin-top:10px"><button class="btn filled sm" data-act="keys">Add API key</button><button class="btn text sm" data-act="tour-start">Show me how</button></div>' : '')) + '</div>' +
+      (m.role !== 'user' && !m.err && !m.keyCta && m.text && !(AI_BUSY && i === msgs.length - 1) ? msgToolsHTML(m) : '');
   }).join('') + (AI_BUSY && msgs[msgs.length - 1].role === 'user' ? thinkHTML() : '');
   el.scrollTop = el.scrollHeight;
+}
+/* Copy / thumbs up / thumbs down under each answer. A thumbs down asks what went
+   wrong and emails it (with the question and answer) to the owner via Web3Forms. */
+var MSG_ICON = {
+  copy:'M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z',
+  up:'M2 20h3V9H2v11zm19-9a2 2 0 0 0-2-2h-6.3l1-4.6v-.3c0-.4-.2-.8-.4-1.1L12.2 2 6.6 7.6C6.2 8 6 8.5 6 9v10a2 2 0 0 0 2 2h9c.8 0 1.5-.5 1.8-1.2l3-7.1c.1-.2.2-.5.2-.7v-2z',
+  down:'M22 4h-3v11h3V4zM3 13a2 2 0 0 0 2 2h6.3l-1 4.6v.3c0 .4.2.8.4 1.1l1.1 1 5.6-5.6c.4-.4.6-.9.6-1.4V5a2 2 0 0 0-2-2H7c-.8 0-1.5.5-1.8 1.2l-3 7.1c-.1.2-.2.5-.2.7v2z'
+};
+function msgToolsHTML(m){
+  var b = function(act, ic, title, on){ return '<button class="mt-btn' + (on ? ' on' : '') + '" data-act="' + act + '" data-ts="' + m.ts + '" title="' + title + '" aria-label="' + title + '"' + (on != null ? ' aria-pressed="' + !!on + '"' : '') + '>' + railSvg(MSG_ICON[ic], 15) + '</button>'; };
+  var form = m.fbOpen ? '<div class="mt-form"><div class="mt-q">What went wrong? A sentence or two helps us fix it.</div>' +
+      '<textarea id="mtText' + m.ts + '" rows="3" maxlength="2000" placeholder="e.g. The P/E it quoted is wrong, or it ignored my question about…"></textarea>' +
+      '<div class="mt-row"><button class="btn text sm" data-act="msg-fb-cancel" data-ts="' + m.ts + '">Cancel</button><button class="btn filled sm" data-act="msg-fb-send" data-ts="' + m.ts + '">Send feedback</button></div></div>'
+    : m.fbSent ? '<div class="mt-thanks">Thank you, your feedback was sent. It helps make Marvell better.</div>' : '';
+  return '<div class="msg-tools">' + b('msg-copy', 'copy', 'Copy answer') + b('msg-up', 'up', 'Good answer', m.fb === 'up') + b('msg-down', 'down', 'Bad answer', m.fb === 'down') + '</div>' + form;
+}
+function msgByTs(ts){ return CHAT.filter(function(x){ return String(x.ts) === String(ts); })[0]; }
+function msgFeedbackSend(m){
+  var ta = $('mtText' + m.ts), note = ta ? ta.value.trim() : '';
+  if(note.length < 3){ toast('Add a few words about what went wrong.'); if(ta) ta.focus(); return; }
+  var i = CHAT.indexOf(m), q = '';
+  for(var j = i - 1; j >= 0; j--){ if(CHAT[j].role === 'user'){ q = CHAT[j].text; break; } }
+  var a = acct(), btn = document.querySelector('[data-act="msg-fb-send"][data-ts="' + m.ts + '"]');
+  if(btn){ btn.disabled = true; btn.textContent = 'Sending…'; }
+  var body = 'What went wrong:\n' + note + '\n\n— Question —\n' + String(q).slice(0, 3000) + '\n\n— Marvell\'s answer —\n' + String(m.text).slice(0, 8000) +
+    '\n\n—\nModel: ' + (KEYS.provider || '?') + ' / ' + (KEYS.model || '?') + '\nPage: ' + location.href + '\nFrom: ' + (a ? a.name + ' <' + a.email + '>' : 'guest') + '\nBrowser: ' + navigator.userAgent;
+  fetch('https://api.web3forms.com/submit', { method:'POST', headers:{ 'content-type':'application/json', accept:'application/json' },
+    body:JSON.stringify({ access_key:FB_KEY, subject:'MERCERFARGO AGENT FEEDBACK: thumbs down', from_name:a ? a.name : 'MercerFargo user', email:a ? a.email : undefined, message:body, botcheck:'' }) })
+    .then(function(r){ return r.json(); }).then(function(j){
+      if(!j.success) throw new Error(j.message || 'send failed');
+      m.fbOpen = false; m.fbSent = true; save(LS.chat, CHAT); chatRender();
+    }).catch(function(e){
+      if(btn){ btn.disabled = false; btn.textContent = 'Send feedback'; }
+      toast('Couldn\u2019t send (' + String(e.message || e).slice(0, 60) + '). Try again in a moment.');
+    });
 }
 function chatPush(role, text, extra){
   var sid = chatCurrentSession();
@@ -9427,6 +9977,78 @@ function keyTest(btn, p){
   });
 }
 
+/* --- watchlist picker: a small popover with a checkbox per watchlist, opened
+   from the quote page button or the bookmark beside any stock row. */
+var WL_ICON = 'M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2zm0 15-5-2.2L7 18V5h10v13z';
+var WL_ICON_ON = 'M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z';
+function wlIn(sym){ return Object.keys(LISTS).filter(function(id){ return LISTS[id].syms.indexOf(sym) >= 0; }); }
+function wlBtnHTML(sym){
+  var on = wlIn(sym).length > 0;
+  return '<button class="wl-add' + (on ? ' on' : '') + '" data-act="wl-open" data-sym="' + esc(sym) + '" title="' + (on ? 'In a watchlist' : 'Add to watchlist') + '" aria-label="Add ' + esc(sym) + ' to a watchlist" aria-haspopup="dialog">' +
+    railSvg(on ? WL_ICON_ON : WL_ICON, 15) + '</button>';
+}
+/* Rows are rendered as HTML strings all over the app, so the bookmark is added after the fact. */
+function wlDecorate(){
+  if(CUR.view === 'list') return;
+  [].forEach.call(document.querySelectorAll('#main tr[data-act="quote"][data-sym] > td.sym:not(.wl-x)'), function(td){
+    td.classList.add('wl-x');
+    td.insertAdjacentHTML('beforeend', wlBtnHTML(td.parentNode.getAttribute('data-sym')));
+  });
+}
+function wlSync(sym){
+  [].forEach.call(document.querySelectorAll('.wl-add[data-sym="' + sym + '"]'), function(b){ b.outerHTML = wlBtnHTML(sym); });
+  [].forEach.call(document.querySelectorAll('[data-act="togglelist"][data-sym="' + sym + '"]'), function(b){ b.textContent = wlIn(sym).length ? 'In watchlist ✓' : 'Add to watchlist'; });
+}
+function wlClose(){ var p = $('wlPop'); if(p) p.remove(); }
+function wlOpen(anchor, sym){
+  var was = $('wlPop');
+  if(was && was.getAttribute('data-sym') === sym){ wlClose(); return; }
+  wlClose();
+  var pop = document.createElement('div');
+  pop.id = 'wlPop'; pop.className = 'wl-pop'; pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', 'Watchlists for ' + sym); pop.setAttribute('data-sym', sym);
+  document.body.appendChild(pop);
+  wlPaint();
+  var r = anchor.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  var left = Math.max(8, Math.min(r.left, innerWidth - w - 8)), top = r.bottom + 6;
+  if(top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+  pop.style.left = left + 'px'; pop.style.top = top + 'px';
+  wlOpen.anchor = anchor; wlOpen.y = r.top;
+  pop.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ wlClose(); anchor.focus(); }
+    if(e.key === 'Enter' && e.target.id === 'wlNewName'){ e.preventDefault(); wlCreate(); }
+  });
+  var first = pop.querySelector('button'); if(first) first.focus({ preventScroll:true });
+}
+function wlPaint(){
+  var pop = $('wlPop'); if(!pop) return;
+  var sym = pop.getAttribute('data-sym'), ids = Object.keys(LISTS), n = wlIn(sym).length;
+  var tick = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>';
+  pop.innerHTML = '<div class="wl-top' + (n ? ' on' : '') + '">' + (n ? '<span class="wl-ok">' + tick + '</span>In ' + n + ' watchlist' + (n > 1 ? 's' : '') : 'Add <b>' + esc(sym) + '</b> to a watchlist') + '</div>' +
+    '<div class="wl-lbl">Watchlists</div><div class="wl-list">' +
+    (ids.length ? ids.map(function(id){
+      var has = LISTS[id].syms.indexOf(sym) >= 0;
+      return '<button class="wl-row" role="menuitemcheckbox" aria-checked="' + has + '" data-act="wl-tog" data-id="' + esc(id) + '" data-sym="' + esc(sym) + '">' +
+        '<span class="wl-cb' + (has ? ' on' : '') + '">' + (has ? tick : '') + '</span><span class="wl-nm">' + esc(LISTS[id].name) + '</span><span class="wl-ct">' + LISTS[id].syms.length + '</span></button>';
+    }).join('') : '<div class="wl-empty">No watchlists yet.</div>') + '</div><div class="wl-sep"></div>' +
+    (pop.getAttribute('data-new') ? '<div class="wl-new"><input id="wlNewName" class="inp" maxlength="40" placeholder="Watchlist name" autocomplete="off"><button class="btn filled sm" data-act="wl-create-go">Create</button></div>'
+      : '<button class="wl-row wl-create" data-act="wl-create">' + railSvg('M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z', 16) + '<span class="wl-nm">Create watchlist</span></button>');
+}
+function wlToggle(id, sym){
+  var l = LISTS[id]; if(!l) return;
+  var i = l.syms.indexOf(sym);
+  if(i >= 0) l.syms.splice(i, 1); else l.syms.push(sym);
+  saveLists(); renderRail(); wlPaint(); wlSync(sym);
+  toast(i >= 0 ? sym + ' removed from ' + l.name : sym + ' added to ' + l.name);
+}
+function wlCreate(){
+  var pop = $('wlPop'), inp = $('wlNewName'); if(!pop || !inp) return;
+  var name = inp.value.trim();
+  if(!name){ inp.focus(); return; }
+  var sym = pop.getAttribute('data-sym'), id = 'l' + Date.now().toString(36);
+  LISTS[id] = { name:name, syms:[sym] };
+  pop.removeAttribute('data-new');
+  saveLists(); renderRail(); wlPaint(); wlSync(sym); toast('Created ' + name + ' with ' + sym);
+}
 function openAddToList(sym){
   var body = '<div class="mut" style="font-size:13.5px;margin-bottom:10px">Add ' + esc(sym) + ' to a watchlist, or create a new one.</div>';
   body += Object.keys(LISTS).map(function(id){
@@ -10078,6 +10700,7 @@ function bindEvents(){
   });
   document.addEventListener('click', function(ev){
     if($('inboxPanel') && !$('inboxPanel').hidden && !ev.target.closest('#inboxPanel,#inboxBtn')) alPanelToggle(false);
+    if($('wlPop') && !ev.target.closest('#wlPop,[data-act="wl-open"],[data-act="togglelist"]')) wlClose();
     var cite = ev.target.closest('a[href^="#rs-cite-"]');
     if(cite){ ev.preventDefault(); var ct = document.getElementById(cite.getAttribute('href').slice(1)); if(ct){ var dt = ct.closest('details'); if(dt) dt.open = true; ct.scrollIntoView({ block:'nearest', behavior:'smooth' }); } return; }   // keep the route hash; open the collapsed Sources first
     var el = ev.target.closest('[data-act]');
@@ -10170,7 +10793,7 @@ function bindEvents(){
           setTimeout(function(){ var sec = document.querySelector('#rail .rsec[data-sec="' + sid + '"]'); if(sec) sec.scrollIntoView({ block:'nearest', behavior:'smooth' }); }, 280); break; }   // collapsed: an icon click expands the rail on that section
         save('fh3_rail_' + sid, open);
         el.setAttribute('aria-expanded', open); el.closest('.rsec').classList.toggle('open', open); $('rf_' + sid).classList.toggle('open', open); break; }
-      case 'sector': ev.preventDefault(); CUR.screen = Object.assign(defaultScreen(), { sector:el.getAttribute('data-sector') }); go('#/screener'); break;
+      case 'sector': ev.preventDefault(); CUR.screen = Object.assign(defaultScreen(), { sector:el.getAttribute('data-sector') }); if(CUR.view === 'screener'){ renderRail(); renderScreener(); } else go('#/screener'); break;
       case 'range': {
         var rg = el.getAttribute('data-range');
         CUR.range = CFG.range = rg; saveCfg();
@@ -10268,7 +10891,10 @@ function bindEvents(){
       case 'theme': toggleTheme(); break;
       case 'menu-more': ev.stopPropagation(); menu(el, moreMenuHTML()); break;
       case 'signin': openAuth('register'); break;
-      case 'togglelist': openAddToList(sym); break;
+      case 'togglelist': case 'wl-open': ev.preventDefault(); ev.stopPropagation(); wlOpen(el, sym); break;
+      case 'wl-tog': wlToggle(el.getAttribute('data-id'), sym); break;
+      case 'wl-create': $('wlPop').setAttribute('data-new', '1'); wlPaint(); $('wlNewName').focus(); break;
+      case 'wl-create-go': wlCreate(); break;
       case 'list-add': {
         var lid = el.getAttribute('data-id'), ls = el.getAttribute('data-sym');
         if(LISTS[lid].syms.indexOf(ls) < 0) LISTS[lid].syms.push(ls);
@@ -10315,17 +10941,43 @@ function bindEvents(){
         break;
       }
       case 'nlportfolio': aiRun('custom', 'Propose a diversified 8-position starter portfolio for a long-horizon investor, with a one-line rationale per position and the main risk. Do not invent specific prices.'); break;
-      case 'screen-apply': {
-        var f = CUR.screen = defaultScreen();
-        f.q = $('fq').value; f.sector = $('fsector') ? $('fsector').value : f.sector; f.minPx = $('fminPx').value; f.maxPx = $('fmaxPx').value;
-        f.minPct = $('fminPct').value; f.maxPct = $('fmaxPct').value;
-        f.minMc = $('fminMc') ? $('fminMc').value : ''; f.maxMc = $('fmaxMc') ? $('fmaxMc').value : '';
-        renderScreener();
+      case 'msg-copy': {
+        var mc = msgByTs(el.getAttribute('data-ts'));
+        if(mc) (navigator.clipboard ? navigator.clipboard.writeText(mc.text) : Promise.reject()).then(function(){ toast('Copied'); }, function(){ toast('Couldn\u2019t copy'); });
         break;
       }
-      case 'screen-reset': CUR.screen = defaultScreen(); renderScreener(); break;
+      case 'msg-up': case 'msg-down': {
+        var mf = msgByTs(el.getAttribute('data-ts')), dn = act === 'msg-down';
+        if(!mf) break;
+        if(mf.fb === (dn ? 'down' : 'up') && !mf.fbOpen){ mf.fb = ''; }
+        else { mf.fb = dn ? 'down' : 'up'; mf.fbOpen = dn && !mf.fbSent; }
+        if(!dn) mf.fbOpen = false;
+        save(LS.chat, CHAT); chatRender();
+        if(!dn && mf.fb) toast('Thanks for the feedback!');
+        if(mf.fbOpen) setTimeout(function(){ var t = $('mtText' + mf.ts); if(t) t.focus(); }, 30);
+        break;
+      }
+      case 'msg-fb-cancel': { var mx = msgByTs(el.getAttribute('data-ts')); if(mx){ mx.fbOpen = false; if(!mx.fbSent) mx.fb = ''; save(LS.chat, CHAT); chatRender(); } break; }
+      case 'msg-fb-send': { var ms = msgByTs(el.getAttribute('data-ts')); if(ms) msgFeedbackSend(ms); break; }
+      case 'screen-reset': CUR.screen = Object.assign(defaultScreen(), { sel:CUR.screen && CUR.screen.sel.sector ? { sector:CUR.screen.sel.sector } : {} }); renderScreener(); break;
+      case 'scr-mode': SCR_MODE = el.getAttribute('data-m'); save('fh3_scrmode', SCR_MODE); $('scrFilters').innerHTML = scrFiltersHTML(CUR.screen);
+        [].forEach.call(el.parentNode.children, function(b){ b.classList.toggle('on', b === el); }); break;
+      case 'scr-view': CUR.screen.view = el.getAttribute('data-v'); CUR.screen.page = 0;
+        [].forEach.call(el.parentNode.children, function(b){ b.classList.toggle('on', b === el); }); scrRun(); break;
+      case 'scr-sort': {
+        var sk = el.getAttribute('data-k'), so = CUR.screen.sort;
+        CUR.screen.sort = { key:sk, dir:so.key === sk ? -so.dir : (sk === 'name' ? 1 : -1) }; CUR.screen.page = 0; scrRun(); break;
+      }
+      case 'scr-page': CUR.screen.page = Math.max(0, +el.getAttribute('data-p')); scrRun().then(function(){ var r = $('scrRes'); if(r) r.scrollIntoView({ block:'start', behavior:'smooth' }); }); break;
+      case 'scr-retry': scrRun(); break;
+      case 'scr-clear': {
+        var cid = el.getAttribute('data-id');
+        if(SCR_BY[cid]){ delete CUR.screen.sel[cid]; var sel = document.querySelector('[data-scr="' + cid + '"]'); if(sel){ sel.value = ''; sel.classList.remove('on'); } }
+        else CUR.screen[cid] = '';
+        scrRefresh(cid === 'sector' || cid === 'asset'); break;
+      }
       case 'screen-addlist': {
-        var picks = screenUniverse().slice(0, 20).map(function(r){ return r.sym; });
+        var picks = SCR.src === 'fv' ? SCR.rows.map(function(r){ return r[SCR.head.indexOf('Ticker')]; }) : SCR.rows.map(function(r){ return r.sym; });
         askText('Save matches as a watchlist', 'Watchlist name (' + picks.length + ' matches)', 'Screened ' + new Date().toLocaleDateString(), function(nm2){ var nid2 = 'l' + Date.now().toString(36); LISTS[nid2] = { name:nm2, syms:picks }; saveLists(); renderRail(); toast('Created ' + nm2); });
         break;
       }
@@ -10430,6 +11082,15 @@ function bindEvents(){
 
   $('searchForm').addEventListener('submit', function(ev){ ev.preventDefault(); doSearch($('searchInput').value); });
   $('searchForm2').addEventListener('submit', function(ev){ ev.preventDefault(); doSearch($('searchInput2').value); });
+  hsBind($('searchForm'), $('searchInput')); hsBind($('searchForm2'), $('searchInput2'));
+  tapeStart();
+  var wlRaf = 0;
+  new MutationObserver(function(){ if(!wlRaf) wlRaf = requestAnimationFrame(function(){ wlRaf = 0; wlDecorate(); }); }).observe($('main'), { childList:true, subtree:true });
+  window.addEventListener('scroll', function(){   // follow the row a little, close once it has really moved away
+    var p = $('wlPop'), a = wlOpen.anchor; if(!p || !a) return;
+    if(!a.isConnected || Math.abs(a.getBoundingClientRect().top - wlOpen.y) > 40) wlClose();
+  }, true);
+  window.addEventListener('hashchange', wlClose);
   $('brandLink').addEventListener('click', function(ev){ ev.preventDefault(); go('#/'); });
   $('themeBtn').addEventListener('click', toggleTheme);
   $('keysBtn').addEventListener('click', function(ev){
@@ -10491,12 +11152,170 @@ function doSearch(q){
   var known = INSTRUMENTS[sym] || UNIVERSE.filter(function(u){ return u[0] === sym; })[0];
   var looksLikeSymbol = /^[\^A-Z0-9.\-\/]{1,12}$/.test(sym) && !/\s/.test(v);
   if(known || (looksLikeSymbol && v.length <= 6)){
+    hsRemember({ sym:sym });
     go('#/quote/' + encodeURIComponent(sym));
     return;
   }
   var byName = UNIVERSE.filter(function(u){ return u[1].toLowerCase().indexOf(v.toLowerCase()) >= 0; })[0];
   if(byName){ go('#/quote/' + encodeURIComponent(byName[0])); return; }
   aiRun('deep', v);
+}
+
+/* --- header search: live suggestions (logo, ticker, name, price), typo-tolerant ---
+   TradingView's scan matches ticker or name anywhere, so results are re-ranked:
+   exact ticker, then ticker/name prefixes, then word starts, by market cap. A typo
+   that matches nothing falls back to stockanalysis' fuzzy search ("Did you mean"). */
+function hsScan(extra, n){
+  var body = { filter:[scC('exchange', 'in_range', ['NASDAQ', 'NYSE', 'AMEX', 'CBOE']), scC('is_primary', 'equal', true), scC('type', 'in_range', ['stock', 'dr', 'fund'])].concat(extra.filter || []),
+    columns:['name', 'description', 'close', 'change', 'type'], sort:{ sortBy:'market_cap_basic', sortOrder:'desc', nullsFirst:false }, range:[0, n] };
+  if(extra.filter2) body.filter2 = extra.filter2;
+  return fetchWithTimeout('https://scanner.tradingview.com/america/scan', 8000, { method:'POST', headers:{ 'Content-Type':'text/plain' }, body:JSON.stringify(body) })
+    .then(function(r){ return r.json(); })
+    .then(function(j){ return (j.data || []).map(function(r){ var d = r.d; return { sym:dispSym(d[0]), name:d[1], c:d[2], pct:d[3], etf:d[4] === 'fund' }; }); });
+}
+function hsRank(q, it){
+  var Q = q.toUpperCase(), n = (it.name || '').toUpperCase();
+  if(it.sym === Q) return 0;
+  if(it.sym.indexOf(Q) === 0 || n.indexOf(Q) === 0) return 1;
+  if((' ' + n.replace(/[^A-Z0-9]+/g, ' ')).indexOf(' ' + Q.replace(/[^A-Z0-9]+/g, ' ')) >= 0) return 2;
+  return 3;
+}
+function hsSuggest(q){
+  var direct = hsScan({ filter2:{ operator:'and', operands:[{ operation:{ operator:'or', operands:[
+    { expression:scC('name', 'match', q) }, { expression:scC('description', 'match', q) }] } }] } }, 40).catch(function(){ return []; });
+  return direct.then(function(list){
+    list = list.map(function(it, i){ it.r = hsRank(q, it); it.i = i; return it; }).sort(function(a, b){ return a.r - b.r || a.i - b.i; });
+    var good = list.filter(function(it){ return it.r < 3; });
+    if(good.length >= 3) return good.slice(0, 8);
+    /* few or no real matches: likely a typo, ask the fuzzy search and price its picks */
+    return searchSymbols(q).then(function(f){
+      var syms = f.map(function(x){ return x.sym; }).filter(function(x){ return !good.some(function(g){ return g.sym === x; }); });
+      if(!syms.length) return good.length ? good : list.slice(0, 8);
+      return hsScan({ filter:[scC('name', 'in_range', syms)] }, 10).catch(function(){ return []; }).then(function(px){
+        var fuzzy = syms.map(function(x){
+          var p = px.filter(function(y){ return y.sym === x; })[0], src = f.filter(function(y){ return y.sym === x; })[0];
+          return p || { sym:x, name:src.name, etf:src.kind === 'etf' };
+        }).map(function(it){ it.fuzzy = true; return it; });
+        return good.concat(fuzzy).slice(0, 8);
+      });
+    });
+  });
+}
+function hsRecent(){ return load('fh3_recent_q', []); }
+function hsRemember(it){
+  var l = hsRecent().filter(function(x){ return x.sym !== it.sym; });
+  l.unshift({ sym:it.sym, name:it.name || labelOf(it.sym) || '' }); save('fh3_recent_q', l.slice(0, 5));
+}
+/* The last five picks, re-priced live (falls back to the stored names if the scan fails). */
+function hsRecentItems(){
+  var l = hsRecent();
+  if(!l.length) return Promise.resolve([]);
+  return hsScan({ filter:[scC('name', 'in_range', l.map(function(x){ return x.sym; }))] }, 10).catch(function(){ return []; }).then(function(px){
+    return l.map(function(x){ var p = px.filter(function(y){ return y.sym === x.sym; })[0]; return Object.assign({}, x, p || {}, { recent:true }); });
+  });
+}
+function hsBind(form, input){
+  var box = document.createElement('div'), items = [], at = -1, timer = 0, seq = 0;
+  box.className = 'ins-sug hs-sug'; box.setAttribute('role', 'listbox'); box.hidden = true; box.id = input.id + 'Sug';
+  form.appendChild(box);
+  input.setAttribute('role', 'combobox'); input.setAttribute('aria-controls', box.id); input.setAttribute('aria-autocomplete', 'list'); input.setAttribute('aria-expanded', 'false');
+  function draw(){
+    box.hidden = !items.length; input.setAttribute('aria-expanded', String(!!items.length));
+    var hdr = false;
+    box.innerHTML = items.map(function(it, i){
+      var lab = it.recent && !i ? '<div class="hs-hd">Recent searches<button type="button" class="hs-clr" data-clr="1">Clear</button></div>'
+        : it.fuzzy && !hdr ? (hdr = true, '<div class="hs-hd">' + (i ? 'Related' : 'No exact match. Did you mean') + '</div>') : '';
+      var up = (it.pct || 0) >= 0;
+      return lab + '<button type="button" role="option" aria-selected="' + (i === at) + '" class="' + (i === at ? 'on' : '') + '" data-i="' + i + '" style="--d:' + (i * 25) + 'ms">' + guruLogo({ t:it.sym }) +
+        '<b>' + esc(it.sym) + '</b><span>' + esc(it.name || '') + (it.etf && !/\bETF\b/.test(it.name || '') ? ' <small class="hs-tag">ETF</small>' : '') + '</span>' +
+        '<em class="num">' + (it.c == null ? '' : money(it.c, 'USD') + '<small class="' + (up ? 'up' : 'down') + '">' + pct(it.pct || 0) + '</small>') + '</em></button>';
+    }).join('');
+  }
+  function close(){ items = []; at = -1; draw(); }
+  function pick(it){ close(); hsRemember(it); input.value = ''; input.blur(); go('#/quote/' + encodeURIComponent(it.sym)); }
+  function recent(){ var my = ++seq; hsRecentItems().then(function(l){ if(my !== seq || input.value.trim() || document.activeElement !== input) return; items = l; at = -1; draw(); }); }
+  input.addEventListener('input', function(){
+    var v = input.value.trim(), my = ++seq;
+    clearTimeout(timer);
+    if(!v){ close(); recent(); return; }
+    timer = setTimeout(function(){
+      hsSuggest(v).then(function(l){
+        if(my !== seq) return;
+        items = l;
+        /* Enter opens the top hit when it really matches, or the closest guess for a one-word typo; a question still goes to Marvell */
+        at = l.length && ((l[0].r != null && l[0].r < 2) || (l[0].fuzzy && !/\s/.test(v))) ? 0 : -1;
+        draw();
+      });
+    }, 150);
+  });
+  input.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ if(!items.length) return; e.preventDefault(); at = (at + (e.key === 'ArrowDown' ? 1 : -1) + items.length + (at < 0 && e.key === 'ArrowUp' ? 1 : 0)) % items.length; draw(); }
+    else if(e.key === 'Escape' && items.length){ close(); e.stopPropagation(); }
+    else if(e.key === 'Enter' && at >= 0 && items[at]){ e.preventDefault(); e.stopImmediatePropagation(); seq++; pick(items[at]); }
+  });
+  input.addEventListener('blur', function(){ setTimeout(close, 150); });
+  input.addEventListener('focus', function(){ if(input.value.trim()) input.dispatchEvent(new Event('input')); else recent(); });
+  box.addEventListener('mousedown', function(e){
+    if(e.target.closest('[data-clr]')){ e.preventDefault(); save('fh3_recent_q', []); close(); return; }
+    var b = e.target.closest('[data-i]'); if(b){ e.preventDefault(); pick(items[+b.getAttribute('data-i')]); } });
+  form.addEventListener('submit', function(){ seq++; close(); });
+}
+
+/* --- ticker tape: indices, the most-traded large caps, metals, oil, rates, FX and
+   crypto, looping under the header like an exchange board. Two TradingView scans
+   a minute; values update in place so the scroll never jumps. */
+var TAPE_MKT = [['SP:SPX', 'S&P 500', 'indices'], ['NASDAQ:IXIC', 'Nasdaq', 'indices'], ['DJ:DJI', 'Dow', 'indices'], ['TVC:RUT', 'Russell 2000', 'indices'], ['CBOE:VIX', 'VIX', 'futures'],
+  ['TVC:GOLD', 'Gold', 'commodities'], ['TVC:SILVER', 'Silver', 'commodities'], ['NYMEX:CL1!', 'WTI Crude', 'commodities'], ['TVC:US10Y', 'US 10Y', 'bonds'],
+  ['TVC:DXY', 'Dollar Index', 'forex'], ['FX:EURUSD', 'EUR/USD', 'forex'], ['BITSTAMP:BTCUSD', 'Bitcoin', 'crypto'], ['BITSTAMP:ETHUSD', 'Ether', 'crypto']];
+var TAPE = { keys:'', timer:0 };
+function tapeScan(market, body){
+  return fetchWithTimeout('https://scanner.tradingview.com/' + market + '/scan', 10000, { method:'POST', headers:{ 'Content-Type':'text/plain' }, body:JSON.stringify(body) })
+    .then(function(r){ return r.json(); }).then(function(j){ return j.data || []; });
+}
+function tapeLoad(){
+  var cols = ['name', 'close', 'change', 'change_abs'];
+  var mkt = tapeScan('global', { symbols:{ tickers:TAPE_MKT.map(function(x){ return x[0]; }) }, columns:cols }).catch(function(){ return []; });
+  var hot = tapeScan('america', { filter:[scC('exchange', 'in_range', ['NASDAQ', 'NYSE', 'AMEX']), scC('is_primary', 'equal', true), scC('type', 'equal', 'stock'), scC('market_cap_basic', 'greater', 1e10)],
+    columns:cols, sort:{ sortBy:'Value.Traded', sortOrder:'desc' }, range:[0, 12] }).catch(function(){ return []; });
+  return Promise.all([mkt, hot]).then(function(r){
+    var by = {}; r[0].forEach(function(x){ by[x.s] = x.d; });
+    var row = function(k, label, d, href, kind){ return { k:k, label:label, c:d[1], pct:d[2], ch:d[3], href:href, kind:kind }; };
+    var m = TAPE_MKT.filter(function(x){ return by[x[0]]; }).map(function(x){ return row(x[0], x[1], by[x[0]], '#/market/' + x[2], x[0] === 'TVC:US10Y' ? 'yield' : /FX:/.test(x[0]) ? 'fx' : ''); });
+    var h = r[1].map(function(x){ var sym = dispSym(x.d[0]); return row(x.s, sym, x.d, '#/quote/' + encodeURIComponent(sym), 'stock'); });
+    return m.slice(0, 5).concat(h, m.slice(5));
+  });
+}
+function tapeVal(it){
+  var dp = it.kind === 'fx' ? 4 : it.kind === 'yield' ? 3 : 2;
+  var up = (it.pct || 0) >= 0;
+  return { px:num(it.c, dp) + (it.kind === 'yield' ? '%' : ''), cls:up ? 'up' : 'down',
+    ch:(up ? '▲ ' : '▼ ') + num(Math.abs(it.ch || 0), dp) + ' (' + (up ? '+' : '') + num(it.pct || 0, 2) + '%)' };
+}
+function tapePaint(items){
+  var el = $('tape'); if(!el || !items.length) return;
+  var keys = items.map(function(x){ return x.k; }).join(',');
+  if(keys !== TAPE.keys){   // new line-up: rebuild (the loop restarts, which only happens when the hot list changes)
+    TAPE.keys = keys;
+    var html = items.map(function(it){ var v = tapeVal(it);
+      return '<a class="tp-i" href="' + it.href + '" data-k="' + esc(it.k) + '"><b>' + esc(it.label) + '</b><span class="tp-px">' + v.px + '</span><span class="tp-ch ' + v.cls + '">' + v.ch + '</span></a>'; }).join('');
+    el.innerHTML = '<div class="tp-track"><div class="tp-run">' + html + '</div><div class="tp-run" aria-hidden="true">' + html.replace(/<a /g, '<a tabindex="-1" ') + '</div></div>';
+    var run = el.querySelector('.tp-run');
+    el.querySelector('.tp-track').style.animationDuration = Math.max(30, run.scrollWidth / 55) + 's';   // ~55px a second whatever the width
+    return;
+  }
+  items.forEach(function(it){
+    var v = tapeVal(it);
+    [].forEach.call(el.querySelectorAll('[data-k="' + it.k + '"]'), function(a){
+      var px = a.querySelector('.tp-px'), ch = a.querySelector('.tp-ch');
+      if(px.textContent !== v.px){ px.textContent = v.px; a.classList.remove('fl'); void a.offsetWidth; a.classList.add('fl'); }
+      ch.textContent = v.ch; ch.className = 'tp-ch ' + v.cls;
+    });
+  });
+}
+function tapeStart(){
+  var tick = function(force){ if(force || !document.hidden){ TAPE.t = Date.now(); tapeLoad().then(tapePaint).catch(function(){}); } };
+  tick(true); clearInterval(TAPE.timer); TAPE.timer = setInterval(tick, 60000);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden && Date.now() - (TAPE.t || 0) > 60000) tick(); });
 }
 
 function toggleTheme(){

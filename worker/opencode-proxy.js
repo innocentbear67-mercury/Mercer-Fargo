@@ -80,6 +80,7 @@ export const FEEDS = [
   { re: /^https:\/\/traderhub\.openalice\.ai\/api\/reference\/[a-z-]+$/, ttl: 300 },
   { re: /^https:\/\/data\.sec\.gov\/submissions\/CIK\d{10}\.json$/, ttl: 900, sec: true },
   { re: /^https:\/\/data\.sec\.gov\/api\/xbrl\/companyfacts\/CIK\d{10}\.json$/, ttl: 3600, sec: true },
+  { re: /^https:\/\/finviz\.com\/screener\?[\w=&,.%-]*$/, ttl: 300 },   // screener fallback when TradingView's scanner fails
   { re: /^https:\/\/www\.sec\.gov\/Archives\/edgar\/data\/\d+\/\d{18}\/[\w.\-]+$/, ttl: 86400 * 30, sec: true },  // accessioned: immutable
 ];
 
