@@ -475,6 +475,7 @@ IND.label = function(id, p){
 function fmt(v){
   if(!ok(v)) return '';
   var a = Math.abs(v);
+  if(Number.isInteger(v) && a < 1e4) return String(v);
   if(a >= 1e12) return (v / 1e12).toFixed(2) + 'T';
   if(a >= 1e9) return (v / 1e9).toFixed(2) + 'B';
   if(a >= 1e6) return (v / 1e6).toFixed(2) + 'M';

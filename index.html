@@ -5632,6 +5632,7 @@ function mkChartSync(){
     mode:function(){ return 'area'; },
     prevClose:function(){ return (MK.q[MK.sel] || {}).ref; },
     quote:function(){ return MK.q[MK.sel] || {}; },
+    overlays:indOverlays, after:indPanes,
     time:function(r, withDate){ var o = { hour:'numeric', minute:'2-digit' }; if(withDate){ o.month = 'short'; o.day = 'numeric'; } return new Date(r.t * 1000).toLocaleString('en-US', o); }
   });
   if(MKCH.key !== MK.sel + '|' + MK.rng) MKCH.start(); else MKCH.soon();
@@ -5671,7 +5672,7 @@ function renderMarket(sec){
       '<button data-act="mk-zoom" data-z="0" title="Reset view" aria-label="Reset view">' + railSvg('M12 5V2L8 6l4 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z', 15) + '</button></div>' +
       '<div class="mk-legend"><span><i class="up"></i>Up today</span><span><i class="down"></i>Down today</span><span class="mut">Hover for details · click to chart · pinch or + / \u2212 to zoom</span></div></div>' +
     '</div></div>' +
-    '<div class="section card mk-detail" id="mkDetail"><div id="mkDetHead"></div><div class="chart-box ch-md" id="mkChartHost"></div><div class="mk-stats" id="mkStats"></div></div>' +
+    '<div class="section card mk-detail" id="mkDetail"><div id="mkDetHead"></div><div class="chart-toolbar">' + indBtnHTML() + '</div>' + indPanelHTML() + '<div class="chart-box ch-md" id="mkChartHost"></div><div id="indPanes"></div><div class="legend" id="mkInd">' + indChipsHTML() + '</div><div class="mk-stats" id="mkStats"></div></div>' +
     '<div class="section"><div class="section-head"><h2 id="mkListH">Indices</h2><div class="seg mk-sort" id="mkSort"></div></div><div class="mk-list" id="mkList"></div></div>' +
     MK_SECS.map(function(g){ return '<div class="section" id="mk-' + g[0] + '"><div class="section-head"><h2>' + esc(g[1]) + '</h2></div><div class="mk-grid" id="mkg-' + g[0] + '"></div></div>'; }).join('') +
     footerHTML();
@@ -7283,8 +7284,7 @@ function paintQuote(){
       ((CHART_TYPES.filter(function(m){ return m[0] === CUR.chart; })[0] || CHART_TYPES[0])[1]) + ' ▾</button>' +
     '<button class="tbtn" data-act="menu-compare"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zm10 6h-6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V10a1 1 0 0 0-1-1z"/></svg> Compare ▾' +
       (Object.keys(CUR.cmp).length ? ' (' + Object.keys(CUR.cmp).length + ')' : '') + '</button>' +
-    '<button class="tbtn' + (indActive().length ? ' on' : '') + '" data-act="ind-toggle" aria-expanded="' + !!CUR.indOpen + '" id="indBtn">' +
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 20V10h3v10H4zm6.5 0V4h3v16h-3zM17 20v-7h3v7h-3z"/></svg> Indicators' + (indActive().length ? ' (' + indActive().length + ')' : '') + ' ▾</button>' +
+    indBtnHTML() +
     '<span class="grow"></span>' +
     '<span class="mut" style="font-size:12px">' + (Q.hist && Q.hist.length ? Q.hist.length + ' points' : '') + '</span>' +
     '</div>';
@@ -7324,6 +7324,20 @@ CUR.inds = (function(){
 function indActive(){ return CUR.inds.filter(function(it){ return it.id !== 'vol'; }); }
 function indVolOn(){ return CUR.inds.some(function(it){ return it.id === 'vol'; }); }
 function indSave(){ save('fh3_inds', CUR.inds); }
+function indBtnHTML(){
+  return '<button class="tbtn' + (indActive().length ? ' on' : '') + '" data-act="ind-toggle" aria-expanded="' + !!CUR.indOpen + '" id="indBtn">' +
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 20V10h3v10H4zm6.5 0V4h3v16h-3zM17 20v-7h3v7h-3z"/></svg> Indicators' + (indActive().length ? ' (' + indActive().length + ')' : '') + ' ▾</button>';
+}
+function indChart(){ return CUR.view === 'market' ? MKCH : QCH; }
+function indChipsHTML(){
+  return indActive().map(function(it){
+    var d = IND.byId[it.id], has = Object.keys(d.p).length;
+    return '<span class="ind-chip"><span class="sw" style="background:' + d.col + '"></span>' +
+      (has ? '<button data-act="ind-edit" data-id="' + it.id + '" title="Change settings">' + esc(IND.label(it.id, it.p)) + '</button>' : esc(IND.label(it.id, it.p))) +
+      '<button class="x" data-act="ind-rm" data-id="' + it.id + '" aria-label="Remove ' + esc(d.short) + '">×</button></span>';
+  }).join('');
+}
+function indChipsPaint(){ renderChartLegend(); var el = $('mkInd'); if(el) el.innerHTML = indChipsHTML(); }
 function indPanelHTML(){
   var item = function(d){ return '<button type="button" class="ind-i' + (CUR.inds.some(function(it){ return it.id === d.id; }) ? ' on' : '') + '" role="checkbox" data-act="ind2" data-id="' + d.id + '"><i></i><span>' + esc(d.name) + '</span></button>'; };
   var top = IND.top10.map(function(id){ return item(IND.byId[id]); }).join('');
@@ -7350,11 +7364,11 @@ function indToggle(id, force){
   else if(at < 0){
     var it = { id:id, p:IND.defaults(id) };
     if(id === 'avwap' || id === 'frvp'){   // anchored at the left edge of what is on screen now
-      var r = QCH && QCH.main ? QCH.main() : []; if(r.length) it.at = r[clamp(Math.ceil(QCH.i0), 0, r.length - 1)].t;
+      var ch = indChart(), r = ch && ch.main ? ch.main() : []; if(r.length) it.at = r[clamp(Math.ceil(ch.i0), 0, r.length - 1)].t;
     }
     CUR.inds.push(it);
   }
-  indSave(); indPanelSync(); renderChartLegend(); if(QCH) QCH.soon();
+  indSave(); indPanelSync(); indChipsPaint(); if(indChart()) indChart().soon();
 }
 function indEdit(id){
   var it = CUR.inds.filter(function(x){ return x.id === id; })[0], d = IND.byId[id]; if(!it) return;
@@ -7362,21 +7376,28 @@ function indEdit(id){
   askText(d.short + ' settings', keys.join(', '), keys.map(function(k){ return it.p[k] != null ? it.p[k] : d.p[k]; }).join(', '), function(v){
     var nums = String(v).split(/[\s,]+/).filter(Boolean).map(parseFloat);
     keys.forEach(function(k, i){ if(isFinite(nums[i]) && nums[i] > 0) it.p[k] = nums[i]; });
-    indSave(); renderChartLegend(); if(QCH) QCH.soon();
+    indSave(); indChipsPaint(); if(indChart()) indChart().soon();
   });
+}
+function mkYear(c, sym){   // Market page: the 52-week range from a year of daily bars, loaded the first time it is asked for
+  if(!CUR.inds.some(function(it){ return it.id === 'hilo52'; })) return {};
+  var d = CH_DATA['y|' + sym + '|d'];
+  if(!d){ chLoadY(sym, 'd').then(c.soon); return {}; }
+  var last = d.slice(-252);
+  return last.length > 20 ? { hi52:Math.max.apply(null, last.map(function(x){ return x.h != null ? x.h : x.c; })), lo52:Math.min.apply(null, last.map(function(x){ return x.l != null ? x.l : x.c; })) } : {};
 }
 /* One computed spec per indicator and view; recomputed only when the bars or the settings change. */
 function indSpecs(c){
   var r = c.main(), out = [];
   if(r.length < 2) return out;
-  var sym = dispSym(CUR.sym), intra = !!CH_INTRA[c.lv], last = r[r.length - 1], st = Q.stats || {};
+  var isMk = c.o.id === 'mk', sym = isMk ? MK.sel : dispSym(CUR.sym), intra = !!CH_INTRA[c.lv], last = r[r.length - 1], st = isMk ? mkYear(c, sym) : (Q.stats || {});
   c.indc = c.indc || {};
   if(Object.keys(c.indc).length > 60) c.indc = {};
   var spy = null;
   if(CUR.inds.some(function(it){ return it.id === 'corr'; })){
-    var sr = CH_DATA['q|SPY|' + c.lv];
+    var sr = CH_DATA[(isMk ? 'y|' : 'q|') + 'SPY|' + c.lv];
     if(sym === 'SPY') spy = r.map(function(x){ return x.c; });
-    else if(!sr) chLoad('SPY', c.lv).then(c.soon);
+    else if(!sr) (isMk ? chLoadY : chLoad)('SPY', c.lv).then(c.soon);
     else if(sr.length > 1) spy = r.map(function(x){ var o = chAsOf(sr, x.t); return o ? o.c : null; });
   }
   CUR.inds.forEach(function(it){
@@ -7420,12 +7441,7 @@ function renderChartLegend(){
   if(!el) return;
   var q = DATA.quotes[dispSym(CUR.sym)] || {};
   var items = ['<span><span class="sw" style="background:' + ((chgFrom(q).pct == null || chgFrom(q).pct >= 0) ? 'var(--fh-positive)' : 'var(--fh-negative)') + '"></span>' + esc(dispSym(CUR.sym)) + '</span>'];
-  indActive().forEach(function(it){
-    var d = IND.byId[it.id], has = Object.keys(d.p).length;
-    items.push('<span class="ind-chip"><span class="sw" style="background:' + d.col + '"></span>' +
-      (has ? '<button data-act="ind-edit" data-id="' + it.id + '" title="Change settings">' + esc(IND.label(it.id, it.p)) + '</button>' : esc(IND.label(it.id, it.p))) +
-      '<button class="x" data-act="ind-rm" data-id="' + it.id + '" aria-label="Remove ' + esc(d.short) + '">×</button></span>');
-  });
+  if(indActive().length) items.push(indChipsHTML());
   var i = 0;
   Object.keys(CUR.cmp).forEach(function(k){
     i++;
