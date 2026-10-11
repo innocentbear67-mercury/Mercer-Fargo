@@ -491,12 +491,12 @@ var MH = (function(){
   function parseReply(ep, j){
     if(ep.wire === 'a' || ep.wire === 'm'){
       var content = j.content || [];
-      return { raw:content, text:content.filter(function(c){ return c.type === 'text'; }).map(function(c){ return c.text; }).join('\n').trim(),
+      return { raw:content, text:content.filter(function(c){ return c.type === 'text'; }).map(function(c){ return c.text; }).join('\n').trim(), full:content.filter(function(c){ return c.type === 'text'; }).map(function(c){ return c.text; }).join('\n'),
         calls:content.filter(function(c){ return c.type === 'tool_use'; }).map(function(c){ return { id:c.id, name:c.name, args:c.input || {} }; }), cut:j.stop_reason === 'max_tokens', pause:j.stop_reason === 'pause_turn' };
     }
     if(ep.wire === 'g'){
       var cand = (j.candidates || [])[0] || {}, parts = (cand.content || {}).parts || [];
-      return { raw:parts, text:parts.filter(function(p){ return p.text && !p.thought; }).map(function(p){ return p.text; }).join('\n').trim(),
+      return { raw:parts, text:parts.filter(function(p){ return p.text && !p.thought; }).map(function(p){ return p.text; }).join('\n').trim(), full:parts.filter(function(p){ return p.text && !p.thought; }).map(function(p){ return p.text; }).join('\n'),
         calls:parts.filter(function(p){ return p.functionCall; }).map(function(p, i){ return { id:'g' + Date.now() + i, name:p.functionCall.name, args:p.functionCall.args || {} }; }), cut:cand.finishReason === 'MAX_TOKENS' };
     }
     if(ep.wire === 'r'){
@@ -505,7 +505,7 @@ var MH = (function(){
         calls:out.filter(function(o){ return o.type === 'function_call'; }).map(function(o){ return { id:o.call_id, name:o.name, args:parseArgs(o.arguments) }; }), cut:(j.incomplete_details || {}).reason === 'max_output_tokens' };
     }
     var ch = (j.choices || [])[0] || {}, msg = ch.message || {};
-    return { raw:msg, text:String(msg.content || '').trim(),
+    return { raw:msg, text:String(msg.content || '').trim(), full:String(msg.content || ''),
       calls:(msg.tool_calls || []).map(function(c, i){ return { id:c.id || ('c' + Date.now() + i), name:(c.function || {}).name, args:parseArgs((c.function || {}).arguments) }; }), cut:ch.finish_reason === 'length' };
   }
 
@@ -532,7 +532,7 @@ var MH = (function(){
     var maxRounds = o.maxRounds || (mode === 'research' ? 40 : 15), deadline = Date.now() + (o.maxMs || (mode === 'research' ? 600000 : 240000));
     var hist = (o.history || []).map(function(m){ return { role:m.role, content:m.content, text:m.content, calls:[], raw:m.role === 'assistant' ? aiAssistantRaw(ep, m.content) : null }; });
     hist.push({ role:'user', content:o.user, images:o.images || [] });
-    var sources = [], acts = [], rounds = 0, stop = o.stop || {}, nat = nativeSearch(ep, model), natOff = false;
+    var sources = [], acts = [], rounds = 0, stop = o.stop || {}, nat = nativeSearch(ep, model), natOff = false, carry = '', cuts = 0;
     var ctx = {
       source:function(title, url){
         var hit = sources.filter(function(x){ return x.url === url && url; })[0];
@@ -608,7 +608,15 @@ var MH = (function(){
         }
         if(!r.calls.length){
           if(!r.text && r.cut) throw new Error('The model ran out of output tokens while thinking. Raise the effort level or pick another model.');
-          return r.text;
+          if(r.cut && cuts < 3){   // a long answer hit the output limit mid-sentence: have the model carry on, then join the parts
+            cuts++; carry += (r.full != null ? r.full : r.text);
+            hist.push({ role:'assistant', text:r.text, calls:[], raw:r.raw });
+            hist.push({ role:'user', content:'Your last message was cut off by the output limit. Continue exactly where it stopped, without repeating anything or adding a preamble.', images:[] });
+            step({ kind:'round', label:'Continuing the answer', detail:'output limit reached' });
+            return loop();
+          }
+          var whole = (carry + (r.full != null ? r.full : r.text)).trim(); carry = '';
+          return whole;
         }
         hist.push({ role:'assistant', text:r.text, calls:r.calls, raw:r.raw });
         return execAll(r.calls).then(function(results){
@@ -621,7 +629,7 @@ var MH = (function(){
       if(stop.stopped || mode !== 'research' || !text) return text;
       hist.push({ role:'assistant', text:text, calls:[], raw:aiAssistantRaw(ep, text) });
       step({ kind:'round', label:'Checking the report against its sources' });
-      return call(true, REVIEW_PROMPT).then(function(r){ return r.text && r.text.length > text.length * 0.5 ? r.text : text; }, function(){ return text; });
+      return call(true, REVIEW_PROMPT).then(function(r){ return r.text && !r.cut && r.text.length > text.length * 0.5 ? r.text : text; }, function(){ return text; });   // a review cut off by the output limit would drop the end of the report: keep the draft
     }).then(function(text){
       return { text:text || '', sources:sources, acts:acts, rounds:rounds, stopped:!!stop.stopped };
     });
