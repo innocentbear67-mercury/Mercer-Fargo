@@ -3735,8 +3735,8 @@ function renderChart(){
       quote:function(){ return DATA.quotes[dispSym(CUR.sym)] || {}; },
       time:barTime,
       markers:function(c){   // loaded once per symbol; the chart redraws when they arrive
-        // Corporate-event circles are only shown on timeframes shorter than five years.
-        if(CUR.ind.events === false || CUR.range === '5Y' || CUR.range === 'MAX') return [];
+        // Keep corporate-event circles through 5Y; hide them on MAX to avoid clutter.
+        if(CUR.ind.events === false || CUR.range === 'MAX') return [];
         var s = dispSym(CUR.sym);
         if(!chEvents.got || chEvents.got.s !== s){ chEvents.got = { s:s, list:[] }; chEvents(s).then(function(l){ if(chEvents.got.s === s){ chEvents.got.list = l; c.soon(); } }); }
         return chEvents.got.list;
