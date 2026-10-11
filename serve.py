@@ -508,7 +508,8 @@ class Handler(SimpleHTTPRequestHandler):
                "^HSI": "^HSI", "^SHC": "000001.SS", "^NDQ": "^NDX", "^VIX": "^VIX",
                "ES.F": "ES=F", "NQ.F": "NQ=F", "YM.F": "YM=F", "GC.F": "GC=F", "CL.F": "CL=F"}
 
-    OA_RANGE = {"1D": ("1d", "5m"), "5D": ("5d", "15m"), "1M": ("1mo", "1d"),
+    OA_RANGE = {"M1": ("5d", "1m"), "M5": ("1d", "5m"), "M15": ("5d", "15m"), "H1": ("6mo", "60m"), "H4": ("6mo", "60m"),
+                "1D": ("1d", "5m"), "5D": ("5d", "15m"), "1M": ("1mo", "1d"),
                 "6M": ("6mo", "1d"), "YTD": ("ytd", "1d"), "1Y": ("1y", "1d"),
                 "5Y": ("5y", "1wk"), "MAX": ("max", "1mo")}
 

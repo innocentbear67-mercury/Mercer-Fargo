@@ -8,7 +8,7 @@ const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers
 
 // Mirrors serve.py OA_YMAP / OA_RANGE. Third RANGE element = edge cache seconds.
 const YMAP = { '^SPX': '^GSPC', '^IQX': '^IXIC', '^DJI': '^DJI', '^RUT': '^RUT', '^UKX': '^FTSE', '^DAX': '^GDAXI', '^CAC': '^FCHI', '^NKX': '^N225', '^HSI': '^HSI', '^SHC': '000001.SS', '^NDQ': '^NDX', '^VIX': '^VIX', 'ES.F': 'ES=F', 'NQ.F': 'NQ=F', 'YM.F': 'YM=F', 'GC.F': 'GC=F', 'CL.F': 'CL=F' };
-const RANGE = { '1D': ['1d', '5m', 120], '5D': ['5d', '15m', 120], '1M': ['1mo', '1d', 1800], '6M': ['6mo', '1d', 1800], 'YTD': ['ytd', '1d', 1800], '1Y': ['1y', '1d', 1800], '5Y': ['5y', '1wk', 3600], 'MAX': ['max', '1mo', 86400] };
+const RANGE = { 'M1': ['5d', '1m', 60], 'M5': ['1d', '5m', 120], 'M15': ['5d', '15m', 120], 'H1': ['6mo', '60m', 300], 'H4': ['6mo', '60m', 300], '1D': ['1d', '5m', 120], '5D': ['5d', '15m', 120], '1M': ['1mo', '1d', 1800], '6M': ['6mo', '1d', 1800], 'YTD': ['ytd', '1d', 1800], '1Y': ['1y', '1d', 1800], '5Y': ['5y', '1wk', 3600], 'MAX': ['max', '1mo', 86400] };
 
 function json(o, status, maxAge) {
   return new Response(JSON.stringify(o), { status, headers: Object.assign({ 'content-type': 'application/json', 'cache-control': 'public, max-age=' + maxAge }, cors) });

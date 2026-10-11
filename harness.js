@@ -300,7 +300,7 @@ var MH = (function(){
     open_quote:{
       modes:'chat', label:function(a){ return '↗ Opening ' + a.symbol; },
       description:'Open a symbol\'s quote page for the user, optionally on a tab and chart range.',
-      params:S({ symbol:STR('Ticker'), tab:STR('Tab', ['overview', 'analysis', 'earnings', 'financials', 'holdings', 'research']), range:STR('Chart range', ['1D', '5D', '1M', '6M', 'YTD', '1Y', '5Y', 'MAX']) }, ['symbol']),
+      params:S({ symbol:STR('Ticker'), tab:STR('Tab', ['overview', 'analysis', 'earnings', 'financials', 'holdings', 'research']), range:STR('Chart range', ['M1', 'M5', 'M15', 'H1', 'H4', '5D', '1M', '6M', 'YTD', '1Y', '5Y', 'MAX']) }, ['symbol']),
       run:function(a, ctx){ return ctx.act({ do:'open_quote', symbol:a.symbol, tab:a.tab, range:a.range }); }
     },
     navigate:{
@@ -328,7 +328,7 @@ var MH = (function(){
     set_chart:{
       modes:'chat', label:function(){ return '↗ Adjusting the chart'; },
       description:'Change the chart on the open quote page: type, range, comparison overlays and moving averages.',
-      params:S({ type:STR('Chart type', ['area', 'line', 'candles']), range:STR('Range', ['1D', '5D', '1M', '6M', 'YTD', '1Y', '5Y', 'MAX']),
+      params:S({ type:STR('Chart type', ['area', 'line', 'candles']), range:STR('Range', ['M1', 'M5', 'M15', 'H1', 'H4', '5D', '1M', '6M', 'YTD', '1Y', '5Y', 'MAX']),
         overlays:ARR('Up to 4 tickers to overlay, e.g. ["SPY","QQQ"]; [] clears'), moving_averages:ARR('Any of ma20, ma50, ma200; [] clears') }),
       run:function(a){
         if(CUR.view !== 'quote') throw new Error('no quote page is open; call open_quote first');
