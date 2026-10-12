@@ -4234,20 +4234,58 @@ function chEvents(sym){
     return Promise.all([fetchJSON(u + 'company/' + encodeURIComponent(s) + '/earnings-surprise', 12000).catch(function(){ return null; }),
       fetchJSON(u + 'analyst/' + encodeURIComponent(s) + '/earnings-date', 12000).catch(function(){ return null; })]).then(function(r){
       var rows = (((r[0] || {}).data || {}).earningsSurpriseTable || {}).rows || [], txt = (((r[1] || {}).data || {}).reportText) || '';
-      var out = rows.map(function(x){ return { date:md(x.dateReported), period:x.fiscalQtrEnd, year:'', eps_actual:numOf(x.eps), eps_est:numOf(x.consensusForecast) }; });
+      var out = rows.map(function(x){ return { date:md(x.dateReported), period:'Quarter to ' + String(x.fiscalQtrEnd || '').slice(0, 3), year:String(x.fiscalQtrEnd || '').slice(4), eps_actual:numOf(x.eps), eps_est:numOf(x.consensusForecast) }; });
       var nd = md((/report earnings on\s+([\d\/]+)/.exec(txt) || [])[1]), est = /forecast for the quarter is\s+\$(-?\d+(?:\.\d+)?)/.exec(txt);
       if(nd) out.push({ date:nd, period:'Next report', year:'', eps_actual:null, eps_est:est ? +est[1] : null, confirmed:!/estimated/i.test(txt) });
       return { data:out.filter(function(e){ return e.date; }) };
     });
   };
-  return (EVT[s] = Promise.all([sa('earnings').then(function(j){ return j && j.data && j.data.length ? j : nq(); }), sa('dividend'), fetchJSON(OC_PROXY + '/api/events?symbol=' + encodeURIComponent(s), 10000).catch(function(){ return null; })]).then(function(res){
+  /* Older reports from SEC (US filers): each 8-K with item 2.02 (results of operations) is a report date, and the quarter it
+     covers takes GAAP diluted EPS and revenue from XBRL. Q4 is the full year minus the 9-month figure. */
+  var secE = function(){
+    var MON = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ');
+    return secCikFor(s).then(function(cik){
+      return Promise.all([fetchJSON('https://data.sec.gov/submissions/CIK' + cik + '.json', 20000), fetchJSON('https://data.sec.gov/api/xbrl/companyfacts/CIK' + cik + '.json', 25000)]);
+    }).then(function(r){
+      var rc = (r[0].filings || {}).recent || {}, g = (r[1].facts || {})['us-gaap'] || {};
+      var unit = function(k){ var f = g[k]; return f && f.units ? f.units[Object.keys(f.units)[0]] || [] : []; };
+      var eps = unit('EarningsPerShareDiluted'); if(!eps.length) eps = unit('EarningsPerShareBasic');
+      var rev = unit('RevenueFromContractWithCustomerExcludingAssessedTax'); if(!rev.length) rev = unit('Revenues');
+      var days = function(x){ return (Date.parse(x.end) - Date.parse(x.start)) / 864e5; };
+      var qv = function(arr, end){
+        var q = arr.filter(function(x){ return x.end === end && days(x) > 80 && days(x) < 100; })[0]; if(q) return q.val;
+        var fy = arr.filter(function(x){ return x.end === end && days(x) > 350 && days(x) < 380; })[0]; if(!fy) return null;
+        var m9 = arr.filter(function(x){ return x.start === fy.start && days(x) > 260 && days(x) < 290; })[0];
+        return m9 ? Math.round((fy.val - m9.val) * 100) / 100 : null;
+      };
+      var ends = {}; eps.forEach(function(x){ ends[x.end] = 1; }); ends = Object.keys(ends).sort();
+      var out = [];
+      (rc.form || []).forEach(function(f, i){
+        if(f !== '8-K' || String((rc.items || [])[i]).indexOf('2.02') < 0) return;
+        var d = rc.filingDate[i], end = ends.filter(function(e){ return e < d && (Date.parse(d) - Date.parse(e)) / 864e5 <= 75; }).pop();
+        var v = end ? qv(eps, end) : null; if(v == null) return;
+        out.push({ date:d, period:'Quarter to ' + MON[+end.slice(5, 7) - 1], year:end.slice(0, 4), eps_actual:v, revenue_actual:qv(rev, end), gaap:true });
+      });
+      return out;
+    }).catch(function(){ return []; });
+  };
+  var hosted = function(){   // Nasdaq's last 4 (with estimates) and next date win; SEC fills in the years before
+    return Promise.all([nq(), secE()]).then(function(r){
+      var nd = r[0].data, near = function(d){ return nd.some(function(e){ return Math.abs(Date.parse(e.date) - Date.parse(d)) < 12 * 864e5; }); };
+      return { data:nd.concat(r[1].filter(function(e){ return !near(e.date); })) };
+    });
+  };
+  return (EVT[s] = Promise.all([sa('earnings').then(function(j){ return j && j.data && j.data.length ? j : hosted(); }), sa('dividend'), fetchJSON(OC_PROXY + '/api/events?symbol=' + encodeURIComponent(s), 10000).catch(function(){ return null; })]).then(function(res){
     var out = [];
+    ((res[0] && res[0].data) || []).forEach(function(e){   // SEC reports per-share figures as filed: restate them for later splits, like the chart's prices
+      if(e.gaap) ((res[2] && res[2].splits) || []).forEach(function(x){ if(x.d > e.date && x.num > 0 && x.den > 0) e.eps_actual = Math.round(e.eps_actual * x.den / x.num * 100) / 100; });
+    });
     var earn = ((res[0] && res[0].data) || []).filter(function(e){ return e && e.date; }).sort(function(a, b){ return a.date < b.date ? -1 : 1; }), prevE = null, nextShown = false;
     earn.forEach(function(e){
       var q = (e.period || '') + ' ' + (e.year || ''), rev = e.revenue_actual != null ? e.revenue_actual : null;
       if(e.eps_actual != null){
         out.push({ t:T(e.date), k:'E', html:'<b>Earnings · ' + esc(q) + '</b><br><span class="mut">' + esc(e.date) + (e.time === '16:00:00' ? ' · after close' : e.time === '09:00:00' ? ' · before open' : '') + '</span>' +
-          '<br>EPS <b class="num">$' + num(e.eps_actual, 2) + '</b>' + (e.eps_est != null ? ' <span class="mut">(est $' + num(e.eps_est, 2) + ')</span>' : '') +
+          '<br>EPS' + (e.gaap ? ' (GAAP, SEC)' : '') + ' <b class="num">$' + num(e.eps_actual, 2) + '</b>' + (e.eps_est != null ? ' <span class="mut">(est $' + num(e.eps_est, 2) + ')</span>' : '') +
           (prevE ? '<br>vs last report $' + num(prevE.eps_actual, 2) + gr(e.eps_actual, prevE.eps_actual) : '') +
           (rev != null ? '<br>Revenue <b class="num">' + compact(rev) + '</b>' + (prevE && prevE.revenue_actual ? gr(rev, prevE.revenue_actual) : '') : '') });
         prevE = e;
