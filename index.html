@@ -1004,7 +1004,35 @@ body.chart-fs{overflow:hidden}
 .pm-tab:hover{color:var(--fh-foreground-on-surface-emphasis)}
 .pm-tab.on{background:var(--fh-states-branded-medium-selected);color:var(--fh-foreground-on-surface-emphasis);font-weight:600}
 .pm-cols{display:flex;min-height:0;flex:1;overflow:hidden}
-.pm-models{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1.2;min-width:0;overflow-y:auto;padding:6px;border-right:1px solid var(--fh-border-stroke-default)}
+/* thinking effort: the level button and its slider popover */
+.eff-btn{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 10px;border-radius:999px;border:1px solid var(--fh-border-stroke-default);background:transparent;color:var(--fh-foreground-on-surface-default);font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;flex:none}
+.eff-btn:hover{background:var(--fh-states-neutral-hovered)}
+.eff-btn svg{color:var(--fh-foreground-on-surface-de-emphasis)}
+.eff-btn.hi svg{color:var(--mf-gold)}
+.eff-row{display:flex;align-items:center;gap:10px;margin:10px 0 6px;font-size:13px}
+.eff-pop{position:fixed;z-index:200;width:min(300px,calc(100vw - 16px));box-sizing:border-box;padding:14px 16px 12px;border-radius:16px;background:#1f1f1f;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 40px rgba(0,0,0,.45);color:#e8e6e3;font-size:14px;animation:effIn .14s ease-out}
+:root:not([data-theme="dark"]) .eff-pop{background:#fff;border-color:#e3e3e6;color:#1d1d1f;box-shadow:0 12px 40px rgba(0,0,0,.18)}
+@keyframes effIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.eff-head{display:flex;align-items:center;gap:8px;font-size:17px}
+.eff-head>span:first-child{opacity:.55}
+.eff-head b{font-weight:500}
+.eff-help{width:20px;height:20px;border-radius:50%;border:1.5px solid currentColor;opacity:.55;display:inline-flex;align-items:center;justify-content:center;font-size:12px;cursor:help}
+.eff-ends{display:flex;justify-content:space-between;margin:14px 0 8px;opacity:.55;font-size:14px}
+.eff-track{position:relative;height:36px;border-radius:10px;background:rgba(255,255,255,.08);cursor:pointer;outline:none;touch-action:none}
+:root:not([data-theme="dark"]) .eff-track{background:#ececef}
+.eff-track:focus-visible{box-shadow:0 0 0 2px var(--mf-gold)}
+.eff-fill{position:absolute;left:0;top:0;bottom:0;border-radius:10px 0 0 10px;background:rgba(255,255,255,.12)}
+:root:not([data-theme="dark"]) .eff-fill{background:#dcdce0}
+.eff-dot{position:absolute;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:currentColor;opacity:.35}
+.eff-dot.rec{width:3px;height:14px;margin:-7px 0 0 -1.5px;border-radius:2px;opacity:.5}
+.eff-thumb{position:absolute;top:2px;bottom:2px;width:32px;margin-left:-16px;border-radius:9px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:left .14s ease}
+:root:not([data-theme="dark"]) .eff-thumb{background:#1d1d1f}
+.eff-fill{transition:width .14s ease}
+.eff-tip{position:absolute;bottom:calc(100% + 6px);transform:translateX(-50%);padding:5px 10px;border-radius:8px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;font-size:14px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .1s}
+.eff-tip.on{opacity:1}
+.eff-recl{position:relative;display:inline-block;transform:translateX(-50%);margin-top:8px;font-size:13.5px;opacity:.55;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.eff-thumb,.eff-fill{transition:none}.eff-pop{animation:none}}
+.pm-models{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1.2;min-width:0;overflow-y:auto;padding:6px}
 .pm-effort{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1;min-width:0;overflow-y:auto;padding:6px}
 .pm-m,.pm-e{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;border-radius:10px;color:inherit;font:inherit;font-size:13px;padding:7px 10px;cursor:pointer;text-align:left}
 .pm-m:hover,.pm-e:hover{background:var(--fh-states-neutral-hovered)}
@@ -2519,6 +2547,7 @@ body.rs-drag iframe{pointer-events:none}
           <span class="ap-name" id="aiPickLabel">Choose model</span>
           <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15.5 5 8.5 6.4 7.1 12 12.7l5.6-5.6L19 8.5z"/></svg>
         </button>
+        <button type="button" class="eff-btn" data-act="eff-open" data-c="chat" title="Thinking effort" aria-haspopup="dialog"><span class="eff-lv">High</span></button>
         <span class="grow"></span>
         <button class="icon-btn sm" id="micBtn" title="Dictate a question" aria-label="Dictate a question">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12h-2z"/></svg>
@@ -8676,11 +8705,69 @@ var AI_EFFORT = {
   ultra:{ label:'Ultra', t:0.7, mt:8000, hint:'everything, slowest' }
 };
 var AI_EFFORT_LEGACY = { med:'medium' };
-function aiEffortKey(){ var k = AI_EFFORT_LEGACY[KEYS.effort] || KEYS.effort; return AI_EFFORT[k] ? k : 'medium'; }
+function aiEffortKey(){ var k = AI_EFFORT_LEGACY[KEYS.effort] || KEYS.effort; return AI_EFFORT[k] ? k : 'high'; }
 function aiThinking(){ return true; }   // always on; Minimal effort is the floor
 var GEMINI_THINK_BUDGET = { minimal:512, low:1024, medium:2048, high:4096, xhigh:8192, max:16384, ultra:24576 };
 function noTemp(model){ return /(^|\/)o\d|(^|\/)gpt-[56]|reasoner/i.test(model || ''); }
 function aiEffort(){ return AI_EFFORT[aiEffortKey()]; }
+/* ---- Thinking effort: one slider per mode (Agent, Deep Research, Quant), Faster to Smarter, High recommended.
+   A small button shows the level; it opens a popover with a snapping track: drag, click a stop, or use the arrow keys. */
+var EFF_SHORT = { minimal:'Minimal', low:'Low', medium:'Medium', high:'High', xhigh:'Extra', max:'Max', ultra:'Ultra' }, EFF_REC = 'high';
+var EFF_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4a9 9 0 0 0-9 9c0 1.9.6 3.7 1.6 5.1l1.6-1.2A7 7 0 1 1 19 13a7 7 0 0 1-1.2 3.9l1.6 1.2A9 9 0 0 0 12 4zm4.2 4.4-5.5 4.1a1.6 1.6 0 1 0 2.2 2.2z"/></svg>';
+function qnEffortKey(){ return AI_EFFORT[CFG.qnEffort] ? CFG.qnEffort : 'high'; }
+function effGet(c){ return c === 'rs' ? rsEffortKey() : c === 'qn' ? qnEffortKey() : aiEffortKey(); }
+function effSet(c, k){
+  if(c === 'rs'){ RS.effort = k; rsSaveCfg(); syncRsSetupLabel(); }
+  else if(c === 'qn'){ CFG.qnEffort = k; saveCfg(); }
+  else { KEYS.effort = k; saveKeys(); paintAiPick(); updateAiChip(); }
+  effPaintAll();
+}
+function effBtnHTML(c){ return '<button type="button" class="eff-btn" data-act="eff-open" data-c="' + c + '" title="Thinking effort" aria-haspopup="dialog">' + EFF_ICON + '<span class="eff-lv">' + EFF_SHORT[effGet(c)] + '</span></button>'; }
+function effPaintAll(){
+  [].forEach.call(document.querySelectorAll('.eff-btn'), function(b){
+    var c = b.getAttribute('data-c'), lv = b.querySelector('.eff-lv'); if(!b.querySelector('svg')) b.insertAdjacentHTML('afterbegin', EFF_ICON);
+    if(lv) lv.textContent = EFF_SHORT[effGet(c)]; b.classList.toggle('hi', Object.keys(AI_EFFORT).indexOf(effGet(c)) > 3);
+  });
+}
+function effClose(){ var p = $('effPop'); if(p) p.remove(); }
+function effOpen(btn){
+  var was = $('effPop'), c = btn.getAttribute('data-c'); effClose(); if(was && was._btn === btn) return;   // second click closes
+  var ks = Object.keys(AI_EFFORT), n = ks.length, at = function(i){ return 'calc(18px + (100% - 36px) * ' + i + ' / ' + (n - 1) + ')'; };
+  var pop = document.createElement('div'); pop.className = 'eff-pop'; pop.id = 'effPop'; pop._btn = btn; pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', 'Thinking effort');
+  pop.innerHTML = '<div class="eff-head"><span>Effort</span><b class="eff-name"></b><span class="grow"></span>' +
+      '<span class="eff-help" tabindex="0" title="How long Marvell thinks before answering. Higher effort is more careful but slower and uses more of your AI credit. High suits most questions.">?</span></div>' +
+    '<div class="eff-ends"><span>Faster</span><span>Smarter</span></div>' +
+    '<div class="eff-track" tabindex="0" role="slider" aria-label="Thinking effort" aria-valuemin="0" aria-valuemax="' + (n - 1) + '"><i class="eff-fill"></i>' +
+      ks.map(function(k, i){ return '<i class="eff-dot' + (k === EFF_REC ? ' rec' : '') + '" style="left:' + at(i) + '"></i>'; }).join('') +
+      '<b class="eff-thumb"></b><span class="eff-tip"></span></div>' +
+    '<div class="eff-recl" style="left:' + at(ks.indexOf(EFF_REC)) + '">Recommended</div>';
+  document.body.appendChild(pop);
+  var track = pop.querySelector('.eff-track'), tip = pop.querySelector('.eff-tip'), drag = false;
+  var paint = function(){
+    var i = ks.indexOf(effGet(c)); pop.querySelector('.eff-name').textContent = AI_EFFORT[ks[i]].label;
+    pop.querySelector('.eff-thumb').style.left = at(i); pop.querySelector('.eff-fill').style.width = at(i);
+    track.setAttribute('aria-valuenow', i); track.setAttribute('aria-valuetext', AI_EFFORT[ks[i]].label);
+  };
+  var show = function(i){ if(i == null){ tip.classList.remove('on'); return; } tip.textContent = EFF_SHORT[ks[i]]; tip.style.left = at(i); tip.classList.add('on'); };
+  var idx = function(e){ var r = track.getBoundingClientRect(); return Math.max(0, Math.min(n - 1, Math.round((e.clientX - r.left - 18) / (r.width - 36) * (n - 1)))); };
+  var pick = function(i){ if(ks[i] !== effGet(c)) effSet(c, ks[i]); paint(); };
+  track.addEventListener('pointerdown', function(e){ drag = true; try{ track.setPointerCapture(e.pointerId); }catch(x){} var i = idx(e); pick(i); show(i); e.preventDefault(); });
+  track.addEventListener('pointermove', function(e){ var i = idx(e); show(i); if(drag) pick(i); });
+  track.addEventListener('pointerup', function(){ drag = false; });
+  track.addEventListener('pointerleave', function(){ if(!drag) show(null); });
+  track.addEventListener('keydown', function(e){
+    var i = ks.indexOf(effGet(c)), j = e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? i - 1 : e.key === 'ArrowRight' || e.key === 'ArrowUp' ? i + 1 : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : null;
+    if(j == null) return; e.preventDefault(); j = Math.max(0, Math.min(n - 1, j)); pick(j); show(j);
+  });
+  paint();
+  var b = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  pop.style.left = Math.max(8, Math.min(innerWidth - w - 8, b.left + b.width / 2 - w / 2)) + 'px';
+  pop.style.top = (b.top - h - 8 >= 8 ? b.top - h - 8 : Math.min(innerHeight - h - 8, b.bottom + 8)) + 'px';
+  track.focus();
+}
+document.addEventListener('pointerdown', function(e){ var p = $('effPop'); if(p && !p.contains(e.target) && !(e.target.closest && e.target.closest('.eff-btn'))) effClose(); }, true);
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && $('effPop')){ var b = $('effPop')._btn; effClose(); if(b) b.focus(); } });
+window.addEventListener('resize', effClose);
 function pickLoad(k, d){ try{ var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; }catch(e){ return d; } }
 function pickSave(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 function pickFavs(){ return pickLoad('fh3_favs', []); }
@@ -8841,7 +8928,7 @@ function renderPicker(){
     return '<button type="button" class="pm-tab' + (pr[0] === prov ? ' on' : '') + '" data-act="pick-prov" data-p="' + esc(pr[0]) + '">' + esc(pr[1]) + '</button>';
   }).join('') + '</div>' +
     (items.length > 10 ? '<div class="pm-search"><input id="pmQ" type="search" autocomplete="off" placeholder="Search ' + items.length + ' models" value="' + esc(PICK.q || '') + '"></div>' : '') +
-    '<div class="pm-cols"><div class="pm-models">' + pickModelsHTML(prov, st, hov, items) + '</div><div class="pm-effort">' + pickEffortHTML(prov, hov, st) + '</div></div><div class="pm-foot">' +
+    '<div class="pm-cols"><div class="pm-models">' + pickModelsHTML(prov, st, hov, items) + '</div></div><div class="pm-foot">' +
     '<button type="button" data-act="pick-refresh">↻ Refresh</button>' +
     '<button type="button" data-act="pick-add">+ Custom model</button>' +
     (PICK.ctx === 'keys' ? '<button type="button" data-act="pick-key">\U0001F511 API key</button>' : '') +
@@ -8880,10 +8967,10 @@ function aiModelLabel(id){
 }
 function aiPickText(){
   var live = ($('model') && $('keyPanel') && !$('keyPanel').hidden) ? $('model').value.trim() : '';
-  return aiProvLabel(KEYS.provider) + ' · ' + aiModelLabel(live || KEYS.model) + ' · ' + AI_EFFORT[aiEffortKey()].label + ' effort';
+  return aiProvLabel(KEYS.provider) + ' · ' + aiModelLabel(live || KEYS.model);
 }
 function paintAiPick(){
-  var b = $('aiPick'), lbl = $('aiPickLabel'), kp = $('keyPanel');
+  var b = $('aiPick'), lbl = $('aiPickLabel'), kp = $('keyPanel'); effPaintAll();
   if(lbl) lbl.textContent = aiPickText();
   if(b){
     b.classList.toggle('ready', !!KEYS.key);
@@ -9627,25 +9714,26 @@ function aiPost(ep, key, body){
   });
 }
 
-function aiCall(messages, system){
+function aiCall(messages, system, effort){
   var prov = KEYS.provider, model = KEYS.model || AI_DEFAULT_MODEL[prov] || '';
   if(prov === 'anthropic') model = model || 'claude-sonnet-5-5';
   if(prov === 'gemini') model = model || 'gemini-3.8-flash';
   var sys = system || aiSystem(), ep = aiEndpoint(prov, model), body;
-  if(ep.wire === 'a' || ep.wire === 'm') body = { model:model, max_tokens:aiMt(), system:sys, messages:aiShape(messages, 'a') };
+  var ek = AI_EFFORT[effort] ? effort : aiEffortKey(), E = AI_EFFORT[ek], mt = AI_CAP ? Math.min(E.mt, AI_CAP) : E.mt, mtT = mt + (AI_CAP ? 0 : THINK_ROOM[ek] || 4096);
+  if(ep.wire === 'a' || ep.wire === 'm') body = { model:model, max_tokens:mt, system:sys, messages:aiShape(messages, 'a') };
   else if(ep.wire === 'g') body = {
-    generationConfig:{ temperature:aiEffort().t, maxOutputTokens:aiMtThink() },
+    generationConfig:{ temperature:E.t, maxOutputTokens:mtT },
     systemInstruction:{ parts:[{ text:sys }] },
     contents:messages.map(function(m){ return { role:(m.role === 'assistant' ? 'model' : 'user'), parts:(m.images || []).map(function(i){ return { inlineData:{ mimeType:i.mime, data:i.data } }; }).concat([{ text:m.content }]) }; })
   };
-  else if(ep.wire === 'r') body = { model:model, instructions:sys, input:aiShape(messages, 'r'), max_output_tokens:aiMtThink() };
+  else if(ep.wire === 'r') body = { model:model, instructions:sys, input:aiShape(messages, 'r'), max_output_tokens:mtT };
   else {
     body = { model:model || 'gpt-6.1-sol', messages:[{ role:'system', content:sys }].concat(aiShape(messages, 'o')) };
     // OpenAI's GPT-5+/6 reject max_tokens; everyone else still takes it.
-    body[prov === 'openai' ? 'max_completion_tokens' : 'max_tokens'] = aiMtThink();
-    if(!noTemp(body.model)) body.temperature = aiEffort().t;
+    body[prov === 'openai' ? 'max_completion_tokens' : 'max_tokens'] = mtT;
+    if(!noTemp(body.model)) body.temperature = E.t;
   }
-  if(!AI_CAP) aiReason(ep, body.model || model, body, aiEffortKey());   // the key Test stays a tiny, cheap call
+  if(!AI_CAP) aiReason(ep, body.model || model, body, ek);   // the key Test stays a tiny, cheap call
   return aiPost(ep, KEYS.key, body).then(function(j){
     if(ep.wire === 'a' || ep.wire === 'm') return (j.content || []).map(function(c){ return c.type === 'text' ? c.text : ''; }).join('\n').trim();
     if(ep.wire === 'g'){
@@ -10196,7 +10284,7 @@ function renderSettingsPage(sec){
   var h = '';
   if(sec === 'profile') h = settingsProfileHTML();
   else if(sec === 'memory') h = memoryPageHTML();
-  else if(sec === 'ai') h = '<div class="card"><h3 style="margin:0 0 4px">Default model</h3><div class="mut" id="keySummary" style="font-size:13px"></div><div class="pickmenu" id="pickMenuP"></div></div>' +
+  else if(sec === 'ai') h = '<div class="card"><h3 style="margin:0 0 4px">Default model</h3><div class="mut" id="keySummary" style="font-size:13px"></div><div class="eff-row"><span>Agent thinking effort</span>' + effBtnHTML('chat') + '</div><div class="pickmenu" id="pickMenuP"></div></div>' +
     '<div class="card" id="keyCard"></div>';
   else if(sec === 'appearance') h = settingsAppearanceHTML();
   else if(sec === 'data') h = '<div class="card"><h3>Data sources</h3><div class="kv-inline" style="flex-direction:column;gap:6px">' +
@@ -11067,7 +11155,7 @@ function qnStepDone(ok, detail){ var s = QS.steps[QS.steps.length - 1]; if(s){ s
 function qnSpec(q, prev){
   var ask = prev ? 'Current spec:\n' + JSON.stringify(prev.spec) + '\n\nThe user wants this change: ' + q + '\nReturn the full updated spec.' : 'Today is ' + ymd(new Date()) + '. Strategy to test: ' + q;
   var tryOne = function(content, round){
-    return aiCall([{ role:'user', content:content }], QN_SPEC_SYS).then(function(t){
+    return aiCall([{ role:'user', content:content }], QN_SPEC_SYS, qnEffortKey()).then(function(t){
       var sp = jsonFrom(t); if(!sp) throw new Error('The model did not return a strategy spec.');
       return qnLoad(sp).catch(function(e){
         if(round) throw e;
@@ -11129,7 +11217,7 @@ function qnFacts(cur){
 function qnNote(cur){
   return aiCall([{ role:'user', content:qnFacts(cur) + '\n\nWrite JSON: {"headline":"a report-style headline under 14 words","note":"2-3 sentences: what the test shows, with the key numbers",' +
     '"why":"1-2 sentences: why it matters for someone considering this approach","bottom_line":"1-2 sentences","strengths":["3 short points"],"risks":["3 short points, include what could make the past not repeat"],' +
-    '"drivers":"1-2 sentences: what moves the projection most and how the dials change it"}' }], QN_NOTE_SYS).then(function(t){
+    '"drivers":"1-2 sentences: what moves the projection most and how the dials change it"}' }], QN_NOTE_SYS, qnEffortKey()).then(function(t){
     var j = jsonFrom(t); if(!j || !j.headline) throw new Error('no note'); return j;
   });
 }
@@ -11204,7 +11292,7 @@ function qnPaint(focus){
     host.innerHTML = '<div class="qn"><div class="qn-hero"><h2>Quant</h2><p class="mut">Describe a strategy and the conditions to test it under. Marvell writes the rules, backtests them on daily prices, projects them forward, and gives you dials to see how the results move.</p>' +
       (QS.err ? '<div class="qn-err">' + esc(QS.err) + '</div>' : '') +
       '<textarea id="qnQ" rows="4" placeholder="e.g. Buy QQQ when it closes above its 50-day average and VIX is below 20; sell when it closes below. Since 2012.">' + esc(QS.draft || '') + '</textarea>' +
-      '<div class="qn-go"><span class="mut">Ctrl + Enter to run</span><button class="btn filled sm qn-run" data-act="qn-run">Run Quant Analysis</button></div>' +
+      '<div class="qn-go"><span class="mut">Ctrl + Enter to run</span><span class="grow"></span>' + effBtnHTML('qn') + '<button class="btn filled sm qn-run" data-act="qn-run">Run Quant Analysis</button></div>' +
       '<div class="qn-ex">' + QN_EXAMPLES.map(function(x){ return '<button data-act="qn-ex">' + esc(x) + '</button>'; }).join('') + '</div></div>' +
       (QN_RUNS.length ? '<div class="qn-recent"><div class="qn-dgrp">Recent tests</div>' + QN_RUNS.map(function(r){
         return '<button class="qn-rr" data-act="qn-open" data-id="' + esc(r.id) + '"><b>' + esc(r.spec.title || r.q) + '</b><span>' + esc(chatWhen(r.ts)) + ' · ' + esc(r.q.slice(0, 90)) + '</span></button>'; }).join('') + '</div>' : '') + '</div>';
@@ -11231,7 +11319,7 @@ function qnPaint(focus){
     '<details class="qn-box"><summary>Rules, assumptions and trades</summary><div class="qn-rules"><p>' + esc(cur.spec.summary || '') + '</p>' +
       ((cur.spec.assumptions || []).length ? '<ul>' + cur.spec.assumptions.map(function(a){ return '<li>' + esc(a) + '</li>'; }).join('') + '</ul>' : '') +
       (cur.spec.unsupported ? '<p class="mut">Not modelled: ' + esc(cur.spec.unsupported) + '</p>' : '') + qnTradesHTML(cur.bt.trades, 30) + '</div></details>' +
-    '<div class="qn-refine"><input class="inp" id="qnRefine" placeholder="Change something: add a 10% stop loss, test on QQQ, start in 2008…"><button class="btn filled sm qn-run" data-act="qn-refine">Update</button></div>' +
+    '<div class="qn-refine"><input class="inp" id="qnRefine" placeholder="Change something: add a 10% stop loss, test on QQQ, start in 2008…">' + effBtnHTML('qn') + '<button class="btn filled sm qn-run" data-act="qn-refine">Update</button></div>' +
     '<div class="qn-fine mut">Backtests and simulations describe the past and a range of possibilities, not a forecast. Not investment advice.</div></div>';
   qnChartsPaint();
 }
@@ -11529,7 +11617,7 @@ var RS_EFFORT = {
   max:{ label:'Max', t:0.7, mt:24576, hint:'maximum depth' },
   ultra:{ label:'Ultra', t:0.7, mt:32768, hint:'everything, slowest' }
 };
-function rsEffortKey(){ var k = RS.effort === 'med' ? 'medium' : RS.effort; return RS_EFFORT[k] ? k : 'medium'; }
+function rsEffortKey(){ var k = RS.effort === 'med' ? 'medium' : RS.effort; return RS_EFFORT[k] ? k : 'high'; }
 RS.running = false; RS.steps = []; RS.report = ''; RS.tokens = '';
 RS.citations = []; RS.error = null; RS.meta = {}; RS.runs = []; RS.log = [];
 RS.ctl = null; RS.paintAt = 0;
@@ -11689,9 +11777,7 @@ function rsChip(){
 function rsOptsText(){
   var prov = RS.provider || KEYS.provider || 'openrouter';
   var model = ($('rsModel') && $('rsModel').value.trim()) || RS.model || AI_DEFAULT_MODEL[prov] || '';
-  var eff = RS_EFFORT[rsEffortKey()] || RS_EFFORT.med;
-  return aiProvLabel(prov) + ' · ' +
-    (aiModelLabel(model) || model || 'model') + ' · ' + eff.label;
+  return aiProvLabel(prov) + ' · ' + (aiModelLabel(model) || model || 'model') + ' · ' + (RS_EFFORT[rsEffortKey()] || RS_EFFORT.high).label + ' effort';
 }
 function rsOptsSet(open){
   RS.optsOpen = !!open;
@@ -11720,8 +11806,9 @@ function rsPanelHTML(){
     '<span class="ap-k">Setup</span><span class="ap-name">' + esc(rsOptsText()) + '</span>' +
     '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15.5 5 8.5 6.4 7.1 12 12.7l5.6-5.6L19 8.5z"/></svg></button>' +
     '<div class="rs-opts-body"' + (RS.optsOpen ? '' : ' hidden') + '>' +
-    '<div class="rs-opts"><label>Model</label><button type="button" class="ai-pick" style="flex:1" data-act="rspick-open"><span class="ap-name">' + esc(model) + ' · ' + esc(RS_EFFORT[rsEffortKey()].label) + '</span>' +
+    '<div class="rs-opts"><label>Model</label><button type="button" class="ai-pick" style="flex:1" data-act="rspick-open"><span class="ap-name">' + esc(model) + '</span>' +
     '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15.5 5 8.5 6.4 7.1 12 12.7l5.6-5.6L19 8.5z"/></svg></button></div>' +
+    '<div class="rs-opts"><label>Effort</label>' + effBtnHTML('rs') + '</div>' +
     '</div><div class="pickmenu" id="pickMenuR" hidden></div></div></div>';
   h += '</div></div>';
   h += rsLiveHTML() + '<details class="rs-details" id="rsDetails"' + (RS.steps.length ? '' : ' hidden') + '><summary>Activity</summary><div id="rsLog">' + rsStepsHTML() + '</div></details><div id="rsReport">' + rsReportHTML() + '</div>' +
@@ -12064,7 +12151,9 @@ function bindEvents(){
       case 'pick-prov': PICK.prov = el.getAttribute('data-p'); PICK.hov = null; PICK.q = '';
         if(PICK.ctx === 'page' && PICK.prov !== KEYS.provider){ pickSetBoth('page', PICK.prov, AI_DEFAULT_MODEL[PICK.prov] || ''); paintKeysPage(); }
         renderPicker(); break;
-      case 'pick-sel': PICK.prov = el.getAttribute('data-p'); PICK.hov = el.getAttribute('data-m'); pickSetBoth(PICK.ctx, PICK.prov, PICK.hov); renderPicker(); if(PICK.ctx === 'page') paintKeysPage(); break;
+      case 'pick-sel': PICK.prov = el.getAttribute('data-p'); PICK.hov = el.getAttribute('data-m'); pickSetBoth(PICK.ctx, PICK.prov, PICK.hov);
+        if(PICK.ctx === 'page'){ renderPicker(); paintKeysPage(); } else closePicker(); break;   // effort lives on its own slider now
+      case 'eff-open': effOpen(el); break;
       case 'pick-eff': pickSetBoth(PICK.ctx, el.getAttribute('data-p'), el.getAttribute('data-m')); pickApplyEff(PICK.ctx, el.getAttribute('data-e'));
         if(PICK.ctx === 'page'){ paintKeysPage(); renderPicker(); } else closePicker(); break;
       case 'pick-refresh': pickRefresh(); break;

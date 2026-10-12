@@ -158,7 +158,7 @@ The **Agent** tab of the Marvell panel. Open it with *Research with Marvell*; �
 - **Attach** (paperclip): images, PDF, CSV, TXT, MD, JSON and more. Images need a vision-capable model.
 - **Quick analyses** (lightning button): Summary, Bull vs bear, Earnings, Valuation, Risk scan, Sentiment, My watchlist, Portfolio, Deep Search.
 - **Deep Search**: fetches fresh headlines for the question first, then answers.
-- **Model pill** under the box: switch provider/model and Effort (Minimal → Ultra). Thinking is always on; Minimal is the lowest setting.
+- **Model pill** under the box: switch provider and model. Beside it, the **effort button** opens a slider from Faster to Smarter (Minimal, Low, Medium, High, Extra, Max, Ultra); **High is recommended** and is the default. Agent, Deep Research (in its setup) and Quant (by Run Quant Analysis and Update) each keep their own effort. Thinking is always on; Minimal is the lowest setting.
 - **Mic**: dictate a question.
 - **Skills**: type `/` (see `skills`).
 - Actions: Marvell opens pages instantly; creating/adding/deleting and price alerts show an approval card (**Apply** / Dismiss).
@@ -198,7 +198,7 @@ Runs only while the site is open and a key is set. *Enable notifications* allows
 ## api-keys-and-models
 Header key button or Settings → AI & API keys (`#/settings/ai`).
 Providers: OpenRouter, OpenAI, Anthropic, xAI (Grok), Gemini, DeepSeek, Groq, OpenCode Go, OpenCode Zen, Custom (any OpenAI-compatible endpoint).
-Steps: pick a provider, paste the key, **Save**, **Test** (the dot turns green when it works), pick a default model and effort.
+Steps: pick a provider, paste the key, **Save**, **Test** (the dot turns green when it works), pick a default model, and set the Agent's thinking effort with the slider (High recommended).
 OpenRouter lists free models (marked *free*) — a good start for new users. *Refresh models* pulls the live catalog; *Add custom model…* stores other ids.
 Keys stay in this browser and go only to the chosen provider. OpenCode Go/Zen need `serve.py` or the relay; a Go key must use the OpenCode Go provider.
 Thinking is always on: every request asks the model to reason at the chosen effort (Minimal → Ultra). Models that cannot reason just answer.
