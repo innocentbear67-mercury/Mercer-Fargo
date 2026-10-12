@@ -640,6 +640,12 @@ tr:hover .wl-add,.wl-add:focus-visible,.wl-add.on{opacity:1}
 .qn-rules{font-size:13px;line-height:19px}.qn-rules ul{padding-left:18px;margin:6px 0}
 .qn-refine{display:flex;gap:8px}.qn-refine .inp{flex:1;min-width:0}
 .qn-fine{font-size:11.5px;line-height:16px;margin-top:4px}
+.qn-sess{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.qn-turn{display:flex;flex-direction:column;gap:1px;font-size:13px;line-height:18px;padding-left:10px;border-left:2px solid var(--qr)}
+.qn-turn b{font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis)}
+.qn-turn i{font-style:normal;font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.qn-pdfs{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.qn-logrow .cr-main{min-width:0}
 .mt-learn{display:flex;align-items:center;gap:8px;margin:-6px 0 14px 4px;padding:7px 10px;border-radius:10px;background:var(--fh-background-surface-container);font-size:12.5px;line-height:18px;color:var(--fh-foreground-on-surface-default)}
 .mt-learn>svg{flex:none;color:var(--mf-gold)}
 .mt-learn>span{flex:1;min-width:0}
@@ -1384,7 +1390,7 @@ html{overflow-x:clip}
 .drawer{--r:#c1a578}
 .drawer-head{border-bottom:0;padding:12px 14px 6px;gap:6px}
 .rs-tabs{position:relative;flex:0 0 auto;background:var(--fh-background-surface-container);border-radius:999px;padding:3px;gap:0}
-.rs-tabs button{flex:0 0 auto;position:relative;z-index:1;background:none!important;box-shadow:none!important;padding:6px 16px;font-size:13px;transition:color .2s}
+.rs-tabs button{flex:0 0 auto;position:relative;z-index:1;background:none!important;box-shadow:none!important;padding:6px 20px;font-size:13px;transition:color .2s}
 .rs-tabs button.on{color:var(--fh-foreground-on-surface-emphasis)}
 .rs-tabs .thumb{position:absolute;top:3px;bottom:3px;left:3px;width:var(--tw,76px);border-radius:999px;background:var(--fh-background-surface-elevated);box-shadow:var(--fh-elevation-1);
   transition:transform .28s cubic-bezier(.3,.7,.2,1),width .28s cubic-bezier(.3,.7,.2,1)}
@@ -2256,7 +2262,12 @@ body.rs-drag iframe{pointer-events:none}
 .rs-tabs[data-t="quant"] .thumb{--fx:239,68,68}
 .rs-tabs[data-t="quant"] .thumb::after{animation:rsGlow 1.7s ease-in-out infinite}
 #tabQuant.on{color:var(--fh-foreground-on-surface-emphasis)}
-.drawer:not(.full) .rs-tabs button{padding:6px 10px;font-size:12.5px}   /* three modes still leave room for the panel buttons */
+.drawer:not(.full) .rs-tabs button{padding:6px 14px;font-size:12.5px}   /* three modes still leave room for the panel buttons */
+.newqn:hover{color:#ef4444}
+/* rsThumb() adds tabs-mid whenever the switch fits in the middle without touching the buttons on the right */
+.drawer-head.tabs-mid{position:relative}
+.drawer-head.no-lbl .lbl{display:none!important}
+.drawer-head.tabs-mid .rs-tabs{position:absolute;left:50%;top:calc(50% + 3px);transform:translate(-50%,-50%)}
 .drawer-head{container-type:inline-size}
 @container (max-width:420px){ .newsess .lbl,.newres .lbl{display:none} }
 @container (max-width:360px){ .rs-tabs button{padding:6px 7px!important} .tab-deep{display:none} }
@@ -2272,7 +2283,7 @@ body.rs-drag iframe{pointer-events:none}
 /* Full screen: toggle centred and a little larger */
 .drawer.full .rs-tabs{padding:4px}
 .drawer.full .rs-tabs .thumb{top:4px;bottom:4px;left:4px}
-.drawer.full .rs-tabs button{padding:9px 24px;font-size:15.5px}
+.drawer.full .rs-tabs button{padding:9px 30px;font-size:15.5px}
 @container dr (min-width:720px){
   .drawer.full .drawer-head{position:relative;min-height:62px}
   .drawer.full .drawer-head .rs-tabs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
@@ -2472,6 +2483,9 @@ body.rs-drag iframe{pointer-events:none}
     </button>
     <button class="newres" id="newResBtn" data-act="rs-new" title="Start a new research" aria-label="New research" hidden>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span class="lbl">New research</span>
+    </button>
+    <button class="newsess newqn" id="newQnBtn" data-act="qn-new" title="Start a new quant test" aria-label="New quant test" hidden>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span class="lbl">New quant test</span>
     </button>
     <button class="icon-btn" id="drawerFull" data-act="drawer-full" title="Full screen" aria-label="Toggle full screen">
       <svg class="i-exp" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
@@ -5313,7 +5327,7 @@ function panelInit(){
   addEventListener('resize', function(){ if(!document.body.classList.contains('rs-drag')) panelApply(); });
   panelApply();
   railSync();
-  if('ResizeObserver' in window){ var ro = new ResizeObserver(function(){ rsThumb(); rsFxStart(); }); ['tabChat', 'tabResearch', 'tabQuant', 'rsFx'].forEach(function(id){ if($(id)) ro.observe($(id)); }); }
+  if('ResizeObserver' in window){ var ro = new ResizeObserver(function(){ rsThumb(); rsFxStart(); }); ['tabChat', 'tabResearch', 'tabQuant', 'rsFx'].forEach(function(id){ if($(id)) ro.observe($(id)); }); var dh = document.querySelector('.drawer-head'); if(dh) ro.observe(dh); }
 }
 
 /* ---- Mode toggle effect: an LED dot matrix inside the sliding pill.
@@ -10071,7 +10085,7 @@ function renderResearchPage(){
     '<span class="status-chip' + (aiReady() ? ' live' : '') + '"><i class="dot"></i>' + esc(aiLabel()) + '</span>' +
     '<button class="btn filled sm" data-act="chat-new">Ask Marvell</button>' +
     '<button class="btn text sm" data-act="keys">Keys &amp; provider</button></div>' +
-    '<div class="rs-note">Every Agent session and every Deep Research run is saved here automatically, in this browser. ' +
+    '<div class="rs-note">Every Agent session, Deep Research run and Quant session (with its PDF reports) is saved here automatically, in this browser. ' +
     'Open one to pick it up where you left off.</div></div>';
   html += '<div class="section"><div class="card"><div class="section-head"><h3 style="flex:1">Agent sessions</h3>' +
     '<button class="btn text sm" data-act="chat-new">New session</button>' +
@@ -10088,6 +10102,16 @@ function renderResearchPage(){
   html += '<div class="section"><div class="card"><div class="section-head"><h3 style="flex:1">Deep Research runs</h3>' +
     '<button class="btn text sm" data-act="rs-panel">Open the panel</button></div>' +
     '<div id="rsRunsHome"><div class="mut" style="font-size:13px">Loading…</div></div></div></div>';
+  html += '<div class="section"><div class="card"><div class="section-head"><h3 style="flex:1">Quant sessions</h3>' +
+    '<button class="btn text sm" data-act="qn-new">New quant test</button></div>' +
+    (QN_RUNS.length ? QN_RUNS.map(function(r){
+      var t = r.turns || [{ q:r.q }], pd = r.pdfs || [];
+      return '<div class="chat-row qn-logrow"><span class="cr-main"><span class="cr-title">' + esc((r.spec && r.spec.title) || r.q) + '</span>' +
+        '<span class="cr-meta">' + esc(chatWhen(r.ts)) + ' · ' + t.length + (t.length === 1 ? ' run' : ' runs') + ' · ' + esc(t.map(function(x){ return x.q; }).join(' → ').slice(0, 160)) + '</span>' +
+        (pd.length ? '<span class="qn-pdfs">' + pd.map(function(f){ return '<button class="btn text sm" data-act="qn-pdf-dl" data-id="' + esc(f.id) + '" data-name="' + esc(f.name) + '" title="Download ' + esc(f.name) + '">' + railSvg('M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z', 14) + ' PDF · ' + esc(chatWhen(f.ts)) + '</button>'; }).join('') + '</span>' : '') + '</span>' +
+        '<button class="btn text sm" data-act="qn-log-open" data-id="' + esc(r.id) + '">Open</button>' +
+        '<button class="btn text sm" data-act="qn-log-del" data-id="' + esc(r.id) + '">Delete</button></div>';
+    }).join('') : '<div class="mut" style="font-size:13px">No Quant sessions yet. Describe a strategy in the Quant tab; each session, its changes and its PDF reports are saved here.</div>') + '</div></div>';
   html += footerHTML();
   $('main').innerHTML = html;
   updateAiChip();
@@ -10352,7 +10376,7 @@ function vaultApply(o, by){
     if(n.body.indexOf(old, at + 1) >= 0) return bad('the old text appears more than once in ' + key + '; quote more of it');
     body = n.body.slice(0, at) + String(o['new'] || '') + n.body.slice(at + old.length);
   } else return bad('unknown action "' + act + '"');
-  body = body.replace(/\r/g, '').replace(/[<>]/g, '').replace(/\n{3,}/g, '\n\n').trim();
+  body = body.replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim();   // < and > stay ("RSI < 30"); every place that shows a note escapes it
   if(VAULT_BAD.test(body) || VAULT_BAD.test(title)) return bad('it looks like instructions or a secret (keys, passwords and card numbers are never stored)');
   if(!body) return bad('the note would be empty; use delete');
   var k2 = key || title, cap = VAULT_CORE.indexOf(k2) >= 0 ? VAULT_CAP.core : VAULT_CAP.note;
@@ -10529,7 +10553,7 @@ function vaultMdHTML(body){
 
 /* ---- the vault in Settings -> Memory: note list by folder, the open note with its backlinks, or the link graph */
 var VAULT_UI = { sel:null, graph:false, q:'', edit:null };
-var VAULT_COL = { User:'#c1a578', Tickers:'#5b8def', Topics:'#1f9d55', Sessions:'#9aa0a6', '(top)':'#ff9800' };
+var VAULT_COL = { User:'#c1a578', Tickers:'#5b8def', Topics:'#1f9d55', Quant:'#ef4444', Sessions:'#9aa0a6', '(top)':'#ff9800' };
 function vaultPlain(body){ return String(body || '').replace(/\[\[([^\]|#]+)(?:[#|]([^\]]*))?\]\]/g, function(x, t, al){ return al || t.split('/').pop(); }).replace(/\s+/g, ' ').trim(); }
 function vaultFolder(k){ return k.indexOf('/') > 0 ? k.slice(0, k.indexOf('/')) : '(top)'; }
 function vaultCardHTML(){
@@ -10546,7 +10570,7 @@ function vaultTreeHTML(){
   var v = vault(), q = VAULT_UI.q.trim(), ks = q ? vaultSearch(q, 400).map(function(r){ return r.note; }) : Object.keys(v).sort(function(a, b){ return v[b].ts - v[a].ts; });
   if(!ks.length) return '<div class="mut" style="font-size:13px;padding:8px 2px">' + (q ? 'No notes match.' : 'No notes yet. Chat with Marvell and it will start keeping them.') + '</div>';
   var by = {}; ks.forEach(function(k){ (by[vaultFolder(k)] = by[vaultFolder(k)] || []).push(k); });
-  return ['User', 'Tickers', 'Topics', 'Sessions'].concat(Object.keys(by).filter(function(f){ return ['User', 'Tickers', 'Topics', 'Sessions'].indexOf(f) < 0; }).sort()).filter(function(f){ return by[f]; }).map(function(f){
+  return ['User', 'Tickers', 'Topics', 'Quant', 'Sessions'].concat(Object.keys(by).filter(function(f){ return ['User', 'Tickers', 'Topics', 'Quant', 'Sessions'].indexOf(f) < 0; }).sort()).filter(function(f){ return by[f]; }).map(function(f){
     return '<details open><summary><i style="background:' + (VAULT_COL[f] || '#9c27b0') + '"></i>' + esc(f) + ' <span class="mut">' + by[f].length + '</span></summary>' + by[f].map(function(k){
       return '<div class="vt-row"><button class="vt-item' + (k === VAULT_UI.sel ? ' on' : '') + '" data-act="vault-open" data-note="' + esc(k) + '">' + esc(f === '(top)' ? k : k.slice(f.length + 1)) + '</button>' +
         '<button class="vt-x" data-act="vault-del" data-note="' + esc(k) + '" title="Delete note" aria-label="Delete ' + esc(k) + '">' + railSvg('M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z', 15) + '</button></div>'; }).join('') + '</details>';
@@ -10594,7 +10618,7 @@ function vaultGraphHTML(){
     ks.map(function(k, i){ var r = 4 + Math.min(9, Math.sqrt(deg[i]) * 2), lab = k.split('/').pop();
       return '<g class="vt-n" data-act="vault-open" data-note="' + esc(k) + '"><circle cx="' + P[i].x.toFixed(1) + '" cy="' + P[i].y.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + (VAULT_COL[vaultFolder(k)] || '#9c27b0') + '"/>' +
         '<text x="' + P[i].x.toFixed(1) + '" y="' + (P[i].y + r + 11).toFixed(1) + '" text-anchor="middle">' + esc(lab.length > 22 ? lab.slice(0, 21) + '…' : lab) + '</text><title>' + esc(k) + '</title></g>'; }).join('') + '</svg>' +
-    '<div class="vt-legend">' + ['User', 'Tickers', 'Topics', 'Sessions'].map(function(f){ return '<span><i style="background:' + VAULT_COL[f] + '"></i>' + f + '</span>'; }).join('') + '</div>';
+    '<div class="vt-legend">' + ['User', 'Tickers', 'Topics', 'Quant', 'Sessions'].map(function(f){ return '<span><i style="background:' + VAULT_COL[f] + '"></i>' + f + '</span>'; }).join('') + '</div>';
 }
 function vaultPaint(){ var m = $('vtMain'), t = $('vtTree'); if(m) m.innerHTML = VAULT_UI.graph ? vaultGraphHTML() : vaultNoteHTML(); if(t) t.innerHTML = vaultTreeHTML(); }
 function vaultAction(act, el){
@@ -10993,7 +11017,42 @@ var QN_SPEC_SYS = 'You turn an investor\'s description of a trading or allocatio
 var QN_NOTE_SYS = 'You are Marvell\'s quant analyst in MercerFargo. You write the short analyst note for a strategy backtest, in the style of an equity research report: plain English, specific numbers, balanced, no hype. ' +
   'Never tell the user to buy or sell, never promise returns. Past results and simulations are not predictions. Reply with JSON only.';
 
-function qnSave(){ save('fh3_quant', QN_RUNS.slice(0, 12)); }
+function qnSave(){ save('fh3_quant', QN_RUNS.slice(0, 30)); }
+/* A Quant session: the first description, every refinement (turns) and every PDF made from it. Kept in this browser and listed in the Research Log. */
+function qnRemember(cur){
+  var rec = { id:cur.id, q:cur.q, spec:cur.spec, note:cur.note, proj:cur.proj, ts:Date.now(), turns:cur.turns || [], pdfs:cur.pdfs || [], vkey:cur.vkey || '' };
+  QN_RUNS = [rec].concat(QN_RUNS.filter(function(x){ return x.id !== cur.id; })).slice(0, 30); qnSave();
+}
+/* Each Quant session keeps one note in the memory vault (Quant/<title>), rewritten after every run: the rules, the latest
+   results, the analyst's verdict and every change asked for, linked to the ticker notes, so Marvell can recall it later. */
+function qnVault(cur){
+  try{
+    var m = cur.bt.metrics, p = cur.pr, n = cur.note || {}, d = function(ts){ return new Date(ts).toISOString().slice(0, 10); };
+    var syms = QN.symbols(cur.spec).filter(function(x){ return !/^\^/.test(x); });
+    var key = cur.vkey || vaultTitle('Quant/' + cur.spec.title + ' (' + d(cur.turns[0] ? cur.turns[0].ts : Date.now()) + ')');
+    var body = 'Quant session started ' + d(cur.turns[0] ? cur.turns[0].ts : Date.now()) + '. The user asked: \u201c' + String(cur.q).slice(0, 300) + '\u201d\n\n' +
+      '## Latest result (' + d(Date.now()) + ')\n- Rules: ' + String(cur.spec.summary || '').slice(0, 300) +
+      '\n- Tested ' + m.from + ' to ' + m.to + ' against [[Tickers/' + cur.bt.bsym + ']]: CAGR ' + qnPct(m.s.cagr) + ' vs ' + qnPct(m.b.cagr) + ', max drawdown ' + qnPct(m.s.maxdd) + ' vs ' + qnPct(m.b.maxdd) + ', Sharpe ' + m.s.sharpe.toFixed(2) + ' vs ' + m.b.sharpe.toFixed(2) + ', ' + m.trades + ' trades' +
+      '\n- Quant rating ' + cur.rating + '/5, edge ' + cur.edge + ', uncertainty ' + cur.unc + '. ' + p.years + '-year projection: median ' + QN.money(p.end[2]) + ' from $10,000, ' + p.lossProb.toFixed(0) + '% chance of a loss' +
+      (n.headline ? '\n- Verdict: ' + n.headline + (n.bottom_line ? '. ' + n.bottom_line : '') : '') +
+      '\n\n## Runs in this session\n' + cur.turns.slice(-10).map(function(t){ return '- ' + d(t.ts) + ': ' + String(t.q).slice(0, 160) + (t.cagr != null ? ' (CAGR ' + qnPct(t.cagr) + ', max drawdown ' + qnPct(t.maxdd) + ')' : ''); }).join('\n') +
+      '\n\nTickers: ' + syms.map(function(x){ return '[[Tickers/' + x + ']]'; }).join(' ') + ' · Topic: [[Topics/Quant strategies]]';
+    var res = vaultApply({ do:'write', note:key, body:body.slice(0, VAULT_CAP.note) }, 'agent');
+    if(res.ok) cur.vkey = res.key;
+  }catch(e){}   // ponytail: the vault note is a bonus; a failure here never blocks the analysis
+}
+/* PDFs live in IndexedDB (localStorage is too small for them); one store of blobs keyed by id. */
+var QDB = null;
+function qdb(){ return QDB || (QDB = new Promise(function(ok, no){ var r = indexedDB.open('mercerfargo', 1); r.onupgradeneeded = function(){ r.result.createObjectStore('files'); }; r.onsuccess = function(){ ok(r.result); }; r.onerror = function(){ no(r.error); }; })); }
+function qdbDo(mode, fn){ return qdb().then(function(db){ return new Promise(function(ok, no){ var t = db.transaction('files', mode), q = fn(t.objectStore('files')); t.oncomplete = function(){ ok(q && q.result); }; t.onerror = function(){ no(t.error); }; }); }); }
+function qnBlobSave(blob, name){   // straight to the browser's Downloads folder
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+function qnPdfGet(id, name){
+  qdbDo('readonly', function(st){ return st.get(id); }).then(function(b){ if(!b) throw new Error('missing'); qnBlobSave(b, name); })
+    .catch(function(){ toast('That PDF is no longer stored in this browser. Open the session and press PDF report to make it again.'); });
+}
 function qnHist(sym){
   var s = dispSym(sym); if(QS.hist[s]) return Promise.resolve(QS.hist[s]);
   var daily = function(rows){ rows = (rows || []).filter(function(r){ return r && r.d && r.c != null; }).sort(function(a, b){ return a.d < b.d ? -1 : a.d > b.d ? 1 : 0; }); if(rows.length < 120) throw new Error('short'); var gap = (Date.parse(rows[rows.length - 1].d) - Date.parse(rows[0].d)) / 864e5 / rows.length; if(gap > 4) throw new Error('not daily'); return rows; };
@@ -11041,14 +11100,15 @@ function qnRun(q, refine){
   qnStep(refine ? 'Updating the rules' : 'Reading your strategy');
   qnSpec(q, prev).then(function(r){
     var sp = r.spec, pj = sp.projection || {};
-    var cur = { q:refine ? prev.q + ' → ' + q : q, spec:sp, al:r.al, over:{}, proj:{ years:pj.years || 5, drift:pj.drift || 0, volMult:pj.volMult || 1 }, ts:Date.now(), id:'q' + Date.now().toString(36) };
+    var cur = { q:prev ? prev.q : q, spec:sp, al:r.al, over:{}, proj:{ years:pj.years || 5, drift:pj.drift || 0, volMult:pj.volMult || 1 }, ts:Date.now(),
+      id:prev ? prev.id : 'q' + Date.now().toString(36), turns:prev ? (prev.turns || []).slice() : [], pdfs:prev ? prev.pdfs || [] : [] };   // a refinement stays in the same session
     qnStep('Backtesting and projecting 400 paths'); qnCompute(cur); qnStepDone(true, cur.bt.trades.length + ' trades · ' + cur.bt.metrics.nYears + ' years');
     qnStep('Writing the analyst note');
     return qnNote(cur).then(function(note){ cur.note = note; qnStepDone(true); return cur; }, function(){ cur.note = null; qnStepDone(false, 'summary unavailable'); return cur; });
   }).then(function(cur){
-    QS.cur = cur; QS.busy = false;
-    QN_RUNS = [{ id:cur.id, q:cur.q, spec:cur.spec, note:cur.note, proj:cur.proj, ts:cur.ts }].concat(QN_RUNS.filter(function(x){ return x.id !== cur.id; })).slice(0, 12); qnSave();
-    qnPaint();
+    var m = cur.bt.metrics;
+    cur.turns.push({ q:q, title:cur.spec.title, headline:cur.note ? cur.note.headline : '', cagr:m.s.cagr, bcagr:m.b.cagr, maxdd:m.s.maxdd, ts:Date.now() });
+    QS.cur = cur; QS.busy = false; qnVault(cur); qnRemember(cur); qnPaint();
   }).catch(function(e){ QS.busy = false; QS.err = String((e && e.message) || e); if(prev) QS.cur = prev; qnPaint(); });
 }
 function qnCompute(cur){
@@ -11133,7 +11193,7 @@ function qnMonthsHTML(monthly){
     var row = '<tr><th>' + y + '</th>'; for(var k = 1; k <= 12; k++) row += cell(yrs[y][k]); return row + '</tr>'; }).join('') + '</table>';
 }
 function qnPaint(focus){
-  var host = $('qnPane'); if(!host) return;
+  var host = $('qnPane'), nq = $('newQnBtn'); if(nq) nq.disabled = !!QS.busy; if(!host) return;
   if(QS.busy || (!QS.cur && QS.steps.length && !QS.err)){
     host.innerHTML = '<div class="qn"><div class="qn-busy"><div class="qn-pulse"></div><h3>Running the numbers…</h3>' + QS.steps.map(function(s){
       return '<div class="qn-step ' + s.st + '"><i></i><span>' + esc(s.label) + (s.detail ? ' <em>' + esc(s.detail) + '</em>' : '') + '</span></div>'; }).join('') + '</div></div>';
@@ -11161,6 +11221,7 @@ function qnPaint(focus){
     (n ? '<div class="qn-note"><h3>' + esc(n.headline) + '</h3><p>' + esc(n.note) + '</p><p><b>Why it matters:</b> ' + esc(n.why || '') + '</p><p><b>The bottom line:</b> ' + esc(n.bottom_line || '') + '</p>' +
       (changed ? '<div class="qn-fine mut">The note describes the original settings; the numbers and charts follow your dials.</div>' : '') + '</div>'
       : '<div class="qn-note"><p>' + esc(cur.spec.summary || '') + '</p></div>') +
+    qnSessionHTML(cur) +
     '<details class="qn-box" open><summary>Tweak the factors</summary><div class="qn-dials" id="qnDials">' + qnDialsHTML(cur) + '</div></details>' +
     '<div class="qn-box qn-chart" id="qnEq"><div class="qn-ch"><b>Growth of $10,000</b><span class="qn-leg"><i style="background:' + qnTheme().s + '"></i>Strategy<i style="background:' + qnTheme().b + '"></i>' + esc(cur.bt.bsym) + '</span><span class="grow"></span><button class="btn text sm" data-act="qn-log">' + (QS.log ? 'Log scale' : 'Linear scale') + '</button></div><div class="qn-svg"></div><div class="qn-tip"></div></div>' +
     '<div class="qn-box qn-chart" id="qnProj"><div class="qn-ch"><b>Projection</b><span class="mut">5th–95th and 25th–75th percentile bands, median line</span></div><div class="qn-svg"></div><div class="qn-tip"></div><div id="qnProjTbl"></div></div>' +
@@ -11173,6 +11234,13 @@ function qnPaint(focus){
     '<div class="qn-refine"><input class="inp" id="qnRefine" placeholder="Change something: add a 10% stop loss, test on QQQ, start in 2008…"><button class="btn filled sm qn-run" data-act="qn-refine">Update</button></div>' +
     '<div class="qn-fine mut">Backtests and simulations describe the past and a range of possibilities, not a forecast. Not investment advice.</div></div>';
   qnChartsPaint();
+}
+function qnSessionHTML(cur){
+  var t = cur.turns || [], pd = cur.pdfs || [];
+  if(t.length < 2 && !pd.length) return '';
+  return '<details class="qn-box"' + (t.length > 1 ? ' open' : '') + '><summary>This session · ' + t.length + ' run' + (t.length === 1 ? '' : 's') + (pd.length ? ' · ' + pd.length + ' PDF' + (pd.length === 1 ? '' : 's') : '') + '</summary><div class="qn-sess">' +
+    t.map(function(x, i){ return '<div class="qn-turn"><b>' + (i ? 'Change ' + i : 'Asked') + '</b><span>' + esc(x.q) + '</span>' + (x.cagr != null ? '<i>' + esc(x.title || '') + ' · CAGR ' + qnPct(x.cagr) + ' · max drawdown ' + qnPct(x.maxdd) + '</i>' : '') + '</div>'; }).join('') +
+    (pd.length ? '<div class="qn-pdfs">' + pd.map(function(f){ return '<button class="btn text sm" data-act="qn-pdf-dl" data-id="' + esc(f.id) + '" data-name="' + esc(f.name) + '">' + railSvg('M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z', 14) + ' ' + esc(chatWhen(f.ts)) + ' · ' + f.kb + ' KB</button>'; }).join('') + '</div>' : '') + '</div></details>';
 }
 function qnTradesHTML(tr, max){
   if(!tr.length) return '<p class="mut">No trades (an allocation, or the entry rule never fired).</p>';
@@ -11213,19 +11281,27 @@ function qnOpen(id){
   var r = QN_RUNS.filter(function(x){ return x.id === id; })[0]; if(!r) return;
   QS.busy = true; QS.err = ''; QS.steps = [];
   qnLoad(r.spec).then(function(x){
-    var cur = { q:r.q, spec:r.spec, al:x.al, over:{}, proj:Object.assign({ years:5, drift:0, volMult:1 }, r.proj), note:r.note, ts:r.ts, id:r.id };
+    var cur = { q:r.q, spec:r.spec, al:x.al, over:{}, proj:Object.assign({ years:5, drift:0, volMult:1 }, r.proj), note:r.note, ts:r.ts, id:r.id, turns:r.turns || [{ q:r.q, title:r.spec.title, ts:r.ts }], pdfs:r.pdfs || [], vkey:r.vkey || '' };
     qnCompute(cur); QS.cur = cur; QS.busy = false; qnPaint();
   }).catch(function(e){ QS.busy = false; QS.err = String(e.message || e); qnPaint(); });
 }
 function qnAction(act, el){
   if(act === 'qn-run'){ var q = $('qnQ'); QS.draft = q ? q.value : ''; qnRun(QS.draft); }
   else if(act === 'qn-ex'){ var q2 = $('qnQ'); if(q2){ q2.value = el.textContent; q2.focus(); } }
-  else if(act === 'qn-new'){ QS.cur = null; QS.steps = []; QS.err = ''; qnPaint(true); }
+  else if(act === 'qn-new'){ if(QS.busy) return; QS.cur = null; QS.steps = []; QS.err = ''; rsOpenPanel('quant'); qnPaint(true); }
   else if(act === 'qn-open') qnOpen(el.getAttribute('data-id'));
   else if(act === 'qn-log'){ QS.log = !QS.log; el.textContent = QS.log ? 'Log scale' : 'Linear scale'; qnChartsPaint(); }
   else if(act === 'qn-reset'){ var c = QS.cur; if(!c) return; var pj = c.spec.projection || {}; c.over = {}; c.proj = { years:pj.years || 5, drift:pj.drift || 0, volMult:pj.volMult || 1 }; qnCompute(c); qnPaint(); }
   else if(act === 'qn-refine'){ var r = $('qnRefine'); if(r && r.value.trim()) qnRun(r.value, true); }
   else if(act === 'qn-pdf') qnPDF(el);
+  else if(act === 'qn-pdf-dl') qnPdfGet(el.getAttribute('data-id'), el.getAttribute('data-name'));
+  else if(act === 'qn-log-open'){ rsOpenPanel('quant'); qnOpen(el.getAttribute('data-id')); }
+  else if(act === 'qn-log-del'){
+    var id = el.getAttribute('data-id'), rec = QN_RUNS.filter(function(x){ return x.id === id; })[0]; if(!rec) return;
+    if(!confirm('Delete this Quant session' + ((rec.pdfs || []).length ? ' and its ' + rec.pdfs.length + ' saved PDF' + (rec.pdfs.length === 1 ? '' : 's') : '') + '? Files already in your Downloads folder are not touched.')) return;
+    (rec.pdfs || []).forEach(function(f){ qdbDo('readwrite', function(st){ return st.delete(f.id); }).catch(function(){}); });
+    QN_RUNS = QN_RUNS.filter(function(x){ return x.id !== id; }); qnSave(); if(QS.cur && QS.cur.id === id) QS.cur = null; if(CUR.view === 'research') renderResearchPage();
+  }
 }
 document.addEventListener('input', function(e){ if(e.target && e.target.getAttribute && e.target.getAttribute('data-qd')) qnDial(e.target); });
 document.addEventListener('keydown', function(e){
@@ -11362,7 +11438,12 @@ function qnPDF(btn){
       'Quant Rating: 5 stars when the Sharpe ratio beats the benchmark\'s by more than 0.4, 4 by 0.15, 3 within ±0.15, 2 behind by up to 0.4, 1 below that. Edge: Wide when ahead of the benchmark in at least 70% of calendar years, Narrow at 55%, otherwise None. ' +
       'Uncertainty: Low, Medium, High or Very High as the simulated one-year 5th-95th percentile range is under 30%, 50%, 80% of capital, or above. Projection: 400 paths of 21-day blocks drawn from the strategy\'s own history, with optional return shift and volatility scaling.', M, y, CW, { s:7.6, lh:10.4 });
     foot();
-    doc.save('MercerFargo-Quant_' + cur.spec.title.replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').slice(0, 50) + '_' + dstr + '.pdf');
+    var name = 'MercerFargo-Quant_' + cur.spec.title.replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').slice(0, 50) + '_' + dstr + '.pdf', blob = doc.output('blob'), fid = 'pdf-' + Date.now().toString(36);
+    qnBlobSave(blob, name);
+    return qdbDo('readwrite', function(st){ return st.put(blob, fid); }).then(function(){
+      cur.pdfs = (cur.pdfs || []).concat([{ id:fid, name:name, ts:Date.now(), kb:Math.round(blob.size / 1024) }]); qnRemember(cur);
+      toast('PDF saved to your Downloads and to the Research Log.'); qnPaint();
+    }, function(){ toast('PDF downloaded. It could not be kept in the Research Log (browser storage is off).'); });
   }).catch(function(e){ toast('Could not build the PDF: ' + (e.message || e)); }).then(function(){ if(btn){ btn.disabled = false; btn.innerHTML = lab; } });
 }
 
@@ -11372,6 +11453,12 @@ function rsThumb(){   // size the sliding pill to the actual tab buttons
   if(!tabs || !a || !b || !a.offsetWidth) return;
   tabs.style.setProperty('--tw', a.offsetWidth + 'px'); tabs.style.setProperty('--tx', (b.offsetLeft - a.offsetLeft) + 'px'); tabs.style.setProperty('--tw2', b.offsetWidth + 'px');
   if(c){ tabs.style.setProperty('--tx3', (c.offsetLeft - a.offsetLeft) + 'px'); tabs.style.setProperty('--tw3', c.offsetWidth + 'px'); }
+  var head = tabs.parentNode, right = 0, lbl = 0, W = head.clientWidth;
+  head.classList.remove('tabs-mid', 'no-lbl');
+  [].forEach.call(head.children, function(el){ if(el !== tabs && el.offsetWidth){ right += el.offsetWidth + 6; var l = el.querySelector('.lbl'); if(l && l.offsetWidth) lbl += l.offsetWidth + 6; } });
+  var fits = function(r){ return W / 2 + tabs.offsetWidth / 2 + 10 <= W - 14 - r; };
+  if(fits(right)) head.classList.add('tabs-mid');
+  else if(fits(right - lbl)) head.classList.add('tabs-mid', 'no-lbl');   // centre the switch; the New buttons keep just their icons
 }
 function rsShowTab(tab, focus){
   var chat = $('chat'), pane = $('rsPane');
@@ -11387,6 +11474,7 @@ function rsShowTab(tab, focus){
   var foot = document.querySelector('.drawer .drawer-foot'), nc = $('newChatBtn');
   if(nc) nc.hidden = (t !== 'chat');
   var nr = $('newResBtn'); if(nr){ nr.hidden = (t !== 'research'); nr.disabled = !!RS.running; }
+  var nq = $('newQnBtn'); if(nq){ nq.hidden = (t !== 'quant'); nq.disabled = !!QS.busy; }
   var apply = function(){
     chat.hidden = (t !== 'chat'); pane.hidden = (t !== 'research'); if(qp) qp.hidden = (t !== 'quant');
     if(foot) foot.hidden = (t !== 'chat');
@@ -12017,7 +12105,7 @@ function bindEvents(){
       case 'quick-toggle': { var q = $('aiQuick'); q.hidden = !q.hidden; break; }
       case 'drawer-full': setFull(!$('drawer').classList.contains('full')); break;
       case 'drawer-tab': rsShowTab(el.getAttribute('data-tab')); break;
-      case 'qn-run': case 'qn-ex': case 'qn-new': case 'qn-open': case 'qn-log': case 'qn-reset': case 'qn-refine': case 'qn-pdf': qnAction(act, el); break;
+      case 'qn-run': case 'qn-ex': case 'qn-new': case 'qn-open': case 'qn-log': case 'qn-reset': case 'qn-refine': case 'qn-pdf': case 'qn-pdf-dl': case 'qn-log-open': case 'qn-log-del': qnAction(act, el); break;
       case 'rs-close': closeDrawer(); break;
       case 'quote': ev.preventDefault(); go('#/quote/' + encodeURIComponent(sym)); break;
       case 'openlist': go('#/list/' + el.getAttribute('data-id')); break;
