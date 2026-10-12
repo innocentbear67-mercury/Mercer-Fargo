@@ -605,6 +605,21 @@ tr:hover .wl-add,.wl-add:focus-visible,.wl-add.on{opacity:1}
 .vt-bl b{display:block;color:var(--mf-gold);font-weight:600}
 .vt-bl span{display:block;color:var(--fh-foreground-on-surface-de-emphasis);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vt-empty{padding:30px 6px;font-size:13.5px}
+.vt-row{display:flex;align-items:center}
+.vt-row .vt-item{flex:1;min-width:0}
+.vt-x{flex:none;border:0;background:transparent;color:var(--fh-foreground-on-surface-de-emphasis);width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0}
+.vt-row:hover .vt-x,.vt-x:focus-visible{opacity:1}
+.vt-x:hover{color:var(--fh-negative,#ea4335);background:var(--fh-states-neutral-hovered)}
+@media (hover:none){.vt-x{opacity:.7}}
+.vt-body[data-act]{cursor:text;border-radius:8px;padding:4px 6px;margin:-4px -6px}
+.vt-body[data-act]:hover{background:var(--fh-states-neutral-hovered)}
+.vt-edit{width:100%;box-sizing:border-box;min-height:160px;resize:vertical;font:13.5px/21px ui-monospace,Menlo,monospace;padding:10px 12px;border-radius:10px;border:1px solid var(--fh-border-stroke-emphasis);background:var(--fh-background-surface-container);color:var(--fh-foreground-on-surface-default);outline:none}
+.vt-edit:focus{border-color:var(--mf-gold)}
+.vt-save{font-size:12px;margin-top:6px}
+.vt-save.ok{color:var(--fh-positive,#1f9d55)}
+.vt-save.bad{color:var(--fh-negative,#ea4335)}
+.vt-del{color:var(--fh-negative,#ea4335)}
+.vt-warn{border:1px solid var(--fh-negative,#ea4335);background:rgba(234,67,53,.08);border-radius:10px;padding:12px 14px;font-size:14px;line-height:21px}
 .vt-graph{width:100%;height:auto;display:block}
 .vt-graph line{stroke:var(--fh-border-stroke-emphasis);stroke-width:1}
 .vt-graph .vt-n{cursor:pointer}
@@ -10434,7 +10449,7 @@ function vaultMdHTML(body){
 }
 
 /* ---- the vault in Settings -> Memory: note list by folder, the open note with its backlinks, or the link graph */
-var VAULT_UI = { sel:null, graph:false, q:'' };
+var VAULT_UI = { sel:null, graph:false, q:'', edit:null };
 var VAULT_COL = { User:'#c1a578', Tickers:'#5b8def', Topics:'#1f9d55', Sessions:'#9aa0a6', '(top)':'#ff9800' };
 function vaultPlain(body){ return String(body || '').replace(/\[\[([^\]|#]+)(?:[#|]([^\]]*))?\]\]/g, function(x, t, al){ return al || t.split('/').pop(); }).replace(/\s+/g, ' ').trim(); }
 function vaultFolder(k){ return k.indexOf('/') > 0 ? k.slice(0, k.indexOf('/')) : '(top)'; }
@@ -10454,7 +10469,8 @@ function vaultTreeHTML(){
   var by = {}; ks.forEach(function(k){ (by[vaultFolder(k)] = by[vaultFolder(k)] || []).push(k); });
   return ['User', 'Tickers', 'Topics', 'Sessions'].concat(Object.keys(by).filter(function(f){ return ['User', 'Tickers', 'Topics', 'Sessions'].indexOf(f) < 0; }).sort()).filter(function(f){ return by[f]; }).map(function(f){
     return '<details open><summary><i style="background:' + (VAULT_COL[f] || '#9c27b0') + '"></i>' + esc(f) + ' <span class="mut">' + by[f].length + '</span></summary>' + by[f].map(function(k){
-      return '<button class="vt-item' + (k === VAULT_UI.sel ? ' on' : '') + '" data-act="vault-open" data-note="' + esc(k) + '">' + esc(f === '(top)' ? k : k.slice(f.length + 1)) + '</button>'; }).join('') + '</details>';
+      return '<div class="vt-row"><button class="vt-item' + (k === VAULT_UI.sel ? ' on' : '') + '" data-act="vault-open" data-note="' + esc(k) + '">' + esc(f === '(top)' ? k : k.slice(f.length + 1)) + '</button>' +
+        '<button class="vt-x" data-act="vault-del" data-note="' + esc(k) + '" title="Delete note" aria-label="Delete ' + esc(k) + '">' + railSvg('M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z', 15) + '</button></div>'; }).join('') + '</details>';
   }).join('');
 }
 function vaultNoteHTML(){
@@ -10464,11 +10480,15 @@ function vaultNoteHTML(){
   var n = v[k], back = vaultBacklinks(k), who = n.by === 'agent' ? 'Marvell' : n.by === 'user' ? 'you' : 'automatic';
   return '<div class="vt-path mut">' + esc(k.indexOf('/') > 0 ? k.slice(0, k.lastIndexOf('/')) + ' /' : '') + '</div><h3 class="vt-title">' + esc(k.split('/').pop()) + '</h3>' +
     '<div class="mut" style="font-size:12px;margin-bottom:10px">Updated ' + esc(chatWhen(n.ts)) + ' by ' + who + ' · ' + n.body.length + ' characters</div>' +
-    '<div class="vt-body md">' + vaultMdHTML(n.body) + '</div>' +
+    (VAULT_UI.edit === k
+      ? '<textarea class="vt-edit" id="vtEdit" data-note="' + esc(k) + '" maxlength="' + (VAULT_CORE.indexOf(k) >= 0 ? VAULT_CAP.core : VAULT_CAP.note) + '" spellcheck="true">' + esc(n.body) + '</textarea>' +
+        '<div class="vt-save mut" id="vtSave">Changes save automatically · link notes with [[Title]]</div>'
+      : '<div class="vt-body md" data-act="vault-edit" data-note="' + esc(k) + '" title="Click to edit">' + vaultMdHTML(n.body) + '</div>') +
     '<div class="vt-back"><div class="mhead">Linked mentions (' + back.length + ')</div>' + (back.length ? back.map(function(b){
       return '<button class="vt-bl" data-act="vault-open" data-note="' + esc(b) + '"><b>' + esc(b) + '</b><span>' + esc(vaultPlain(v[b].body).slice(0, 130)) + '</span></button>'; }).join('')
       : '<div class="mut" style="font-size:12.5px">No other note links here yet.</div>') + '</div>' +
-    '<div class="key-row" style="margin-top:12px"><button class="btn text sm" data-act="vault-edit" data-note="' + esc(k) + '">Edit</button><button class="btn text sm" data-act="vault-del" data-note="' + esc(k) + '">Delete</button></div>';
+    '<div class="key-row" style="margin-top:12px">' + (VAULT_UI.edit === k ? '<button class="btn filled sm" data-act="vault-done">Done</button>' : '<button class="btn text sm" data-act="vault-edit" data-note="' + esc(k) + '">Edit</button>') +
+      '<button class="btn text sm vt-del" data-act="vault-del" data-note="' + esc(k) + '">Delete</button></div>';
 }
 /* A small force layout: linked notes pull together, everything pushes apart. ponytail: O(n²) per step, fine to 400 notes. */
 function vaultGraphHTML(){
@@ -10501,13 +10521,18 @@ function vaultPaint(){ var m = $('vtMain'), t = $('vtTree'); if(m) m.innerHTML =
 function vaultAction(act, el){
   var k = el && el.getAttribute('data-note');
   if(act === 'vault-open'){
-    VAULT_UI.sel = k; VAULT_UI.graph = false;
+    vaultFlush(); VAULT_UI.sel = k; VAULT_UI.graph = false; VAULT_UI.edit = null;
     if(CUR.view === 'settings' && CUR.setSec === 'memory'){ vaultPaint(); var g = document.querySelector('[data-act="vault-graph"]'); if(g){ g.textContent = 'Graph'; g.classList.remove('on'); } }
     else go('#/settings/memory');
   } else if(act === 'vault-graph'){ VAULT_UI.graph = !VAULT_UI.graph; renderSettingsPage('memory');
   } else if(act === 'vault-undo'){ vaultUndo(el.getAttribute('data-ts'));
-  } else if(act === 'vault-new' || act === 'vault-edit'){
-    var n = k ? vault()[k] : null;
+  } else if(act === 'vault-edit' && k){
+    if(window.getSelection && String(window.getSelection()).length) return;   // selecting text to copy is not a click to edit
+    VAULT_UI.sel = k; VAULT_UI.edit = k; VAULT_UI.graph = false; vaultPaint();
+    var ta = $('vtEdit'); if(ta){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); vaultGrow(ta); }
+  } else if(act === 'vault-done'){ vaultFlush(); VAULT_UI.edit = null; vaultPaint();
+  } else if(act === 'vault-new'){
+    var n = null;
     dialog(n ? 'Edit note' : 'New note', (n ? '' : '<label class="field"><span>Title (a folder before the slash, e.g. Tickers/NVDA or Topics/Dividends)</span><input class="inp" id="vtTitle" maxlength="90" placeholder="Topics/Dividends"></label>') +
       '<label class="field"><span>Note (markdown; link other notes with [[Title]])</span><textarea id="vtBody" rows="12" maxlength="' + VAULT_CAP.note + '">' + esc(n ? n.body : '') + '</textarea></label>',
       '<button class="btn text" data-act="dlg-close">Cancel</button><button class="btn filled" data-act="vault-save"' + (k ? ' data-note="' + esc(k) + '"' : '') + '>Save</button>');
@@ -10518,10 +10543,32 @@ function vaultAction(act, el){
     if(!r.ok){ toast(r.msg); return; }
     closeDialog(); VAULT_UI.sel = r.key; VAULT_UI.graph = false; renderSettingsPage('memory');
   } else if(act === 'vault-del'){
-    if(!confirm('Delete the note "' + k + '"? Links to it will show as empty.')) return;
-    vaultApply({ do:'delete', note:k }, 'user'); VAULT_UI.sel = null; renderSettingsPage('memory');
+    var back = vaultBacklinks(k);
+    dialog('Delete this note permanently?', '<div class="vt-warn"><b>\u201c' + esc(k) + '\u201d will be erased for good.</b> There is no undo and no recycle bin: Marvell forgets everything in it, and it cannot be recovered.' +
+      (back.length ? '<br><br>' + back.length + ' other note' + (back.length === 1 ? ' links' : 's link') + ' here (' + esc(back.slice(0, 4).join(', ')) + (back.length > 4 ? '…' : '') + '); those links will show as missing.' : '') + '</div>',
+      '<button class="btn text" data-act="dlg-close">Keep note</button><button class="btn filled danger" data-act="vault-del-go" data-note="' + esc(k) + '">Delete permanently</button>');
+  } else if(act === 'vault-del-go'){
+    vaultApply({ do:'delete', note:k }, 'user'); closeDialog();
+    if(VAULT_UI.sel === k){ VAULT_UI.sel = null; VAULT_UI.edit = null; }
+    renderSettingsPage('memory'); toast('Deleted ' + k + '.');
   }
 }
+/* Autosave: 600 ms after typing stops, and on leaving the box. A rejected save (too long, looks like a secret) says why and keeps the text. */
+var VAULT_T = 0;
+function vaultGrow(ta){ ta.style.height = 'auto'; ta.style.height = Math.min(640, Math.max(160, ta.scrollHeight + 4)) + 'px'; }
+function vaultFlush(){
+  clearTimeout(VAULT_T); var ta = $('vtEdit'), st = $('vtSave'); if(!ta) return;
+  var k = ta.getAttribute('data-note'), n = vault()[k]; if(!n || n.body === ta.value.trim()) return;
+  var r = vaultApply({ do:'write', note:k, body:ta.value }, 'user');
+  if(st){ st.textContent = r.ok ? 'Saved ' + new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : r.msg; st.className = 'vt-save ' + (r.ok ? 'ok' : 'bad'); }
+  if(r.ok){ var t = $('vtTree'); if(t) t.innerHTML = vaultTreeHTML(); }
+}
+document.addEventListener('input', function(e){
+  if(e.target && e.target.id === 'vtEdit'){ vaultGrow(e.target); var st = $('vtSave'); if(st){ st.textContent = 'Saving…'; st.className = 'vt-save mut'; } clearTimeout(VAULT_T); VAULT_T = setTimeout(vaultFlush, 600); }
+});
+document.addEventListener('focusout', function(e){ if(e.target && e.target.id === 'vtEdit') vaultFlush(); });
+window.addEventListener('beforeunload', vaultFlush);
+window.addEventListener('hashchange', vaultFlush);
 document.addEventListener('input', function(e){ if(e.target && e.target.id === 'vtFind'){ VAULT_UI.q = e.target.value; var t = $('vtTree'); if(t) t.innerHTML = vaultTreeHTML(); } });
 
 function memoryPageHTML(){
@@ -11588,7 +11635,7 @@ function bindEvents(){
       case 'auth-go': authGo(el.getAttribute('data-m')); break;
       case 'fb-send': fbSend(el.getAttribute('data-k')); break;
       case 'profile-save': profileSave(); break;
-      case 'vault-open': case 'vault-graph': case 'vault-undo': case 'vault-new': case 'vault-edit': case 'vault-save': case 'vault-del': vaultAction(act, el); break;
+      case 'vault-open': case 'vault-graph': case 'vault-undo': case 'vault-new': case 'vault-edit': case 'vault-save': case 'vault-del': case 'vault-del-go': case 'vault-done': vaultAction(act, el); break;
       case 'mem-profile-save': case 'mem-rs-edit': case 'mem-rs-save': case 'mem-clear': case 'mem-export': memAction(act, el); break;
       case 'proxy-save': CFG.ocProxy = ($('ocProxy').value || '').trim().replace(/\/+$/, ''); saveCfg(); toast(CFG.ocProxy ? 'Proxy saved' : 'Proxy cleared'); break;
       case 'signout': closeMenu(); acctSignOut(); toast('Signed out'); break;
