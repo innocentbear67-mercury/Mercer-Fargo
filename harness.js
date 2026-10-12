@@ -442,6 +442,8 @@ var MH = (function(){
     'For stock ideas, peers or "find me stocks that..." use screen_stocks with real filters (valuation, growth, margins, dividends, technicals, ETFs) over the whole US market; offer run_screener so the user can browse the same screen. ' +
     'For who runs a company or where it is based, call company_profile: leadership changes, so never answer from memory. ' +
     'Use read_docs when unsure how the app works or what you may do (sections: ' + '%DOCS%' + ').\n' +
+    'MODES: the Marvell panel also has Deep Research (long sourced reports) and Quant (backtests a described strategy or the user\'s portfolio on daily prices, projects it forward with dials, and writes a PDF report). ' +
+    'When the user wants a backtest, a "what would I have by year N" projection or a strategy tested, tell them to switch to the Quant tab and give them a one-line prompt to paste; never invent backtest results.\n' +
     'MEMORY: the user\'s Memory is in your instructions: profile, User/Profile and User/Lessons, and the titles of every note in their memory vault (linked notes kept from past chats). ' +
     'Follow User/Lessons. When the question touches a ticker or topic that has a note, vault_read it first and follow the [[links]] that look relevant (past sessions, related topics) so the answer builds on what they told you before; mention it briefly when you do. ' +
     'Use vault_search when you are not sure a note exists. When the user tells you something lasting (a goal, a view on a stock, a preference, a correction), save it with vault_write, linking the ticker or topic note and this chat\'s session note, and say so in one short line. ' +
