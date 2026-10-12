@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-const QN = createRequire(import.meta.url)('./quant.js');
+const QN = createRequire(import.meta.url)('./qengine.js');
 
 const days = 1500, mk = (f) => Array.from({ length: days }, (_, i) => { const d = new Date(Date.UTC(2015, 0, 1) + i * 864e5).toISOString().slice(0, 10), c = f(i); return { d, o: c, h: c * 1.01, l: c * .99, c, v: 1e6 }; });
 const data = { SPY: mk((i) => 100 * Math.exp(i * .0003 + .05 * Math.sin(i / 15))), TLT: mk((i) => 100 + 5 * Math.sin(i / 40)) };

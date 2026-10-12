@@ -2441,7 +2441,7 @@ body.rs-drag iframe{pointer-events:none}
   <body>
 <script src="indicators.js"></script>
 <script src="drawing.js"></script>
-<script src="quant.js"></script>
+<script src="qengine.js"></script>
 <script>try{var c=JSON.parse(localStorage.getItem('fh3_cfg')||'{}'),t=c.theme||'dark';if(t==='auto')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 <div class="sys" id="bootScreen" role="status" aria-live="polite" aria-label="Loading MercerFargo">
   <div class="sys-in">
@@ -11090,7 +11090,7 @@ function openSheetsDialog(){
     '<button class="btn text" data-act="dlg-close">Close</button><button class="btn filled" data-act="sheets-copy" data-sym="' + esc(sym) + '">Copy</button>');
 }
 
-/* ---- Quant mode: describe a strategy, Marvell turns it into rules, the engine (quant.js) backtests and projects it,
+/* ---- Quant mode: describe a strategy, Marvell turns it into rules, the engine (qengine.js) backtests and projects it,
    and the user explores it with dials. Two short model calls per run: one writes the rules as JSON, one writes the summary.
    Everything else (data, backtest, projection, charts, PDF) runs in the browser, so moving a dial is instant and free. */
 var QN_RUNS = load('fh3_quant', []);
@@ -11182,13 +11182,13 @@ function qnPortfolios(){
     return parts.length ? '- ' + PFS[id].name + (id === CUR.pf ? ' (current)' : '') + ': ' + parts.join(', ') : '';
   }).filter(Boolean).join('\n');
 }
-/* quant.js normally loads with the page; if that request failed (flaky network, cached 404), fetch it again instead of failing on QN. */
+/* qengine.js normally loads with the page; if that request failed (a content blocker: filter lists block "quant.js" as the Quantcast tracker, so the file is named qengine.js), fetch it again instead of failing on QN. */
 function qnEngine(){
   if(window.QN) return Promise.resolve();
   return new Promise(function(res, rej){
-    var el = document.createElement('script'); el.src = 'quant.js?r=' + Date.now();
+    var el = document.createElement('script'); el.src = 'qengine.js?r=' + Date.now();
     el.onload = function(){ window.QN ? res() : rej(new Error('The quant engine did not load. Reload the page and try again.')); };
-    el.onerror = function(){ rej(new Error('Could not load the quant engine (quant.js). Check your connection and reload the page.')); };
+    el.onerror = function(){ rej(new Error('Could not load the quant engine (qengine.js). Check your connection, or allow this site in your content blocker, and reload the page.')); };
     document.head.appendChild(el);
   });
 }
