@@ -82,6 +82,7 @@ export const FEEDS = [
   { re: /^https:\/\/data\.sec\.gov\/submissions\/CIK\d{10}\.json$/, ttl: 900, sec: true },
   { re: /^https:\/\/data\.sec\.gov\/api\/xbrl\/companyfacts\/CIK\d{10}\.json$/, ttl: 3600, sec: true },
   { re: /^https:\/\/finviz\.com\/screener\?[\w=&,.%-]*$/, ttl: 300 },   // screener fallback when TradingView's scanner fails
+  { re: /^https:\/\/api\.nasdaq\.com\/api\/(company\/[\w.\-]+\/earnings-surprise|analyst\/[\w.\-]+\/earnings-date)$/, ttl: 3600, ua: true },   // chart earnings markers on the hosted site (stockanalysis blocks Cloudflare)
   { re: /^https:\/\/www\.sec\.gov\/Archives\/edgar\/data\/\d+\/\d{18}\/[\w.\-]+$/, ttl: 86400 * 30, sec: true },  // accessioned: immutable
 ];
 
@@ -89,7 +90,8 @@ async function feedResponse(u, env) {
   const f = FEEDS.find((x) => x.re.test(u));
   if (!f) return new Response('Not allowed', { status: 403, headers: cors });
   if (f.http) u = u.replace(/^https:/, 'http:');   // openinsider's TLS port refuses connections
-  const headers = { 'User-Agent': f.sec ? 'MercerFargo research ' + ((env && env.SEC_CONTACT) || 'contact@example.com') : 'Mozilla/5.0' };
+  const headers = { 'User-Agent': f.sec ? 'MercerFargo research ' + ((env && env.SEC_CONTACT) || 'contact@example.com') : f.ua ? 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15' : 'Mozilla/5.0' };
+  if (f.ua) headers.Accept = 'application/json';   // Nasdaq hangs without a browser-like request
   const res = await fetch(u, { headers, cf: { cacheTtl: f.ttl, cacheEverything: true } });
   const out = new Headers({ 'content-type': res.headers.get('content-type') || 'text/plain', 'cache-control': 'public, max-age=' + (res.ok ? Math.min(f.ttl, 3600) : 0) });
   for (const k in cors) out.set(k, cors[k]);

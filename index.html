@@ -2869,7 +2869,7 @@ function fetchWithTimeout(url, ms, init){
 var PROXY_FIRST = { 'news.google.com':1, 'openinsider.com':1 };
 /* Feeds the hosted worker relays (worker/ /api/fetch): tried right after serve.py's proxy,
    ahead of the slow public relay. Keep in sync with FEEDS in worker/opencode-proxy.js. */
-var EDGE_HOSTS = { 'news.google.com':1, 'feeds.finance.yahoo.com':1, 'openinsider.com':1, 'traderhub.openalice.ai':1, 'www.sec.gov':1, 'data.sec.gov':1, 'finviz.com':1 };   // data.sec.gov stopped answering browsers directly
+var EDGE_HOSTS = { 'news.google.com':1, 'feeds.finance.yahoo.com':1, 'openinsider.com':1, 'traderhub.openalice.ai':1, 'www.sec.gov':1, 'data.sec.gov':1, 'finviz.com':1, 'api.nasdaq.com':1 };   // data.sec.gov stopped answering browsers directly
 var DIRECT_ONLY = {
   'scanner.tradingview.com':1, 'stockanalysis.com':1, 'api.coingecko.com':1, 'query.wikidata.org':1, 'en.wikipedia.org':1,
   'api.frankfurter.dev':1, 'api.frankfurter.app':1
@@ -4226,7 +4226,21 @@ function chEvents(sym){
     .catch(function(){ return fetchJSON('https://stockanalysis.com/api/symbol/e/' + encodeURIComponent(saSlug(s)) + '/' + path, 12000); }).catch(function(){ return null; }); };
   var T = function(d){ return Date.parse(d + 'T00:00:00Z') / 1000; }, today = ymd(new Date());
   var gr = function(v, p){ if(p == null || !p) return ''; return ' <b class="' + (v >= p ? 'up' : 'down') + '">' + (v >= p ? '+' : '') + num((v - p) / Math.abs(p) * 100, 1) + '%</b>'; };
-  return (EVT[s] = Promise.all([sa('earnings'), sa('dividend'), fetchJSON(OC_PROXY + '/api/events?symbol=' + encodeURIComponent(s), 10000).catch(function(){ return null; })]).then(function(res){
+  /* stockanalysis answers browsers on localhost only; on the hosted site earnings come from Nasdaq through the edge worker
+     (the last 4 reports and the next date, so older earnings markers need serve.py). */
+  var nq = function(){
+    var md = function(t){ var m = /(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(t || ''); return m ? m[3] + '-' + ('0' + m[1]).slice(-2) + '-' + ('0' + m[2]).slice(-2) : null; };
+    var u = 'https://api.nasdaq.com/api/';
+    return Promise.all([fetchJSON(u + 'company/' + encodeURIComponent(s) + '/earnings-surprise', 12000).catch(function(){ return null; }),
+      fetchJSON(u + 'analyst/' + encodeURIComponent(s) + '/earnings-date', 12000).catch(function(){ return null; })]).then(function(r){
+      var rows = (((r[0] || {}).data || {}).earningsSurpriseTable || {}).rows || [], txt = (((r[1] || {}).data || {}).reportText) || '';
+      var out = rows.map(function(x){ return { date:md(x.dateReported), period:x.fiscalQtrEnd, year:'', eps_actual:numOf(x.eps), eps_est:numOf(x.consensusForecast) }; });
+      var nd = md((/report earnings on\s+([\d\/]+)/.exec(txt) || [])[1]), est = /forecast for the quarter is\s+\$(-?\d+(?:\.\d+)?)/.exec(txt);
+      if(nd) out.push({ date:nd, period:'Next report', year:'', eps_actual:null, eps_est:est ? +est[1] : null, confirmed:!/estimated/i.test(txt) });
+      return { data:out.filter(function(e){ return e.date; }) };
+    });
+  };
+  return (EVT[s] = Promise.all([sa('earnings').then(function(j){ return j && j.data && j.data.length ? j : nq(); }), sa('dividend'), fetchJSON(OC_PROXY + '/api/events?symbol=' + encodeURIComponent(s), 10000).catch(function(){ return null; })]).then(function(res){
     var out = [];
     var earn = ((res[0] && res[0].data) || []).filter(function(e){ return e && e.date; }).sort(function(a, b){ return a.date < b.date ? -1 : 1; }), prevE = null, nextShown = false;
     earn.forEach(function(e){
