@@ -1010,27 +1010,31 @@ body.chart-fs{overflow:hidden}
 .eff-btn svg{color:var(--fh-foreground-on-surface-de-emphasis)}
 .eff-btn.hi svg{color:var(--mf-gold)}
 .eff-row{display:flex;align-items:center;gap:10px;margin:10px 0 6px;font-size:13px}
-.eff-pop{position:fixed;z-index:200;width:min(300px,calc(100vw - 16px));box-sizing:border-box;padding:14px 16px 12px;border-radius:16px;background:#1f1f1f;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 40px rgba(0,0,0,.45);color:#e8e6e3;font-size:14px;animation:effIn .14s ease-out}
+.eff-pop{position:fixed;z-index:200;width:min(210px,calc(100vw - 16px));box-sizing:border-box;padding:10px 11px 8px;border-radius:12px;background:#1f1f1f;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 40px rgba(0,0,0,.45);color:#e8e6e3;font-size:10px;line-height:1.3;animation:effIn .14s ease-out}
 :root:not([data-theme="dark"]) .eff-pop{background:#fff;border-color:#e3e3e6;color:#1d1d1f;box-shadow:0 12px 40px rgba(0,0,0,.18)}
 @keyframes effIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-.eff-head{display:flex;align-items:center;gap:8px;font-size:17px}
+.eff-head{display:flex;align-items:center;gap:6px;font-size:12px}
 .eff-head>span:first-child{opacity:.55}
 .eff-head b{font-weight:500}
-.eff-help{width:20px;height:20px;border-radius:50%;border:1.5px solid currentColor;opacity:.55;display:inline-flex;align-items:center;justify-content:center;font-size:12px;cursor:help}
-.eff-ends{display:flex;justify-content:space-between;margin:14px 0 8px;opacity:.55;font-size:14px}
-.eff-track{position:relative;height:36px;border-radius:10px;background:rgba(255,255,255,.08);cursor:pointer;outline:none;touch-action:none}
+.eff-help{position:relative;width:14px;height:14px;border-radius:50%;border:1px solid rgba(232,230,227,.55);color:rgba(232,230,227,.7);display:inline-flex;align-items:center;justify-content:center;font-size:9px;cursor:help;outline:none}
+:root:not([data-theme="dark"]) .eff-help{border-color:rgba(29,29,31,.45);color:rgba(29,29,31,.6)}
+.eff-hint{position:absolute;right:-6px;top:calc(100% + 8px);width:170px;padding:8px 10px;border-radius:9px;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);box-shadow:0 8px 24px rgba(0,0,0,.45);color:rgba(232,230,227,.6);font-size:10.5px;line-height:1.4;text-align:left;opacity:0;visibility:hidden;transition:opacity .12s;z-index:2;pointer-events:none}
+.eff-hint b{display:block;color:#f2f0ed;font-weight:500;font-size:11.5px;margin-bottom:3px}
+.eff-help:hover .eff-hint,.eff-help:focus .eff-hint{opacity:1;visibility:visible}
+.eff-ends{display:flex;justify-content:space-between;margin:10px 0 6px;opacity:.55;font-size:10px}
+.eff-track{position:relative;height:25px;border-radius:7px;background:rgba(255,255,255,.08);cursor:pointer;outline:none;touch-action:none}
 :root:not([data-theme="dark"]) .eff-track{background:#ececef}
 .eff-track:focus-visible{box-shadow:0 0 0 2px var(--mf-gold)}
-.eff-fill{position:absolute;left:0;top:0;bottom:0;border-radius:10px 0 0 10px;background:rgba(255,255,255,.12)}
+.eff-fill{position:absolute;left:0;top:0;bottom:0;border-radius:7px 0 0 7px;background:rgba(255,255,255,.12)}
 :root:not([data-theme="dark"]) .eff-fill{background:#dcdce0}
-.eff-dot{position:absolute;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:currentColor;opacity:.35}
-.eff-dot.rec{width:3px;height:14px;margin:-7px 0 0 -1.5px;border-radius:2px;opacity:.5}
-.eff-thumb{position:absolute;top:2px;bottom:2px;width:32px;margin-left:-16px;border-radius:9px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:left .14s ease}
+.eff-dot{position:absolute;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:currentColor;opacity:.35}
+.eff-dot.rec{width:2px;height:10px;margin:-5px 0 0 -1px;border-radius:2px;opacity:.5}
+.eff-thumb{position:absolute;top:2px;bottom:2px;width:22px;margin-left:-11px;border-radius:6px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:left .14s ease}
 :root:not([data-theme="dark"]) .eff-thumb{background:#1d1d1f}
 .eff-fill{transition:width .14s ease}
-.eff-tip{position:absolute;bottom:calc(100% + 6px);transform:translateX(-50%);padding:5px 10px;border-radius:8px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;font-size:14px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .1s}
+.eff-tip{position:absolute;bottom:calc(100% + 4px);transform:translateX(-50%);padding:3px 7px;border-radius:6px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;font-size:10px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .1s}
 .eff-tip.on{opacity:1}
-.eff-recl{position:relative;display:inline-block;transform:translateX(-50%);margin-top:8px;font-size:13.5px;opacity:.55;white-space:nowrap}
+.eff-recl{position:relative;display:inline-block;transform:translateX(-50%);margin-top:6px;font-size:9.5px;opacity:.55;white-space:nowrap}
 @media (prefers-reduced-motion:reduce){.eff-thumb,.eff-fill{transition:none}.eff-pop{animation:none}}
 .pm-models{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1.2;min-width:0;overflow-y:auto;padding:6px}
 .pm-effort{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1;min-width:0;overflow-y:auto;padding:6px}
@@ -8732,10 +8736,10 @@ function effPaintAll(){
 function effClose(){ var p = $('effPop'); if(p) p.remove(); }
 function effOpen(btn){
   var was = $('effPop'), c = btn.getAttribute('data-c'); effClose(); if(was && was._btn === btn) return;   // second click closes
-  var ks = Object.keys(AI_EFFORT), n = ks.length, at = function(i){ return 'calc(18px + (100% - 36px) * ' + i + ' / ' + (n - 1) + ')'; };
+  var ks = Object.keys(AI_EFFORT), n = ks.length, at = function(i){ return 'calc(13px + (100% - 26px) * ' + i + ' / ' + (n - 1) + ')'; };
   var pop = document.createElement('div'); pop.className = 'eff-pop'; pop.id = 'effPop'; pop._btn = btn; pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', 'Thinking effort');
   pop.innerHTML = '<div class="eff-head"><span>Effort</span><b class="eff-name"></b><span class="grow"></span>' +
-      '<span class="eff-help" tabindex="0" title="How long Marvell thinks before answering. Higher effort is more careful but slower and uses more of your AI credit. High suits most questions.">?</span></div>' +
+      '<span class="eff-help" tabindex="0" aria-label="About effort">?<span class="eff-hint" role="tooltip"><b>Effort</b>Higher effort means more thorough responses, but takes longer and uses your tokens faster.</span></span></div>' +
     '<div class="eff-ends"><span>Faster</span><span>Smarter</span></div>' +
     '<div class="eff-track" tabindex="0" role="slider" aria-label="Thinking effort" aria-valuemin="0" aria-valuemax="' + (n - 1) + '"><i class="eff-fill"></i>' +
       ks.map(function(k, i){ return '<i class="eff-dot' + (k === EFF_REC ? ' rec' : '') + '" style="left:' + at(i) + '"></i>'; }).join('') +
@@ -8749,7 +8753,7 @@ function effOpen(btn){
     track.setAttribute('aria-valuenow', i); track.setAttribute('aria-valuetext', AI_EFFORT[ks[i]].label);
   };
   var show = function(i){ if(i == null){ tip.classList.remove('on'); return; } tip.textContent = EFF_SHORT[ks[i]]; tip.style.left = at(i); tip.classList.add('on'); };
-  var idx = function(e){ var r = track.getBoundingClientRect(); return Math.max(0, Math.min(n - 1, Math.round((e.clientX - r.left - 18) / (r.width - 36) * (n - 1)))); };
+  var idx = function(e){ var r = track.getBoundingClientRect(); return Math.max(0, Math.min(n - 1, Math.round((e.clientX - r.left - 13) / (r.width - 26) * (n - 1)))); };
   var pick = function(i){ if(ks[i] !== effGet(c)) effSet(c, ks[i]); paint(); };
   track.addEventListener('pointerdown', function(e){ drag = true; try{ track.setPointerCapture(e.pointerId); }catch(x){} var i = idx(e); pick(i); show(i); e.preventDefault(); });
   track.addEventListener('pointermove', function(e){ var i = idx(e); show(i); if(drag) pick(i); });
