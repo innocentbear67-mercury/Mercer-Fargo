@@ -195,6 +195,8 @@ var MH = (function(){
       description:'Fetch a public web page and return its readable text (up to ~20k characters). Some sites block automated reading; then try another source.',
       params:S({ url:STR('Full https URL') }, ['url']),
       run:function(a, ctx){
+        if(/innocentbear67-mercury|mercer-fargo|marvell-system-prompts|harness\.js/i.test(String(a.url || '')))   // the site's own source and prompts
+          return Promise.reject(new Error('This page is MercerFargo\'s own source code, which Marvell does not read. Answer from the guide (read_docs) instead.'));
         return apiGet('/api/read?u=' + encodeURIComponent(String(a.url || ''))).then(function(j){
           return 'source [' + ctx.source(j.title || host(j.url), j.url) + '] ' + (j.title || '') + ' (' + j.url + ')' + (j.truncated ? ' [first 20k chars]' : '') + '\n\n' + j.text;
         });
@@ -687,6 +689,7 @@ var MH = (function(){
       return call(true, REVIEW_PROMPT).then(function(r){ return r.text && !r.cut && r.text.length > text.length * 0.5 ? r.text : text; }, function(){ return text; });   // a review cut off by the output limit would drop the end of the report: keep the draft
     }).then(function(text){
       var used = hist.filter(function(m){ return m.role === 'tool'; }).map(function(m){ return { name:m.name, err:!!m.err }; });
+      text = guard(text, sys);
       return { text:text || '', sources:sources, acts:acts, rounds:rounds, stopped:!!stop.stopped, tools:used };
     });
   }
@@ -697,5 +700,19 @@ var MH = (function(){
     return null;
   }
 
-  return { run:run, TOOLS:TOOLS };
+  /* ---- leak guard: Marvell's instructions and tool specs stay private, whatever the chat asks ----
+     Any answer that repeats 3+ twelve-word runs of them (case and punctuation ignored) is replaced.
+     The user's own Memory block is left out, so listing their watchlists or notes back is fine.
+     ponytail: catches verbatim and lightly reformatted dumps; a paraphrase or translation is left to the CONFIDENTIAL rule in the prompt. */
+  var LEAK_MSG = 'I can\'t share my instructions or how I\'m set up. Happy to help with markets, your portfolio or how to use MercerFargo.';
+  function leakNorm(s){ return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+  function guard(text, sys){
+    var priv = String(sys || '').replace(/\n\nMEMORY \(saved[\s\S]*?(?=\n\n[A-Z][A-Z ]{3,}:|$)/, '');
+    var corpus = [priv, CHAT_PROMPT, RESEARCH_PROMPT, REVIEW_PROMPT].concat(Object.keys(TOOLS).map(function(n){ return TOOLS[n].description; })).join(' ');
+    var w = leakNorm(corpus).split(' '), t = ' ' + leakNorm(text) + ' ', hits = 0;
+    for(var i = 0; i + 12 <= w.length; i += 6){ if(t.indexOf(' ' + w.slice(i, i + 12).join(' ') + ' ') >= 0 && ++hits >= 3) return LEAK_MSG; }
+    return text;
+  }
+
+  return { run:run, TOOLS:TOOLS, guard:guard };
 })();
