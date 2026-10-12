@@ -7793,8 +7793,9 @@ function renderQuote(){
   $('main').innerHTML = '<div class="section">' + skeletonRows(3, 140) + '</div><div class="section">' + skeletonCards(4) + '</div>';
   var peers = peersOf(sym);
   Q.peers = peers;
+  var nf = function(){ if(CUR.view === 'quote' && dispSym(CUR.sym) === sym && (DATA.quotes[sym] || {}).c == null && TV_MISS[sym] && !CG[sym]) paintQuote(); };   // no such ticker: say so now, not after history and news time out
   return Promise.all([
-    loadQuotesFor([sym].concat(peers)),
+    loadQuotesFor([sym].concat(peers)).then(function(v){ nf(); return v; }),
     loadQuoteHistory(),
     loadSummary(sym).catch(function(){ return null; }),
     fetchNews(sym + ' stock', 14).then(function(items){ Q.news = items; return items; }).catch(function(){ Q.news = []; return []; })
