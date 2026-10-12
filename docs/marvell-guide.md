@@ -102,6 +102,7 @@ Page shows total value, cost basis, day change, total return, a holdings table (
 Buttons: *Export CSV*, *AI insights* (sizing, sector concentration, what a rebalance changes). To replace a portfolio Marvell deletes it and creates a new one (both need approval).
 Cost basis is whatever the user entered; quotes are delayed.
 
+- Manage: the ⋯ beside each portfolio in the rail (Open, Rename, Delete), or *Rename* / *Delete* on the portfolio page. Delete asks first and cannot be undone (export CSV first); one portfolio always remains.
 ## screener
 Route `#/screener`. A server-side screen over every Nasdaq/NYSE/AMEX listing (TradingView scanner, CORS-open, works on the hosted site).
 Rail → Screener → *All stocks* or a sector. **Basic** shows the descriptive filters (exchange, index, sector, industry, country, market cap,

@@ -1591,6 +1591,7 @@ html{overflow-x:clip}
 .newres:hover:not(:disabled){background:rgba(193,165,120,.26);box-shadow:0 4px 14px rgba(193,165,120,.25);transform:translateY(-1px)}
 .newres:disabled{opacity:.38;cursor:not-allowed;box-shadow:none;filter:grayscale(.6)}
 .newres[hidden],.newsess[hidden]{display:none}
+.newsess:disabled{opacity:.38;cursor:not-allowed}
 .newres .lbl{display:none}
 @container dr (min-width:400px){.newres .lbl{display:inline}}
 @container dr (max-width:399px){.newres{padding:0 10px}}
@@ -2306,7 +2307,6 @@ body.rs-drag iframe{pointer-events:none}
 .rs-tabs[data-t="quant"] .thumb::after{animation:rsGlow 1.7s ease-in-out infinite}
 #tabQuant.on{color:var(--fh-foreground-on-surface-emphasis)}
 .drawer:not(.full) .rs-tabs button{padding:6px 14px;font-size:12.5px}   /* three modes still leave room for the panel buttons */
-.newqn:hover{color:#ef4444}
 /* rsThumb() adds tabs-mid whenever the switch fits in the middle without touching the buttons on the right */
 .drawer-head.tabs-mid{position:relative}
 .drawer-head.no-lbl .lbl{display:none!important}
@@ -2522,12 +2522,12 @@ body.rs-drag iframe{pointer-events:none}
     </div>
     <span class="status-chip" id="aiChip" hidden>no key</span>
     <button class="newsess" id="newChatBtn" data-act="chat-new" title="New session" aria-label="New session">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg><span class="lbl">New session</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span class="lbl">New session</span>
     </button>
-    <button class="newres" id="newResBtn" data-act="rs-new" title="Start a new research" aria-label="New research" hidden>
+    <button class="newsess" id="newResBtn" data-act="rs-new" title="Start a new research" aria-label="New research" hidden>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span class="lbl">New research</span>
     </button>
-    <button class="newsess newqn" id="newQnBtn" data-act="qn-new" title="Start a new quant test" aria-label="New quant test" hidden>
+    <button class="newsess" id="newQnBtn" data-act="qn-new" title="Start a new quant test" aria-label="New quant test" hidden>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span class="lbl">New quant test</span>
     </button>
     <button class="icon-btn" id="drawerFull" data-act="drawer-full" title="Full screen" aria-label="Toggle full screen">
@@ -4783,8 +4783,9 @@ function renderRail(){
   body = '';
   Object.keys(PFS).forEach(function(id){
     var p = PFS[id];
-    body += '<button class="rail-item' + (CUR.view === 'portfolio' && CUR.pf === id ? ' on' : '') + '" data-act="openpf" data-id="' + esc(id) + '">' +
-      '<span class="ri-dot"></span><span class="lbl">' + esc(p.name) + '</span><span class="cnt">' + p.holdings.length + '</span></button>';
+    body += '<div class="rail-row"><button class="rail-item' + (CUR.view === 'portfolio' && CUR.pf === id ? ' on' : '') + '" data-act="openpf" data-id="' + esc(id) + '">' +
+      '<span class="ri-dot"></span><span class="lbl">' + esc(p.name) + '</span><span class="cnt">' + p.holdings.length + '</span></button>' +
+      '<button class="rail-more" data-act="pf-menu" data-id="' + esc(id) + '" title="Manage ' + esc(p.name) + '" aria-label="Manage ' + esc(p.name) + '">' + railSvg('M6 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z', 16) + '</button></div>';
   });
   if(!body) body = '<button class="rail-item ri-empty" data-act="newpf"><span class="lbl">Create your first portfolio</span></button>';
   html += railSec('pfs', 'Portfolios', Object.keys(PFS).length, body, { add:['newpf', 'Create a portfolio'], active:CUR.view === 'portfolio' });
@@ -6223,7 +6224,9 @@ function renderPortfolio(){
       '<button class="btn text sm" data-act="importpf">Import CSV</button>' +
       '<button class="btn text sm" data-act="exportpf">Export CSV</button>' +
       '<button class="btn text sm" data-act="ai" data-kind="portfolio">AI insights</button>' +
-      '<button class="btn text sm" data-act="nlportfolio">Create with AI</button></div>';
+      '<button class="btn text sm" data-act="nlportfolio">Create with AI</button>' +
+      '<button class="btn text sm" data-act="pf-rename" data-id="' + esc(CUR.pf) + '">Rename</button>' +
+      '<button class="btn text sm vt-del" data-act="pf-del" data-id="' + esc(CUR.pf) + '">Delete</button></div>';
     html += '<div class="grid-3">' +
       statCard('Total value', money(st.total, cur), 'Cost basis ' + money(st.cost, cur)) +
       statCard('Day change', (st.day >= 0 ? '+' : '') + money(st.day, cur), st.total ? pct(st.day / (st.total - st.day) * 100) : '—', st.day >= 0 ? 'up' : 'down') +
@@ -12189,6 +12192,19 @@ function bindEvents(){
       case 'rs-focus': rsFocusToggle(el.getAttribute('data-f')); break;
       case 'rs-seed': rsSeed(el.getAttribute('data-sym')); break;
       case 'list-rename': closeMenu(); renameWatchlist(el.getAttribute('data-id')); break;
+      case 'pf-menu': { var pmid = el.getAttribute('data-id');
+        menu(el, '<div class="mhead">' + esc((PFS[pmid] || {}).name || 'Portfolio') + '</div><button class="mi" data-act="openpf" data-id="' + esc(pmid) + '">Open</button>' +
+          '<button class="mi" data-act="pf-rename" data-id="' + esc(pmid) + '">Rename</button><button class="mi" data-act="pf-del" data-id="' + esc(pmid) + '" style="color:var(--fh-negative,#ea4335)">Delete</button>'); break; }
+      case 'pf-rename': { closeMenu(); var prn = PFS[el.getAttribute('data-id')]; if(!prn) break;
+        askText('Rename portfolio', 'Name', prn.name, function(name){ prn.name = name; savePfs(); renderRail(); if(CUR.view === 'portfolio') renderPortfolio(); toast('Renamed to ' + name); }); break; }
+      case 'pf-del': { closeMenu(); var pdid = el.getAttribute('data-id'), pd = PFS[pdid]; if(!pd) break;
+        dialog('Delete this portfolio?', '<div class="vt-warn"><b>\u201c' + esc(pd.name) + '\u201d will be deleted for good</b>' + (pd.holdings.length ? ', with its ' + pd.holdings.length + ' holding' + (pd.holdings.length === 1 ? '' : 's') + ' (' + esc(pd.holdings.slice(0, 8).map(function(h){ return h.s; }).join(', ')) + (pd.holdings.length > 8 ? '…' : '') + ') and their buy prices and dates' : '') + '. There is no undo; export it as CSV first if you may want it back. Watchlists are not affected.</div>',
+          '<button class="btn text" data-act="dlg-close">Keep it</button><button class="btn filled danger" data-act="pf-del-go" data-id="' + esc(pdid) + '">Delete portfolio</button>'); break; }
+      case 'pf-del-go': { var pgid = el.getAttribute('data-id'), pgname = (PFS[pgid] || {}).name; delete PFS[pgid];
+        if(!Object.keys(PFS).length) PFS.main = { name:'Main portfolio', holdings:[] };   // always keep one to add holdings to
+        if(!PFS[CUR.pf]) CUR.pf = Object.keys(PFS)[0];
+        savePfs(); closeDialog(); renderRail(); toast('Deleted ' + pgname + '.');
+        if(CUR.view === 'portfolio') go('#/portfolio/' + CUR.pf); break; }
       case 'list-menu': { var mid = el.getAttribute('data-id');
         menu(el, '<div class="mhead">' + esc((LISTS[mid] || {}).name || 'Watchlist') + '</div><button class="mi" data-act="openlist" data-id="' + esc(mid) + '">Open</button>' +
           '<button class="mi" data-act="list-rename" data-id="' + esc(mid) + '">Rename</button><button class="mi" data-act="list-del" data-id="' + esc(mid) + '" style="color:var(--fh-negative,#ea4335)">Delete</button>'); break; }
