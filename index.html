@@ -186,7 +186,8 @@ input,select,textarea{font:inherit;color:inherit}
 }
 .search:focus-within{background:var(--fh-background-surface-elevated);box-shadow:var(--fh-elevation-2);border:1px solid var(--fh-border-stroke-emphasis)}
 .search svg{flex:0 0 auto;color:var(--fh-foreground-icon-secondary)}
-.search input{flex:1;border:0;background:transparent;outline:none;font-size:15px;min-width:0}
+.search input{flex:1;border:0;background:transparent;outline:none;font-size:15px;min-width:0;width:0}
+.appbar .search{min-width:140px}
 .search input::placeholder{color:var(--fh-foreground-on-surface-de-emphasis)}
 .grow{flex:1}
 .icon-btn{
@@ -300,7 +301,7 @@ input,select,textarea{font:inherit;color:inherit}
 
 /* ---------- Cards, sections -------------------------------------------- */
 .section{margin:0 0 28px}
-.section-head{display:flex;align-items:center;gap:12px;margin:0 0 12px}
+.section-head{display:flex;align-items:center;gap:12px;margin:0 0 12px;flex-wrap:wrap;row-gap:6px}
 .section-head h2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .card{
   background:var(--fh-background-surface);border:1px solid var(--fh-border-stroke-default);
@@ -671,7 +672,19 @@ tr:hover .wl-add,.wl-add:focus-visible,.wl-add.on{opacity:1}
 .chart-wrap.fs .chart-box>svg,.chart-wrap.fs .chart-box.ch-md>svg{height:100%}
 .chart-wrap.fs .range-row{margin-top:6px}
 body.chart-fs{overflow:hidden}
-@media(max-width:760px){.chart-row{flex-direction:column}.dr-bar{flex-direction:row;width:auto;overflow-x:auto;margin-top:0;align-self:stretch}.dr-sep{width:1px;height:26px;margin:4px}.dr-fly{left:0;top:calc(100% + 6px)}}
+@media(max-width:760px){.chart-row{flex-direction:column;gap:6px}.chart-col{align-self:stretch;width:100%}.dr-bar{flex-direction:row;width:auto;overflow-x:auto;margin-top:0;align-self:stretch;scrollbar-width:none;-webkit-overflow-scrolling:touch}.dr-bar::-webkit-scrollbar{display:none}.dr-grp{flex:none}.dr-sep{width:1px;height:26px;margin:4px;flex:none}
+  .dr-bar>.dr-b{flex:none}
+  /* the scrolling toolbar would clip a dropdown, so on phones the tool list opens as a sheet at the bottom */
+  .dr-fly{position:fixed;left:8px;right:8px;top:auto;bottom:calc(76px + env(safe-area-inset-bottom));min-width:0;max-height:55vh;overflow-y:auto;z-index:70}
+  .dr-float{flex-wrap:wrap;max-width:calc(100% - 12px)}
+  .chart-wrap.fs{padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+  .chart-wrap.fs .dr-fly{bottom:calc(8px + env(safe-area-inset-bottom))}
+  .chart-wrap.fs .fs-head{font-size:15px;gap:8px;flex-wrap:wrap}
+  .chart-wrap.fs .chart-toolbar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .chart-wrap.fs .range-row .pills{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}}
+@media (pointer:coarse){.dr-more{width:18px}.dr-b{width:40px;height:40px}.dr-float button{min-width:36px;height:36px}.dr-float .sw{width:24px;height:24px;min-width:24px}.dr-i{padding:12px 12px}
+  /* iOS zooms the page into any field under 16px when it gets focus */
+  input,select,textarea{font-size:max(16px,1em)}}
 .ind-panel{display:none;position:relative;height:0;z-index:40}   /* zero height: the box floats over the chart instead of pushing it down */
 .ind-panel.open{display:block}
 .ind-fly{position:absolute;left:0;right:0;top:8px;display:flex;align-items:flex-start;gap:12px;animation:indDown .18s ease-out;max-height:calc(100vh - 140px);pointer-events:none}
@@ -1097,9 +1110,13 @@ body.chart-fs{overflow:hidden}
 .logo-box{font-family:var(--mf-serif);font-weight:500;font-size:13px;letter-spacing:1.3px;text-transform:uppercase;line-height:1;white-space:nowrap;
   color:var(--fh-foreground-on-surface-emphasis);border:1.5px solid currentColor;padding:7px 10px;margin-left:12px;opacity:.9}
 :root:not([data-theme="dark"]) .logo-wm{filter:brightness(0) opacity(.85)}
-@media (max-width:1100px){ .logo-box{font-size:10.5px;letter-spacing:.9px;padding:5px 7px;margin-left:8px} }
-@media (max-width:760px){ .logo-box{display:none} }
-@media (max-width:520px){ .logo-wm{height:26px} }
+@media (max-width:1100px){ #statusText{display:none} .status-chip{padding:0 8px} .logo-box{font-size:10.5px;letter-spacing:.9px;padding:5px 7px;margin-left:8px} }
+@media (max-width:900px){ .logo-box{display:none} }
+@media (max-width:520px){ .logo-wm{height:26px}
+  /* phones: fit the header in one row; the theme switch moves to the ⋯ menu, the status chip keeps only its dot */
+  .appbar{gap:2px;padding:6px 6px}.appbar .icon-btn{width:36px;height:36px}#themeBtn{display:none}
+  #statusText{display:none}.status-chip{padding:0 6px;min-width:0} }
+@media (max-width:400px){ .logo-wm{height:22px} #statusChip{display:none} }
 .wordmark{gap:9px}
 .wordmark .mk{width:30px;height:30px;display:block;flex:none;border-radius:8px}
 .wordmark .nm{
@@ -3706,7 +3723,8 @@ function chartView(host, o){
     $q('.ch-empty').hidden = n > 1;
     if(n < 2){ ['.ch-grid', '.ch-plot', '.ch-axis', '.ch-over'].forEach(function(s){ $q(s).innerHTML = ''; }); return; }
     var W = svg.clientWidth || 800, H = svg.clientHeight || 400, pctMode = !!o.pct;
-    var padL = pctMode ? 12 : 92, padR = pctMode ? 70 : 74, padT = 14, padB = 30;
+    var narrow = !pctMode && W < 560;   // phones: drop the left % axis so the candles get the width
+    var padL = pctMode ? 12 : narrow ? (o.volume ? 34 : 12) : 92, padR = pctMode ? 70 : narrow ? 64 : 74, padT = 14, padB = 30;
     var plotW = W - padL - padR, plotH = H - padT - padB;
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     var clip = $q('.ch-clip'); clip.setAttribute('x', padL); clip.setAttribute('y', padT); clip.setAttribute('width', plotW); clip.setAttribute('height', plotH);
@@ -3744,7 +3762,7 @@ function chartView(host, o){
     var pad = (hi - lo || Math.abs(hi) * .02 || 1) * .08; lo -= pad; hi += pad;
     var Y = function(v){ return padT + plotH - (v - lo) / (hi - lo) * plotH; };
     var YP = function(price){ return Y(val(price)); };
-    c.geo = { padL:padL, plotW:plotW, ppb:ppb, padT:padT, plotH:plotH, W:W, H:H, a:a, b:b, lo:lo, hi:hi, base:base, pct:pctMode, X:X, Y:Y, YP:YP };
+    c.geo = { padL:padL, plotW:plotW, ppb:ppb, padT:padT, plotH:plotH, W:W, H:H, a:a, b:b, lo:lo, hi:hi, base:base, pct:pctMode, narrow:narrow, X:X, Y:Y, YP:YP };
     var step = chNice((hi - lo) / 6), dp = step >= 50 ? 0 : step >= .05 ? 2 : step >= .0005 ? 4 : 6, grid = [], axis = [];
     for(var gv = Math.ceil(lo / step) * step; gv <= hi; gv += step){
       var gy = Y(gv).toFixed(1);
@@ -3752,7 +3770,7 @@ function chartView(host, o){
       if(pctMode) axis.push('<text class="axis pct ' + (gv > 1e-9 ? 'up' : gv < -1e-9 ? 'down' : '') + '" x="' + (padL + plotW + 8) + '" y="' + (+gy + 4) + '">' + chPctTxt(Math.abs(gv) < 1e-9 ? 0 : gv) + '</text>');
       else {
         axis.push('<text class="axis" x="' + (padL + plotW + 8) + '" y="' + (+gy + 4) + '">' + num(gv, dp) + '</text>');
-        axis.push('<text class="axis pct ' + (gv > base ? 'up' : gv < base ? 'down' : '') + '" x="' + (padL - 8) + '" y="' + (+gy + 4) + '" text-anchor="end">' + chPctTxt((gv / base - 1) * 100) + '</text>');
+        if(!narrow) axis.push('<text class="axis pct ' + (gv > base ? 'up' : gv < base ? 'down' : '') + '" x="' + (padL - 8) + '" y="' + (+gy + 4) + '" text-anchor="end">' + chPctTxt((gv / base - 1) * 100) + '</text>');
       }
     }
     if(pctMode && lo < 0 && hi > 0) grid.push('<line x1="' + padL + '" x2="' + (padL + plotW) + '" y1="' + Y(0).toFixed(1) + '" y2="' + Y(0).toFixed(1) + '" stroke="var(--fh-foreground-on-surface-de-emphasis)" stroke-dasharray="4 4"/>');
@@ -3838,7 +3856,7 @@ function chartView(host, o){
     if(chsOn('price')) plot.push('<line x1="' + padL + '" x2="' + (padL + plotW) + '" y1="' + ly.toFixed(1) + '" y2="' + ly.toFixed(1) + '" stroke="' + lc + '" stroke-dasharray="2 3" opacity=".7"/>');
     axis.push('<rect x="' + (padL + plotW + 2) + '" y="' + (ly - 10).toFixed(1) + '" width="' + (padR - 4) + '" height="20" rx="4" fill="' + lc + '"/>' +
       '<text class="axis tag" x="' + (padL + plotW + 8) + '" y="' + (ly + 4.5).toFixed(1) + '">' + (pctMode ? chPctTxt(lv2) : num(last, Math.abs(last) < 10 ? 4 : 2)) + '</text>');
-    if(!pctMode) axis.push('<rect x="32" y="' + (ly - 10).toFixed(1) + '" width="' + (padL - 34) + '" height="20" rx="4" fill="' + (last >= base ? upCol : dnCol) + '"/>' +
+    if(!pctMode && !narrow) axis.push('<rect x="32" y="' + (ly - 10).toFixed(1) + '" width="' + (padL - 34) + '" height="20" rx="4" fill="' + (last >= base ? upCol : dnCol) + '"/>' +
       '<text class="axis tag pct" x="' + (padL - 6) + '" y="' + (ly + 4.5).toFixed(1) + '" text-anchor="end">' + chPctTxt((last / base - 1) * 100) + '</text>');
     // your average cost (golden) and price alerts, drawn when they fall inside the visible price range
     if(!pctMode){
@@ -3872,8 +3890,9 @@ function chartView(host, o){
     }
     $q('.ch-grid').innerHTML = grid.join(''); $q('.ch-plot').innerHTML = plot.join(''); $q('.ch-axis').innerHTML = axis.join('');
     $q('.ch-over').innerHTML = o.overlay ? o.overlay(c, r) : '';
-    $q('.ch-draw').innerHTML = o.draw ? DR.render(c) : '';
+    $q('.ch-draw').innerHTML = o.draw ? DR.render(c) : ''; if(c.touchMode) c.touchMode();
     c.hoverOut();
+    var hud = $q('.ch-hud'); hud.style.left = narrow ? 'auto' : (padL + 6) + 'px'; hud.style.right = narrow ? (padR + 8) + 'px' : '';   // phones: top right, clear of the High label
     $q('.ch-res').textContent = chResName(r) + (c.home && c.lv !== c.home[0] ? ' · auto' : '');
     var moved = !c.home || c.home[0] !== c.lv || Math.abs(c.home[1] - i0) > .5 || Math.abs(c.home[2] - i1) > .5;
     $q('.ch-home').hidden = !moved;
@@ -3892,8 +3911,9 @@ function chartView(host, o){
     tag.setAttribute('opacity', 1);
     rc[0].setAttribute('x', g.padL + g.plotW + 2); rc[0].setAttribute('y', y - 10); rc[0].setAttribute('width', g.W - g.padL - g.plotW - 4); rc[0].setAttribute('height', 20);
     tx[0].setAttribute('x', g.padL + g.plotW + 8); tx[0].setAttribute('y', y + 4.5); tx[0].textContent = g.pct ? chPctTxt(v) : num(v, Math.abs(v) < 10 ? 4 : 2);
-    rc[1].setAttribute('opacity', g.pct ? 0 : 1); tx[1].textContent = g.pct ? '' : chPctTxt((v / g.base - 1) * 100);
-    if(!g.pct){ rc[1].setAttribute('x', 32); rc[1].setAttribute('y', y - 10); rc[1].setAttribute('width', g.padL - 34); rc[1].setAttribute('height', 20); tx[1].setAttribute('x', g.padL - 6); tx[1].setAttribute('y', y + 4.5); }
+    var noL = g.pct || g.narrow;
+    rc[1].setAttribute('opacity', noL ? 0 : 1); tx[1].textContent = noL ? '' : chPctTxt((v / g.base - 1) * 100);
+    if(!noL){ rc[1].setAttribute('x', 32); rc[1].setAttribute('y', y - 10); rc[1].setAttribute('width', g.padL - 34); rc[1].setAttribute('height', 20); tx[1].setAttribute('x', g.padL - 6); tx[1].setAttribute('y', y + 4.5); }
     var intra = !!CH_INTRA[c.lv], dp = Math.abs(row.c) < 10 ? 4 : 2, ch = prev ? row.c - prev.c : null;
     var res = chResName(r), head = intra ? o.time(row, true) : res === 'Monthly' ? monthName(row.d.slice(5, 7)) + ' ' + row.d.slice(0, 4) : res === 'Quarterly' ? 'Quarter from ' + monthName(row.d.slice(5, 7)) + ' ' + row.d.slice(0, 4) : (res === 'Weekly' ? 'Week of ' : '') + row.d;
     var mkEl = ev.target.closest && ev.target.closest('.ch-mk'), mk = mkEl && c.mk[+mkEl.getAttribute('data-mk')];
@@ -3932,19 +3952,30 @@ function chartView(host, o){
   }, { passive:false });
   var gs = 1;
   svg.addEventListener('gesturestart', function(e){ e.preventDefault(); gs = 1; });
-  svg.addEventListener('gesturechange', function(e){ e.preventDefault(); c.zoom(gs / e.scale, fx(e.clientX)); gs = e.scale; });
+  svg.addEventListener('gesturechange', function(e){ e.preventDefault(); if(Object.keys(pts).length) return; c.zoom(gs / e.scale, fx(e.clientX)); gs = e.scale; });   // Mac trackpad; on iOS the pointer pinch below does it
   var pts = {}, last = null, vel = 0, lt = 0, coast = 0, moved = 0;
+  /* Touch: a tap shows the crosshair there, press and hold then slide to scrub it, one finger pans, two pinch. */
+  var hold = 0, scrub = false, t0p = null;
+  c.touchMode = function(){ svg.style.touchAction = (o.draw && DR.wantsTouch()) || document.body.classList.contains('chart-fs') ? 'none' : ''; };
+  svg.addEventListener('touchmove', function(e){ if(scrub) e.preventDefault(); }, { passive:false });
   var info = function(){ var ks = Object.keys(pts), p = pts[ks[0]], p2 = pts[ks[1]];
     return ks.length > 1 ? { x:(p.x + p2.x) / 2, d:Math.abs(p.x - p2.x) + Math.abs(p.y - p2.y), n:2 } : p ? { x:p.x, d:0, n:1 } : null; };
   svg.addEventListener('pointerdown', function(e){
-    if(o.draw && DR.down(c, e)) return;   // drawing tools take the mouse first
+    if(o.draw && DR.down(c, e)){ c.touchMode(); return; }   // drawing tools take the pointer first
     if(e.pointerType === 'mouse' && e.button !== 0) return;
     cancelAnimationFrame(coast); vel = 0; moved = 0;
     pts[e.pointerId] = { x:e.clientX, y:e.clientY }; last = info(); lt = performance.now();
+    clearTimeout(hold); scrub = false; t0p = null;
+    if(e.pointerType === 'touch' && Object.keys(pts).length === 1){
+      t0p = { x:e.clientX, y:e.clientY };
+      hold = setTimeout(function(){ if(c.drag || !t0p) return; scrub = true; try{ svg.setPointerCapture(e.pointerId); }catch(x){} c.hover(e); if(navigator.vibrate) navigator.vibrate(8); }, 380);
+    } else if(e.pointerType === 'touch') c.hoverOut();
   });
   svg.addEventListener('pointermove', function(e){
     if(o.draw && DR.move(c, e)) return;
     if(!pts[e.pointerId]){ if(e.pointerType !== 'touch') c.hover(e); return; }
+    if(scrub){ c.hover(e); return; }
+    if(t0p && Math.hypot(e.clientX - t0p.x, e.clientY - t0p.y) > 8){ clearTimeout(hold); t0p = null; }
     pts[e.pointerId] = { x:e.clientX, y:e.clientY };
     var cur = info(); if(!cur || !last || !c.geo) return;
     if(!c.drag && Math.abs(cur.x - last.x) < 3 && cur.n === last.n) return;
@@ -3957,8 +3988,12 @@ function chartView(host, o){
     vel = clamp(dBars / Math.max(8, now - lt), -vmax, vmax); lt = now; last = cur;
   });
   var up = function(e){
-    if(o.draw && DR.up(c, e)) return;
+    if(o.draw && DR.up(c, e)){ c.touchMode(); return; }
+    clearTimeout(hold);
     if(!pts[e.pointerId]) return;
+    if(scrub){ scrub = false; delete pts[e.pointerId]; last = info(); return; }   // the crosshair stays where the finger lifted
+    if(t0p && e.type === 'pointerup' && !c.drag) c.hover(e);   // a tap
+    t0p = null;
     delete pts[e.pointerId]; last = info();
     if(Object.keys(pts).length) return;
     var was = c.drag; c.drag = false; svg.classList.remove('dragging');
@@ -9931,7 +9966,7 @@ function moreMenuHTML(){
     ['#/earnings', 'Earnings calendar'], ['#/research', 'Research Log'], ['#/market', 'Market']];
   return '<div class="mhead">MercerFargo tools</div>' + links.map(function(m){
     return '<a class="mi" href="' + esc(m[0]) + '">' + m[1] + '</a>';
-  }).join('') + '<div class="msep"></div><a class="mi" href="#/settings/ai">AI keys &amp; defaults</a><a class="mi" href="#/settings">Settings</a><div class="msep"></div><button class="mi" data-act="tour-start">Take the tour</button><a class="mi" href="#/feedback">Give feedback</a><a class="mi" href="#/help">Get help</a>';
+  }).join('') + '<div class="msep"></div><a class="mi" href="#/settings/ai">AI keys &amp; defaults</a><a class="mi" href="#/settings">Settings</a><button class="mi" data-act="theme">Switch light / dark</button><div class="msep"></div><button class="mi" data-act="tour-start">Take the tour</button><a class="mi" href="#/feedback">Give feedback</a><a class="mi" href="#/help">Get help</a>';
 }
 function closeMenu(){ $('menuRoot').innerHTML = ''; }
 function closeDialog(){ $('dlgRoot').innerHTML = ''; }
@@ -11150,6 +11185,7 @@ function bindEvents(){
       case 'dr-fly': DR.fly(el.getAttribute('data-g')); break;
       case 'dr-toggle': DR.toggle(el.getAttribute('data-k')); break;
       case 'dr-clear': DR.clearAll(); break;
+      case 'dr-undo': DR.undo(); break;
       case 'chart-fs': chartFs(); break;
       case 'ind-toggle': CUR.indOpen = !CUR.indOpen; if(!CUR.indOpen) CUR.indAll = false; indPanelSync(); break;
       case 'ind-all': CUR.indAll = !CUR.indAll; indPanelSync(); break;

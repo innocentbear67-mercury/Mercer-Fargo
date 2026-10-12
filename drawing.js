@@ -25,6 +25,7 @@ var ICON = {
   lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', unlock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7-2"/>',
   eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>', eyeoff:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM4 4l16 16"/>',
   trash:'<path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/>', copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/>',
+  undo:'<path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/>',
   full:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>', exit:'<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>'
 };
 function icon(id, size){ return '<svg width="' + (size || 22) + '" height="' + (size || 22) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + (ICON[id] || '') + '</svg>'; }
@@ -44,7 +45,7 @@ var CURSORS = { cross:1, arrow:1, eraser:1 };
 DR.GROUPS = GROUPS; DR.COLS = COLS;
 
 /* ------------------------------------------------------------------ state */
-var S = DR.S = { tool:'cross', magnet:false, stay:false, lock:false, hide:false, sel:null, hov:null, draft:null, drag:null, measure:null, fly:null, col:COLS[0], w:2, last:{}, tick:0 };
+var S = DR.S = { tool:'cross', magnet:false, stay:false, lock:false, hide:false, sel:null, hov:null, draft:null, drag:null, measure:null, fly:null, col:COLS[0], w:2, last:{}, tick:0, ts:1 };   // ts: hit-test scale, 2 for a finger
 try{ var saved = JSON.parse(localStorage.getItem('fh3_drset') || '{}'); ['magnet', 'stay', 'lock', 'hide'].forEach(function(k){ if(saved[k]) S[k] = true; }); if(saved.col) S.col = saved.col; }catch(e){}
 function saveSet(){ try{ localStorage.setItem('fh3_drset', JSON.stringify({ magnet:S.magnet, stay:S.stay, lock:S.lock, hide:S.hide, col:S.col })); }catch(e){} }
 var STORE = null, UNDO = [];
@@ -204,7 +205,7 @@ DR.dist = function(sh, x, y){
   return m;
 };
 DR.handleAt = function(sh, x, y){
-  for(var i = sh.handles.length - 1; i >= 0; i--) if(Math.hypot(x - sh.handles[i].x, y - sh.handles[i].y) <= 9) return i;
+  for(var i = sh.handles.length - 1; i >= 0; i--) if(Math.hypot(x - sh.handles[i].x, y - sh.handles[i].y) <= 9 * S.ts) return i;
   return -1;
 };
 
@@ -236,7 +237,7 @@ function hitTest(c, ctx, p){
     var sh = DR.shape(list[i], ctx), isSel = S.sel === list[i].id, hd = isSel ? DR.handleAt(sh, p.x, p.y) : -1;
     if(hd >= 0) return { d:list[i], sh:sh, handle:hd };
     var dd = DR.dist(sh, p.x, p.y);
-    if(dd <= 7 && (!best || dd < best.dd)) best = { d:list[i], sh:sh, handle:-1, dd:dd };
+    if(dd <= 7 * S.ts && (!best || dd < best.dd)) best = { d:list[i], sh:sh, handle:-1, dd:dd };
   }
   return best;
 }
@@ -298,6 +299,7 @@ function addPoint(c, ctx, p){
 /* ------------------------------------------------------------------ pointer handling (called from chartView) */
 DR.down = function(c, e){
   if(!usable(c) || (e.pointerType === 'mouse' && e.button !== 0)) return false;
+  S.ts = e.pointerType === 'touch' ? 2.2 : 1;
   var ctx = ctxOf(c), p = local(c, e);
   if(!inPlot(ctx, p)) return false;
   if(S.draft && S.draft.c === c && !S.draft.brush){ addPoint(c, ctx, p); return true; }
@@ -384,6 +386,9 @@ DR.dbl = function(c, e){
   if(h.d.type === 'text') askText('Edit text', 'Note', h.d.txt || '', function(v){ pushUndo(symOf(c)); h.d.txt = (v || '').trim() || 'Text'; persist(); touch(c); });
   return true;
 };
+
+/* True when a finger on the chart should draw or move a drawing rather than scroll the page. */
+DR.wantsTouch = function(){ return !S.hide && (isDraw(S.tool) || !!S.sel || !!S.draft); };
 
 /* ------------------------------------------------------------------ actions */
 DR.hooks = { chart:function(){ return null; }, sync:null, fullscreen:null };
@@ -487,6 +492,7 @@ DR.barHTML = function(){
     '<button class="dr-b' + (S.stay ? ' on' : '') + '" data-act="dr-toggle" data-k="stay" title="Stay in drawing mode">' + icon('stay') + '</button>' +
     '<button class="dr-b' + (S.lock ? ' on' : '') + '" data-act="dr-toggle" data-k="lock" title="Lock all drawings">' + icon(S.lock ? 'lock' : 'unlock') + '</button>' +
     '<button class="dr-b' + (S.hide ? ' on' : '') + '" data-act="dr-toggle" data-k="hide" title="Hide all drawings">' + icon(S.hide ? 'eyeoff' : 'eye') + '</button>' +
+    '<button class="dr-b" data-act="dr-undo" title="Undo (Ctrl+Z)">' + icon('undo') + '</button>' +
     '<button class="dr-b" data-act="dr-clear" title="Remove all drawings">' + icon('trash') + '</button></div>';
   return h;
 };
