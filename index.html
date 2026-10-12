@@ -11173,8 +11173,29 @@ function qnHist(sym){
 function qnStep(label, state){ QS.steps.push({ label:label, st:state || 'run' }); qnPaint(); }
 function qnStepDone(ok, detail){ var s = QS.steps[QS.steps.length - 1]; if(s){ s.st = ok ? 'ok' : 'bad'; if(detail) s.detail = detail; } qnPaint(); }
 /* Ask for the spec, then check it really runs; one repair round if it does not. */
+/* The user's portfolios as weights by cost, so "test my portfolio" has something to test. */
+function qnPortfolios(){
+  return Object.keys(PFS).map(function(id){
+    var w = {}, tot = 0;
+    PFS[id].holdings.forEach(function(h){ var v = h.q > 0 && h.px > 0 ? h.q * h.px : 0; if(v){ var s = dispSym(h.s); w[s] = (w[s] || 0) + v; tot += v; } });
+    var parts = Object.keys(w).sort(function(a, b){ return w[b] - w[a]; }).map(function(s){ return s + ' ' + (100 * w[s] / tot).toFixed(1) + '%'; });
+    return parts.length ? '- ' + PFS[id].name + (id === CUR.pf ? ' (current)' : '') + ': ' + parts.join(', ') : '';
+  }).filter(Boolean).join('\n');
+}
+/* quant.js normally loads with the page; if that request failed (flaky network, cached 404), fetch it again instead of failing on QN. */
+function qnEngine(){
+  if(window.QN) return Promise.resolve();
+  return new Promise(function(res, rej){
+    var el = document.createElement('script'); el.src = 'quant.js?r=' + Date.now();
+    el.onload = function(){ window.QN ? res() : rej(new Error('The quant engine did not load. Reload the page and try again.')); };
+    el.onerror = function(){ rej(new Error('Could not load the quant engine (quant.js). Check your connection and reload the page.')); };
+    document.head.appendChild(el);
+  });
+}
 function qnSpec(q, prev){
-  var ask = prev ? 'Current spec:\n' + JSON.stringify(prev.spec) + '\n\nThe user wants this change: ' + q + '\nReturn the full updated spec.' : 'Today is ' + ymd(new Date()) + '. Strategy to test: ' + q;
+  var pfs = qnPortfolios();
+  var ask = prev ? 'Current spec:\n' + JSON.stringify(prev.spec) + '\n\nThe user wants this change: ' + q + '\nReturn the full updated spec.' : 'Today is ' + ymd(new Date()) + '. Strategy to test: ' + q +
+    (pfs ? '\n\nThe user\'s portfolios (weights by cost). If they mean "my portfolio", test it as an allocation with these weights (rebalanced quarterly) against SPY:\n' + pfs : '');
   var tryOne = function(content, round){
     return aiCall([{ role:'user', content:content }], QN_SPEC_SYS, qnEffortKey()).then(function(t){
       var sp = jsonFrom(t); if(!sp) throw new Error('The model did not return a strategy spec.');
@@ -11207,7 +11228,7 @@ function qnRun(q, refine){
   var prev = refine ? QS.cur : null;
   QS.busy = true; QS.err = ''; QS.steps = []; if(!refine) QS.cur = null;
   qnStep(refine ? 'Updating the rules' : 'Reading your strategy');
-  qnSpec(q, prev).then(function(r){
+  qnEngine().then(function(){ return qnSpec(q, prev); }).then(function(r){
     var sp = r.spec, pj = sp.projection || {};
     var cur = { q:prev ? prev.q : q, spec:sp, al:r.al, over:{}, proj:{ years:pj.years || 5, drift:pj.drift || 0, volMult:pj.volMult || 1 }, ts:Date.now(),
       id:prev ? prev.id : 'q' + Date.now().toString(36), turns:prev ? (prev.turns || []).slice() : [], pdfs:prev ? prev.pdfs || [] : [] };   // a refinement stays in the same session
@@ -11389,7 +11410,7 @@ function qnHoverOut(e){ var box = e.target.closest && e.target.closest('.qn-char
 function qnOpen(id){
   var r = QN_RUNS.filter(function(x){ return x.id === id; })[0]; if(!r) return;
   QS.busy = true; QS.err = ''; QS.steps = [];
-  qnLoad(r.spec).then(function(x){
+  qnEngine().then(function(){ return qnLoad(r.spec); }).then(function(x){
     var cur = { q:r.q, spec:r.spec, al:x.al, over:{}, proj:Object.assign({ years:5, drift:0, volMult:1 }, r.proj), note:r.note, ts:r.ts, id:r.id, turns:r.turns || [{ q:r.q, title:r.spec.title, ts:r.ts }], pdfs:r.pdfs || [], vkey:r.vkey || '' };
     qnCompute(cur); QS.cur = cur; QS.busy = false; qnPaint();
   }).catch(function(e){ QS.busy = false; QS.err = String(e.message || e); qnPaint(); });
