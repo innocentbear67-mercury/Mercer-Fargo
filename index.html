@@ -2322,6 +2322,13 @@ body.rs-drag iframe{pointer-events:none}
 #tabChat.on{color:var(--fh-foreground-on-surface-emphasis)}
 #tabResearch.on{color:var(--fh-foreground-on-surface-emphasis)}
 @media (prefers-reduced-motion:reduce){ .rs-tabs[data-t="research"] .thumb::after,.rs-tabs[data-t="quant"] .thumb::after{animation:none} }
+/* hover glow on the mode tabs (the active pill's ring brightens) and on the header's Research with Marvell button */
+.rs-tabs button:hover{color:var(--fh-foreground-on-surface-emphasis);text-shadow:0 0 8px rgba(var(--fx,193,165,120),.6)}
+.rs-tabs:has(button.on:hover) .thumb::after{box-shadow:inset 0 0 0 1px rgba(var(--fx),.9),0 0 18px rgba(var(--fx),.45)}
+.icon-btn.rs-btn{overflow:hidden;transition:box-shadow .25s,background .25s}
+.icon-btn.rs-btn:hover{box-shadow:inset 0 0 0 1px var(--mf-gold),0 0 14px rgba(193,165,120,.4)}
+.rs-btn>canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;pointer-events:none}
+.rs-btn>svg,.rs-btn>.rs-label{position:relative;z-index:1}
 
 /* Full screen: toggle centred and a little larger */
 .drawer.full .rs-tabs{padding:4px}
@@ -2482,6 +2489,7 @@ body.rs-drag iframe{pointer-events:none}
   </button>
   <button class="icon-btn rs-btn" id="rsBtn" title="Research with Marvell" aria-label="Research with Marvell">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2zm6 12l.9 2.6L21.5 18l-2.6.9L18 21.5l-.9-2.6L14.5 18l2.6-.9L18 14z"/></svg>
+    <canvas id="rsBtnFx" aria-hidden="true"></canvas>
     <span class="rs-label">Research with Marvell</span>
     <i class="rs-live" aria-hidden="true"></i>
   </button>
@@ -5427,6 +5435,34 @@ function rsFxFrame(now){
   }
   if(still){ cancelAnimationFrame(RSFX.raf); RSFX.raf = 0; }
 }
+/* The header's Research with Marvell button runs the Agent pill's gold swell, at ~30 fps. */
+var RSB = { raf:0, last:0, noise:[] };
+function rsBtnFx(now){
+  RSB.raf = 0;
+  var cv = $('rsBtnFx'); if(!cv) return;
+  if(document.hidden){ document.addEventListener('visibilitychange', function(){ RSB.raf = requestAnimationFrame(rsBtnFx); }, { once:true }); return; }
+  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!still) RSB.raf = requestAnimationFrame(rsBtnFx);
+  if(now - RSB.last < 33) return;
+  var dt = Math.min(.1, (now - (RSB.last || now)) / 1000); RSB.last = now;
+  var w = cv.clientWidth, h = cv.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1); if(!w || !h) return;
+  if(cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)){ cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  var P = 4, S = 2.6, cols = Math.max(1, Math.floor(w / P)), rows = Math.max(1, Math.floor(h / P)), n = cols * rows, t = still ? 0 : now / 1000;
+  var ox = (w - cols * P + (P - S)) / 2, oy = (h - rows * P + (P - S)) / 2;
+  if(RSB.noise.length !== n){ RSB.noise = []; for(var k = 0; k < n; k++) RSB.noise.push(Math.random()); }
+  for(var j = 0; j < n; j++) if(Math.random() < 2 * dt) RSB.noise[j] = Math.random();
+  var light = document.documentElement.getAttribute('data-theme') !== 'dark', col = light ? '150,118,62' : '193,165,120', ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+  for(var c = 0; c < cols; c++){
+    var x = cols > 1 ? c / (cols - 1) : .5, swell = .5 + .5 * Math.sin((x * 1.4 - t * .22) * Math.PI * 2);
+    for(var r = 0; r < rows; r++){
+      var y = rows > 1 ? r / (rows - 1) : .5, a = (.1 + .26 * swell) * (.75 + .5 * RSB.noise[c * rows + r]) * (1 - .35 * Math.abs(y - .5)) * (light ? 2.4 : 1);
+      if(a < .03) continue;
+      ctx.fillStyle = 'rgba(' + col + ',' + Math.min(light ? .78 : .62, a).toFixed(3) + ')'; ctx.fillRect(ox + c * P, oy + r * P, S, S);
+    }
+  }
+}
+RSB.raf = requestAnimationFrame(rsBtnFx);
 
 /* ---- Price alerts and the inbox --------------------------------------------------------------------
    Alerts live in this browser and are checked every 30 seconds while MercerFargo is open (there is no
