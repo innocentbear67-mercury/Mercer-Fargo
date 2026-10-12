@@ -627,6 +627,51 @@ tr:hover .wl-add,.wl-add:focus-visible,.wl-add.on{opacity:1}
 .menu .mi:hover{background:var(--fh-states-neutral-hovered)}
 .menu .mi.on{background:var(--fh-states-branded-medium-selected);color:var(--fh-foreground-on-highlight)}
 .menu .mhead{padding:10px 14px 6px;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis)}
+.chart-row{display:flex;gap:8px;align-items:flex-start}
+.chart-col{flex:1;min-width:0}
+.dr-bar{flex:none;width:50px;display:flex;flex-direction:column;gap:2px;padding:6px 4px;background:var(--fh-background-surface-elevated);border:1px solid var(--fh-border-stroke-default);border-radius:12px;margin-top:6px;position:relative;z-index:6}
+.dr-grp{position:relative;display:flex;align-items:center}
+.dr-b{width:34px;height:36px;border:0;border-radius:8px;background:transparent;color:var(--fh-foreground-on-surface-default);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.dr-b:hover,.dr-more:hover{background:var(--fh-states-neutral-hovered)}
+.dr-b.on{background:var(--mf-gold);color:#141414}
+.dr-more{width:10px;height:36px;border:0;background:transparent;color:var(--fh-foreground-on-surface-de-emphasis);font-size:13px;line-height:1;padding:0;cursor:pointer;border-radius:5px}
+.dr-sep{display:block;height:1px;margin:5px 4px;background:var(--fh-border-stroke-default)}
+.dr-fly{display:none;position:absolute;left:calc(100% + 10px);top:-4px;min-width:270px;padding:8px;background:var(--fh-background-surface-elevated);border:1px solid var(--fh-border-stroke-default);border-radius:12px;box-shadow:var(--fh-elevation-3);z-index:45}
+.dr-grp.open .dr-fly{display:block}
+.dr-fly .mhead{padding:6px 8px 4px;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis)}
+.dr-i{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;padding:8px 10px;border-radius:8px;font-size:14px;text-align:left;color:var(--fh-foreground-on-surface-default);cursor:pointer}
+.dr-i:hover{background:var(--fh-states-neutral-hovered)}
+.dr-i.on{background:var(--fh-states-branded-medium-selected)}
+.dr-i span{flex:1}
+.dr-i kbd{font:inherit;font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.dr-float{position:absolute;z-index:8;display:flex;align-items:center;gap:4px;padding:6px 8px;background:var(--fh-background-surface-elevated);border:1px solid var(--fh-border-stroke-default);border-radius:10px;box-shadow:var(--fh-elevation-3)}
+.dr-float[hidden]{display:none}
+.dr-float i{width:1px;height:20px;background:var(--fh-border-stroke-default);margin:0 4px}
+.dr-float button{border:0;background:transparent;color:var(--fh-foreground-on-surface-default);border-radius:6px;min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 4px;font-size:12px}
+.dr-float button:hover{background:var(--fh-states-neutral-hovered)}
+.dr-float button.on{background:var(--fh-states-neutral-selected)}
+.dr-float .sw{width:18px;height:18px;min-width:18px;border-radius:50%;border:2px solid transparent}
+.dr-float .sw.on{border-color:var(--fh-foreground-on-surface-emphasis)}
+.dr-float .wd b{display:block;width:16px;background:currentColor;border-radius:1px}
+.ch-draw{pointer-events:none}
+.dr-t,.dr-tt{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.dr-t{paint-order:stroke;stroke:var(--fh-background-surface);stroke-width:3px}
+.dr-t.big,.dr-tt.big{font-size:13px}
+.dr-h{fill:var(--fh-background-surface);stroke:var(--mf-gold);stroke-width:2}
+.dr-d.sel{filter:drop-shadow(0 0 3px rgba(193,165,120,.65))}
+.chart-wrap .fs-head{display:none}
+.chart-wrap.fs{position:fixed;inset:0;z-index:60;background:var(--fh-background-surface);padding:10px 16px 12px;display:flex;flex-direction:column;overflow:auto;margin:0}
+.chart-wrap.fs .fs-head{display:flex;align-items:center;gap:14px;padding:2px 2px 8px;font-size:18px}
+.chart-wrap.fs .fs-head .grow{flex:1}
+.chart-wrap.fs .chart-toolbar{margin-top:0}
+.chart-wrap.fs #fsBtn{display:none}
+.chart-wrap.fs .chart-row{flex:1;min-height:0}
+.chart-wrap.fs .chart-col{display:flex;flex-direction:column;min-height:0;align-self:stretch}
+.chart-wrap.fs .chart-box{flex:1;min-height:0;margin:8px 0 0}
+.chart-wrap.fs .chart-box>svg,.chart-wrap.fs .chart-box.ch-md>svg{height:100%}
+.chart-wrap.fs .range-row{margin-top:6px}
+body.chart-fs{overflow:hidden}
+@media(max-width:760px){.chart-row{flex-direction:column}.dr-bar{flex-direction:row;width:auto;overflow-x:auto;margin-top:0;align-self:stretch}.dr-sep{width:1px;height:26px;margin:4px}.dr-fly{left:0;top:calc(100% + 6px)}}
 .ind-panel{display:none;position:relative;height:0;z-index:40}   /* zero height: the box floats over the chart instead of pushing it down */
 .ind-panel.open{display:block}
 .ind-fly{position:absolute;left:0;right:0;top:8px;display:flex;align-items:flex-start;gap:12px;animation:indDown .18s ease-out;max-height:calc(100vh - 140px);pointer-events:none}
@@ -2197,6 +2242,7 @@ body.rs-drag iframe{pointer-events:none}
   </head>
   <body>
 <script src="indicators.js"></script>
+<script src="drawing.js"></script>
 <script>try{var c=JSON.parse(localStorage.getItem('fh3_cfg')||'{}'),t=c.theme||'dark';if(t==='auto')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 <div class="sys" id="bootScreen" role="status" aria-live="polite" aria-label="Loading MercerFargo">
   <div class="sys-in">
@@ -3528,7 +3574,7 @@ function chartView(host, o){
   host.innerHTML = '<svg class="ch-svg" tabindex="0" role="img" aria-label="Chart. Drag or use the arrow keys to scroll through history, scroll or pinch to zoom, double-click to reset.">' +
       '<defs><clipPath id="' + o.id + 'Clip"><rect class="ch-clip"/></clipPath></defs>' +
       '<g class="ch-grid"></g><g clip-path="url(#' + o.id + 'Clip)"><g class="ch-plot"></g>' +
-      (o.volume ? '<g class="vol-layer" id="volLayer"><g class="ch-vol"></g></g>' : '') + '<g class="ch-over"></g></g>' +
+      (o.volume ? '<g class="vol-layer" id="volLayer"><g class="ch-vol"></g></g>' : '') + '<g class="ch-over"></g><g class="ch-draw"></g></g>' +
       '<g class="ch-axis"></g><line class="xhair ch-x" opacity="0"/><line class="xhair ch-y" opacity="0"/>' +
       '<g class="ch-ytag" opacity="0"><rect rx="4"/><text></text><rect rx="4"/><text text-anchor="end"></text></g></svg>' +
     (o.volume ? '<div class="vol-slider" id="volSlider" role="slider" tabindex="0" aria-label="Volume position. Drag to move, click to reset" aria-orientation="vertical"><i></i><b id="volThumb"><span>VOL</span></b></div>' : '') +
@@ -3826,6 +3872,7 @@ function chartView(host, o){
     }
     $q('.ch-grid').innerHTML = grid.join(''); $q('.ch-plot').innerHTML = plot.join(''); $q('.ch-axis').innerHTML = axis.join('');
     $q('.ch-over').innerHTML = o.overlay ? o.overlay(c, r) : '';
+    $q('.ch-draw').innerHTML = o.draw ? DR.render(c) : '';
     c.hoverOut();
     $q('.ch-res').textContent = chResName(r) + (c.home && c.lv !== c.home[0] ? ' · auto' : '');
     var moved = !c.home || c.home[0] !== c.lv || Math.abs(c.home[1] - i0) > .5 || Math.abs(c.home[2] - i1) > .5;
@@ -3890,11 +3937,13 @@ function chartView(host, o){
   var info = function(){ var ks = Object.keys(pts), p = pts[ks[0]], p2 = pts[ks[1]];
     return ks.length > 1 ? { x:(p.x + p2.x) / 2, d:Math.abs(p.x - p2.x) + Math.abs(p.y - p2.y), n:2 } : p ? { x:p.x, d:0, n:1 } : null; };
   svg.addEventListener('pointerdown', function(e){
+    if(o.draw && DR.down(c, e)) return;   // drawing tools take the mouse first
     if(e.pointerType === 'mouse' && e.button !== 0) return;
     cancelAnimationFrame(coast); vel = 0; moved = 0;
     pts[e.pointerId] = { x:e.clientX, y:e.clientY }; last = info(); lt = performance.now();
   });
   svg.addEventListener('pointermove', function(e){
+    if(o.draw && DR.move(c, e)) return;
     if(!pts[e.pointerId]){ if(e.pointerType !== 'touch') c.hover(e); return; }
     pts[e.pointerId] = { x:e.clientX, y:e.clientY };
     var cur = info(); if(!cur || !last || !c.geo) return;
@@ -3908,6 +3957,7 @@ function chartView(host, o){
     vel = clamp(dBars / Math.max(8, now - lt), -vmax, vmax); lt = now; last = cur;
   });
   var up = function(e){
+    if(o.draw && DR.up(c, e)) return;
     if(!pts[e.pointerId]) return;
     delete pts[e.pointerId]; last = info();
     if(Object.keys(pts).length) return;
@@ -3920,7 +3970,7 @@ function chartView(host, o){
   svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
   svg.addEventListener('click', function(e){ if(moved){ e.stopPropagation(); moved = 0; } }, true);   // a drag is not a click (insider bubbles)
   svg.addEventListener('pointerleave', function(e){ if(e.pointerType !== 'touch' && !c.drag) c.hoverOut(); });
-  svg.addEventListener('dblclick', function(){ c.goHome(); });
+  svg.addEventListener('dblclick', function(e){ if(o.draw && DR.dbl(c, e)) return; c.goHome(); });
   svg.addEventListener('keydown', function(e){
     var span = c.i1 - c.i0;
     if(e.key === 'ArrowLeft'){ e.preventDefault(); c.pan(-span * .1); }
@@ -3997,7 +4047,7 @@ function renderChart(){
       prevClose:function(){ return (DATA.quotes[dispSym(CUR.sym)] || {}).pc; },
       quote:function(){ return DATA.quotes[dispSym(CUR.sym)] || {}; },
       time:barTime,
-      overlays:indOverlays, volOn:indVolOn, after:indPanes,
+      overlays:indOverlays, volOn:indVolOn, after:chAfter, draw:{ sym:function(){ return dispSym(CUR.sym); } },
       markers:function(c){   // loaded once per symbol; the chart redraws when they arrive
         // Keep corporate-event circles through 5Y; hide them on MAX to avoid clutter.
         var s = dispSym(CUR.sym), evs = [];
@@ -5776,7 +5826,7 @@ function mkChartSync(){
     mode:function(){ return 'area'; },
     prevClose:function(){ return (MK.q[MK.sel] || {}).ref; },
     quote:function(){ return MK.q[MK.sel] || {}; },
-    overlays:indOverlays, after:indPanes,
+    overlays:indOverlays, after:chAfter, draw:{ sym:function(){ return MK.sel; } },
     time:function(r, withDate){ var o = { hour:'numeric', minute:'2-digit' }; if(withDate){ o.month = 'short'; o.day = 'numeric'; } return new Date(r.t * 1000).toLocaleString('en-US', o); }
   });
   if(MKCH.key !== MK.sel + '|' + MK.rng) MKCH.start(); else MKCH.soon();
@@ -5816,7 +5866,7 @@ function renderMarket(sec){
       '<button data-act="mk-zoom" data-z="0" title="Reset view" aria-label="Reset view">' + railSvg('M12 5V2L8 6l4 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z', 15) + '</button></div>' +
       '<div class="mk-legend"><span><i class="up"></i>Up today</span><span><i class="down"></i>Down today</span><span class="mut">Hover for details · click to chart · pinch or + / \u2212 to zoom</span></div></div>' +
     '</div></div>' +
-    '<div class="section card mk-detail" id="mkDetail"><div id="mkDetHead"></div><div class="chart-toolbar">' + indBtnHTML() + '</div>' + indPanelHTML() + '<div class="chart-box ch-md" id="mkChartHost"></div><div id="indPanes"></div><div class="legend" id="mkInd">' + indChipsHTML() + '</div><div class="mk-stats" id="mkStats"></div></div>' +
+    '<div class="section card mk-detail" id="mkDetail"><div class="chart-wrap" id="mkChartWrap"><div id="mkDetHead"></div><div class="chart-toolbar">' + indBtnHTML() + '<span class="grow"></span>' + fsBtnHTML() + '</div>' + indPanelHTML() + '<div class="chart-row">' + DR.barHTML() + '<div class="chart-col"><div class="chart-box ch-md" id="mkChartHost"></div><div id="indPanes"></div></div></div><div class="legend" id="mkInd">' + indChipsHTML() + '</div></div><div class="mk-stats" id="mkStats"></div></div>' +
     '<div class="section"><div class="section-head"><h2 id="mkListH">Indices</h2><div class="seg mk-sort" id="mkSort"></div></div><div class="mk-list" id="mkList"></div></div>' +
     MK_SECS.map(function(g){ return '<div class="section" id="mk-' + g[0] + '"><div class="section-head"><h2>' + esc(g[1]) + '</h2></div><div class="mk-grid" id="mkg-' + g[0] + '"></div></div>'; }).join('') +
     footerHTML();
@@ -7778,6 +7828,8 @@ function paintQuote(){
         ' · Low ' + num(q.l, 2) + ' · Vol ' + compact(q.v) + '</div>' : '')) +
     '</div></div>';
 
+  html += '<div class="chart-wrap" id="chartWrap"><div class="fs-head"><b>' + esc(sym) + '</b><span class="mut">' + esc(labelOf(sym) || '') + '</span><span class="num">' + (q.c == null ? '' : money(q.c, cur)) + '</span><span class="grow"></span>' +
+    '<button class="tbtn" data-act="chart-fs">' + DR.icon('exit', 18) + ' Exit fullscreen</button></div>';
   html += '<div class="chart-toolbar">' +
     '<button class="tbtn" data-act="menu-chart">' +
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17l6-6 4 4 7-7v5h2V4h-7v2h3l-5 5-4-4-8 8z"/></svg>' +
@@ -7786,17 +7838,18 @@ function paintQuote(){
       (Object.keys(CUR.cmp).length ? ' (' + Object.keys(CUR.cmp).length + ')' : '') + '</button>' +
     indBtnHTML() +
     '<span class="grow"></span>' +
+    fsBtnHTML() +
     '<span class="mut" style="font-size:12px">' + (Q.hist && Q.hist.length ? Q.hist.length + ' points' : '') + '</span>' +
     '</div>';
 
   html += indPanelHTML();
-  html += '<div class="chart-box" id="chartHost"></div><div id="indPanes"></div>';
+  html += '<div class="chart-row">' + DR.barHTML() + '<div class="chart-col"><div class="chart-box" id="chartHost"></div><div id="indPanes"></div></div></div>';
 
   html += '<div class="range-row"><div class="pills">' +
     RANGE_PILLS.map(function(r){
       return '<button class="pill' + (CUR.range === r ? ' on' : '') + '" data-act="range" data-range="' + r + '">' + rlab(r) + '</button>';
     }).join('') + '</div>' +
-    '<div class="legend" id="chartLegend"></div></div>';
+    '<div class="legend" id="chartLegend"></div></div></div>';
 
   html += '<div class="tabs" style="margin-top:20px">' + tabs.map(function(t){
     return '<button class="tab' + (CUR.tab === t[0] ? ' on' : '') + '" data-act="qtab" data-tab="' + t[0] + '">' + t[1] + '</button>';
@@ -7815,6 +7868,26 @@ function monthName(mm){
   var i = parseInt(mm, 10) - 1;
   return names[i] || mm;
 }
+/* ------------------------------------------------------------ drawing tools and fullscreen (drawing.js) */
+function chAfter(c){ indPanes(c); DR.ui(c); }
+DR.hooks.chart = function(){ var c = CUR.view === 'market' ? MKCH : CUR.view === 'quote' ? QCH : null; return c && c.svg && c.svg.isConnected ? c : null; };
+DR.hooks.sync = function(){ DR.syncBar(); };
+DR.hooks.fullscreen = function(){ chartFs(); };
+function fsBtnHTML(){ return '<button class="tbtn" data-act="chart-fs" id="fsBtn" title="Fullscreen (Shift+F)">' + DR.icon('full', 18) + ' Fullscreen</button>'; }
+function chartFs(force){
+  var wrap = $('chartWrap') || $('mkChartWrap'); if(!wrap) return;
+  var on = force == null ? !wrap.classList.contains('fs') : !!force;
+  wrap.classList.toggle('fs', on); document.body.classList.toggle('chart-fs', on);
+  try{
+    if(on && document.documentElement.requestFullscreen && !document.fullscreenElement) document.documentElement.requestFullscreen().catch(function(){});   // hides the browser too; the page overlay below works where this is refused
+    else if(!on && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function(){});
+  }catch(e){}
+  var c = DR.hooks.chart(); if(c){ setTimeout(function(){ c.soon(); }, 60); setTimeout(function(){ c.soon(); }, 300); }
+}
+document.addEventListener('fullscreenchange', function(){ if(!document.fullscreenElement){ var w = $('chartWrap') || $('mkChartWrap'); if(w && w.classList.contains('fs')) chartFs(false); } });
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && document.body.classList.contains('chart-fs') && !$('dlgRoot').firstChild) chartFs(false); });
+window.addEventListener('hashchange', function(){ document.body.classList.remove('chart-fs'); });
+
 /* ------------------------------------------------------------ indicators (maths and drawing: indicators.js) */
 CUR.inds = (function(){
   var v = load('fh3_inds', null);
@@ -10955,9 +11028,10 @@ function bindEvents(){
     var el = ev.target.closest('[data-act]');
     /* Any click outside a picker collapses it, whether or not it also triggers an action. */
     if(!ev.target.closest('#aiPick, #keyPanel, #rsOpts, #rsOptsBtn, .pickmenu')) closeAiPickers();
-    if(!el){ closeMenu(); return; }
+    if(!el){ closeMenu(); DR.closeFly(); return; }
     var act = el.getAttribute('data-act');
     var sym = el.getAttribute('data-sym');
+    if(act !== 'dr-fly' && act !== 'dr-tool') DR.closeFly();
     if(act !== 'menu-cols' && act !== 'menu-chart' && act !== 'menu-compare' && act !== 'menu-more' && act !== 'chs') closeMenu();
     switch(act){
       case 'nav': ev.preventDefault(); go(el.getAttribute('data-href')); break;
@@ -11072,6 +11146,11 @@ function bindEvents(){
         }).join('')); break;
       case 'chart-mode': CUR.chart = CFG.chart = el.getAttribute('data-mode'); saveCfg(); paintQuote(); break;
       case 'chs': chsToggle(el.getAttribute('data-k'), el); break;
+      case 'dr-tool': DR.setTool(el.getAttribute('data-tool')); break;
+      case 'dr-fly': DR.fly(el.getAttribute('data-g')); break;
+      case 'dr-toggle': DR.toggle(el.getAttribute('data-k')); break;
+      case 'dr-clear': DR.clearAll(); break;
+      case 'chart-fs': chartFs(); break;
       case 'ind-toggle': CUR.indOpen = !CUR.indOpen; if(!CUR.indOpen) CUR.indAll = false; indPanelSync(); break;
       case 'ind-all': CUR.indAll = !CUR.indAll; indPanelSync(); break;
       case 'ind2': indToggle(el.getAttribute('data-id')); break;
