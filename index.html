@@ -575,6 +575,71 @@ tr:hover .wl-add,.wl-add:focus-visible,.wl-add.on{opacity:1}
 .wl-empty{padding:6px 14px;font-size:13px;color:var(--fh-foreground-on-surface-de-emphasis)}
 .msg-tools{display:flex;gap:2px;margin:-4px 0 12px 4px}
 /* Memory vault: "Marvell learned" line under answers, and the vault in Settings -> Memory */
+/* Quant mode pane */
+.qn{padding:6px 2px 24px;display:flex;flex-direction:column;gap:12px;--qr:#ef4444}
+:root:not([data-theme="dark"]) .qn{--qr:#c81e2a}
+.qn .up{color:var(--fh-positive,#1f9d55)}.qn .down{color:var(--fh-negative,#e0353b)}
+.qn-hero h2{margin:8px 0 4px;font-size:22px}
+.qn-hero p{font-size:13.5px;line-height:20px;margin:0 0 12px}
+.qn-hero textarea{width:100%;box-sizing:border-box;resize:vertical;min-height:96px;border-radius:12px;border:1px solid var(--fh-border-stroke-emphasis);background:var(--fh-background-surface-container);color:var(--fh-foreground-on-surface-default);padding:12px 14px;font:inherit;font-size:14px;line-height:21px;outline:none}
+.qn-hero textarea:focus{border-color:var(--qr)}
+.qn-go{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 12px;font-size:12px}
+.qn .btn.qn-run{background:var(--qr);border-color:var(--qr);color:#fff}
+.qn-ex{display:flex;flex-direction:column;gap:6px}
+.qn-ex button,.qn-rr{text-align:left;border:1px solid var(--fh-border-stroke-default);background:transparent;color:var(--fh-foreground-on-surface-default);border-radius:10px;padding:8px 12px;font-size:13px;line-height:18px;cursor:pointer}
+.qn-ex button:hover,.qn-rr:hover{border-color:var(--qr);background:var(--fh-states-neutral-hovered)}
+.qn-recent{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.qn-rr b{display:block;font-weight:600}.qn-rr span{display:block;font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qn-dgrp{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis);margin:6px 0 2px}
+.qn-err{border:1px solid var(--qr);background:rgba(239,68,68,.08);border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:10px}
+.qn-busy{padding:24px 6px;display:flex;flex-direction:column;gap:10px}
+.qn-busy h3{margin:0 0 6px}
+.qn-pulse{height:4px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--qr),transparent);background-size:50% 100%;background-repeat:no-repeat;animation:qnSweep 1.2s ease-in-out infinite}
+@keyframes qnSweep{0%{background-position:-50% 0}100%{background-position:150% 0}}
+.qn-step{display:flex;gap:10px;align-items:flex-start;font-size:13.5px}
+.qn-step i{width:10px;height:10px;border-radius:50%;margin-top:4px;flex:none;border:2px solid var(--qr)}
+.qn-step.run i{border-top-color:transparent;animation:spin .8s linear infinite}
+.qn-step.ok i{background:var(--fh-positive,#1f9d55);border-color:var(--fh-positive,#1f9d55)}
+.qn-step.bad i{background:var(--qr)}
+.qn-step em{font-style:normal;color:var(--fh-foreground-on-surface-de-emphasis);font-size:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.qn-top{display:flex;align-items:center;gap:8px}
+.qn-title{margin:0;font-size:21px;line-height:27px}
+.qn-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font-size:12.5px}
+.qn-stars span{color:var(--fh-border-stroke-emphasis);letter-spacing:1px}.qn-stars span.on{color:var(--qr)}
+.qn-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:1px;background:var(--fh-border-stroke-default);border:1px solid var(--fh-border-stroke-default);border-radius:12px;overflow:hidden}
+.qn-stat{background:var(--fh-background-surface);padding:9px 11px;display:flex;flex-direction:column;gap:2px}
+.qn-stat span{font-size:11px;font-weight:600;color:var(--fh-foreground-on-surface-de-emphasis)}
+.qn-stat b{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.qn-stat i{font-style:normal;font-size:11px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.qn-note h3{margin:2px 0 6px;font-size:16px;line-height:22px}
+.qn-note p{margin:0 0 6px;font-size:13.5px;line-height:20px}
+.qn-box{border:1px solid var(--fh-border-stroke-default);border-radius:12px;padding:10px 12px;position:relative}
+.qn-box>summary{cursor:pointer;font-weight:600;font-size:13.5px}
+.qn-dials{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.qn-dial{display:grid;grid-template-columns:minmax(110px,1fr) minmax(90px,1.4fr) 52px;align-items:center;gap:8px;font-size:12.5px}
+.qn-dial input{width:100%;accent-color:var(--qr)}
+.qn-dial b{text-align:right;font-variant-numeric:tabular-nums}
+.qn-ch{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;margin-bottom:4px}
+.qn-ch b{font-size:13.5px}
+.qn-leg{display:inline-flex;align-items:center;gap:5px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.qn-leg i{width:10px;height:3px;border-radius:2px;display:inline-block;margin-left:6px}
+.qn-svg svg{width:100%;height:auto;display:block}
+.qn-chart{touch-action:pan-y}
+.qn-tip{position:absolute;pointer-events:none;opacity:0;transition:opacity .1s;background:var(--fh-background-surface-elevated);border:1px solid var(--fh-border-stroke-default);box-shadow:var(--fh-elevation-2);border-radius:8px;padding:6px 9px;font-size:12px;display:flex;flex-direction:column;gap:2px;z-index:3;white-space:nowrap}
+.qn-tip.on{opacity:1}
+.qn-tip span{display:flex;align-items:center;gap:6px}.qn-tip i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.qn-tbl{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums;margin-top:6px}
+.qn-tbl th,.qn-tbl td{padding:4px 6px;text-align:right;border-bottom:1px solid var(--fh-border-stroke-default)}
+.qn-tbl th:first-child,.qn-tbl td:first-child{text-align:left}
+.qn-tbl th{font-weight:600;color:var(--fh-foreground-on-surface-de-emphasis);font-size:11.5px}
+.qn-heat{border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums;margin-top:6px}
+.qn-heat th{font-weight:600;color:var(--fh-foreground-on-surface-de-emphasis);padding:3px 5px}
+.qn-heat td{padding:3px 5px;text-align:right;min-width:30px}
+.qn-scroll{overflow-x:auto}
+.qn-rules{font-size:13px;line-height:19px}.qn-rules ul{padding-left:18px;margin:6px 0}
+.qn-refine{display:flex;gap:8px}.qn-refine .inp{flex:1;min-width:0}
+.qn-fine{font-size:11.5px;line-height:16px;margin-top:4px}
 .mt-learn{display:flex;align-items:center;gap:8px;margin:-6px 0 14px 4px;padding:7px 10px;border-radius:10px;background:var(--fh-background-surface-container);font-size:12.5px;line-height:18px;color:var(--fh-foreground-on-surface-default)}
 .mt-learn>svg{flex:none;color:var(--mf-gold)}
 .mt-learn>span{flex:1;min-width:0}
@@ -1324,6 +1389,7 @@ html{overflow-x:clip}
 .rs-tabs .thumb{position:absolute;top:3px;bottom:3px;left:3px;width:var(--tw,76px);border-radius:999px;background:var(--fh-background-surface-elevated);box-shadow:var(--fh-elevation-1);
   transition:transform .28s cubic-bezier(.3,.7,.2,1),width .28s cubic-bezier(.3,.7,.2,1)}
 .rs-tabs[data-t="research"] .thumb{transform:translateX(var(--tx,76px));width:var(--tw2,108px)}
+.rs-tabs[data-t="quant"] .thumb{transform:translateX(var(--tx3,184px));width:var(--tw3,64px)}
 .drawer-head .rs-tabs + .status-chip + .icon-btn{margin-left:auto}
 .drawer-head .icon-btn{width:34px;height:34px;color:var(--fh-foreground-on-surface-de-emphasis)}
 .drawer-head .icon-btn:hover{color:var(--fh-foreground-on-surface-emphasis)}
@@ -2187,6 +2253,13 @@ body.rs-drag iframe{pointer-events:none}
 /* ---------- Mode toggle: dot-matrix glow (gold = Agent, purple = Deep Research) ---------- */
 .rs-tabs .thumb{--fx:193,165,120}
 .rs-tabs[data-t="research"] .thumb{--fx:167,139,250}
+.rs-tabs[data-t="quant"] .thumb{--fx:239,68,68}
+.rs-tabs[data-t="quant"] .thumb::after{animation:rsGlow 1.7s ease-in-out infinite}
+#tabQuant.on{color:var(--fh-foreground-on-surface-emphasis)}
+.drawer:not(.full) .rs-tabs button{padding:6px 10px;font-size:12.5px}   /* three modes still leave room for the panel buttons */
+.drawer-head{container-type:inline-size}
+@container (max-width:420px){ .newsess .lbl,.newres .lbl{display:none} }
+@container (max-width:360px){ .rs-tabs button{padding:6px 7px!important} .tab-deep{display:none} }
 .rs-tabs .thumb canvas{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:inherit}
 .rs-tabs .thumb::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(var(--fx),.42),0 0 12px rgba(var(--fx),.16);transition:box-shadow .35s}
 .rs-tabs[data-t="research"] .thumb::after{animation:rsGlow 1.15s ease-in-out infinite}
@@ -2194,7 +2267,7 @@ body.rs-drag iframe{pointer-events:none}
 .rs-tabs button.on{text-shadow:0 0 6px var(--fh-background-surface-elevated),0 0 2px var(--fh-background-surface-elevated)}
 #tabChat.on{color:var(--fh-foreground-on-surface-emphasis)}
 #tabResearch.on{color:var(--fh-foreground-on-surface-emphasis)}
-@media (prefers-reduced-motion:reduce){ .rs-tabs[data-t="research"] .thumb::after{animation:none} }
+@media (prefers-reduced-motion:reduce){ .rs-tabs[data-t="research"] .thumb::after,.rs-tabs[data-t="quant"] .thumb::after{animation:none} }
 
 /* Full screen: toggle centred and a little larger */
 .drawer.full .rs-tabs{padding:4px}
@@ -2314,6 +2387,7 @@ body.rs-drag iframe{pointer-events:none}
   <body>
 <script src="indicators.js"></script>
 <script src="drawing.js"></script>
+<script src="quant.js"></script>
 <script>try{var c=JSON.parse(localStorage.getItem('fh3_cfg')||'{}'),t=c.theme||'dark';if(t==='auto')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 <div class="sys" id="bootScreen" role="status" aria-live="polite" aria-label="Loading MercerFargo">
   <div class="sys-in">
@@ -2389,7 +2463,8 @@ body.rs-drag iframe{pointer-events:none}
   <div class="drawer-head">
     <div class="rs-tabs" role="tablist" data-t="chat"><i class="thumb"><canvas id="rsFx" aria-hidden="true"></canvas></i>
       <button role="tab" id="tabChat" data-act="drawer-tab" data-tab="chat">Agent</button>
-      <button role="tab" id="tabResearch" data-act="drawer-tab" data-tab="research">Deep Research</button>
+      <button role="tab" id="tabResearch" data-act="drawer-tab" data-tab="research"><span class="tab-deep">Deep </span>Research</button>
+      <button role="tab" id="tabQuant" data-act="drawer-tab" data-tab="quant">Quant</button>
     </div>
     <span class="status-chip" id="aiChip" hidden>no key</span>
     <button class="newsess" id="newChatBtn" data-act="chat-new" title="New session" aria-label="New session">
@@ -2408,6 +2483,7 @@ body.rs-drag iframe{pointer-events:none}
   </div>
   <div class="drawer-body" id="chat"></div>
   <div class="drawer-body" id="rsPane" hidden></div>
+  <div class="drawer-body" id="qnPane" hidden></div>
   <div class="drawer-foot">
     <div class="ai-quick" id="aiQuick" hidden></div>
     <div class="pickmenu" id="pickMenuA" hidden></div>
@@ -5237,13 +5313,14 @@ function panelInit(){
   addEventListener('resize', function(){ if(!document.body.classList.contains('rs-drag')) panelApply(); });
   panelApply();
   railSync();
-  if('ResizeObserver' in window){ var ro = new ResizeObserver(function(){ rsThumb(); rsFxStart(); }); ['tabChat', 'tabResearch', 'rsFx'].forEach(function(id){ if($(id)) ro.observe($(id)); }); }
+  if('ResizeObserver' in window){ var ro = new ResizeObserver(function(){ rsThumb(); rsFxStart(); }); ['tabChat', 'tabResearch', 'tabQuant', 'rsFx'].forEach(function(id){ if($(id)) ro.observe($(id)); }); }
 }
 
 /* ---- Mode toggle effect: an LED dot matrix inside the sliding pill.
    Agent: gold, a slow drifting swell with a gentle twinkle. Deep Research: purple, a fast
-   equalizer sweep with hard flicker, brighter toward the right. Colours cross-fade on switch. */
-var RSFX = { raf:0, mix:-1, last:0, noise:[], nt:0 };
+   equalizer sweep with hard flicker, brighter toward the right. Quant: red, rolling waves of
+   medium vigour (three swells at different speeds) with bright crests. Colours cross-fade on switch. */
+var RSFX = { raf:0, w:null, last:0, noise:[], nt:0 };
 function rsFxStart(){ if(!RSFX.raf) RSFX.raf = requestAnimationFrame(rsFxFrame); }
 function rsFxFrame(now){
   RSFX.raf = 0;
@@ -5255,30 +5332,32 @@ function rsFxFrame(now){
   if(!w || !h) return;
   if(cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)){ cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
   var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var target = tabs.getAttribute('data-t') === 'research' ? 1 : 0;
+  var mode = tabs.getAttribute('data-t'), target = [mode === 'chat' || !mode ? 1 : 0, mode === 'research' ? 1 : 0, mode === 'quant' ? 1 : 0];
   var dt = Math.min(.1, (now - (RSFX.last || now)) / 1000); RSFX.last = now;
-  RSFX.mix = (RSFX.mix < 0 || still) ? target : RSFX.mix + (target - RSFX.mix) * Math.min(1, dt * 7);   // reduced motion: one frame, so snap
-  var m = RSFX.mix, t = still ? 0 : now / 1000;
+  RSFX.w = (!RSFX.w || still) ? target : RSFX.w.map(function(v, i){ return v + (target[i] - v) * Math.min(1, dt * 7); });   // reduced motion: one frame, so snap
+  var wA = RSFX.w[0], m = RSFX.w[1], wQ = RSFX.w[2], t = still ? 0 : now / 1000;
   var P = 4, S = 2.6, cols = Math.max(1, Math.floor(w / P)), rows = Math.max(1, Math.floor(h / P));
   var ox = (w - cols * P + (P - S)) / 2, oy = (h - rows * P + (P - S)) / 2, n = cols * rows;
   if(RSFX.noise.length !== n){ RSFX.noise = []; for(var k = 0; k < n; k++) RSFX.noise.push(Math.random()); }
-  var rate = still ? 0 : (2 + 34 * m) * dt;   // share of dots re-rolled this frame: a twinkle for Agent, flicker for Research
+  var rate = still ? 0 : (2 * wA + 36 * m + 12 * wQ) * dt;   // share of dots re-rolled this frame: a twinkle for Agent, flicker for Research, a shimmer for Quant
   for(var j = 0; j < n; j++) if(Math.random() < rate) RSFX.noise[j] = Math.random();
   var light = document.documentElement.getAttribute('data-theme') !== 'dark', boost = light ? 2.4 : 1;   // deeper ink on white
-  var g = light ? [150, 118, 62] : [193, 165, 120], v = light ? [112, 80, 220] : [167, 139, 250];
-  var col = [0, 1, 2].map(function(i){ return Math.round(g[i] + (v[i] - g[i]) * m); }).join(',');
+  var g = light ? [150, 118, 62] : [193, 165, 120], v = light ? [112, 80, 220] : [167, 139, 250], rd = light ? [200, 30, 42] : [239, 68, 68];
+  var col = [0, 1, 2].map(function(i){ return Math.round(g[i] * wA + v[i] * m + rd[i] * wQ); }).join(',');
   var ctx = cv.getContext('2d');
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
   for(var c = 0; c < cols; c++){
     var x = cols > 1 ? c / (cols - 1) : .5;
     var swell = .5 + .5 * Math.sin((x * 1.4 - t * .22) * Math.PI * 2);                     // Agent: one slow wave
     var eq = .35 + .65 * Math.abs(Math.sin(c * .55 + t * 4.2) * Math.cos(c * .21 - t * 2.7)); // Research: equalizer columns
+    var wave = .5 + .24 * Math.sin((x * 1.7 - t * .62) * Math.PI * 2) + .13 * Math.sin((x * 3.4 + t * .95) * Math.PI * 2) + .06 * Math.sin((x * 7 - t * 1.7) * Math.PI * 2);   // Quant: the sea surface
     for(var r = 0; r < rows; r++){
       var y = rows > 1 ? r / (rows - 1) : .5, nz = RSFX.noise[c * rows + r];
       var a0 = (.1 + .26 * swell) * (.75 + .5 * nz) * (1 - .35 * Math.abs(y - .5));
       var lit = (1 - y) < eq ? 1 : .28;
       var a1 = (.12 + .5 * x) * lit * (.45 + .9 * nz);
-      var a = a0 + (a1 - a0) * m;
+      var dep = wave - (1 - y), a2 = dep < 0 ? .03 : (.14 + .5 * Math.exp(-dep * 7)) * (.6 + .7 * nz);   // brightest at the crest, dimmer in the deep
+      var a = a0 * wA + a1 * m + a2 * wQ;
       if(a < .03) continue;
       ctx.fillStyle = 'rgba(' + col + ',' + Math.min(light ? .78 : .62, a * boost).toFixed(3) + ')';
       ctx.fillRect(ox + c * P, oy + r * P, S, S);
@@ -10878,11 +10957,421 @@ function openSheetsDialog(){
     '<button class="btn text" data-act="dlg-close">Close</button><button class="btn filled" data-act="sheets-copy" data-sym="' + esc(sym) + '">Copy</button>');
 }
 
+/* ---- Quant mode: describe a strategy, Marvell turns it into rules, the engine (quant.js) backtests and projects it,
+   and the user explores it with dials. Two short model calls per run: one writes the rules as JSON, one writes the summary.
+   Everything else (data, backtest, projection, charts, PDF) runs in the browser, so moving a dial is instant and free. */
+var QN_RUNS = load('fh3_quant', []);
+var QS = { busy:false, steps:[], err:'', cur:null, log:true, hist:{}, geo:{} };
+var QN_EXAMPLES = ['Buy SPY when RSI(14) drops below 30, sell when it goes above 70, since 2010',
+  '60% SPY / 40% TLT rebalanced monthly vs holding SPY alone',
+  'Hold QQQ only while it is above its 200-day average, otherwise hold short-term treasuries (SHY)',
+  'NVDA 50/200-day golden cross with a 10% trailing stop'];
+var QN_SPEC_SYS = 'You turn an investor\'s description of a trading or allocation strategy into a JSON backtest spec for MercerFargo\'s quant engine. Reply with JSON only, no prose.\n\n' +
+  'SPEC\n{"title":"short name","summary":"1-2 plain-English sentences of the rules","type":"signal"|"allocation",\n' +
+  ' "symbol":"SPY" (signal: the one traded symbol),\n' +
+  ' "assets":[{"sym":"SPY","weight":60},{"sym":"TLT","weight":40}] (allocation), "rebalance":"monthly"|"quarterly"|"yearly"|"none",\n' +
+  ' "side":"long"|"short", "entry":[cond...] (all must be true to enter), "exit":[cond...] (any one exits), "filter":[cond...] (allocation: invest only while all true),\n' +
+  ' "stop_pct":null, "take_pct":null, "trail_pct":null, "max_hold_days":null, "alt":null or a ticker held when out of the market (e.g. "SHY"),\n' +
+  ' "size":1 (share of capital when in a trade, 0-1), "benchmark":"SPY", "start":"YYYY-MM-DD", "cost_bps":5,\n' +
+  ' "params":[{"id":"rsi_len","label":"RSI length","value":14,"min":2,"max":50,"step":1}],\n' +
+  ' "projection":{"years":5,"drift":0,"volMult":1,"note":"why these settings"},\n' +
+  ' "assumptions":["each assumption you had to make"], "unsupported":"anything you could not model, or empty"}\n\n' +
+  'cond: {"a":expr,"op":"<"|">"|"<="|">="|"cross_above"|"cross_below","b":expr}\n' +
+  'expr: a number, "$param_id", or {"ind":NAME,"len":n or "$param_id","sym":"OTHER" (optional, another ticker such as ^VIX or SPY)}\n' +
+  'NAME: close, open, high, low, volume, sma, ema, rsi, macd/macd_signal/macd_hist (fast, slow, signal), bb_upper/bb_mid/bb_lower (len, k), ' +
+  'roc or ret (% change over len days), highest/lowest (of the previous len closes, for breakouts), atr, vol (annualised % volatility over len days), drawdown (% below the len-day high), zscore.\n\n' +
+  'RULES\n- Use US tickers Yahoo knows (ETFs for asset classes: SPY, QQQ, IWM, TLT, IEF, SHY, GLD, DBC, VNQ, EFA, EEM; ^VIX for volatility; BTC-USD for bitcoin).\n' +
+  '- Every number a user might want to tweak (lengths, thresholds, weights, stop %) goes in params and is referenced as "$id"; give each a sensible min, max and step. 2-6 params.\n' +
+  '- "Under specific conditions" become conditions: e.g. "only when VIX is above 25" -> {"a":{"ind":"close","sym":"^VIX"},"op":">","b":"$vix"}; "in downtrends" -> close below sma 200.\n' +
+  '- Default start: 15 years ago, or the date range the user names. Default benchmark: SPY (or the traded symbol for single-stock timing). Default cost 5 bps.\n' +
+  '- projection: years 5 unless asked; drift/volMult 0 and 1 unless the user describes a scenario (e.g. "if returns are 3% lower" -> drift -3; "in a high-volatility regime" -> volMult 1.5).\n' +
+  '- Signals act at the close and earn from the next day. Prices are daily adjusted closes. If something cannot be modelled (intraday, options, fundamentals), approximate it and say so in unsupported.\n\n' +
+  'EXAMPLE: "buy SPY when RSI(14) < 30, sell above 70" -> {"title":"SPY RSI mean reversion","summary":"Buys SPY when the 14-day RSI falls below 30 and sells when it rises above 70.","type":"signal","symbol":"SPY","side":"long",' +
+  '"entry":[{"a":{"ind":"rsi","len":"$len"},"op":"<","b":"$buy"}],"exit":[{"a":{"ind":"rsi","len":"$len"},"op":">","b":"$sell"}],"benchmark":"SPY","start":"2011-01-01","cost_bps":5,' +
+  '"params":[{"id":"len","label":"RSI length","value":14,"min":2,"max":40,"step":1},{"id":"buy","label":"Buy below RSI","value":30,"min":5,"max":50,"step":1},{"id":"sell","label":"Sell above RSI","value":70,"min":50,"max":95,"step":1}],' +
+  '"projection":{"years":5,"drift":0,"volMult":1,"note":"Historical behaviour carried forward."},"assumptions":["Long only, fully invested when in a trade"],"unsupported":""}';
+var QN_NOTE_SYS = 'You are Marvell\'s quant analyst in MercerFargo. You write the short analyst note for a strategy backtest, in the style of an equity research report: plain English, specific numbers, balanced, no hype. ' +
+  'Never tell the user to buy or sell, never promise returns. Past results and simulations are not predictions. Reply with JSON only.';
+
+function qnSave(){ save('fh3_quant', QN_RUNS.slice(0, 12)); }
+function qnHist(sym){
+  var s = dispSym(sym); if(QS.hist[s]) return Promise.resolve(QS.hist[s]);
+  var daily = function(rows){ rows = (rows || []).filter(function(r){ return r && r.d && r.c != null; }).sort(function(a, b){ return a.d < b.d ? -1 : a.d > b.d ? 1 : 0; }); if(rows.length < 120) throw new Error('short'); var gap = (Date.parse(rows[rows.length - 1].d) - Date.parse(rows[0].d)) / 864e5 / rows.length; if(gap > 4) throw new Error('not daily'); return rows; };
+  var tries = CG[s] ? [function(){ return fetchHistory(s, '5Y'); }] : [function(){ return viaEDGE(s, 'DMAX'); }, function(){ return oaHist(s, 'DMAX'); }, function(){ return chDaily(s); }];
+  var p = Promise.reject(new Error('start'));
+  tries.forEach(function(f){ p = p.catch(function(){ return f().then(daily); }); });
+  return p.then(function(rows){ return (QS.hist[s] = rows); }, function(){ throw new Error('No daily price history for ' + s + '. Check the ticker.'); });
+}
+function qnStep(label, state){ QS.steps.push({ label:label, st:state || 'run' }); qnPaint(); }
+function qnStepDone(ok, detail){ var s = QS.steps[QS.steps.length - 1]; if(s){ s.st = ok ? 'ok' : 'bad'; if(detail) s.detail = detail; } qnPaint(); }
+/* Ask for the spec, then check it really runs; one repair round if it does not. */
+function qnSpec(q, prev){
+  var ask = prev ? 'Current spec:\n' + JSON.stringify(prev.spec) + '\n\nThe user wants this change: ' + q + '\nReturn the full updated spec.' : 'Today is ' + ymd(new Date()) + '. Strategy to test: ' + q;
+  var tryOne = function(content, round){
+    return aiCall([{ role:'user', content:content }], QN_SPEC_SYS).then(function(t){
+      var sp = jsonFrom(t); if(!sp) throw new Error('The model did not return a strategy spec.');
+      return qnLoad(sp).catch(function(e){
+        if(round) throw e;
+        qnStepDone(false, String(e.message || e).slice(0, 90)); qnStep('Fixing the rules');
+        return tryOne(content + '\n\nYour previous spec:\n' + JSON.stringify(sp) + '\nIt failed with: ' + (e.message || e) + '\nReturn a corrected spec.', 1);
+      });
+    });
+  };
+  return tryOne(ask, 0);
+}
+function qnLoad(sp){
+  if(sp.type === 'allocation' && !(sp.assets || []).length) throw new Error('allocation with no assets');
+  if(sp.type !== 'allocation' && !sp.symbol) throw new Error('signal strategy with no symbol');
+  sp.params = (sp.params || []).filter(function(p){ return p && p.id && isFinite(+p.value); }).slice(0, 8);
+  var syms = QN.symbols(sp), main = syms[0];
+  qnStep('Fetching daily prices: ' + syms.join(', '));
+  return Promise.all(syms.map(qnHist)).then(function(rows){
+    var data = {}; syms.forEach(function(s, i){ data[s] = rows[i]; });
+    var al = QN.align(data, main, syms), bt = QN.backtest(sp, al);   // throws on a bad rule, which triggers the repair round
+    if(bt.ret.length < 60) throw new Error('fewer than 60 trading days to test; start earlier');
+    qnStepDone(true, al.dates.length + ' trading days from ' + al.dates[0]);
+    return { spec:sp, al:al };
+  });
+}
+function qnRun(q, refine){
+  q = String(q || '').trim(); if(!q){ toast('Describe a strategy to test first.'); return; }
+  if(!aiReady()){ toast('Add an AI key first (Settings → AI & API keys).'); return; }
+  var prev = refine ? QS.cur : null;
+  QS.busy = true; QS.err = ''; QS.steps = []; if(!refine) QS.cur = null;
+  qnStep(refine ? 'Updating the rules' : 'Reading your strategy');
+  qnSpec(q, prev).then(function(r){
+    var sp = r.spec, pj = sp.projection || {};
+    var cur = { q:refine ? prev.q + ' → ' + q : q, spec:sp, al:r.al, over:{}, proj:{ years:pj.years || 5, drift:pj.drift || 0, volMult:pj.volMult || 1 }, ts:Date.now(), id:'q' + Date.now().toString(36) };
+    qnStep('Backtesting and projecting 400 paths'); qnCompute(cur); qnStepDone(true, cur.bt.trades.length + ' trades · ' + cur.bt.metrics.nYears + ' years');
+    qnStep('Writing the analyst note');
+    return qnNote(cur).then(function(note){ cur.note = note; qnStepDone(true); return cur; }, function(){ cur.note = null; qnStepDone(false, 'summary unavailable'); return cur; });
+  }).then(function(cur){
+    QS.cur = cur; QS.busy = false;
+    QN_RUNS = [{ id:cur.id, q:cur.q, spec:cur.spec, note:cur.note, proj:cur.proj, ts:cur.ts }].concat(QN_RUNS.filter(function(x){ return x.id !== cur.id; })).slice(0, 12); qnSave();
+    qnPaint();
+  }).catch(function(e){ QS.busy = false; QS.err = String((e && e.message) || e); if(prev) QS.cur = prev; qnPaint(); });
+}
+function qnCompute(cur){
+  cur.bt = QN.backtest(cur.spec, cur.al, cur.over);
+  cur.pr = QN.project(cur.bt.ret, cur.proj);
+  var m = cur.bt.metrics; cur.rating = QN.rating(m); cur.edge = QN.edge(m); cur.unc = QN.uncertainty(QN.project(cur.bt.ret, { years:1, drift:cur.proj.drift, volMult:cur.proj.volMult }).spread1y);
+}
+function qnFacts(cur){
+  var m = cur.bt.metrics, p = cur.pr, f = function(v, d){ return v == null ? 'n/a' : (+v).toFixed(d == null ? 1 : d); };
+  return 'Strategy: ' + cur.spec.title + ' — ' + cur.spec.summary + '\nUser asked: ' + cur.q + '\nPeriod: ' + m.from + ' to ' + m.to + ' (' + m.nYears + ' calendar years). Benchmark: ' + cur.bt.bsym +
+    '\nStrategy: CAGR ' + f(m.s.cagr) + '%, total ' + f(m.s.total, 0) + '%, volatility ' + f(m.s.vol) + '%, Sharpe ' + f(m.s.sharpe, 2) + ', Sortino ' + f(m.s.sortino, 2) + ', max drawdown ' + f(m.s.maxdd) + '%, best year ' + f(m.s.best) + '%, worst year ' + f(m.s.worst) + '%' +
+    '\nBenchmark: CAGR ' + f(m.b.cagr) + '%, volatility ' + f(m.b.vol) + '%, Sharpe ' + f(m.b.sharpe, 2) + ', max drawdown ' + f(m.b.maxdd) + '%' +
+    '\nBeta ' + f(m.beta, 2) + ', alpha ' + f(m.alpha) + '%/yr, correlation ' + f(m.corr, 2) + ', time invested ' + f(m.exposure, 0) + '%, trades ' + m.trades + (m.winRate != null ? ', win rate ' + f(m.winRate, 0) + '%, average trade ' + f(m.avgTrade) + '% over ' + f(m.avgDays, 0) + ' days' : '') +
+    ', beat the benchmark in ' + m.beatYears + ' of ' + m.nYears + ' years.\nRating ' + cur.rating + '/5 stars, edge ' + cur.edge + ', uncertainty ' + cur.unc +
+    '\nProjection (' + p.years + ' years from $10,000, return shift ' + cur.proj.drift + '%/yr, volatility x' + cur.proj.volMult + '): 5th pct ' + QN.money(p.end[0]) + ', median ' + QN.money(p.end[2]) + ', 95th ' + QN.money(p.end[4]) + ', chance of losing money ' + f(p.lossProb, 0) + '%.' +
+    (cur.spec.assumptions && cur.spec.assumptions.length ? '\nAssumptions: ' + cur.spec.assumptions.join('; ') : '') + (cur.spec.unsupported ? '\nNot modelled: ' + cur.spec.unsupported : '');
+}
+function qnNote(cur){
+  return aiCall([{ role:'user', content:qnFacts(cur) + '\n\nWrite JSON: {"headline":"a report-style headline under 14 words","note":"2-3 sentences: what the test shows, with the key numbers",' +
+    '"why":"1-2 sentences: why it matters for someone considering this approach","bottom_line":"1-2 sentences","strengths":["3 short points"],"risks":["3 short points, include what could make the past not repeat"],' +
+    '"drivers":"1-2 sentences: what moves the projection most and how the dials change it"}' }], QN_NOTE_SYS).then(function(t){
+    var j = jsonFrom(t); if(!j || !j.headline) throw new Error('no note'); return j;
+  });
+}
+
+/* ---- painting */
+function qnStars(n, size){ var s = ''; for(var i = 1; i <= 5; i++) s += '<span class="' + (i <= n ? 'on' : '') + '">★</span>'; return '<span class="qn-stars" style="font-size:' + (size || 14) + 'px" title="' + n + ' of 5">' + s + '</span>'; }
+function qnPct(v, d){ return v == null || !isFinite(v) ? '—' : (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(d == null ? 1 : d) + '%'; }
+function qnTheme(){ return document.documentElement.getAttribute('data-theme') === 'dark' ? QN.THEMES.dark : QN.THEMES.light; }
+function qnDials(cur){
+  var d = (cur.spec.params || []).map(function(p){ return { id:p.id, label:p.label || p.id, min:+p.min, max:+p.max, step:+p.step || 1, v:cur.over[p.id] != null ? cur.over[p.id] : +p.value, grp:'Strategy rules' }; })
+    .filter(function(x){ return isFinite(x.min) && isFinite(x.max) && x.max > x.min; });
+  var y0 = +cur.al.dates[0].slice(0, 4) + 1, y1 = +cur.al.dates[cur.al.dates.length - 1].slice(0, 4) - 1, sy = +String(cur.over.start || cur.spec.start || cur.al.dates[0]).slice(0, 4);
+  if(y1 > y0) d.push({ id:'start', label:'Start year', min:y0, max:y1, step:1, v:Math.max(y0, Math.min(y1, sy)), grp:'Test settings', fmt:function(v){ return String(v); } });
+  d.push({ id:'cost_bps', label:'Trading cost (bps per side)', min:0, max:50, step:1, v:cur.over.cost_bps != null ? cur.over.cost_bps : (cur.spec.cost_bps || 0), grp:'Test settings' });
+  if(cur.spec.type !== 'allocation') d.push({ id:'size', label:'Position size', min:.1, max:1, step:.05, v:cur.over.size != null ? cur.over.size : (cur.spec.size == null ? 1 : cur.spec.size), grp:'Test settings', fmt:function(v){ return Math.round(v * 100) + '%'; } });
+  d.push({ id:'years', label:'Projection years', min:1, max:15, step:1, v:cur.proj.years, grp:'Projection', proj:1 });
+  d.push({ id:'drift', label:'Return shift (% a year)', min:-10, max:10, step:.5, v:cur.proj.drift, grp:'Projection', proj:1, fmt:function(v){ return (v > 0 ? '+' : '') + v + '%'; } });
+  d.push({ id:'volMult', label:'Volatility ×', min:.5, max:2.5, step:.1, v:cur.proj.volMult, grp:'Projection', proj:1, fmt:function(v){ return '×' + (+v).toFixed(1); } });
+  return d;
+}
+function qnDialsHTML(cur){
+  var grp = '';
+  return qnDials(cur).map(function(x){
+    var head = x.grp !== grp ? '<div class="qn-dgrp">' + esc(x.grp) + '</div>' : ''; grp = x.grp;
+    return head + '<label class="qn-dial"><span>' + esc(x.label) + '</span><input type="range" data-qd="' + esc(x.id) + '"' + (x.proj ? ' data-proj="1"' : '') + ' min="' + x.min + '" max="' + x.max + '" step="' + x.step + '" value="' + x.v + '"><b id="qdv-' + esc(x.id) + '">' + esc(x.fmt ? x.fmt(x.v) : String(+(+x.v).toFixed(4))) + '</b></label>';
+  }).join('') + '<button class="btn text sm" data-act="qn-reset">Reset dials</button>';
+}
+function qnStatsHTML(cur){
+  var m = cur.bt.metrics, t = function(l, v, sub, cls){ return '<div class="qn-stat"><span>' + l + '</span><b class="' + (cls || '') + '">' + v + '</b><i>' + sub + '</i></div>'; };
+  return t('CAGR', qnPct(m.s.cagr), 'Benchmark ' + qnPct(m.b.cagr), m.s.cagr >= m.b.cagr ? 'up' : 'down') +
+    t('Total return', qnPct(m.s.total, 0), 'Benchmark ' + qnPct(m.b.total, 0)) +
+    t('Sharpe', m.s.sharpe.toFixed(2), 'Benchmark ' + m.b.sharpe.toFixed(2), m.s.sharpe >= m.b.sharpe ? 'up' : 'down') +
+    t('Max drawdown', qnPct(m.s.maxdd), 'Benchmark ' + qnPct(m.b.maxdd), m.s.maxdd >= m.b.maxdd ? 'up' : 'down') +
+    t('Volatility', m.s.vol.toFixed(1) + '%', 'Benchmark ' + m.b.vol.toFixed(1) + '%') +
+    t('Trades', String(m.trades), m.winRate != null ? m.winRate.toFixed(0) + '% won · ' + m.exposure.toFixed(0) + '% invested' : m.exposure.toFixed(0) + '% invested');
+}
+function qnChartsPaint(){
+  var cur = QS.cur; if(!cur || !$('qnEq')) return;
+  var T = qnTheme(), W = Math.max(300, Math.round($('qnEq').clientWidth || 600)), bt = cur.bt, m = bt.metrics, cap = 10000;
+  var put = function(id, chart, meta){ var el = $(id); if(!el) return; el.querySelector('.qn-svg').innerHTML = chart.svg; QS.geo[id] = Object.assign({ geo:chart.geo }, meta); };
+  put('qnEq', QN.lines({ T:T, W:W, H:250, x:bt.dates, log:QS.log, series:[{ name:bt.bsym + ' (benchmark)', v:bt.bench.map(function(v){ return v * cap; }), col:T.b, w:1.3 }, { name:cur.spec.title, v:bt.eq.map(function(v){ return v * cap; }), col:T.s, w:1.8 }] }),
+    { x:bt.dates, fmt:QN.money, series:[[cur.spec.title, bt.eq.map(function(v){ return v * cap; }), T.s], [bt.bsym, bt.bench.map(function(v){ return v * cap; }), T.b]] });
+  var p = cur.pr, mx = []; for(var i = 0; i <= p.months; i++) mx.push(i);
+  put('qnProj', QN.lines({ T:T, W:W, H:240, x:mx, xfmt:function(v){ return v % 12 === 0 ? 'Yr ' + v / 12 : ''; }, bands:[{ lo:p.p5, hi:p.p95, col:T.band1 }, { lo:p.p25, hi:p.p75, col:T.band2 }],
+    series:[{ name:'Median', v:p.p50, col:T.s, w:2 }, { name:'Start', v:mx.map(function(){ return p.capital; }), col:T.mut, dash:1, w:1 }] }),
+    { x:mx, xl:function(v){ return v ? 'Month ' + v + ' (year ' + (v / 12).toFixed(1) + ')' : 'Today'; }, fmt:QN.money, series:[['95th pct', p.p95, T.band2], ['75th', p.p75, T.band2], ['Median', p.p50, T.s], ['25th', p.p25, T.band2], ['5th pct', p.p5, T.band2]] });
+  var dd = m.s.dd.map(function(v){ return v * 100; }), bdd = m.b.dd.map(function(v){ return v * 100; });
+  put('qnDD', QN.lines({ T:T, W:W, H:170, x:bt.dates, zero:1, yfmt:function(v){ return v.toFixed(0) + '%'; }, series:[{ name:bt.bsym, v:bdd, col:T.b, w:1 }, { name:'Strategy', v:dd, col:T.s, w:1.4, area:T.band1 }] }),
+    { x:bt.dates, fmt:function(v){ return v.toFixed(1) + '%'; }, series:[['Strategy', dd, T.s], [bt.bsym, bdd, T.b]] });
+  var by = {}; m.b.years.forEach(function(y){ by[y[0]] = y[1]; });
+  var yb = $('qnYears'); if(yb) yb.querySelector('.qn-svg').innerHTML = QN.bars({ T:T, W:W, H:190, rows:m.s.years.map(function(y){ return [y[0], y[1], by[y[0]]]; }) });
+  var pt = $('qnProjTbl'); if(pt) pt.innerHTML = '<table class="qn-tbl"><tr><th>After ' + p.years + ' yr' + (p.years > 1 ? 's' : '') + '</th><th>5th</th><th>25th</th><th>Median</th><th>75th</th><th>95th</th></tr>' +
+    '<tr><td>Value of $10k</td>' + p.end.map(function(v){ return '<td>' + QN.money(v) + '</td>'; }).join('') + '</tr><tr><td>Per year</td>' + p.cagr.map(function(v){ return '<td class="' + (v >= 0 ? 'up' : 'down') + '">' + qnPct(v) + '</td>'; }).join('') + '</tr></table>' +
+    '<div class="mut qn-fine">Chance of ending below $10,000: <b>' + p.lossProb.toFixed(0) + '%</b> · 400 simulated paths resampled from the strategy\'s own daily returns' + (cur.proj.drift || cur.proj.volMult !== 1 ? ' · scenario: ' + (cur.proj.drift ? (cur.proj.drift > 0 ? '+' : '') + cur.proj.drift + '%/yr' : '') + (cur.proj.volMult !== 1 ? ' volatility ×' + cur.proj.volMult : '') : '') + '</div>';
+  var mo = $('qnMonths'); if(mo) mo.innerHTML = qnMonthsHTML(m.monthly);
+}
+function qnMonthsHTML(monthly){
+  var yrs = {}; monthly.forEach(function(x){ var y = x[0].slice(0, 4); (yrs[y] = yrs[y] || {})[+x[0].slice(5, 7)] = x[1]; });
+  var cell = function(v){ if(v == null) return '<td></td>'; var a = Math.min(1, Math.abs(v) / 8); return '<td style="background:' + (v >= 0 ? 'rgba(31,157,85,' : 'rgba(224,53,59,') + (.12 + a * .6).toFixed(2) + ')">' + v.toFixed(1) + '</td>'; };
+  return '<table class="qn-heat"><tr><th></th>' + 'JFMAMJJASOND'.split('').map(function(c){ return '<th>' + c + '</th>'; }).join('') + '</tr>' + Object.keys(yrs).reverse().map(function(y){
+    var row = '<tr><th>' + y + '</th>'; for(var k = 1; k <= 12; k++) row += cell(yrs[y][k]); return row + '</tr>'; }).join('') + '</table>';
+}
+function qnPaint(focus){
+  var host = $('qnPane'); if(!host) return;
+  if(QS.busy || (!QS.cur && QS.steps.length && !QS.err)){
+    host.innerHTML = '<div class="qn"><div class="qn-busy"><div class="qn-pulse"></div><h3>Running the numbers…</h3>' + QS.steps.map(function(s){
+      return '<div class="qn-step ' + s.st + '"><i></i><span>' + esc(s.label) + (s.detail ? ' <em>' + esc(s.detail) + '</em>' : '') + '</span></div>'; }).join('') + '</div></div>';
+    return;
+  }
+  var cur = QS.cur;
+  if(!cur){
+    host.innerHTML = '<div class="qn"><div class="qn-hero"><h2>Quant</h2><p class="mut">Describe a strategy and the conditions to test it under. Marvell writes the rules, backtests them on daily prices, projects them forward, and gives you dials to see how the results move.</p>' +
+      (QS.err ? '<div class="qn-err">' + esc(QS.err) + '</div>' : '') +
+      '<textarea id="qnQ" rows="4" placeholder="e.g. Buy QQQ when it closes above its 50-day average and VIX is below 20; sell when it closes below. Since 2012.">' + esc(QS.draft || '') + '</textarea>' +
+      '<div class="qn-go"><span class="mut">Ctrl + Enter to run</span><button class="btn filled sm qn-run" data-act="qn-run">Run Quant Analysis</button></div>' +
+      '<div class="qn-ex">' + QN_EXAMPLES.map(function(x){ return '<button data-act="qn-ex">' + esc(x) + '</button>'; }).join('') + '</div></div>' +
+      (QN_RUNS.length ? '<div class="qn-recent"><div class="qn-dgrp">Recent tests</div>' + QN_RUNS.map(function(r){
+        return '<button class="qn-rr" data-act="qn-open" data-id="' + esc(r.id) + '"><b>' + esc(r.spec.title || r.q) + '</b><span>' + esc(chatWhen(r.ts)) + ' · ' + esc(r.q.slice(0, 90)) + '</span></button>'; }).join('') + '</div>' : '') + '</div>';
+    if(focus){ var q = $('qnQ'); if(q) q.focus(); }
+    return;
+  }
+  var m = cur.bt.metrics, n = cur.note, changed = Object.keys(cur.over).length || cur.proj.years !== ((cur.spec.projection || {}).years || 5) || cur.proj.drift !== ((cur.spec.projection || {}).drift || 0) || cur.proj.volMult !== ((cur.spec.projection || {}).volMult || 1);
+  host.innerHTML = '<div class="qn">' +
+    '<div class="qn-top"><button class="btn text sm" data-act="qn-new">← New test</button><span class="grow"></span><button class="btn filled sm qn-run" data-act="qn-pdf">' + railSvg('M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z', 16) + ' PDF report</button></div>' +
+    '<h2 class="qn-title">' + esc(cur.spec.title) + '</h2>' +
+    '<div class="qn-meta">' + qnStars(cur.rating, 15) + '<span>Edge <b>' + esc(cur.edge) + '</b></span><span>Uncertainty <b>' + esc(cur.unc) + '</b></span><span class="mut">' + esc(m.from) + ' → ' + esc(m.to) + ' · vs ' + esc(cur.bt.bsym) + '</span></div>' +
+    (QS.err ? '<div class="qn-err">' + esc(QS.err) + '</div>' : '') +
+    '<div class="qn-stats" id="qnStats">' + qnStatsHTML(cur) + '</div>' +
+    (n ? '<div class="qn-note"><h3>' + esc(n.headline) + '</h3><p>' + esc(n.note) + '</p><p><b>Why it matters:</b> ' + esc(n.why || '') + '</p><p><b>The bottom line:</b> ' + esc(n.bottom_line || '') + '</p>' +
+      (changed ? '<div class="qn-fine mut">The note describes the original settings; the numbers and charts follow your dials.</div>' : '') + '</div>'
+      : '<div class="qn-note"><p>' + esc(cur.spec.summary || '') + '</p></div>') +
+    '<details class="qn-box" open><summary>Tweak the factors</summary><div class="qn-dials" id="qnDials">' + qnDialsHTML(cur) + '</div></details>' +
+    '<div class="qn-box qn-chart" id="qnEq"><div class="qn-ch"><b>Growth of $10,000</b><span class="qn-leg"><i style="background:' + qnTheme().s + '"></i>Strategy<i style="background:' + qnTheme().b + '"></i>' + esc(cur.bt.bsym) + '</span><span class="grow"></span><button class="btn text sm" data-act="qn-log">' + (QS.log ? 'Log scale' : 'Linear scale') + '</button></div><div class="qn-svg"></div><div class="qn-tip"></div></div>' +
+    '<div class="qn-box qn-chart" id="qnProj"><div class="qn-ch"><b>Projection</b><span class="mut">5th–95th and 25th–75th percentile bands, median line</span></div><div class="qn-svg"></div><div class="qn-tip"></div><div id="qnProjTbl"></div></div>' +
+    '<div class="qn-box qn-chart" id="qnDD"><div class="qn-ch"><b>Drawdown</b><span class="mut">% below the previous high</span></div><div class="qn-svg"></div><div class="qn-tip"></div></div>' +
+    '<div class="qn-box qn-chart" id="qnYears"><div class="qn-ch"><b>Calendar-year returns</b><span class="qn-leg"><i style="background:' + qnTheme().s + '"></i>Strategy<i style="background:' + qnTheme().b + '"></i>' + esc(cur.bt.bsym) + '</span></div><div class="qn-svg"></div></div>' +
+    '<details class="qn-box"><summary>Monthly returns</summary><div id="qnMonths" class="qn-scroll"></div></details>' +
+    '<details class="qn-box"><summary>Rules, assumptions and trades</summary><div class="qn-rules"><p>' + esc(cur.spec.summary || '') + '</p>' +
+      ((cur.spec.assumptions || []).length ? '<ul>' + cur.spec.assumptions.map(function(a){ return '<li>' + esc(a) + '</li>'; }).join('') + '</ul>' : '') +
+      (cur.spec.unsupported ? '<p class="mut">Not modelled: ' + esc(cur.spec.unsupported) + '</p>' : '') + qnTradesHTML(cur.bt.trades, 30) + '</div></details>' +
+    '<div class="qn-refine"><input class="inp" id="qnRefine" placeholder="Change something: add a 10% stop loss, test on QQQ, start in 2008…"><button class="btn filled sm qn-run" data-act="qn-refine">Update</button></div>' +
+    '<div class="qn-fine mut">Backtests and simulations describe the past and a range of possibilities, not a forecast. Not investment advice.</div></div>';
+  qnChartsPaint();
+}
+function qnTradesHTML(tr, max){
+  if(!tr.length) return '<p class="mut">No trades (an allocation, or the entry rule never fired).</p>';
+  return '<div class="qn-scroll"><table class="qn-tbl"><tr><th>In</th><th>Out</th><th>Return</th><th>Days</th><th>Exit</th></tr>' + tr.slice(-max).reverse().map(function(t){
+    return '<tr><td>' + t.in + '</td><td>' + (t.open ? 'open' : t.out) + '</td><td class="' + (t.ret >= 0 ? 'up' : 'down') + '">' + qnPct(t.ret) + '</td><td>' + t.days + '</td><td>' + esc(t.why) + '</td></tr>'; }).join('') + '</table></div>' +
+    (tr.length > max ? '<div class="mut qn-fine">Latest ' + max + ' of ' + tr.length + ' trades.</div>' : '');
+}
+/* A dial moved: recompute in the next frame (backtest + projection take a few milliseconds). */
+var QN_RAF = 0;
+function qnDial(inp){
+  var cur = QS.cur; if(!cur) return;
+  var id = inp.getAttribute('data-qd'), v = +inp.value, d = qnDials(cur).filter(function(x){ return x.id === id; })[0];
+  if(inp.getAttribute('data-proj')) cur.proj[id] = v; else if(id === 'start') cur.over.start = v + '-01-01'; else cur.over[id] = v;
+  var lab = $('qdv-' + id); if(lab) lab.textContent = d && d.fmt ? d.fmt(v) : String(+v.toFixed(4));
+  cancelAnimationFrame(QN_RAF);
+  QN_RAF = requestAnimationFrame(function(){
+    try{ qnCompute(cur); QS.err = ''; }catch(e){ QS.err = String(e.message || e); }
+    var st = $('qnStats'); if(st) st.innerHTML = qnStatsHTML(cur);
+    var meta = document.querySelector('.qn-meta'); if(meta) meta.firstChild.outerHTML = qnStars(cur.rating, 15);
+    if(meta){ var bs = meta.querySelectorAll('b'); bs[0].textContent = cur.edge; bs[1].textContent = cur.unc; }
+    qnChartsPaint();
+  });
+}
+function qnHover(e){
+  var box = e.target.closest && e.target.closest('.qn-chart'); if(!box || !QS.geo[box.id]) return;
+  var G = QS.geo[box.id], svg = box.querySelector('svg'), tip = box.querySelector('.qn-tip'); if(!svg || !tip) return;
+  var rc = svg.getBoundingClientRect(), sx = (e.clientX - rc.left) / rc.width * G.geo.W, i = Math.round((sx - G.geo.L) / G.geo.pw * (G.geo.n - 1));
+  if(i < 0 || i >= G.geo.n){ tip.classList.remove('on'); return; }
+  var line = svg.querySelector('.qx'), x = G.geo.L + i / Math.max(1, G.geo.n - 1) * G.geo.pw;
+  if(line){ line.setAttribute('x1', x); line.setAttribute('x2', x); line.setAttribute('opacity', 1); }
+  tip.innerHTML = '<b>' + esc(G.xl ? G.xl(G.x[i]) : G.x[i]) + '</b>' + G.series.map(function(s){ return '<span><i style="background:' + s[2] + '"></i>' + esc(s[0]) + ' <b>' + esc(G.fmt(s[1][i])) + '</b></span>'; }).join('');
+  tip.classList.add('on');
+  var bx = box.getBoundingClientRect(), px = e.clientX - bx.left;
+  tip.style.left = Math.max(4, Math.min(bx.width - tip.offsetWidth - 4, px + 12)) + 'px'; tip.style.top = (svg.getBoundingClientRect().top - bx.top + 8) + 'px';
+}
+function qnHoverOut(e){ var box = e.target.closest && e.target.closest('.qn-chart'); if(!box) return; var t = box.querySelector('.qn-tip'); if(t) t.classList.remove('on'); var l = box.querySelector('.qx'); if(l) l.setAttribute('opacity', 0); }
+function qnOpen(id){
+  var r = QN_RUNS.filter(function(x){ return x.id === id; })[0]; if(!r) return;
+  QS.busy = true; QS.err = ''; QS.steps = [];
+  qnLoad(r.spec).then(function(x){
+    var cur = { q:r.q, spec:r.spec, al:x.al, over:{}, proj:Object.assign({ years:5, drift:0, volMult:1 }, r.proj), note:r.note, ts:r.ts, id:r.id };
+    qnCompute(cur); QS.cur = cur; QS.busy = false; qnPaint();
+  }).catch(function(e){ QS.busy = false; QS.err = String(e.message || e); qnPaint(); });
+}
+function qnAction(act, el){
+  if(act === 'qn-run'){ var q = $('qnQ'); QS.draft = q ? q.value : ''; qnRun(QS.draft); }
+  else if(act === 'qn-ex'){ var q2 = $('qnQ'); if(q2){ q2.value = el.textContent; q2.focus(); } }
+  else if(act === 'qn-new'){ QS.cur = null; QS.steps = []; QS.err = ''; qnPaint(true); }
+  else if(act === 'qn-open') qnOpen(el.getAttribute('data-id'));
+  else if(act === 'qn-log'){ QS.log = !QS.log; el.textContent = QS.log ? 'Log scale' : 'Linear scale'; qnChartsPaint(); }
+  else if(act === 'qn-reset'){ var c = QS.cur; if(!c) return; var pj = c.spec.projection || {}; c.over = {}; c.proj = { years:pj.years || 5, drift:pj.drift || 0, volMult:pj.volMult || 1 }; qnCompute(c); qnPaint(); }
+  else if(act === 'qn-refine'){ var r = $('qnRefine'); if(r && r.value.trim()) qnRun(r.value, true); }
+  else if(act === 'qn-pdf') qnPDF(el);
+}
+document.addEventListener('input', function(e){ if(e.target && e.target.getAttribute && e.target.getAttribute('data-qd')) qnDial(e.target); });
+document.addEventListener('keydown', function(e){
+  if(!e.target) return;
+  if(e.target.id === 'qnQ' && e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); qnAction('qn-run'); }
+  if(e.target.id === 'qnRefine' && e.key === 'Enter'){ e.preventDefault(); qnAction('qn-refine'); }
+});
+document.addEventListener('pointermove', function(e){ if(e.target && e.target.closest && e.target.closest('#qnPane .qn-chart')) qnHover(e); });
+document.addEventListener('pointerout', function(e){ if(e.target && e.target.closest && e.target.closest('#qnPane .qn-chart') && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.qn-chart'))) qnHoverOut(e); });
+if('ResizeObserver' in window) new ResizeObserver(function(){ if(QS.cur && !QS.busy) qnChartsPaint(); }).observe(document.documentElement);
+
+/* ---- the PDF report, laid out like an equity research report: running header, title with rating, a row of key figures,
+   the main chart with the year-by-year row under it, then the analyst note beside a contents column; later pages carry the
+   strategy description, strengths and risks, the projection, risk tables, monthly returns, trades and the methodology. */
+function qnPDF(btn){
+  var cur = QS.cur; if(!cur) return;
+  var lab = btn ? btn.innerHTML : ''; if(btn){ btn.disabled = true; btn.textContent = 'Building PDF…'; }
+  var load = window.jspdf ? Promise.resolve() : new Promise(function(ok, no){
+    var sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; sc.onload = ok; sc.onerror = function(){ no(new Error('PDF library failed to load')); }; document.head.appendChild(sc);
+  });
+  var T = QN.THEMES.light, bt = cur.bt, m = bt.metrics, p = cur.pr, cap = 10000, W = 720;   // drawn at 720 wide so axis text is readable once shrunk to the page
+  var mx = []; for(var i = 0; i <= p.months; i++) mx.push(i);
+  var by = {}; m.b.years.forEach(function(y){ by[y[0]] = y[1]; });
+  var charts = [
+    [QN.lines({ T:T, W:W, H:250, x:bt.dates, log:true, series:[{ v:bt.bench.map(function(v){ return v * cap; }), col:T.b, w:1.6 }, { v:bt.eq.map(function(v){ return v * cap; }), col:T.s, w:2.2 }] }).svg, W, 250],
+    [QN.lines({ T:T, W:W, H:280, x:mx, xfmt:function(v){ return v % 12 === 0 ? 'Year ' + v / 12 : ''; }, bands:[{ lo:p.p5, hi:p.p95, col:T.band1 }, { lo:p.p25, hi:p.p75, col:T.band2 }], series:[{ v:p.p50, col:T.s, w:2.4 }, { v:mx.map(function(){ return cap; }), col:T.mut, dash:1, w:1 }] }).svg, W, 280],
+    [QN.lines({ T:T, W:W, H:190, x:bt.dates, zero:1, yfmt:function(v){ return v.toFixed(0) + '%'; }, series:[{ v:m.b.dd.map(function(v){ return v * 100; }), col:T.b, w:1.2 }, { v:m.s.dd.map(function(v){ return v * 100; }), col:T.s, w:1.6, area:T.band1 }] }).svg, W, 190],
+    [QN.bars({ T:T, W:W, H:200, rows:m.s.years.map(function(y){ return [y[0], y[1], by[y[0]]]; }) }), W, 200]
+  ];
+  load.then(function(){ return Promise.all(charts.map(function(c){ return QN.png(c[0], c[1], c[2], 2); })); }).then(function(img){
+    var doc = new window.jspdf.jsPDF({ unit:'pt', format:'letter', compress:true }), PW = 612, PH = 792, M = 40, CW = PW - 2 * M, now = new Date();
+    var dstr = now.toISOString().slice(0, 10), pages = 4, n = cur.note || {};
+    var ink = [29, 29, 31], grey = [107, 114, 128], red = [200, 30, 42], rule = [210, 210, 214];
+    var col = function(c){ doc.setTextColor(c[0], c[1], c[2]); };
+    var ascii = function(s){ return String(s == null ? '' : s).replace(/\u2212/g, '-').replace(/[\u2018\u2019]/g, "'").replace(/[\u201c\u201d]/g, '"').replace(/\u2026/g, '...').replace(/\u2192/g, '->').replace(/[\u2013\u2014]/g, '-'); };   // the PDF's built-in font has no minus sign
+    var txt = function(s, x, y, o){ o = o || {}; doc.setFont('helvetica', o.b ? 'bold' : 'normal'); doc.setFontSize(o.s || 9); col(o.c || ink); doc.text(ascii(s), x, y, o.a ? { align:o.a } : undefined); };
+    var para = function(s, x, y, w, o){ o = o || {}; doc.setFont('helvetica', o.b ? 'bold' : 'normal'); doc.setFontSize(o.s || 9.5); col(o.c || ink); var lh = o.lh || (o.s || 9.5) * 1.42, lines = doc.splitTextToSize(ascii(s), w), room = o.free ? 1e9 : Math.max(0, Math.floor((PH - 66 - y) / lh) + 1);
+      if(lines.length > room){ lines = lines.slice(0, room); if(room) lines[room - 1] = lines[room - 1].replace(/\s*\S*$/, '...'); }   // never run into the footer
+      if(lines.length) doc.text(lines, x, y); return y + lines.length * lh; };
+    var hr = function(y, c, w){ doc.setDrawColor.apply(doc, c || rule); doc.setLineWidth(w || .6); doc.line(M, y, PW - M, y); };
+    var star = function(cx, cy, r, on){ var pts = []; for(var k = 0; k < 10; k++){ var a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? r * .45 : r; pts.push([cx + rr * Math.cos(a), cy + rr * Math.sin(a)]); }
+      var rel = pts.slice(1).map(function(q, k){ return [q[0] - pts[k][0], q[1] - pts[k][1]]; }); doc.setFillColor.apply(doc, on ? ink : [215, 215, 220]); doc.lines(rel, pts[0][0], pts[0][1], [1, 1], 'F', true); };
+    var head = function(pg){
+      txt('MercerFargo Quant Strategy Report | Report as of ' + dstr + ' | Currency: USD | Data: daily adjusted closes (Yahoo Finance) | Benchmark: ' + bt.bsym, M, 28, { s:6.5, c:grey });
+      txt('Page ' + pg + ' of ' + pages, PW - M, 28, { s:6.5, c:grey, a:'right' }); hr(33, rule, .5);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(19); col(ink); var title = doc.splitTextToSize(ascii(cur.spec.title), CW - 170)[0]; doc.text(title, M, 58);
+      var tw = doc.getTextWidth(title); for(var s = 0; s < 5; s++) star(M + tw + 16 + s * 15, 52, 6, s < cur.rating);
+      txt(dstr, M + tw + 16 + 5 * 15 + 4, 57, { s:7, c:grey });
+      hr(70, ink, .8);
+      var cells = [['CAGR', qnPct(m.s.cagr), 'Bench ' + qnPct(m.b.cagr)], ['Total Return', qnPct(m.s.total, 0), 'Since ' + m.from.slice(0, 7)], ['Sharpe', m.s.sharpe.toFixed(2), 'Bench ' + m.b.sharpe.toFixed(2)],
+        ['Max Drawdown', qnPct(m.s.maxdd), 'Bench ' + qnPct(m.b.maxdd)], ['Volatility', m.s.vol.toFixed(1) + '%', 'Annualised'], ['Quant Edge', cur.edge, m.beatYears + ' of ' + m.nYears + ' yrs ahead'],
+        ['Uncertainty', cur.unc, '1-yr range ' + (QN.project(bt.ret, { years:1, drift:cur.proj.drift, volMult:cur.proj.volMult }).spread1y).toFixed(0) + '%'], ['Time Invested', m.exposure.toFixed(0) + '%', m.trades + ' trades']];
+      cells.forEach(function(c, k){ var x = M + k * CW / 8; txt(c[0], x, 82, { s:6.8, b:1 }); txt(c[1], x, 97, { s:11.5 }); txt(c[2], x, 107, { s:6, c:grey }); });
+      hr(116);
+    };
+    var foot = function(){
+      hr(PH - 58, rule, .5);
+      para('© MercerFargo ' + now.getFullYear() + '. This report is generated automatically from historical prices and a statistical simulation. It is for education and information only, is not investment advice or an offer to buy or sell any security, and is not warranted to be accurate, complete or timely. ' +
+        'Backtests are hypothetical: they use rules written after the fact, ignore taxes, slippage beyond the stated cost, and market impact, and past results do not predict future returns. Projections show a range of simulated outcomes, not expectations.', M, PH - 48, CW - 90, { s:5.6, c:grey, lh:7, free:1 });
+      txt('MERCERFARGO', PW - M, PH - 42, { s:10, b:1, c:red, a:'right' });
+    };
+    var sec = function(t, y, x, w){ txt(t, x || M, y, { s:10.5, b:1 }); doc.setDrawColor.apply(doc, rule); doc.setLineWidth(.5); doc.line(x || M, y + 4, (x || M) + (w || CW), y + 4); return y + 17; };
+    var table = function(rows, x, y, widths, o){ o = o || {}; rows.forEach(function(r, k){ var cx = x; r.forEach(function(c, j){ txt(c, j ? cx + widths[j] : cx, y, { s:o.s || 7.8, b:!!(k === 0 && o.head), a:j ? 'right' : undefined }); cx += widths[j]; }); if(k === 0 && o.head){ doc.setDrawColor.apply(doc, rule); doc.line(x, y + 3, x + widths.reduce(function(a, b){ return a + b; }, 0), y + 3); } y += o.lh || 12; }); return y; };
+
+    /* page 1: chart, year row, contents + analyst note */
+    head(1);
+    txt('Growth of $10,000 vs ' + bt.bsym + ' (log scale)', M, 132, { s:10, b:1 });
+    doc.addImage(img[0], 'JPEG', M, 138, CW, CW * 250 / W);
+    var y = 138 + CW * 250 / W + 6, yrs = m.s.years.slice(-7);
+    yrs.forEach(function(yy, k){ var x = M + 70 + k * (CW - 150) / yrs.length; txt(yy[0], x + 22, y + 8, { s:7.5, a:'right', c:grey }); txt(qnPct(yy[1]), x + 22, y + 20, { s:7.5, a:'right' }); txt(by[yy[0]] == null ? '—' : qnPct(by[yy[0]]), x + 22, y + 32, { s:7.5, a:'right', c:grey }); });
+    txt('Strategy %', PW - M, y + 20, { s:7.5, a:'right' }); txt(bt.bsym + ' %', PW - M, y + 32, { s:7.5, a:'right', c:grey }); txt('Year', PW - M, y + 8, { s:7.5, a:'right', c:grey });
+    y += 44; hr(y);
+    var cx = M, cw = 170, nx = M + cw + 22, nw = CW - cw - 22, y0 = y + 16;
+    txt('Contents', cx, y0, { s:9.5, b:1 });
+    ['Quant Note', 'Strategy Description', 'Strengths / Risks', 'Projection Drivers', 'Risk and Uncertainty', 'Projection', 'Risk Statistics', 'Monthly Returns', 'Trade Log', 'Appendix: Methodology'].forEach(function(c, k){ txt(c, cx, y0 + 15 + k * 13, { s:8.2 }); });
+    var yl = y0 + 15 + 10 * 13 + 4; doc.setDrawColor.apply(doc, rule); doc.line(cx, yl, cx + cw, yl);
+    txt('About this report', cx, yl + 13, { s:7, b:1 });
+    para('Rules were written by Marvell from your description and tested on daily prices. The Quant Rating compares risk-adjusted return (Sharpe) with the benchmark; Edge counts the calendar years it came out ahead; Uncertainty is the width of the one-year simulated range.', cx, yl + 23, cw, { s:6.4, c:grey, lh:8.2 });
+    y = para(n.headline || cur.spec.title, nx, y0 + 4, nw, { s:15, lh:18 });
+    txt('Quant Note', nx, y + 4, { s:8.5, b:1 }); txt('Marvell, MercerFargo Quant, ' + dstr, nx + 52, y + 4, { s:8.5, c:grey });
+    y = para(n.note || cur.spec.summary, nx, y + 18, nw, { s:9 });
+    if(n.why){ txt('Why it matters:', nx, y + 6, { s:9, b:1 }); y = para(n.why, nx, y + 18, nw, { s:9 }); }
+    (n.strengths || []).slice(0, 2).forEach(function(s){ txt('›', nx, y + 6, { s:9 }); y = para(s, nx + 10, y + 6, nw - 10, { s:9 }); });
+    if(n.bottom_line){ txt('The bottom line:', nx, y + 8, { s:9, b:1 }); y = para(n.bottom_line, nx, y + 20, nw, { s:9 }); }
+    foot();
+
+    /* page 2: description, strengths/risks, drivers, uncertainty */
+    doc.addPage(); head(2); y = 136;
+    y = sec('Strategy Description', y); y = para(cur.spec.summary, M, y, CW);
+    var rules = []; (cur.spec.assumptions || []).forEach(function(a){ rules.push(a); }); if(cur.spec.unsupported) rules.push('Not modelled: ' + cur.spec.unsupported);
+    rules.push('Tested ' + m.from + ' to ' + m.to + ' with ' + ((cur.over.cost_bps != null ? cur.over.cost_bps : cur.spec.cost_bps) || 0) + ' bps cost per side; benchmark ' + bt.bsym + ' bought and held.');
+    var P = bt.P; if((cur.spec.params || []).length) rules.push('Parameters: ' + cur.spec.params.map(function(q){ return (q.label || q.id) + ' ' + P[q.id]; }).join(', ') + '.');
+    rules.forEach(function(r){ txt('›', M, y + 4, { s:9 }); y = para(r, M + 10, y + 4, CW - 10, { s:9 }); }); y += 10;
+    y = sec('Strengths', y, M, CW / 2 - 10); var yR = sec('Risks', y - 17, M + CW / 2 + 10, CW / 2 - 10), yS = y;
+    (n.strengths || []).forEach(function(s){ txt('›', M, yS + 4, { s:9 }); yS = para(s, M + 10, yS + 4, CW / 2 - 22, { s:9 }); });
+    (n.risks || []).forEach(function(s){ txt('›', M + CW / 2 + 10, yR + 4, { s:9 }); yR = para(s, M + CW / 2 + 20, yR + 4, CW / 2 - 32, { s:9 }); });
+    y = Math.max(yS, yR) + 14;
+    y = sec('Projection Drivers', y); y = para((n.drivers || '') + ' The projection resamples the strategy\'s own daily returns in 21-day blocks over ' + p.years + ' years (400 paths)' + (cur.proj.drift ? ', shifted ' + cur.proj.drift + '% a year' : '') + (cur.proj.volMult !== 1 ? ', with volatility scaled ×' + cur.proj.volMult : '') + '.', M, y, CW) + 14;
+    y = sec('Risk and Uncertainty', y);
+    y = para('Uncertainty is rated ' + cur.unc + ': in the simulation, one year from now the 5th to 95th percentile range spans about ' + QN.project(bt.ret, { years:1, drift:cur.proj.drift, volMult:cur.proj.volMult }).spread1y.toFixed(0) + '% of starting capital. ' +
+      'The deepest historical fall was ' + qnPct(m.s.maxdd) + ' (benchmark ' + qnPct(m.b.maxdd) + '), and the longest stretch below a previous high lasted ' + m.s.longestDD + ' trading days. Beta to ' + bt.bsym + ' is ' + m.beta.toFixed(2) + ' with correlation ' + m.corr.toFixed(2) + '.', M, y, CW) + 14;
+    if(y + CW * 200 / W < PH - 70){ y = sec('Calendar-Year Returns (strategy red, ' + bt.bsym + ' grey)', y); doc.addImage(img[3], 'JPEG', M, y - 6, CW, CW * 200 / W); var yearsDone = true; }
+    foot();
+
+    /* page 3: projection and risk statistics */
+    doc.addPage(); head(3); y = 136;
+    y = sec('Projection: value of $10,000 over ' + p.years + ' years', y);
+    doc.addImage(img[1], 'JPEG', M, y - 6, CW, CW * 280 / W); y += CW * 280 / W;
+    y = table([['Percentile', '5th', '25th', 'Median', '75th', '95th'], ['Ending value'].concat(p.end.map(QN.money)), ['Return per year'].concat(p.cagr.map(function(v){ return qnPct(v); }))], M, y + 6, [150, 70, 70, 70, 70, 70], { head:1 });
+    txt('Chance of ending below $10,000: ' + p.lossProb.toFixed(0) + '%', M, y + 4, { s:8, c:grey }); y += 22;
+    y = sec('Risk Statistics', y);
+    var f2 = function(v, d){ return v == null ? '—' : v.toFixed(d); };
+    table([['', 'Strategy', bt.bsym], ['CAGR', qnPct(m.s.cagr), qnPct(m.b.cagr)], ['Total return', qnPct(m.s.total, 0), qnPct(m.b.total, 0)], ['Volatility', f2(m.s.vol, 1) + '%', f2(m.b.vol, 1) + '%'], ['Sharpe ratio', f2(m.s.sharpe, 2), f2(m.b.sharpe, 2)],
+      ['Sortino ratio', f2(m.s.sortino, 2), f2(m.b.sortino, 2)], ['Max drawdown', qnPct(m.s.maxdd), qnPct(m.b.maxdd)], ['Calmar ratio', f2(m.s.calmar, 2), f2(m.b.calmar, 2)], ['Best year', qnPct(m.s.best), qnPct(m.b.best)], ['Worst year', qnPct(m.s.worst), qnPct(m.b.worst)]],
+      M, y, [130, 70, 70], { head:1 });
+    table([['', 'Strategy'], ['Beta', f2(m.beta, 2)], ['Alpha (per year)', qnPct(m.alpha)], ['Correlation', f2(m.corr, 2)], ['Time invested', f2(m.exposure, 0) + '%'], ['Trades', String(m.trades)], ['Win rate', m.winRate == null ? '—' : f2(m.winRate, 0) + '%'],
+      ['Average trade', m.avgTrade == null ? '—' : qnPct(m.avgTrade)], ['Average holding (days)', m.avgDays == null ? '—' : f2(m.avgDays, 0)], ['Years ahead of benchmark', m.beatYears + ' of ' + m.nYears]], M + CW / 2 + 20, y, [150, 80], { head:1 });
+    y += 11 * 12 + 10;
+    y = sec('Drawdown (% below previous high)', y); doc.addImage(img[2], 'JPEG', M, y - 6, CW, CW * 190 / W);
+    foot();
+
+    /* page 4: calendar years, monthly returns, trades, methodology */
+    doc.addPage(); head(4); y = 136;
+    if(!yearsDone){ y = sec('Calendar-Year Returns (strategy red, ' + bt.bsym + ' grey)', y); doc.addImage(img[3], 'JPEG', M, y - 6, CW, CW * 200 / W); y += CW * 200 / W + 4; }
+    y = sec('Monthly Returns (%)', y);
+    var yrsM = {}; m.monthly.forEach(function(x){ var yy = x[0].slice(0, 4); (yrsM[yy] = yrsM[yy] || {})[+x[0].slice(5, 7)] = x[1]; });
+    var rowsM = [['Year', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']].concat(Object.keys(yrsM).reverse().slice(0, 12).map(function(yy){ var r = [yy]; for(var k = 1; k <= 12; k++) r.push(yrsM[yy][k] == null ? '' : yrsM[yy][k].toFixed(1)); return r; }));
+    y = table(rowsM, M, y, [40].concat(Array(12).fill((CW - 40) / 12)), { head:1, s:7, lh:10.5 }) + 8;
+    if(bt.trades.length){ y = sec('Trade Log (latest ' + Math.min(10, bt.trades.length) + ' of ' + bt.trades.length + ')', y);
+      y = table([['Entry', 'Exit', 'Return', 'Days', 'Exit reason']].concat(bt.trades.slice(-10).reverse().map(function(t){ return [t.in, t.open ? 'open' : t.out, qnPct(t.ret), String(t.days), t.why]; })), M, y, [80, 90, 80, 60, 90], { head:1, s:7.2, lh:10.5 }) + 8; }
+    y = sec('Appendix: Research Methodology', y);
+    y = para('Data: daily closes adjusted for splits and dividends. Execution: a rule is checked at each close and the position changes at that close, earning from the next day, so no future information is used. Costs: the stated basis points on every unit traded, each way; idle cash earns nothing. ' +
+      'Metrics: CAGR and volatility are annualised from daily returns (252 days); Sharpe and Sortino use a 0% risk-free rate; drawdowns are measured from the running high. ' +
+      'Quant Rating: 5 stars when the Sharpe ratio beats the benchmark\'s by more than 0.4, 4 by 0.15, 3 within ±0.15, 2 behind by up to 0.4, 1 below that. Edge: Wide when ahead of the benchmark in at least 70% of calendar years, Narrow at 55%, otherwise None. ' +
+      'Uncertainty: Low, Medium, High or Very High as the simulated one-year 5th-95th percentile range is under 30%, 50%, 80% of capital, or above. Projection: 400 paths of 21-day blocks drawn from the strategy\'s own history, with optional return shift and volatility scaling.', M, y, CW, { s:7.6, lh:10.4 });
+    foot();
+    doc.save('MercerFargo-Quant_' + cur.spec.title.replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').slice(0, 50) + '_' + dstr + '.pdf');
+  }).catch(function(e){ toast('Could not build the PDF: ' + (e.message || e)); }).then(function(){ if(btn){ btn.disabled = false; btn.innerHTML = lab; } });
+}
+
 /* ---- side panel: tab switching and one-click open/close ---------------- */
 function rsThumb(){   // size the sliding pill to the actual tab buttons
-  var tabs = document.querySelector('.rs-tabs'), a = $('tabChat'), b = $('tabResearch');
+  var tabs = document.querySelector('.rs-tabs'), a = $('tabChat'), b = $('tabResearch'), c = $('tabQuant');
   if(!tabs || !a || !b || !a.offsetWidth) return;
-  tabs.style.setProperty('--tw', a.offsetWidth + 'px'); tabs.style.setProperty('--tx', a.offsetWidth + 'px'); tabs.style.setProperty('--tw2', b.offsetWidth + 'px');
+  tabs.style.setProperty('--tw', a.offsetWidth + 'px'); tabs.style.setProperty('--tx', (b.offsetLeft - a.offsetLeft) + 'px'); tabs.style.setProperty('--tw2', b.offsetWidth + 'px');
+  if(c){ tabs.style.setProperty('--tx3', (c.offsetLeft - a.offsetLeft) + 'px'); tabs.style.setProperty('--tw3', c.offsetWidth + 'px'); }
 }
 function rsShowTab(tab, focus){
   var chat = $('chat'), pane = $('rsPane');
@@ -10890,23 +11379,26 @@ function rsShowTab(tab, focus){
   var t = tab || 'chat', prev = CFG.rtab;
   CFG.rtab = t; saveCfg();
   var tabs = document.querySelector('.rs-tabs'); if(tabs){ tabs.setAttribute('data-t', t); rsThumb(); rsFxStart(); }
-  var a = $('tabChat'), b = $('tabResearch');
+  var a = $('tabChat'), b = $('tabResearch'), q = $('tabQuant'), qp = $('qnPane');
   if(a) a.className = (t === 'chat') ? 'on' : '';
   if(b) b.className = (t === 'research') ? 'on' : '';
+  if(q) q.className = (t === 'quant') ? 'on' : '';
+  var paneOf = function(k){ return k === 'chat' ? chat : k === 'quant' ? qp : pane; };
   var foot = document.querySelector('.drawer .drawer-foot'), nc = $('newChatBtn');
   if(nc) nc.hidden = (t !== 'chat');
   var nr = $('newResBtn'); if(nr){ nr.hidden = (t !== 'research'); nr.disabled = !!RS.running; }
   var apply = function(){
-    chat.hidden = (t !== 'chat'); pane.hidden = (t !== 'research');
+    chat.hidden = (t !== 'chat'); pane.hidden = (t !== 'research'); if(qp) qp.hidden = (t !== 'quant');
     if(foot) foot.hidden = (t !== 'chat');
     if(t === 'research'){ rsPaint(); if(focus){ var q = $('rsQ'); if(q) q.focus(); } }
-    [t === 'chat' ? chat : pane, t === 'chat' ? foot : null].forEach(function(e){
+    if(t === 'quant') qnPaint(focus);
+    [paneOf(t), t === 'chat' ? foot : null].forEach(function(e){
       if(!e) return; e.classList.remove('fadeout'); e.classList.remove('fadein'); void e.offsetWidth; e.classList.add('fadein');
     });
   };
   var open = $('drawer').classList.contains('open');
   if(open && prev && prev !== t){   // crossfade: old content out, then new content in
-    [prev === 'chat' ? chat : pane, prev === 'chat' ? foot : null].forEach(function(e){ if(e){ e.classList.remove('fadein'); e.classList.add('fadeout'); } });
+    [paneOf(prev), prev === 'chat' ? foot : null].forEach(function(e){ if(e){ e.classList.remove('fadein'); e.classList.add('fadeout'); } });
     setTimeout(apply, 120);
   } else apply();
   rsSyncBtn();
@@ -11525,6 +12017,7 @@ function bindEvents(){
       case 'quick-toggle': { var q = $('aiQuick'); q.hidden = !q.hidden; break; }
       case 'drawer-full': setFull(!$('drawer').classList.contains('full')); break;
       case 'drawer-tab': rsShowTab(el.getAttribute('data-tab')); break;
+      case 'qn-run': case 'qn-ex': case 'qn-new': case 'qn-open': case 'qn-log': case 'qn-reset': case 'qn-refine': case 'qn-pdf': qnAction(act, el); break;
       case 'rs-close': closeDrawer(); break;
       case 'quote': ev.preventDefault(); go('#/quote/' + encodeURIComponent(sym)); break;
       case 'openlist': go('#/list/' + el.getAttribute('data-id')); break;

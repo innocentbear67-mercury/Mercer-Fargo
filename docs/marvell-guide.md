@@ -176,6 +176,13 @@ The **Deep Research** tab of the Marvell panel, or *Start deep research on SYM* 
   or downloaded and are saved in this browser (Research Log and *Past runs*).
 `/learn` cannot run here; it moves to Agent chat.
 
+## quant-mode
+The Marvell panel has three modes: **Agent**, **Deep Research** and **Quant** (red, with a wave animation). Quant backtests a strategy the user describes in words and projects it forward.
+How it works: the user types a strategy and any conditions ("buy SPY when RSI(14) < 30, sell above 70, since 2010", "60/40 SPY/TLT monthly", "hold QQQ above its 200-day average while VIX < 25, else SHY") and presses **Run Quant Analysis**. Marvell writes the rules as a spec (signal: entry/exit conditions on one symbol, with optional stop, target, trailing stop, max hold and an alternative asset; allocation: fixed weights rebalanced monthly/quarterly/yearly/never, with an optional filter), the browser fetches up to 30 years of daily adjusted prices, backtests, and runs a 400-path projection.
+Output: rating (1-5 stars from Sharpe vs the benchmark), **Edge** (None/Narrow/Wide: share of calendar years ahead of the benchmark), **Uncertainty** (Low to Very High from the 1-year simulated range), key figures, a short analyst note, and interactive charts (growth of $10,000 with log/linear, projection fan with percentile table, drawdown, calendar-year bars, monthly heatmap, rules and trade log). Hover a chart for values.
+**Tweak the factors**: sliders for every rule parameter, start year, trading cost, position size, projection years, a return shift (% a year) and a volatility multiplier; results update instantly in the browser. **Update** applies a change in words ("add a 10% stop loss"). **PDF report** downloads a 4-page report laid out like an equity research report (header figures, chart, note, strategy description, strengths/risks, projection drivers, risk and uncertainty, projection and risk tables, monthly returns, trade log, methodology). Recent tests are listed on the Quant start screen.
+Method: signals act at the close and earn from the next day; costs per side on turnover; idle cash earns 0; Sharpe uses 0% risk-free. Backtests are hypothetical and projections are a range, not a forecast. Indicators: close, open, high, low, volume, sma, ema, rsi, macd, bb bands, roc/ret, highest/lowest (breakouts), atr, vol, drawdown, zscore; any ticker Yahoo knows, including ^VIX.
+
 ## skills
 Reusable instructions in `SKILL.md` format (YAML frontmatter with `name` and `description`, then Markdown steps), stored in this browser.
 - Run: type `/skill-name your question` in the Agent (or Deep Research) box; arrow keys + Enter pick from the menu.

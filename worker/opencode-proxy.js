@@ -8,7 +8,7 @@ const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers
 
 // Mirrors serve.py OA_YMAP / OA_RANGE. Third RANGE element = edge cache seconds.
 const YMAP = { '^SPX': '^GSPC', '^IQX': '^IXIC', '^DJI': '^DJI', '^RUT': '^RUT', '^UKX': '^FTSE', '^DAX': '^GDAXI', '^CAC': '^FCHI', '^NKX': '^N225', '^HSI': '^HSI', '^SHC': '000001.SS', '^NDQ': '^NDX', '^VIX': '^VIX', 'ES.F': 'ES=F', 'NQ.F': 'NQ=F', 'YM.F': 'YM=F', 'GC.F': 'GC=F', 'CL.F': 'CL=F' };
-const RANGE = { 'M1': ['5d', '1m', 60], 'M5': ['1d', '5m', 120], 'M15': ['5d', '15m', 120], 'H1': ['6mo', '60m', 300], 'H4': ['6mo', '60m', 300], '1D': ['1d', '5m', 120], '5D': ['5d', '15m', 120], '1M': ['1mo', '1d', 1800], '6M': ['6mo', '1d', 1800], 'YTD': ['ytd', '1d', 1800], '1Y': ['1y', '1d', 1800], '5Y': ['5y', '1wk', 3600], 'MAX': ['max', '1mo', 86400] };
+const RANGE = { 'M1': ['5d', '1m', 60], 'M5': ['1d', '5m', 120], 'M15': ['5d', '15m', 120], 'H1': ['6mo', '60m', 300], 'H4': ['6mo', '60m', 300], '1D': ['1d', '5m', 120], '5D': ['5d', '15m', 120], '1M': ['1mo', '1d', 1800], '6M': ['6mo', '1d', 1800], 'YTD': ['ytd', '1d', 1800], '1Y': ['1y', '1d', 1800], '5Y': ['5y', '1wk', 3600], 'MAX': ['max', '1mo', 86400], 'DMAX': ['max', '1d', 43200] };   // DMAX: 30 years of daily bars for Quant backtests (Yahoo turns range=max into monthly, so it asks by dates)
 
 function json(o, status, maxAge) {
   return new Response(JSON.stringify(o), { status, headers: Object.assign({ 'content-type': 'application/json', 'cache-control': 'public, max-age=' + maxAge }, cors) });
@@ -58,7 +58,8 @@ async function chartResponse(symbol, rng) {
   const [r, i, ttl] = RANGE[String(rng || '1M').toUpperCase()] || RANGE['1M'];
   let lastErr = 'yahoo unavailable';
   for (const host of ['query1.finance.yahoo.com', 'query2.finance.yahoo.com']) {
-    const url = 'https://' + host + '/v8/finance/chart/' + encodeURIComponent(ysym) + '?range=' + r + '&interval=' + i;
+    const span = r === 'max' && i === '1d' ? 'period1=' + (Math.floor(Date.now() / 864e5) * 86400 - 30 * 365 * 86400) + '&period2=' + Math.floor(Date.now() / 864e5 + 1) * 86400 : 'range=' + r;
+    const url = 'https://' + host + '/v8/finance/chart/' + encodeURIComponent(ysym) + '?' + span + '&interval=' + i;
     try {
       const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, cf: { cacheTtl: ttl, cacheEverything: true } });
       if (res.status === 404) { lastErr = 'yahoo 404: unknown symbol'; continue; }

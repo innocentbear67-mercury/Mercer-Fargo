@@ -512,7 +512,7 @@ class Handler(SimpleHTTPRequestHandler):
     OA_RANGE = {"M1": ("5d", "1m"), "M5": ("1d", "5m"), "M15": ("5d", "15m"), "H1": ("6mo", "60m"), "H4": ("6mo", "60m"),
                 "1D": ("1d", "5m"), "5D": ("5d", "15m"), "1M": ("1mo", "1d"),
                 "6M": ("6mo", "1d"), "YTD": ("ytd", "1d"), "1Y": ("1y", "1d"),
-                "5Y": ("5y", "1wk"), "MAX": ("max", "1mo")}
+                "5Y": ("5y", "1wk"), "MAX": ("max", "1mo"), "DMAX": ("max", "1d")}
 
     def oa_symbol(self, s):
         s = (s or "").strip().upper()
@@ -545,8 +545,11 @@ class Handler(SimpleHTTPRequestHandler):
         i = interval or default_i
         last = None
         for host in ("query1.finance.yahoo.com", "query2.finance.yahoo.com"):
-            url = ("https://%s/v8/finance/chart/%s?range=%s&interval=%s"
-                   % (host, urllib.parse.quote(ysym, safe=""), r, i))
+            # Yahoo serves range=max as monthly bars, so daily history over the long run is asked for by dates.
+            span = ("period1=%d&period2=%d" % (int(time.time()) - 30 * 365 * 86400, int(time.time()) + 86400)
+                    if r == "max" and i == "1d" else "range=" + r)
+            url = ("https://%s/v8/finance/chart/%s?%s&interval=%s"
+                   % (host, urllib.parse.quote(ysym, safe=""), span, i))
             try:
                 # Yahoo blocks long/spoofed UA strings; plain Mozilla/5.0 is the
                 # combo that works from this machine.
