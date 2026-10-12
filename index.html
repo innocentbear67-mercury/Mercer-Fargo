@@ -2318,7 +2318,7 @@ body.rs-drag iframe{pointer-events:none}
 .drawer.full .rs-tabs button{padding:9px 30px;font-size:15.5px}
 @container dr (min-width:720px){
   .drawer.full .drawer-head{position:relative;min-height:62px}
-  .drawer.full .drawer-head .rs-tabs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+  .drawer.full .drawer-head.tabs-mid .rs-tabs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}   /* only when rsThumb() found room beside the buttons */
 }
 .mk-map{touch-action:pan-y}
 .mk-map.zoomed{touch-action:none;cursor:grab}
@@ -11545,12 +11545,15 @@ function rsThumb(){   // size the sliding pill to the actual tab buttons
   if(!tabs || !a || !b || !a.offsetWidth) return;
   tabs.style.setProperty('--tw', a.offsetWidth + 'px'); tabs.style.setProperty('--tx', (b.offsetLeft - a.offsetLeft) + 'px'); tabs.style.setProperty('--tw2', b.offsetWidth + 'px');
   if(c){ tabs.style.setProperty('--tx3', (c.offsetLeft - a.offsetLeft) + 'px'); tabs.style.setProperty('--tw3', c.offsetWidth + 'px'); }
-  var head = tabs.parentNode, right = 0, lbl = 0, W = head.clientWidth;
-  head.classList.remove('tabs-mid', 'no-lbl');
-  [].forEach.call(head.children, function(el){ if(el !== tabs && el.offsetWidth){ right += el.offsetWidth + 6; var l = el.querySelector('.lbl'); if(l && l.offsetWidth) lbl += l.offsetWidth + 6; } });
-  var fits = function(r){ return W / 2 + tabs.offsetWidth / 2 + 10 <= W - 14 - r; };
-  if(fits(right)) head.classList.add('tabs-mid');
-  else if(fits(right - lbl)) head.classList.add('tabs-mid', 'no-lbl');   // centre the switch; the New buttons keep just their icons
+  /* Centre the switch only if it then clears the buttons on the right; measured, since padding differs in full screen. */
+  var head = tabs.parentNode;
+  var clear = function(){
+    var t = tabs.getBoundingClientRect(), ok = true;
+    [].forEach.call(head.children, function(el){ if(el !== tabs && el.offsetWidth && el.getBoundingClientRect().left < t.right + 8) ok = false; });
+    return ok;
+  };
+  head.classList.remove('no-lbl'); head.classList.add('tabs-mid');
+  if(!clear()){ head.classList.add('no-lbl'); if(!clear()) head.classList.remove('tabs-mid', 'no-lbl'); }   // then icon-only New buttons, else back to the left
 }
 function rsShowTab(tab, focus){
   var chat = $('chat'), pane = $('rsPane');
