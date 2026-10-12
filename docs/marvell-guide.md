@@ -86,7 +86,7 @@ Marvell can propose an alert with propose_changes `create_alert` (symbol, alert 
 Route `#/list/ID`; listed in the left rail under Watchlists.
 - Create: rail → *New watchlist*, or ask Marvell (`create_watchlist`).
 - Add symbols: *Add symbol* on the list page, *Add to watchlist* on a quote page, the bookmark icon beside any stock row (tick the watchlists, or create one), *Add page to list* in the screener, or Marvell (`add_to_watchlist`).
-- *Rename*, *Columns* picker, delete from the rail.
+- Manage: the ⋯ beside each watchlist in the rail (Open, Rename, Delete), or *Rename* / *Delete* on the list page. Delete asks first and cannot be undone; one list always remains. Remove a symbol with the × at the right of its row on the list page. *Columns* picker for extra columns.
 - *AI on this watchlist* reviews concentration and overlapping exposures. The page also shows news for the list's symbols.
 - Export: Settings → Export → Watchlist CSV.
 

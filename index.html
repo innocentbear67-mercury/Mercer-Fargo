@@ -287,6 +287,17 @@ input,select,textarea{font:inherit;color:inherit}
 .rail .rail-item.on{background:var(--fh-states-branded-medium-selected);color:var(--fh-foreground-on-highlight);font-weight:500}
 .rail .rail-item .lbl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rail .rail-item .cnt{font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.rail-row{position:relative}
+.rail-more{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:0;border-radius:6px;background:var(--fh-background-surface);color:var(--fh-foreground-on-surface-de-emphasis);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0}
+.rail-row:hover .rail-more,.rail-more:focus-visible{opacity:1}
+.rail-more:hover{color:var(--fh-foreground-on-surface-emphasis);background:var(--fh-states-neutral-hovered)}
+@media (hover:none){.rail-more{opacity:.8}}
+body.rail-min .rail-more{display:none}
+td.sym.wl-x{position:relative;padding-right:34px}
+td.sym .wl-rm{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--fh-foreground-on-surface-de-emphasis);width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0}
+tr:hover td.sym .wl-rm,td.sym .wl-rm:focus-visible{opacity:1}
+td.sym .wl-rm:hover{color:var(--fh-negative,#ea4335);background:var(--fh-states-neutral-hovered)}
+@media (hover:none){td.sym .wl-rm{opacity:.8}}
 .rail .rail-sub{padding-left:26px}
 .rail .sym-chip{
   display:flex;align-items:center;gap:8px;padding:7px 14px 7px 26px;font-size:13px;
@@ -4754,8 +4765,9 @@ function renderRail(){
   Object.keys(LISTS).forEach(function(id){
     var l = LISTS[id];
     var on = CUR.view === 'list' && CUR.list === id;
-    body += '<button class="rail-item' + (on ? ' on' : '') + '" data-act="openlist" data-id="' + esc(id) + '">' +
-      '<span class="ri-dot"></span><span class="lbl">' + esc(l.name) + '</span><span class="cnt">' + l.syms.length + '</span></button>';
+    body += '<div class="rail-row"><button class="rail-item' + (on ? ' on' : '') + '" data-act="openlist" data-id="' + esc(id) + '">' +
+      '<span class="ri-dot"></span><span class="lbl">' + esc(l.name) + '</span><span class="cnt">' + l.syms.length + '</span></button>' +
+      '<button class="rail-more" data-act="list-menu" data-id="' + esc(id) + '" title="Manage ' + esc(l.name) + '" aria-label="Manage ' + esc(l.name) + '">' + railSvg('M6 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z', 16) + '</button></div>';
     if(on){
       l.syms.slice(0, 12).forEach(function(s){
         var q = DATA.quotes[dispSym(s)] || {};
@@ -4866,7 +4878,8 @@ function moversTableHTML(symbols, opts){
   });
   th += '</tr>';
   var body = rows.map(function(r){
-    var tds = '<td class="sym"><span class="s">' + esc(r.sym) + '</span><span class="n">' + esc(r.name) + '</span></td>' +
+    var tds = '<td class="sym' + (opts.list ? ' wl-x' : '') + '"><span class="s">' + esc(r.sym) + '</span><span class="n">' + esc(r.name) + '</span>' +
+      (opts.list ? '<button class="wl-rm" data-act="list-remove" data-id="' + esc(opts.list) + '" data-sym="' + esc(r.sym) + '" title="Remove ' + esc(r.sym) + ' from this watchlist" aria-label="Remove ' + esc(r.sym) + '">' + railSvg('M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z', 14) + '</button>' : '') + '</td>' +
       '<td class="num ' + r.cls + '">' + r.cells.price + '</td>' +
       '<td class="num ' + r.cls + '">' + r.cells.change + '</td>' +
       '<td class="num ' + r.cls + '">' + (r.ch.pct == null ? '—' : pct(r.ch.pct)) + '</td>' +
@@ -5285,8 +5298,9 @@ function renderList(){
       '<button class="btn text sm" data-act="menu-cols">Columns</button>' +
       '<button class="btn text sm" data-act="addtolist">Add symbol</button>' +
       '<button class="btn text sm" data-act="list-rename" data-id="' + esc(CUR.list) + '">Rename</button>' +
+      '<button class="btn text sm vt-del" data-act="list-del" data-id="' + esc(CUR.list) + '">Delete</button>' +
       '<button class="btn text sm" data-act="ai" data-kind="watchlist">AI on this watchlist</button></div>';
-    html += moversTableHTML(syms);
+    html += moversTableHTML(syms, { list:CUR.list });
     html += '<div class="movers-note">' + syms.length + ' symbols · quotes delayed · sparkline trend from daily closes.</div></div>';
     html += '<div class="section"><div class="section-head"><h2>News for this watchlist</h2></div>' + newsClusterHTML() + '</div>';
     html += footerHTML();
@@ -12174,7 +12188,19 @@ function bindEvents(){
       case 'rs-log-del': RLOG = RLOG.filter(function(x){ return x.id !== el.getAttribute('data-id'); }); save('fh3_rruns', RLOG); rsResearchRuns(); break;
       case 'rs-focus': rsFocusToggle(el.getAttribute('data-f')); break;
       case 'rs-seed': rsSeed(el.getAttribute('data-sym')); break;
-      case 'list-rename': renameWatchlist(el.getAttribute('data-id')); break;
+      case 'list-rename': closeMenu(); renameWatchlist(el.getAttribute('data-id')); break;
+      case 'list-menu': { var mid = el.getAttribute('data-id');
+        menu(el, '<div class="mhead">' + esc((LISTS[mid] || {}).name || 'Watchlist') + '</div><button class="mi" data-act="openlist" data-id="' + esc(mid) + '">Open</button>' +
+          '<button class="mi" data-act="list-rename" data-id="' + esc(mid) + '">Rename</button><button class="mi" data-act="list-del" data-id="' + esc(mid) + '" style="color:var(--fh-negative,#ea4335)">Delete</button>'); break; }
+      case 'list-del': { closeMenu(); var did = el.getAttribute('data-id'), dl = LISTS[did]; if(!dl) break;
+        dialog('Delete this watchlist?', '<div class="vt-warn"><b>\u201c' + esc(dl.name) + '\u201d will be deleted for good</b>' + (dl.syms.length ? ', with its ' + dl.syms.length + ' symbol' + (dl.syms.length === 1 ? '' : 's') + ' (' + esc(dl.syms.slice(0, 8).join(', ')) + (dl.syms.length > 8 ? '…' : '') + ')' : '') + '. There is no undo. Price alerts and portfolios are not affected.</div>',
+          '<button class="btn text" data-act="dlg-close">Keep it</button><button class="btn filled danger" data-act="list-del-go" data-id="' + esc(did) + '">Delete watchlist</button>'); break; }
+      case 'list-del-go': { var gid = el.getAttribute('data-id'), gname = (LISTS[gid] || {}).name; delete LISTS[gid];
+        if(!Object.keys(LISTS).length) LISTS.main = { name:'My watchlist', syms:[] };   // always keep one list to add to
+        saveLists(); closeDialog(); renderRail(); toast('Deleted ' + gname + '.');
+        if(CUR.view === 'list' && CUR.list === gid) go('#/list/' + Object.keys(LISTS)[0]); break; }
+      case 'list-remove': { var rid = el.getAttribute('data-id'), rs = el.getAttribute('data-sym'), rl = LISTS[rid]; if(!rl) break;
+        rl.syms = rl.syms.filter(function(x){ return dispSym(x) !== rs; }); saveLists(); renderRail(); if(CUR.view === 'list') renderList(); toast(rs + ' removed from ' + rl.name + '.'); break; }
       case 'rs-panel': rsOpenPanel('research'); break;
       case 'act-apply': actResolve(el.getAttribute('data-ts'), +el.getAttribute('data-i'), true); break;
       case 'act-dismiss': actResolve(el.getAttribute('data-ts'), +el.getAttribute('data-i'), false); break;
