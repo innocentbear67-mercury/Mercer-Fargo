@@ -10263,12 +10263,40 @@ function vaultApply(o, by){
   if(!body) return bad('the note would be empty; use delete');
   var k2 = key || title, cap = VAULT_CORE.indexOf(k2) >= 0 ? VAULT_CAP.core : VAULT_CAP.note;
   if(body.length > cap) return bad(k2 + ' would be ' + body.length + ' characters; the limit is ' + cap + '. Merge or replace old lines first.');
+  var total = function(){ return Object.keys(v).reduce(function(t, x){ return t + (x === k2 ? 0 : v[x].body.length); }, body.length); };
+  if(((!n && Object.keys(v).length >= VAULT_CAP.notes) || total() > VAULT_CAP.total) && !o.retry && vaultCompact(true)) return vaultApply(Object.assign({}, o, { retry:true }), by);
   if(!n && Object.keys(v).length >= VAULT_CAP.notes) return bad('the vault is full (' + VAULT_CAP.notes + ' notes); merge or delete old ones');
-  var total = Object.keys(v).reduce(function(t, x){ return t + (x === k2 ? 0 : v[x].body.length); }, body.length);
-  if(total > VAULT_CAP.total) return bad('the vault is full; trim old notes');
+  if(total() > VAULT_CAP.total) return bad('the vault is full; trim old notes');
   v[k2] = { body:body, ts:Date.now(), by:by, at:n ? (n.at || n.ts) : Date.now() };
   vaultSave();
   return { ok:true, key:k2, label:(n ? 'updated' : 'new note') + ' [[' + k2 + ']]', msg:(n ? 'Updated ' : 'Created ') + k2 + '.' };
+}
+/* Monthly roll-up, so the vault never fills and stops learning. Once it is 75% full, chat notes older than the newest
+   30 fold into one digest per month (each chat keeps a line with its links), every [[link]] to them is pointed at the
+   digest, and the old notes go. Tickers and topics stay as the hubs. Long ticker/topic notes are condensed by the review. */
+function vaultCompact(force){
+  var v = vault(), ks = Object.keys(v), total = ks.reduce(function(t, k){ return t + v[k].body.length; }, 0);
+  if(!force && ks.length < VAULT_CAP.notes * .75 && total < VAULT_CAP.total * .75) return 0;
+  var sess = ks.filter(function(k){ return /^Sessions\//.test(k) && !/ digest( \(\d+\))?$/.test(k); }).sort(function(a, b){ return v[b].ts - v[a].ts; });
+  var old = sess.slice(force ? 10 : 30).reverse(), map = {};
+  old.forEach(function(k){
+    var m = k.match(/^Sessions\/(\d{4}-\d{2})/), month = m ? m[1] : new Date(v[k].at || v[k].ts).toISOString().slice(0, 7);
+    var seen = {}, links = vaultLinks(v[k].body).map(function(l){ return vaultKey(l) || l; }).filter(function(l){ if(/^Sessions\//i.test(l) || seen[l]) return false; return (seen[l] = true); });
+    var line = '- **' + k.slice(9) + '**: ' + vaultPlain(v[k].body).replace(/^- /, '').slice(0, 140) + (links.length ? ' ' + links.map(function(l){ return '[[' + l + ']]'; }).join(' ') : '');
+    for(var i = 1; ; i++){   // a full digest spills into "(2)", "(3)"…
+      var dk = 'Sessions/' + month + ' digest' + (i > 1 ? ' (' + i + ')' : ''), d = v[dk];
+      var body = (d ? d.body + '\n' : 'Chats from ' + month + ', rolled up to keep the vault small.\n') + line;
+      if(body.length <= VAULT_CAP.note){ v[dk] = { body:body, ts:Math.max(d ? d.ts : 0, v[k].ts), by:'auto', at:d ? d.at : Date.now() }; map[k.toLowerCase()] = dk; break; }
+    }
+    delete v[k];
+  });
+  if(!old.length) return 0;
+  Object.keys(v).forEach(function(k){
+    v[k].body = v[k].body.replace(/\[\[([^\]|#]+)((?:[#|][^\]]*)?)\]\]/g, function(all, t, rest){ var to = map[vaultTitle(t).toLowerCase()]; return to && to !== k ? '[[' + to + rest + ']]' : all; });
+  });
+  var vs = memDoc().vsess || {}; Object.keys(vs).forEach(function(id){ var to = map[String(vs[id]).toLowerCase()]; if(to) vs[id] = to; });
+  vaultSave();
+  return old.length;
 }
 function vaultSearch(q, max){
   var v = vault(), terms = String(q || '').toLowerCase().split(/[^a-z0-9.$&'-]+/).filter(function(t){ return t.length > 1; });
@@ -10331,12 +10359,17 @@ function vaultReview(m, why){
   if(!m || !aiReady()) return Promise.resolve(null);
   var msgs = chatMessages(m.sid), i = msgs.indexOf(m), q = '';
   for(var j = i - 1; j >= 0; j--) if(msgs[j].role === 'user'){ q = msgs[j].text; break; }
+  vaultCompact();
   var v = vault(), sess = vaultSessionTitle(m.sid);
+  var long = Object.keys(v).filter(function(k){ return !/^Sessions\//.test(k) && v[k].body.length > (VAULT_CORE.indexOf(k) >= 0 ? 1300 : 3000); })
+    .sort(function(a, b){ return v[b].body.length - v[a].body.length; }).slice(0, 2);
   var core = VAULT_CORE.map(function(k){ return '### ' + k + '\n' + ((v[k] || {}).body || '(empty)'); }).join('\n\n');
   var tools = (m.trace || []).map(function(t){ return t.name + (t.err ? ' (failed)' : ''); });
   var prompt = 'Today is ' + new Date().toISOString().slice(0, 10) + '. This chat\'s session note: [[' + sess + ']]\n\n' +
     'VAULT NOTES (by folder, newest first):\n' + (vaultIndex() || '(empty)') + '\n\nCORE NOTES NOW:\n' + core +
     '\n\nSESSION NOTE NOW:\n' + ((v[sess] || {}).body || '(not written yet)') +
+    (long.length ? '\n\nNOTES NEAR THEIR SIZE LIMIT (condense each with one write op: fold the oldest dated lines into a short "Earlier:" summary, keep every [[link]] and anything still true):\n' +
+      long.map(function(k){ return '### ' + k + '\n' + v[k].body; }).join('\n\n') : '') +
     '\n\nSKILLS: ' + (SKILLS.map(function(k){ return k.name + ' (' + (k.description || '') + ')'; }).join('; ') || 'none') +
     '\n\n--- THE EXCHANGE ---\nUser: ' + String(q).slice(0, 2000) + '\n\nMarvell' + (tools.length ? ' (tools: ' + tools.join(', ') + ')' : '') + ': ' + String(m.text).slice(0, 3500) +
     '\n--- END ---\nWhy this review: ' + why +
