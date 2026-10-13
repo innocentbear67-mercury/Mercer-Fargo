@@ -350,6 +350,7 @@ class Handler(SimpleHTTPRequestHandler):
                 payload=payload,
                 content_type=content_type,
                 extra_headers=self.forward_headers(),
+                ua=("MercerFargo research %s" % os.environ.get("SEC_CONTACT", "contact@example.com")) if parsed.hostname.endswith("sec.gov") else None,   # SEC refuses browser UAs on /Archives
             )
         except urllib.error.HTTPError as e:
             body = e.read(65536) or b""

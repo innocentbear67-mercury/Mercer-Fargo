@@ -82,6 +82,7 @@ export const FEEDS = [
   { re: /^https:\/\/data\.sec\.gov\/submissions\/CIK\d{10}\.json$/, ttl: 900, sec: true },
   { re: /^https:\/\/data\.sec\.gov\/api\/xbrl\/companyfacts\/CIK\d{10}\.json$/, ttl: 3600, sec: true },
   { re: /^https:\/\/finviz\.com\/screener\?[\w=&,.%-]*$/, ttl: 300 },   // screener fallback when TradingView's scanner fails
+  { re: /^https:\/\/api\.nasdaq\.com\/api\/company\/[\w.\-]+\/institutional-holdings\?limit=\d{1,3}&type=TOTAL&sortColumn=\w+&sortOrder=(ASC|DESC)$/, ttl: 3600, ua: true },   // Fundamentals -> Institutions
   { re: /^https:\/\/api\.nasdaq\.com\/api\/(company\/[\w.\-]+\/earnings-surprise|analyst\/[\w.\-]+\/earnings-date)$/, ttl: 3600, ua: true },   // chart earnings markers on the hosted site (stockanalysis blocks Cloudflare)
   { re: /^https:\/\/www\.sec\.gov\/Archives\/edgar\/data\/\d+\/\d{18}\/[\w.\-]+$/, ttl: 86400 * 30, sec: true },  // accessioned: immutable
 ];

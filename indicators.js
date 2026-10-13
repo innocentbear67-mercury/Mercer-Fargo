@@ -102,6 +102,9 @@ def('vwma', 'Volume Weighted Moving Average (VWMA)', CAT[0], 'ov', { len:20 }, f
   return { lines:[line(map2(pv, vv, function(a, b){ return b ? a / b : null; }), C5)] };
 }, C5);
 def('smma', 'Smoothed Moving Average (SMMA)', CAT[0], 'ov', { len:20 }, function(x){ return { lines:[line(rma(x.C, x.p.len), C6)] }; }, C6);
+[[20, C1], [50, C2], [100, C3], [200, C4], [500, C5], [1000, C6]].forEach(function(a){   // fixed-length simple MAs, one click each
+  def('ma' + a[0], 'MA ' + a[0] + ' (MA' + a[0] + ')', CAT[0], 'ov', {}, function(x){ return { lines:[line(sma(x.C, a[0]), a[1])] }; }, a[1]);
+});
 def('dema', 'Double Exponential Moving Average (DEMA)', CAT[0], 'ov', { len:20 }, function(x){
   var e1 = ema(x.C, x.p.len), e2 = ema(e1, x.p.len);
   return { lines:[line(map2(e1, e2, function(a, b){ return 2 * a - b; }), C2)] };
@@ -598,7 +601,14 @@ function profileSvg(bn, g, x0, maxW, dir, col){   // dir 1 grows right from x0, 
 IND.profile = function(spec, g, d, p, extra){
   var rows = g.rows, nb = (p && p.rows) || 24, a = Math.max(0, Math.ceil(g.i0)), b = Math.min(rows.length - 1, Math.floor(g.i1)), col = d.col, s = '';
   if(b <= a) return '';
-  if(spec.prof === 'vr'){ var bn = bins(rows, a, b, nb); if(bn) s += profileSvg(bn, g, g.padL + g.plotW, g.plotW * .3, -1, col); }
+  if(spec.prof === 'vr'){   // anchored on the left edge, growing right; the grip on its right side slides it left or right
+    var bn = bins(rows, a, b, nb), dx = Math.max(0, Math.min(g.plotW * .7, (extra && extra.dx) || 0)), pw = g.plotW * .3;
+    if(bn){
+      s += profileSvg(bn, g, g.padL + dx, pw, 1, col);
+      s += '<g class="ind-grab" data-pf="' + d.id + '" style="cursor:ew-resize"><rect x="' + (g.padL + dx + pw + 2).toFixed(1) + '" y="' + g.padT + '" width="12" height="' + g.plotH + '" fill="transparent"/><line x1="' + (g.padL + dx + pw + 8).toFixed(1) + '" x2="' + (g.padL + dx + pw + 8).toFixed(1) + '" y1="' + g.padT + '" y2="' + (g.padT + g.plotH) + '" stroke="' + col + '" stroke-width="1" opacity=".35" stroke-dasharray="2 4"/>' +
+        '<rect x="' + (g.padL + dx + pw + 3).toFixed(1) + '" y="' + (g.padT + g.plotH / 2 - 14).toFixed(1) + '" width="10" height="28" rx="4" fill="' + col + '" opacity=".75"/></g>';
+    }
+  }
   else if(spec.prof === 'fr'){
     var f = 0; while(f < rows.length && rows[f].t < spec.anchor) f++;
     if(f < rows.length - 1){ var bn2 = bins(rows, f, rows.length - 1, nb); if(bn2) s += profileSvg(bn2, g, Math.max(g.padL, g.X(f)), g.plotW * .3, 1, col); }

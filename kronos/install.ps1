@@ -36,7 +36,8 @@ Say '4/5 PyTorch and libraries (about 1 GB the first time)'
 uv pip install --python venv\Scripts\python.exe 'torch>=2.0' numpy 'pandas>=2.0' einops==0.8.1 huggingface_hub==0.33.1 safetensors tqdm
 if ($LASTEXITCODE) { throw 'package install failed' }
 
-Set-Content -Path 'start.bat' -Value "@echo off`r`ncd /d `"$Dir`"`r`nvenv\Scripts\python.exe kronos_server.py`r`npause"
+$Update = "powershell -NoProfile -Command `"try { Invoke-WebRequest '$Base/kronos/kronos_server.py' -OutFile kronos_server.py.new -UseBasicParsing; Move-Item -Force kronos_server.py.new kronos_server.py } catch { }`""   # pick up server updates; offline, keep the copy we have
+Set-Content -Path 'start.bat' -Value "@echo off`r`ncd /d `"$Dir`"`r`n$Update`r`nvenv\Scripts\python.exe kronos_server.py`r`npause"
 $Desk = [Environment]::GetFolderPath('Desktop')
 if ($Desk) { Copy-Item 'start.bat' (Join-Path $Desk 'Marvell Predict.bat') -Force }
 

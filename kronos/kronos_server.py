@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.join(HOME, "Kronos"))   # the Kronos repo's `model` p
 PORT = int(os.environ.get("KRONOS_PORT", "8793"))
 MODEL_ID = os.environ.get("KRONOS_MODEL", "NeoQuasar/Kronos-base")
 TOKENIZER_ID = os.environ.get("KRONOS_TOKENIZER", "NeoQuasar/Kronos-Tokenizer-base")
-VERSION = "2"
+VERSION = "4"
 ORIGINS = ["https://innocentbear67-mercury.github.io"] + [
     o.strip() for o in os.environ.get("MARVELL_ORIGINS", "").split(",") if o.strip()]
 LOCAL_ORIGIN = re.compile(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$")
@@ -90,34 +90,70 @@ def yahoo_bars(symbol, interval):
     raise ValueError("could not reach Yahoo Finance (%s)" % last)
 
 
+def _frame(bars, freq):
+    import pandas as pd
+    rows = []
+    for b in bars:
+        o, h, l, c = (float(b[k]) for k in ("o", "h", "l", "c"))
+        rows.append({"t": int(b["t"]), "open": o, "high": max(h, o, c), "low": min(l, o, c), "close": c, "volume": float(b.get("v") or 0)})
+    df = pd.DataFrame(rows)
+    ts = pd.Series(pd.to_datetime(df["t"], unit="s"))
+    if freq != "H":
+        # Daily bars carry the session's open time (13:30 UTC for NYSE); Kronos reads hour/minute as features,
+        # so history and future must agree, or the forecast sees a time jump at the boundary and drifts.
+        ts = ts.dt.normalize()
+    return df[["open", "high", "low", "close", "volume"]], ts
+
+
+def track_record(predictor, allbars, ctx, pred_len, freq, k, T, top_p):
+    """Kronos re-run on the last k non-overlapping windows of this ticker, scored against what happened.
+    One batch, 2 samples averaged per window (4 doubled the wait for little change). This is the honest part of 'confidence'."""
+    import math
+    k = min(k, (len(allbars) - ctx) // pred_len)
+    if k < 3:
+        return None
+    dfs, xts, yts, wins = [], [], [], []
+    for i in range(1, k + 1):
+        end = len(allbars) - pred_len * i
+        x_df, x_ts = _frame(allbars[end - ctx:end], freq)
+        _, y_ts = _frame(allbars[end:end + pred_len], freq)
+        dfs.append(x_df); xts.append(x_ts); yts.append(y_ts)
+        wins.append((float(allbars[end - 1]["c"]), float(allbars[end + pred_len - 1]["c"])))
+    import torch
+    torch.manual_seed(0)   # same data -> same score, so the rating doesn't flicker when the user re-runs
+    outs = predictor.predict_batch(df_list=dfs, x_timestamp_list=xts, y_timestamp_list=yts,
+                                   pred_len=pred_len, T=T, top_p=top_p, sample_count=2, verbose=False)
+    hit = beat = 0
+    em = ef = 0.0
+    for (last, actual), out in zip(wins, outs):
+        pred = float(out["close"].iloc[-1])
+        hit += (pred - last) * (actual - last) > 0
+        e_model, e_flat = abs(math.log(actual / pred)), abs(math.log(actual / last))
+        beat += e_model < e_flat
+        em += e_model; ef += e_flat
+    return {"n": k, "hit": hit, "beat": beat, "err_model": round(em / k, 5), "err_flat": round(ef / k, 5)}
+
+
 def forecast(req):
     import pandas as pd
 
     bars, currency = req.get("bars") or [], None
     if req.get("symbol"):
         bars, currency = yahoo_bars(str(req["symbol"]), "60m" if req.get("freq") == "H" else "1d")
-    shown = bars[-200:]   # the chart's history, independent of how much the model reads
-    bars = bars[-max(32, min(512, int(req.get("context", CONTEXT)))):]
     if not isinstance(bars, list) or len(bars) < 32:
         raise ValueError("need at least 32 bars of history")
-    bars = bars[-MAX_BARS:]
+    allbars = bars[-MAX_BARS:]
+    shown = allbars[-200:]   # the chart's history, independent of how much the model reads
+    ctx = max(32, min(512, int(req.get("context", CONTEXT))))
+    bars = allbars[-ctx:]
     pred_len = max(1, min(MAX_PRED, int(req.get("pred_len", 20))))
     samples = max(1, min(MAX_SAMPLES, int(req.get("samples", 8))))
     T = max(0.1, min(2.0, float(req.get("T", 1.0))))
     top_p = max(0.1, min(1.0, float(req.get("top_p", 0.9))))
     freq = str(req.get("freq", "B"))   # B = trading days, D = every day (crypto), H = hours
+    backtest = max(0, min(12, int(req.get("backtest", 0))))
 
-    rows = []
-    for b in bars:
-        o, h, l, c = (float(b[k]) for k in ("o", "h", "l", "c"))
-        v = float(b.get("v") or 0)
-        rows.append({"t": int(b["t"]), "open": o, "high": max(h, o, c), "low": min(l, o, c), "close": c, "volume": v})
-    df = pd.DataFrame(rows)
-    x_ts = pd.Series(pd.to_datetime(df["t"], unit="s"))
-    if freq != "H":
-        # Daily bars carry the session's open time (13:30 UTC for NYSE); Kronos reads hour/minute as features,
-        # so history and future must agree, or the forecast sees a time jump at the boundary and drifts.
-        x_ts = x_ts.dt.normalize()
+    x_df, x_ts = _frame(bars, freq)
     last = x_ts.iloc[-1]
     if freq == "H":
         step = pd.Timedelta(seconds=max(60, int(req.get("interval_sec", 3600))))
@@ -126,8 +162,6 @@ def forecast(req):
         y_ts = pd.Series(pd.date_range(last + pd.Timedelta(days=1), periods=pred_len, freq="D"))
     else:
         y_ts = pd.Series(pd.bdate_range(last + pd.Timedelta(days=1), periods=pred_len))
-    cols = ["open", "high", "low", "close", "volume"]
-    x_df = df[cols]
 
     predictor = load_model()
     t0 = time.time()
@@ -136,10 +170,11 @@ def forecast(req):
         outs = predictor.predict_batch(
             df_list=[x_df] * samples, x_timestamp_list=[x_ts] * samples, y_timestamp_list=[y_ts] * samples,
             pred_len=pred_len, T=T, top_p=top_p, sample_count=1, verbose=False)
+        record = track_record(predictor, allbars, len(bars), pred_len, freq, backtest, T, top_p) if backtest else None
     paths = [[{"o": float(r.open), "h": float(r.high), "l": float(r.low), "c": float(r.close), "v": float(r.volume)}
               for r in out.itertuples()] for out in outs]
     return {"t": [int(ts.timestamp()) for ts in y_ts], "paths": paths, "model": MODEL_ID, "currency": currency,
-            "history": [{"t": int(b["t"]), "c": float(b["c"])} for b in shown],
+            "history": [{"t": int(b["t"]), "c": float(b["c"])} for b in shown], "track": record,
             "device": str(STATE["device"]), "seconds": round(time.time() - t0, 2), "context": len(bars)}
 
 
@@ -207,10 +242,59 @@ def self_check():
     for i in range(300):
         p *= 1 + 0.01 * math.sin(i / 7)
         bars.append({"t": 1700000000 + i * 86400, "o": p, "h": p * 1.01, "l": p * 0.99, "c": p, "v": 1e6})
-    out = forecast({"bars": bars, "pred_len": 5, "samples": 2})
+    out = forecast({"bars": bars, "pred_len": 5, "samples": 2, "backtest": 4})
     assert len(out["paths"]) == 2 and len(out["paths"][0]) == 5 and len(out["t"]) == 5, out
+    tr = out["track"]
+    assert tr and tr["n"] == 4 and 0 <= tr["hit"] <= 4 and 0 <= tr["beat"] <= 4, tr
     assert all(math.isfinite(b["c"]) and b["c"] > 0 for path in out["paths"] for b in path), out
     print("Kronos OK on %s: 2 paths x 5 bars in %ss" % (out["device"], out["seconds"]))
+
+
+def ensure_waker():
+    """Register marvell-predict://start so the site's Start button can wake this server with one click (no terminal).
+    Idempotent; runs on every launch so installs made before this existed pick it up the first time they start."""
+    import subprocess
+    home = os.path.dirname(os.path.abspath(__file__))
+    base = os.environ.get("MARVELL_BASE", "https://innocentbear67-mercury.github.io/Mercer-Fargo")
+    def put(path, text, mode=0o755):
+        if os.path.exists(path) and open(path).read() == text:
+            return False
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            f.write(text)
+        os.chmod(path, mode)
+        return True
+    try:
+        if sys.platform == "win32":
+            import winreg
+            bat = os.path.join(home, "wake.bat")
+            put(bat, '@echo off\r\ncd /d "%s"\r\npowershell -NoProfile -Command "try { Invoke-WebRequest \'%s/kronos/kronos_server.py\' -OutFile kronos_server.py.new -UseBasicParsing; Move-Item -Force kronos_server.py.new kronos_server.py } catch { }"\r\nvenv\\Scripts\\pythonw.exe kronos_server.py\r\n' % (home, base))
+            vbs = os.path.join(home, "wake.vbs")
+            put(vbs, 'CreateObject("WScript.Shell").Run "cmd /c ""%s""", 0, False\r\n' % bat)
+            k = winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\marvell-predict")
+            winreg.SetValueEx(k, "", 0, winreg.REG_SZ, "URL:Marvell Predict")
+            winreg.SetValueEx(k, "URL Protocol", 0, winreg.REG_SZ, "")
+            winreg.SetValue(k, r"shell\open\command", winreg.REG_SZ, 'wscript.exe "%s"' % vbs)
+            return
+        wake = '#!/bin/bash\ncurl -fs -m 1 http://127.0.0.1:%d/health >/dev/null 2>&1 && exit 0\ncd "%s" || exit 1\nnohup ./start.sh >> server.log 2>&1 &\n' % (PORT, home)
+        if sys.platform == "darwin":
+            app = os.path.join(home, "Marvell Predict.app", "Contents")
+            plist = ('<?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.marvell.predict</string>'
+                     '<key>CFBundleName</key><string>Marvell Predict</string><key>CFBundleExecutable</key><string>wake</string><key>CFBundlePackageType</key><string>APPL</string>'
+                     '<key>LSUIElement</key><true/><key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>Marvell Predict</string>'
+                     '<key>CFBundleURLSchemes</key><array><string>marvell-predict</string></array></dict></array></dict></plist>\n')
+            changed = put(os.path.join(app, "MacOS", "wake"), wake) | put(os.path.join(app, "Info.plist"), plist, 0o644)
+            if changed:
+                subprocess.run(["codesign", "-s", "-", "--force", os.path.dirname(app)], capture_output=True)
+                subprocess.run(["/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister", "-f", os.path.dirname(app)], capture_output=True)
+        else:
+            sh = os.path.join(home, "wake.sh")
+            put(sh, wake)
+            desk = os.path.expanduser("~/.local/share/applications/marvell-predict.desktop")
+            if put(desk, "[Desktop Entry]\nType=Application\nName=Marvell Predict\nExec=%s %%u\nNoDisplay=true\nMimeType=x-scheme-handler/marvell-predict;\n" % sh, 0o644):
+                subprocess.run(["xdg-mime", "default", "marvell-predict.desktop", "x-scheme-handler/marvell-predict"], capture_output=True)
+    except Exception as e:   # noqa: BLE001 - the Start button is a convenience; the Desktop launcher still works
+        print("One-click start not registered: %s" % e)
 
 
 if __name__ == "__main__":
@@ -226,6 +310,7 @@ if __name__ == "__main__":
         except Exception:   # noqa: BLE001 - kept in STATE["error"], shown on the site
             print("Model failed to load: %s" % STATE["error"])
     threading.Thread(target=warm, daemon=True).start()   # warm the model in the background
+    ensure_waker()
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

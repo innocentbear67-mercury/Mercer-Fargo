@@ -26,6 +26,18 @@ var ICON = {
   eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>', eyeoff:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM4 4l16 16"/>',
   trash:'<path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/>', copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/>',
   undo:'<path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/>',
+  w3:'<path d="M3 19l6-9 5 5 7-10"/><circle cx="3" cy="19" r="1.6"/><circle cx="9" cy="10" r="1.6"/><circle cx="14" cy="15" r="1.6"/><circle cx="21" cy="5" r="1.6"/>',
+  w5:'<path d="M2 20l4-7 3 3 5-9 3 5 5-8"/><circle cx="2" cy="20" r="1.4"/><circle cx="6" cy="13" r="1.4"/><circle cx="9" cy="16" r="1.4"/><circle cx="14" cy="7" r="1.4"/><circle cx="17" cy="12" r="1.4"/><circle cx="22" cy="4" r="1.4"/>',
+  w8:'<path d="M2 20l3-6 2 3 3-8 2 5 3-6 2 4 2-5 3 4"/><circle cx="2" cy="20" r="1.2"/><circle cx="5" cy="14" r="1.2"/><circle cx="10" cy="9" r="1.2"/><circle cx="15" cy="8" r="1.2"/><circle cx="22" cy="8" r="1.2"/>',
+  hns:'<path d="M2 19l4-7 3 4 3-10 3 10 3-4 4 7"/><path d="M9 16h6" stroke-dasharray="2 2"/>',
+  tri:'<path d="M3 5l18 7L3 19M3 5l12 8"/>',
+  dtb:'<path d="M3 20L7 6l5 10 5-10 4 14"/>',
+  abcd:'<path d="M4 20L9 6l6 10 5-12"/><path d="M4 20l11-4M9 6l11-2" stroke-dasharray="2 2"/>',
+  xabcd:'<path d="M4 5l5 14 4-11 5 11 3-14"/><path d="M4 5l9 3M9 19l12-14" stroke-dasharray="2 2"/>',
+  drives:'<path d="M2 20l3-6 2 3 4-9 2 4 4-8 2 4 3-6"/>',
+  path:'<path d="M3 15l5-4 4 4 5-6"/><path d="M17 9l4-1-1 4"/>',
+  sine:'<path d="M2 12c3-9 6-9 10 0s7 9 10 0"/>',
+  cyclic:'<path d="M5 4v16M12 4v16M19 4v16"/><circle cx="5" cy="9" r="1.6"/><circle cx="12" cy="15" r="1.6"/><circle cx="19" cy="9" r="1.6"/>',
   full:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>', exit:'<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>'
 };
 function icon(id, size){ return '<svg width="' + (size || 22) + '" height="' + (size || 22) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + (ICON[id] || '') + '</svg>'; }
@@ -38,9 +50,10 @@ var GROUPS = [
   { id:'fib', name:'Fibonacci', tools:[['fib', 'Fib retracement', 'Alt+F'], ['fibext', 'Trend-based fib extension']] },
   { id:'shapes', name:'Shapes', tools:[['rect', 'Rectangle'], ['ellipse', 'Ellipse'], ['triangle', 'Triangle'], ['brush', 'Brush']] },
   { id:'notes', name:'Text and markers', tools:[['text', 'Text'], ['label', 'Price label'], ['arrowup', 'Arrow up'], ['arrowdn', 'Arrow down']] },
+  { id:'patterns', name:'Patterns and waves', tools:[['w3', '3 Waves'], ['w5', '5 Waves'], ['w8', '8 Waves'], ['-'], ['hns', 'Head and Shoulders'], ['tri', 'Triangle Pattern'], ['dtb', 'Double Top and Bottom'], ['abcd', 'ABCD Pattern'], ['xabcd', 'XABCD Pattern'], ['drives', 'Three Drives Pattern'], ['-'], ['path', 'Path'], ['sine', 'Sine Wave'], ['cyclic', 'Cyclic Lines']] },
   { id:'measure', name:'Positions and measure', tools:[['long', 'Long position'], ['short', 'Short position'], ['measure', 'Measure']] }
 ];
-var NPTS = { trend:2, ray:2, ext:2, hline:1, hray:1, vline:1, channel:3, fib:2, fibext:3, rect:2, ellipse:2, triangle:3, brush:0, text:1, label:1, arrowup:1, arrowdn:1, long:1, short:1, measure:2 };
+var NPTS = { trend:2, ray:2, ext:2, hline:1, hray:1, vline:1, channel:3, fib:2, fibext:3, rect:2, ellipse:2, triangle:3, brush:0, text:1, label:1, arrowup:1, arrowdn:1, long:1, short:1, measure:2, w3:4, w5:6, w8:9, hns:7, tri:4, dtb:5, abcd:4, xabcd:5, drives:7, path:2, sine:2, cyclic:2 };
 var CURSORS = { cross:1, arrow:1, eraser:1 };
 DR.GROUPS = GROUPS; DR.COLS = COLS;
 
@@ -173,6 +186,62 @@ DR.shape = function(d, ctx, mode){
       out.handles = [a, { x:x1p, y:ys }, { x:x1p, y:yt }];
       break;
     }
+    case 'w3': case 'w5': case 'w8': case 'hns': case 'tri': case 'dtb': case 'abcd': case 'xabcd': case 'drives': case 'path': {
+      var T2 = d.type, fx = function(p){ return p.x.toFixed(1) + ',' + p.y.toFixed(1); };
+      var pl = function(arr, ex){ arr.forEach(function(p, i){ if(i) out.segs.push([arr[i - 1].x, arr[i - 1].y, p.x, p.y]); }); return '<polyline points="' + arr.map(fx).join(' ') + '" ' + (ex || st) + '/>'; };
+      var dash = 'stroke="' + col + '" stroke-width="1.2" stroke-dasharray="4 4" opacity=".75" fill="none"';
+      var lab = function(i, txt, forceBelow){   // above a local high, below a local low
+        var p = P[i], pv = P[i - 1], nx = P[i + 1], low = forceBelow != null ? forceBelow : (pv && nx ? p.y > pv.y && p.y > nx.y : pv ? p.y > pv.y : nx ? p.y > nx.y : false);
+        return '<text class="dr-t big" text-anchor="middle" x="' + p.x.toFixed(1) + '" y="' + (p.y + (low ? 18 : -9)).toFixed(1) + '" fill="' + col + '">' + esc(txt) + '</text>';
+      };
+      var rt = function(i, j, k, l){ var den = Math.abs(d.pts[l].p - d.pts[k].p); return den ? (Math.abs(d.pts[j].p - d.pts[i].p) / den * 100).toFixed(1) + '%' : ''; };
+      var mid = function(i, j, txt){ var m = { x:(P[i].x + P[j].x) / 2, y:(P[i].y + P[j].y) / 2 }; return '<text class="dr-t" text-anchor="middle" x="' + m.x.toFixed(1) + '" y="' + (m.y - 5).toFixed(1) + '" fill="' + col + '">' + txt + '</text>'; };
+      var polyFill = function(arr){ out.polys.push(arr); return '<polygon points="' + arr.map(fx).join(' ') + '" fill="' + col + '" opacity=".1"/>'; };
+      if(T2 === 'w3' || T2 === 'w5' || T2 === 'w8'){
+        var wl = T2 === 'w3' ? ['A', 'B', 'C'] : T2 === 'w5' ? ['1', '2', '3', '4', '5'] : ['1', '2', '3', '4', '5', '6', '7', '8'];
+        out.svg += pl(P); for(var wi = 1; wi < P.length; wi++) out.svg += lab(wi, '(' + wl[wi - 1] + ')');
+      } else if(T2 === 'hns'){
+        out.svg += polyFill([P[2], P[3], P[4]]) + pl(P) + seg(ext(P[4], P[2], Math.hypot(P[4].x - P[2].x, P[4].y - P[2].y) + 90), ext(P[2], P[4], Math.hypot(P[4].x - P[2].x, P[4].y - P[2].y) + 90), dash) +
+          lab(1, 'Left Shoulder') + lab(3, 'Head') + lab(5, 'Right Shoulder');
+      } else if(T2 === 'tri'){
+        out.svg += polyFill([P[0], P[1], P[2], P[3]]) + pl(P) + seg(P[0], P[2], dash) + seg(P[1], P[3], dash) + lab(0, 'A') + lab(1, 'B') + lab(2, 'C') + lab(3, 'D');
+      } else if(T2 === 'dtb'){
+        var top = P[1].y < P[2].y, nl = P[2].y;
+        out.svg += pl(P) + seg({ x:P[1].x, y:nl }, { x:P[4].x, y:nl }, dash) + lab(1, top ? 'Top' : 'Bottom', !top) + lab(3, top ? 'Top' : 'Bottom', !top) +
+          '<text class="dr-t big" text-anchor="middle" x="' + ((P[1].x + P[3].x) / 2).toFixed(1) + '" y="' + (nl + (top ? 18 : -9)).toFixed(1) + '" fill="' + col + '">' + (top ? 'Double Top' : 'Double Bottom') + '</text>';
+      } else if(T2 === 'abcd'){
+        out.svg += pl(P) + seg(P[0], P[2], dash) + seg(P[1], P[3], dash) + lab(0, 'A') + lab(1, 'B') + lab(2, 'C') + lab(3, 'D') + mid(1, 2, rt(2, 1, 1, 0)) + mid(2, 3, rt(3, 2, 2, 1));
+      } else if(T2 === 'xabcd'){
+        out.svg += polyFill([P[0], P[1], P[2]]) + polyFill([P[2], P[3], P[4]]) + pl(P) + seg(P[0], P[2], dash) + seg(P[1], P[3], dash) + seg(P[2], P[4], dash) + seg(P[0], P[4], dash) +
+          lab(0, 'X') + lab(1, 'A') + lab(2, 'B') + lab(3, 'C') + lab(4, 'D') + mid(1, 2, rt(2, 1, 1, 0)) + mid(2, 3, rt(3, 2, 2, 1)) + mid(3, 4, rt(4, 3, 3, 2)) + mid(0, 4, rt(4, 1, 1, 0));
+      } else if(T2 === 'drives'){
+        out.svg += pl(P); for(var di = 1; di < P.length; di++) out.svg += lab(di, String(di));
+        out.svg += mid(1, 2, rt(2, 1, 1, 0)) + mid(3, 4, rt(4, 3, 3, 2)) + mid(5, 6, rt(6, 5, 5, 4));
+      } else {   // path: a free polyline that ends in an arrow
+        var pe = P[P.length - 1], pp = P[P.length - 2], ang = Math.atan2(pe.y - pp.y, pe.x - pp.x), ah = function(da){ return (pe.x - 12 * Math.cos(ang + da)).toFixed(1) + ',' + (pe.y - 12 * Math.sin(ang + da)).toFixed(1); };
+        out.svg += pl(P) + '<polygon points="' + fx(pe) + ' ' + ah(.4) + ' ' + ah(-.4) + '" fill="' + col + '"/>';
+      }
+      break;
+    }
+    case 'sine': {
+      var sw2 = b.x - a.x;
+      if(Math.abs(sw2) < 3) break;
+      var pts2 = [], xs0 = L;
+      for(var sx = L; sx <= R + 3; sx += 4){ var sxx = Math.min(sx, R); pts2.push({ x:sxx, y:a.y + (b.y - a.y) * (1 - Math.cos(Math.PI * (sxx - a.x) / sw2)) / 2 }); }
+      out.svg += '<polyline points="' + pts2.map(function(p){ return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ') + '" ' + st + '/>';
+      for(var si = 1; si < pts2.length; si++) out.segs.push([pts2[si - 1].x, pts2[si - 1].y, pts2[si].x, pts2[si].y]);
+      break;
+    }
+    case 'cyclic': {
+      var per = Math.abs(b.x - a.x);
+      if(per < 4) break;
+      var k0 = -Math.floor((a.x - L) / per), k1 = Math.ceil((R - a.x) / per);
+      for(var ck = k0; ck <= k1 && ck - k0 < 400; ck++){
+        var cx = a.x + ck * per; if(cx < L || cx > R) continue;
+        out.svg += seg({ x:cx, y:T }, { x:cx, y:B }, 'stroke="' + col + '" stroke-width="' + (ck === 0 || cx === a.x + per ? w : 1) + '" opacity="' + (ck === 0 ? 1 : .55) + '" stroke-dasharray="' + (ck === 0 ? '' : '3 4') + '"');
+      }
+      break;
+    }
     case 'measure': {
       var up2 = d.pts[1].p >= d.pts[0].p, mc = up2 ? GREEN : RED, dp = d.pts[1].p - d.pts[0].p, mx = Math.min(a.x, b.x), my = Math.min(a.y, b.y), mw = Math.abs(b.x - a.x), mh = Math.abs(b.y - a.y);
       var info = (dp >= 0 ? '+' : '−') + fmt(Math.abs(dp)) + ' (' + (dp >= 0 ? '+' : '−') + Math.abs(dp / d.pts[0].p * 100).toFixed(2) + '%)  ·  ' + ctx.bars(d.pts[0].t, d.pts[1].t) + ' bars  ·  ' + dur(d.pts[1].t - d.pts[0].t);
@@ -286,8 +355,14 @@ function begin(c, ctx, p, e){
   }
   if(NPTS[tool] === 1){ defaults(d, c, ctx, p); commit(c, d); return; }
   if(tool === 'brush'){ S.draft = { c:c, d:d, brush:true, last:p }; c.soon(); return; }
-  S.draft = { c:c, d:d, placed:[pt], cur:pt, need:NPTS[tool], down:p, dragMode:true };
+  S.draft = { c:c, d:d, placed:[pt], cur:pt, need:tool === 'path' ? 1e9 : NPTS[tool], path:tool === 'path', down:p, dragMode:true };
   c.soon();
+}
+function finishPath(c){   // a path ends on double-click, Enter or Esc; the click that started the double-click left a duplicate point
+  var D = S.draft; if(!D || !D.path) return false;
+  var pts = D.placed.slice(); while(pts.length > 1 && Math.hypot(ctxOf(c).X(pts[pts.length - 1].t) - ctxOf(c).X(pts[pts.length - 2].t), ctxOf(c).Y(pts[pts.length - 1].p) - ctxOf(c).Y(pts[pts.length - 2].p)) < 6) pts.pop();
+  if(pts.length < 2){ S.draft = null; c.soon(); return true; }
+  D.d.pts = pts; commit(c, D.d); return true;
 }
 function addPoint(c, ctx, p){
   var D = S.draft, pt = snap(c, ctx, p);
@@ -380,6 +455,7 @@ DR.up = function(c, e){
 };
 DR.dbl = function(c, e){
   if(!usable(c)) return false;
+  if(S.draft && S.draft.c === c && S.draft.path) return finishPath(c);
   if(S.mark && performance.now() - S.mark < 600) return true;   // the second click of a double-click that placed a point
   var ctx = ctxOf(c), p = local(c, e), h = hitTest(c, ctx, p);
   if(!h) return false;
@@ -421,7 +497,7 @@ DR.undo = function(){
 };
 DR.cancel = function(){   // Esc: first the half-drawn shape, then the tool, then the selection
   var c = DR.hooks.chart();
-  if(S.draft){ S.draft = null; if(c) c.soon(); return true; }
+  if(S.draft){ if(S.draft.path && c && finishPath(c)) return true; S.draft = null; if(c) c.soon(); return true; }
   if(isDraw(S.tool)){ DR.setTool('cross'); return true; }
   if(S.sel || S.measure){ S.sel = null; S.measure = null; if(c) touch(c); return true; }
   return false;
@@ -485,6 +561,7 @@ DR.barHTML = function(){
     h += '<div class="dr-grp' + (S.fly === g.id ? ' open' : '') + '" data-g="' + g.id + '"><button class="dr-b' + (on ? ' on' : '') + '" data-act="dr-tool" data-tool="' + cur + '" title="' + esc(name[1] + (name[2] ? ' (' + name[2] + ')' : '')) + '">' + icon(cur) + '</button>' +
       '<button class="dr-more" data-act="dr-fly" data-g="' + g.id + '" aria-label="More ' + esc(g.name) + '">›</button>' +
       '<div class="dr-fly"><div class="mhead">' + esc(g.name) + '</div>' + g.tools.map(function(t){
+        if(t[0] === '-') return '<hr class="dr-hr">';
         return '<button class="dr-i' + (S.tool === t[0] ? ' on' : '') + '" data-act="dr-tool" data-tool="' + t[0] + '">' + icon(t[0], 20) + '<span>' + esc(t[1]) + '</span>' + (t[2] ? '<kbd>' + t[2] + '</kbd>' : '') + '</button>'; }).join('') + '</div></div>';
   });
   h += '<i class="dr-sep"></i>' +
@@ -515,6 +592,7 @@ document.addEventListener('keydown', function(e){
   if(e.code === 'KeyF' && e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey){ e.preventDefault(); if(DR.hooks.fullscreen) DR.hooks.fullscreen(); return; }
   if((e.ctrlKey || e.metaKey) && e.code === 'KeyZ' && !e.shiftKey){ e.preventDefault(); DR.undo(); return; }
   if(e.key === 'Delete' || e.key === 'Backspace'){ if(S.sel){ e.preventDefault(); DR.removeSel(); } return; }
+  if(e.key === 'Enter' && S.draft && S.draft.path){ e.preventDefault(); finishPath(c); return; }
   if(e.key === 'Escape'){ if(DR.cancel()) e.stopImmediatePropagation(); }
 }, true);
 

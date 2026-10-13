@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><!-- Predict (Kronos style) -->
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700&text=POWEREDBYKronosAI%20&display=swap" rel="stylesheet"><!-- only the glyphs of the Predict badge -->
 <style>
 /* ============================================================================
@@ -158,6 +159,65 @@ input,select,textarea{font:inherit;color:inherit}
 ::-webkit-scrollbar-thumb{background:var(--fh-background-surface-container-highest);border-radius:8px}
 ::-webkit-scrollbar-track{background:transparent}
 
+/* ---------- Logo header (above the sticky tools bar) ---------------------- */
+.brandbar{display:flex;justify-content:center;align-items:center;box-sizing:border-box;height:64px;padding:5px 16px 4px;position:relative;
+  background:radial-gradient(ellipse 60% 140% at 50% 0%,rgba(193,165,120,.10),transparent 70%),#0d1119;
+  border-bottom:3px double rgba(193,165,120,.55);transition:margin-right .22s cubic-bezier(.2,0,0,1)}
+.brandbar .brand{display:flex;flex-direction:column;align-items:center;gap:4px;padding:0;text-decoration:none;background:none!important}
+.brandbar .logo-wm{height:30px;filter:none!important}
+.brandbar .logo-box{display:flex!important;align-items:center;gap:14px;margin:0;padding:0;border:0;opacity:1;
+  font-size:10.5px;letter-spacing:5px;color:var(--mf-gold)}
+.brandbar .logo-box::before,.brandbar .logo-box::after{content:"";width:64px;height:1px;background:linear-gradient(90deg,transparent,var(--mf-gold))}
+.brandbar .logo-box::after{transform:scaleX(-1)}
+body.panel-open .brandbar{margin-right:calc(0px - var(--panel-w) - 8px)}
+@media (max-width:860px){body.panel-open .brandbar{margin-right:0}}
+@media (max-width:520px){.brandbar{padding:4px 8px 3px;height:56px}.brandbar .logo-wm{height:24px}.brandbar .logo-box::before,.brandbar .logo-box::after{width:28px}.brandbar .logo-box{letter-spacing:3px;gap:8px}}
+
+input[type=color]{width:64px;height:36px;padding:2px;border:1px solid var(--fh-border-stroke-emphasis);border-radius:8px;background:transparent;cursor:pointer}
+.key-row:has(input[type=color]){gap:24px}
+.mh-line{font-size:12px;line-height:18px;text-align:center;color:var(--fh-foreground-on-surface-de-emphasis);padding:8px 2px 0;letter-spacing:.2px}
+/* ---------- Fundamentals tab ------------------------------------------------ */
+.fd-ctl{display:flex;gap:10px;margin:4px 0 12px}.fd-ctl .inp{width:auto;min-width:130px;padding:6px 12px;height:36px}
+.fd-msg{padding:28px 4px;font-size:14px}
+.fd-chart{position:relative;min-height:230px;margin-bottom:6px}
+.fd-chart svg{display:block;overflow:visible}
+.fd-chart .fdg{stroke:var(--fh-border-stroke-default);stroke-dasharray:2 4}.fd-chart .fda{font-size:11.5px;fill:var(--fh-foreground-on-surface-de-emphasis)}
+.fd-chart .fdc{stroke:var(--fh-foreground-on-surface-de-emphasis);stroke-dasharray:3 3}
+.fd-leg{display:flex;gap:16px;justify-content:center;font-size:13px;margin-top:4px}.fd-leg i,.fd-tip i,.fd-leg2 i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:7px}
+.fd-tip{position:absolute;top:-6px;pointer-events:none;background:var(--fh-background-surface-elevated);border:1px solid var(--fh-border-stroke-default);border-radius:8px;padding:8px 12px;font-size:13px;z-index:3;white-space:nowrap;box-shadow:var(--fh-elevation-2)}
+.fd-tip div{display:flex;gap:18px;justify-content:space-between;margin-top:4px}.fd-tip span{font-weight:600}
+.fd-wrap{overflow-x:auto;border-top:1px solid var(--fh-border-stroke-default)}
+.fd-tbl{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:13.5px}
+.fd-tbl th{font-weight:400;color:var(--fh-foreground-on-surface-de-emphasis);text-align:right;padding:10px 14px;white-space:nowrap;position:sticky;top:0}
+.fd-tbl th:first-child,.fd-tbl td.nm{position:sticky;left:0;text-align:left;background:var(--fh-background-canvas);z-index:2;min-width:230px;max-width:230px;white-space:normal}
+.fd-tbl td{padding:9px 14px;text-align:right;border-top:1px solid var(--fh-border-stroke-default);font-variant-numeric:tabular-nums;cursor:pointer}
+.fd-tbl td b{display:block;font-weight:500}.fd-tbl td small{display:block;font-size:12.5px;min-height:16px}
+.fd-tbl tr.meta td{cursor:default;color:var(--fh-foreground-on-surface-de-emphasis);font-size:13px}.fd-tbl tr.meta:hover td{background:transparent}
+.fd-kpis{display:flex;gap:36px;flex-wrap:wrap;margin:8px 0 18px}.fd-kpi span{display:block;font-size:13px;color:var(--fh-foreground-on-surface-de-emphasis)}.fd-kpi b{font-size:22px;font-weight:600}.fd-kpi small{font-size:13px;font-weight:400;color:var(--fh-foreground-on-surface-de-emphasis)}
+.fd-act{width:100%;border-collapse:collapse;font-size:13.5px}.fd-act th{font-weight:400;color:var(--fh-foreground-on-surface-de-emphasis);text-align:right;padding:4px 10px}.fd-act td{padding:7px 10px;text-align:right;font-variant-numeric:tabular-nums;border-top:1px solid var(--fh-border-stroke-default)}.fd-act td:first-child,.fd-act th:first-child{text-align:left}
+.fd-act td.bar{width:38%}.fd-act td.bar i{display:block;height:10px;border-radius:5px;background:var(--fh-foreground-on-surface-de-emphasis);opacity:.5}.fd-act td.bar i.up{background:var(--fh-positive);opacity:1}.fd-act td.bar i.down{background:var(--fh-negative);opacity:1}
+.fd-hold td{cursor:default}.fd-hold td.nm{min-width:260px}.fd-hold tr:hover td{background:var(--fh-states-neutral-hovered)}
+.fd-tbl tr.sub td.nm{padding-left:28px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.fd-tbl tr:hover td{background:var(--fh-states-neutral-hovered)}.fd-tbl tr:hover td.nm{background:var(--fh-background-surface-container)}
+.fd-tbl tr.sel td{border-top-color:var(--fh-foreground-on-surface-emphasis);border-bottom:1px solid var(--fh-foreground-on-surface-emphasis)}
+.fd-tbl tr.sel td:first-child{border-left:1px solid var(--fh-foreground-on-surface-emphasis)}
+.fd-tbl .bul{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--mf-gold);margin-right:10px;vertical-align:middle}
+.fd-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px;margin-top:8px}
+.fd-card{border:1px solid var(--fh-border-stroke-default);border-radius:10px;padding:14px 18px}
+.fd-card-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.fd-card-h .inp{width:auto;padding:4px 10px;height:32px}
+.fd-card-b{display:flex;gap:28px;align-items:center;flex-wrap:wrap}.fd-donut circle{cursor:pointer;transition:opacity .15s,stroke-width .15s}.fd-donut .fd-ct1{font-size:22px;font-weight:600;fill:var(--fh-foreground-on-surface-emphasis)}.fd-donut .fd-ct2{font-size:12px;fill:var(--fh-foreground-on-surface-de-emphasis)}
+.fd-card.hov circle{opacity:.3}.fd-card.hov circle.on{opacity:1;stroke-width:36}.fd-leg2 tr{cursor:pointer}.fd-leg2 tr.on td{background:var(--fh-states-neutral-hovered)}
+.fd-tip-fix{position:fixed;top:0;left:0;z-index:300}
+.fd-leg2{border-collapse:collapse;font-size:13.5px;flex:1;min-width:220px}.fd-leg2 th{font-weight:400;color:var(--fh-foreground-on-surface-de-emphasis);text-align:right;padding:4px 8px}.fd-leg2 th:first-child,.fd-leg2 td:first-child{text-align:left}
+.fd-leg2 td{padding:5px 8px;text-align:right;font-variant-numeric:tabular-nums}
+/* ---------- Tools bar: flat, high contrast -------------------------------- */
+.appbar,[data-theme="dark"] .appbar,:root:not([data-theme="dark"]) .appbar{background:var(--fh-background-canvas)}
+.appbar .icon-btn,.appbar .status-chip,.appbar .avatar-btn{color:var(--fh-foreground-on-surface-emphasis);border:1px solid var(--fh-border-stroke-emphasis)}
+.appbar .icon-btn:hover,.appbar .avatar-btn:hover{border-color:var(--mf-gold);color:var(--mf-gold)}
+.appbar .icon-btn.rs-btn{border-color:transparent}
+.appbar .search{background:transparent;border:1px solid var(--fh-border-stroke-emphasis)}
+.appbar .search input::placeholder,.appbar .search svg{color:var(--fh-foreground-on-surface-emphasis);opacity:.75}
+
 /* ---------- App header --------------------------------------------------- */
 .appbar{
   position:sticky;top:0;z-index:40;background:var(--fh-background-surface);
@@ -236,7 +296,7 @@ input,select,textarea{font:inherit;color:inherit}
 /* ticker tape: an exchange-board strip, dark in both themes */
 .tape{position:relative;height:30px;overflow:hidden;background:#05080d;border-bottom:1px solid #1c2430;font-family:var(--mf-serif);font-size:12.5px;line-height:30px;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
-.tape:empty{display:none}
+.tape:empty,body.no-tape .tape{display:none}
 .tp-track{display:flex;width:max-content;animation:tapeRun 120s linear infinite}
 .tape:hover .tp-track,.tape:focus-within .tp-track{animation-play-state:paused}
 @keyframes tapeRun{to{transform:translateX(-50%)}}
@@ -245,7 +305,7 @@ input,select,textarea{font:inherit;color:inherit}
 .tp-i:hover{background:#111824;text-decoration:none}
 .tp-i b{color:#fff;font-weight:700;letter-spacing:.02em}
 .tp-px{color:#d6d3ca}
-.tp-ch.up{color:#3ddc6f}.tp-ch.down{color:#ff5c67}
+.tp-ch.up{color:var(--cc-up,#3ddc6f)}.tp-ch.down{color:var(--cc-dn,#ff5c67)}
 .tp-i.fl .tp-px{animation:tpFlash .9s ease-out}
 @keyframes tpFlash{from{color:var(--mf-gold)}}
 @media (prefers-reduced-motion:reduce){.tp-track{animation:none}.tape{overflow-x:auto;scrollbar-width:none}}
@@ -500,6 +560,10 @@ body.vol-dragging,body.vol-dragging *{cursor:grabbing!important;user-select:none
 .legend .sw{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:5px}
 
 /* ---------- Stats grid -------------------------------------------------- */
+.qs-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px 44px}.qs-c{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:8px 0;font-size:14.5px}
+.qs-c span{color:var(--fh-foreground-on-surface-de-emphasis);white-space:nowrap}.qs-c b{font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}.qs-c b.mut{color:var(--fh-foreground-on-surface-de-emphasis)}
+.qs-ext{border-top:1px solid var(--fh-border-stroke-default);margin-top:12px;padding-top:12px}.qs-eh{margin-bottom:4px;font-size:15px}.qs-eh b{margin-right:10px}
+@media(max-width:900px){.qs-g{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.qs-g{grid-template-columns:minmax(0,1fr)}}
 .stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px;margin-top:8px}
 .stat-grid .kv{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:44px;border-bottom:1px solid var(--fh-border-stroke-default)}
 .stat-grid .kv span{color:var(--fh-foreground-on-surface-de-emphasis);font-size:14px}
@@ -553,7 +617,7 @@ body.vol-dragging,body.vol-dragging *{cursor:grabbing!important;user-select:none
   position:fixed;top:0;right:0;height:100vh;width:var(--panel-w);z-index:60;
   background:var(--fh-background-surface);border-left:1px solid var(--fh-border-stroke-default);
   box-shadow:var(--fh-elevation-3);display:flex;flex-direction:column;transform:translateX(100%);
-  top:64px;height:calc(100vh - 64px);visibility:hidden;
+  top:var(--drawer-top,64px);height:calc(100vh - var(--drawer-top,64px));visibility:hidden;
   transition:transform .22s cubic-bezier(.2,0,0,1),visibility 0s linear .22s
 }
 .drawer.open{transform:none;visibility:visible;transition:transform .22s cubic-bezier(.2,0,0,1),visibility 0s}
@@ -636,42 +700,143 @@ tr:hover .wl-add,.wl-add:focus-visible,.wl-add.on{opacity:1}
 .qn-ch b{font-size:13.5px}
 .qn-leg{display:inline-flex;align-items:center;gap:5px;color:var(--fh-foreground-on-surface-de-emphasis)}
 .qn-leg i{width:10px;height:3px;border-radius:2px;display:inline-block;margin-left:6px}
-/* Predict mode pane (Kronos on the user's machine) */
-.pd{--qr:#0ea5e9}
-.pd-status{display:flex;align-items:center;gap:8px;font-size:13px;border:1px solid var(--fh-border-stroke-default);border-radius:10px;padding:8px 12px}
-.pd-status i{width:8px;height:8px;border-radius:50%;background:var(--fh-negative,#e0353b);flex:none}
-.pd-status.ok{border:0;padding:0;color:var(--fh-foreground-on-surface-de-emphasis)}
-.pd-status.ok i{background:var(--fh-positive,#1f9d55);box-shadow:0 0 0 3px rgba(31,157,85,.18)}
-.pd-hero{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.pd-hero h2{margin-bottom:0}
-.pd-guide h3{margin:10px 0 4px;font-size:15px}
-.pd-os{display:inline-flex;gap:2px;background:var(--fh-background-surface-container);border-radius:999px;padding:3px}
-.pd-os button{border:0;background:none;color:var(--fh-foreground-on-surface-de-emphasis);border-radius:999px;padding:4px 12px;font-size:12.5px;cursor:pointer}
-.pd-os button.on{background:var(--fh-background-surface-elevated);color:var(--fh-foreground-on-surface-emphasis);box-shadow:var(--fh-elevation-1)}
-.pd-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:12px;font-size:13.5px;line-height:20px}
-.pd-steps li>b{display:block;margin-bottom:4px}
-.pd .btn.pd-dl,.pd .btn.pd-run{background:var(--qr);border-color:var(--qr);color:#fff;display:inline-flex;align-items:center;gap:6px}
-.pd-cmd{display:flex;align-items:center;gap:6px;margin:6px 0;border:1px solid var(--fh-border-stroke-default);border-radius:8px;padding:4px 4px 4px 10px;background:var(--fh-background-surface-container);min-width:0}
-.pd-cmd code{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;font-size:12px}
-.pd-or{display:block;font-size:12px;margin-top:8px}
-.pd-next{font-size:12.5px;margin:12px 0 0}
-.pd-list{margin:8px 0 0;padding-left:18px;font-size:13px;line-height:19px;display:flex;flex-direction:column;gap:6px}
-.pd kbd{border:1px solid var(--fh-border-stroke-emphasis);border-bottom-width:2px;border-radius:4px;padding:0 4px;font-size:11.5px}
-.pd-form{display:grid;grid-template-columns:minmax(110px,1.4fr) repeat(3,minmax(84px,1fr)) auto;gap:8px;align-items:end}
-.pd-form label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:600;color:var(--fh-foreground-on-surface-de-emphasis);min-width:0}
-.pd-form .inp{height:34px;width:100%;box-sizing:border-box;padding-top:0;padding-bottom:0;line-height:32px}
-.pd-form .pd-run{height:34px}
-@media (max-width:560px){ .pd-form{grid-template-columns:1fr 1fr} .pd-form label:first-child{grid-column:1/-1} }
-.drawer:not(.full) .pd-form{grid-template-columns:1fr 1fr 1fr}.drawer:not(.full) .pd-form label:first-child{grid-column:1/-1}
-.pd-chart .qn-leg i{margin-left:8px}
-.pd-l-med{background:#38bdf8}.pd-l-band{background:rgba(56,189,248,.45);height:8px!important}
-.pd-by{display:inline-flex;align-items:center;gap:7px;text-decoration:none;font-family:Unbounded,var(--fh-font-family,system-ui),sans-serif;line-height:1;padding:6px 11px 6px 9px;border-radius:999px;
+/* Predict pane in Kronos's own look (assets/kronos-mark.png): deep indigo night, indigo -> rose -> peach gradients, sky accent.
+   The card stays dark in both themes, like the brand mark. */
+.kx{--k-bg:#050505;--k-card:rgba(255,255,255,.045);--k-line:rgba(255,255,255,.1);--k-txt:#f2f2f2;--k-dim:#a1a1a1;--k-ind:#4f46e5;--k-vio:#8b5cf6;--k-rose:#f0708a;--k-peach:#ff9d6c;--k-sky:#4cb8ff;--k-up:#34d399;--k-dn:#fb7185;
+  --k-grad:linear-gradient(100deg,#4f46e5 0%,#8b5cf6 35%,#f0708a 70%,#ff9d6c 100%);
+  position:relative;margin:4px 0 24px;padding:18px;border-radius:22px;color:var(--k-txt);font-family:'Plus Jakarta Sans',var(--fh-font-family,system-ui),sans-serif;
+  background:var(--k-bg);
+  border:1px solid var(--k-line);box-shadow:0 18px 50px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:16px;font-variant-numeric:tabular-nums}
+.kx a{color:var(--k-txt);text-decoration:underline;text-underline-offset:2px}.kx .up{color:var(--k-up)}.kx .dn{color:var(--k-dn)}.kx-dim{color:var(--k-dim)}
+.kx-head{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+.kx-pill{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:12px;padding:6px 11px;border-radius:999px;background:var(--k-card);border:1px solid var(--k-line);color:var(--k-dim)}
+.kx-pill i{width:7px;height:7px;border-radius:50%;background:var(--k-up);box-shadow:0 0 0 3px rgba(52,211,153,.18)}
+.kx-pill.off i{background:var(--k-dn);box-shadow:0 0 0 3px rgba(251,113,133,.18)}
+.kx-pill button{border:0;background:none;color:var(--k-txt);text-decoration:underline;font:inherit;cursor:pointer;padding:0 0 0 4px}
+/* form */
+.pd-form{display:grid;grid-template-columns:minmax(130px,1.6fr) repeat(3,minmax(84px,1fr)) auto;gap:10px;align-items:end}
+.pd-form label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;color:var(--k-dim);min-width:0}
+.pd-form .inp{height:44px;width:100%;box-sizing:border-box;padding:0 14px;border-radius:14px;border:1px solid var(--k-line);background:rgba(255,255,255,.05);color:var(--k-txt);
+  font:600 15px 'Plus Jakarta Sans',system-ui,sans-serif;outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
+.pd-form select.inp{cursor:pointer;color-scheme:dark}
+.pd-form .inp:focus{border-color:rgba(139,92,246,.7);box-shadow:0 0 0 4px rgba(139,92,246,.18);background:rgba(255,255,255,.07)}
+.pd-form .inp::placeholder{color:#5f6080;font-weight:500}
+.kx-go{height:44px;padding:0 22px;border:0;border-radius:14px;background:var(--k-grad);background-size:140% 100%;color:#fff;font:700 15px 'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 24px rgba(139,92,246,.35);transition:transform .15s,box-shadow .15s,background-position .4s}
+.kx-go:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(240,112,138,.4);background-position:100% 0}
+.kx-go:active{transform:none}.kx-go:disabled{opacity:.6;cursor:progress;transform:none}
+.kx-go svg{flex:none}
+.drawer:not(.full) .pd-form{grid-template-columns:repeat(3,minmax(0,1fr))}.drawer:not(.full) .pd-form label:first-child,.drawer:not(.full) .kx-go{grid-column:1/-1}
+@media (max-width:560px){ .pd-form{grid-template-columns:repeat(3,minmax(0,1fr))} .pd-form label:first-child,.kx-go{grid-column:1/-1} }
+.kx-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:-4px}
+.kx-chips button{display:inline-flex;gap:6px;align-items:baseline;border:1px solid var(--k-line);background:var(--k-card);color:var(--k-txt);border-radius:999px;padding:5px 11px;font:500 12.5px 'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer}
+.kx-chips button:hover{border-color:rgba(139,92,246,.6)}.kx-chips em{font-style:normal}
+.kx-err{border-radius:14px;padding:11px 14px;background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.35);font-size:13.5px}
+/* busy */
+.kx-busy{display:flex;flex-direction:column;gap:12px;padding:6px 2px}
+.kx-shimmer{height:6px;border-radius:999px;background:linear-gradient(90deg,transparent,#8b5cf6,#f0708a,#ff9d6c,transparent);background-size:50% 100%;background-repeat:no-repeat;background-color:rgba(255,255,255,.06);animation:kxSweep 1.3s ease-in-out infinite}
+@keyframes kxSweep{0%{background-position:-50% 0}100%{background-position:150% 0}}
+.kx-step{display:flex;align-items:center;gap:10px;font-size:14px}
+.kx-step i{width:9px;height:9px;border-radius:50%;background:var(--k-grad);animation:kxPulse 1.4s ease-in-out infinite}
+.kx-step:nth-child(3) i{animation-delay:.2s}.kx-step:nth-child(4) i{animation-delay:.4s}.kx-step:nth-child(5) i{animation-delay:.6s}
+@keyframes kxPulse{50%{opacity:.3;transform:scale(.7)}}
+/* results */
+.kx-quote{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 14px}
+.kx-quote b{font-size:26px;font-weight:700;letter-spacing:-.3px}
+.kx-quote strong{font-size:26px;font-weight:600}
+.kx-quote .kx-cur{font-size:13px;color:var(--k-dim)}
+.kx-target{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;background:var(--k-card);border:1px solid var(--k-line);font-size:13.5px}
+.kx-quote .kx-dim{margin-left:auto;font-size:12px}
+.kx-chart{border-radius:18px;background:rgba(6,7,16,.55);border:1px solid var(--k-line);padding:10px 8px 6px;overflow:hidden}
+.kx-leg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--k-dim);margin-top:-6px}
+.kx-leg span{display:inline-flex;align-items:center;gap:6px}.kx-leg i{display:inline-block;width:14px;height:3px;border-radius:2px}
+.kx-leg .l-hist{background:#c9c8ff}.kx-leg .l-med{background:var(--k-grad)}.kx-leg .l-band{height:9px;background:linear-gradient(90deg,rgba(139,92,246,.45),rgba(255,157,108,.45))}
+.kx-leg .l-up{background:var(--k-up);width:8px}.kx-leg .l-dn{background:var(--k-dn);width:8px;margin-left:-4px}
+.kx-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.drawer:not(.full) .kx-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:560px){ .kx-stats{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.kx-stat{position:relative;border-radius:16px;background:var(--k-card);border:1px solid var(--k-line);padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0;overflow:hidden}
+.kx-stat::before{content:'';position:absolute;inset:0 0 auto 0;height:2px;background:var(--k-grad);opacity:.8}
+.kx-stat span{font-size:12px;color:var(--k-dim)}.kx-stat b{font-size:19px;font-weight:700;overflow-wrap:anywhere}.kx-stat i{font-style:normal;font-size:12px;color:var(--k-dim)}
+/* confidence */
+.kx-conf{border-radius:18px;background:var(--k-card);border:1px solid var(--k-line);padding:16px}
+.kx-conf-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.kx-conf-h>span{font-size:14px;font-weight:600}
+.kx-lv{font-size:13px;font-weight:700;letter-spacing:.6px;padding:4px 11px;border-radius:999px}
+.kx-lv.lv-low{color:#fda4b4;background:rgba(251,113,133,.14)}.kx-lv.lv-med{color:#ffc29e;background:rgba(255,157,108,.14)}.kx-lv.lv-high{color:#6ee7b7;background:rgba(52,211,153,.14)}.kx-lv.lv-na{color:var(--k-dim);background:var(--k-card)}
+.kx-meter{display:inline-flex;gap:4px;margin-left:auto}.kx-meter i{width:30px;height:8px;border-radius:999px;background:rgba(255,255,255,.08)}
+.kx-meter i.on{background:var(--k-grad)}
+.kx-conf p{margin:10px 0 12px;font-size:14px;line-height:21px}
+.kx-row{display:grid;grid-template-columns:132px minmax(70px,1fr) 64px;align-items:center;gap:12px;padding:6px 0;font-size:13px}
+.kx-row>span{color:var(--k-dim)}.kx-row>b{text-align:right;font-weight:700}.kx-row>em{grid-column:2/-1;margin-top:-4px;font-style:normal;font-size:12px;color:var(--k-dim)}
+.kx-bar{display:block;height:7px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}.kx-bar>i{display:block;height:100%;border-radius:999px;background:var(--k-grad)}
+.kx-bar.warn>i{background:linear-gradient(90deg,#f0708a,#fb7185)}
+.kx-warn{color:#fda4b4}
+.kx-conf>.kx-dim{margin-top:10px;font-size:12px;line-height:18px}
+@media (max-width:560px){ .kx-row{grid-template-columns:110px 1fr 54px} }
+.kx-note{border-radius:16px;padding:14px 16px;background:linear-gradient(135deg,rgba(79,70,229,.16),rgba(240,112,138,.08));border:1px solid rgba(139,92,246,.25);font-size:13.5px;line-height:21px}
+.kx-note>b{display:block;margin-bottom:2px;font-size:14px}
+.kx-note .kx-dim{margin-top:8px;font-size:12px}
+/* setup guide */
+.kx-guide{border-radius:18px;background:var(--k-card);border:1px solid var(--k-line);padding:16px}
+.kx-guide h3{margin:12px 0 8px;font-size:16px;font-weight:700}
+.pd-os{display:inline-flex;gap:2px;background:rgba(255,255,255,.05);border-radius:999px;padding:3px}
+.pd-os button{border:0;background:none;color:var(--k-dim);border-radius:999px;padding:5px 14px;font:500 13px 'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer}
+.pd-os button.on{background:rgba(255,255,255,.14);color:var(--k-txt)}
+.pd-steps{margin:0;padding:0;list-style:none;counter-reset:kx;display:flex;flex-direction:column;gap:14px;font-size:14px;line-height:21px}
+.pd-steps li{counter-increment:kx;position:relative;padding-left:26px}
+.pd-steps li::before{content:counter(kx) ".";position:absolute;left:0;top:0;font-weight:700;color:var(--k-dim)}
+.pd-steps li>b{display:block;margin-bottom:6px}
+.kx .pd-dl{display:inline-flex;align-items:center;gap:8px}
+.pd-cmd{display:flex;align-items:center;gap:6px;margin:8px 0;border:1px solid var(--k-line);border-radius:12px;padding:5px 5px 5px 12px;background:rgba(6,7,16,.6);min-width:0}
+.pd-cmd code{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;font-size:12.5px;color:#d9d8ff}
+.pd-cmd button{border:0;border-radius:9px;background:rgba(255,255,255,.12);color:var(--k-txt);font:600 12px 'Plus Jakarta Sans',system-ui,sans-serif;padding:6px 11px;cursor:pointer}
+.kx-wake{display:flex;flex-direction:column;align-items:flex-start;gap:12px;border-radius:18px;background:var(--k-card);border:1px solid var(--k-line);padding:16px}
+.kx-wake h3{margin:0;font-size:17px;font-weight:700}.kx-wake p{margin:0;font-size:13.5px;line-height:20px;color:var(--k-dim)}
+.kx-keep{margin:0;font-size:12.5px;line-height:18px;color:var(--k-dim);border-left:2px solid rgba(255,255,255,.25);padding-left:10px}.kx-keep b{color:var(--k-txt)}
+.kx-wake .kx-go{width:100%}.kx-wake .kx-go.on{animation:kxPulse 1.4s ease-in-out infinite}
+@keyframes kxPulse{50%{opacity:.65}}
+.pd-or{display:block;font-size:12.5px;margin-top:10px;color:var(--k-dim)}
+.pd-next{font-size:13px;margin:14px 0 0;color:var(--k-dim)}.pd-next b{color:var(--k-txt)}
+.kx details{border-radius:16px;background:var(--k-card);border:1px solid var(--k-line);padding:12px 16px}
+.kx details>summary{cursor:pointer;font-weight:600;font-size:14px}
+.pd-list{margin:10px 0 0;padding-left:18px;font-size:13.5px;line-height:20px;display:flex;flex-direction:column;gap:7px;color:#d4d3e6}
+.kx kbd{border:1px solid var(--k-line);border-bottom-width:2px;border-radius:5px;padding:0 5px;font-size:12px;background:rgba(255,255,255,.05)}
+.kx code{font-family:ui-monospace,Menlo,monospace}
+/* "Powered by Kronos AI" badge */
+.pd-by{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:Unbounded,var(--fh-font-family,system-ui),sans-serif;line-height:1;padding:5px 12px 5px 6px;border-radius:999px;
   border:1px solid var(--fh-border-stroke-emphasis);color:var(--fh-foreground-on-surface-emphasis);transition:border-color .2s}
 .pd-by:hover{border-color:var(--fh-foreground-on-surface-emphasis)}
+.pd-by img{width:20px;height:20px;flex:none}
 .pd-by small{font-size:8.5px;letter-spacing:1.6px;font-weight:400;opacity:.7}
 .pd-by b{font-size:13px;font-weight:700;letter-spacing:.3px}
-.pd-by svg{flex:none}
-.pd-hero{justify-content:space-between}
-.pd-l-path{background:linear-gradient(90deg,#ef4444,#f59e0b,#22c55e,#06b6d4,#6366f1,#d946ef)}
+/* Mode hero: shared start-screen header for Agent, Deep Research, Quant and Predict */
+#chat{--mc:193,165,120;--mc2:232,206,156;--mct:#1c1710}
+#rsPane{--mc:139,120,246;--mc2:96,165,250;--mct:#fff}
+#qnPane{--mc:220,38,38;--mc2:251,113,133;--mct:#fff}
+#pdPane{--mc:124,92,246;--mc2:240,112,138;--mct:#fff}
+.mh{position:relative;overflow:hidden;border-radius:18px;padding:16px 16px 14px;margin:2px 0 16px;text-align:left;border:1px solid rgba(var(--mc),.3);
+  background:radial-gradient(130% 150% at 0% 0%,rgba(var(--mc),.22),transparent 55%),radial-gradient(100% 130% at 100% 100%,rgba(var(--mc2),.14),transparent 60%),var(--fh-background-surface-container)}
+.mh::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.07) 50%,transparent 65%);transform:translateX(-100%);animation:mhSheen 7s ease-in-out 1s infinite}
+@keyframes mhSheen{0%,70%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.mh-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.mh-top .pd-by{margin-left:auto}
+.mh-ic{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--mct);background:linear-gradient(135deg,rgb(var(--mc)),rgb(var(--mc2)));box-shadow:0 6px 22px rgba(var(--mc),.45),inset 0 1px 0 rgba(255,255,255,.25)}
+.mh .mh-top h2{margin:0;font-family:var(--mf-serif);font-weight:500;font-size:24px;line-height:30px;color:var(--fh-foreground-on-surface-emphasis)}
+.mh p{margin:10px 0 12px;font-size:13.5px;line-height:20px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.mh-feats{display:flex;flex-wrap:wrap;gap:6px}
+.mh-feats span{display:inline-flex;align-items:center;gap:5px;font-size:12px;line-height:16px;padding:4px 10px 4px 8px;border-radius:999px;background:rgba(var(--mc),.12);border:1px solid rgba(var(--mc),.26);color:var(--fh-foreground-on-surface-emphasis)}
+.mh-feats svg{color:rgb(var(--mc2))}
+/* the same suggestion cards and run button in every mode, in that mode's colour */
+.drawer-body .sug button,.drawer-body .qn-ex button{border:1px solid var(--fh-border-stroke-default);transition:border-color .15s,background .15s,transform .15s}
+.drawer-body .sug button:hover,.drawer-body .qn-ex button:hover{border-color:rgba(var(--mc),.6);background:rgba(var(--mc),.09);transform:translateX(2px)}
+.qn-ex button{display:flex;align-items:center;gap:10px}
+.drawer-body .sug button span{flex:1;text-align:left}
+.qn-ex button::before,.sug button::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,rgb(var(--mc)),rgb(var(--mc2)))}
+#rsPane .rs-actions .btn.filled,#qnPane .qn-run{background:linear-gradient(100deg,rgb(var(--mc)),rgb(var(--mc2)));color:var(--mct);border:0;box-shadow:0 4px 16px rgba(var(--mc),.35)}
+#rsPane .rs-actions .btn.filled:hover,#qnPane .qn-run:hover{filter:brightness(1.08)}
+#rsPane textarea:focus,#qnPane textarea:focus{border-color:rgb(var(--mc));box-shadow:0 0 0 3px rgba(var(--mc),.18)}
+@media (prefers-reduced-motion:reduce){ .kx-shimmer,.kx-step i{animation:none} .kx-go{transition:none} }
 .qn-svg svg{width:100%;height:auto;display:block}
 .qn-chart{touch-action:pan-y}
 .qn-tip{position:absolute;pointer-events:none;opacity:0;transition:opacity .1s;background:var(--fh-background-surface-elevated);border:1px solid var(--fh-border-stroke-default);box-shadow:var(--fh-elevation-2);border-radius:8px;padding:6px 9px;font-size:12px;display:flex;flex-direction:column;gap:2px;z-index:3;white-space:nowrap}
@@ -814,6 +979,7 @@ tr:hover .wl-add,.wl-add:focus-visible,.wl-add.on{opacity:1}
 .dr-grp.open .dr-fly{display:block}
 .dr-fly .mhead{padding:6px 8px 4px;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--fh-foreground-on-surface-de-emphasis)}
 .dr-i{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;padding:8px 10px;border-radius:8px;font-size:14px;text-align:left;color:var(--fh-foreground-on-surface-default);cursor:pointer}
+.dr-hr{border:0;border-top:1px solid var(--fh-border-stroke-default);margin:6px 4px}
 .dr-i:hover{background:var(--fh-states-neutral-hovered)}
 .dr-i.on{background:var(--fh-states-branded-medium-selected)}
 .dr-i span{flex:1}
@@ -978,7 +1144,7 @@ body.chart-fs{overflow:hidden}
   .mobile-only{display:inline-flex}
 }
 @media (max-width:760px){
-  .drawer{top:56px;height:calc(100vh - 56px)}
+  .drawer{top:var(--drawer-top,56px);height:calc(100vh - var(--drawer-top,56px))}
   .appbar{padding:6px 8px;min-height:56px}
   .subnav{top:56px;padding:0 8px}
   .appbar .search{display:none}
@@ -1521,7 +1687,6 @@ html{overflow-x:clip}
 #rsPane .section-head.rs-top{align-items:center;margin:0 0 14px;flex-wrap:nowrap}
 #rsPane .rs-actions .mut{flex:1 1 100%;line-height:1.5}
 #rsOpts .ai-pick .ap-name{white-space:normal}
-.rs-h{display:block;font-family:var(--mf-serif);font-weight:500;font-size:26px;line-height:34px;margin:0 0 6px;color:var(--fh-foreground-on-surface-emphasis)}
 #rsPane .rs-top .btn.text:first-of-type{margin-left:auto}
 #rsPane .rs-top .btn.text{color:var(--fh-foreground-on-surface-de-emphasis)}
 #rsPane .rs-top .btn.text + .btn.text{margin-left:0}
@@ -1530,7 +1695,7 @@ html{overflow-x:clip}
 #rsPane .field>label{display:none}
 #rsPane textarea{width:100%;min-height:128px;background:var(--fh-background-surface-container);border:1px solid var(--fh-border-stroke-default);border-radius:20px;padding:16px 18px;font-size:15px;line-height:1.55;resize:vertical;outline:none}
 #rsPane textarea:focus{border-color:var(--fh-border-stroke-emphasis,#555)}
-#rsPane .rs-actions .btn.filled{background:var(--r);border-color:var(--r);color:#241a05;border-radius:999px;padding:8px 20px}
+#rsPane .rs-actions .btn.filled{border-radius:999px;padding:8px 20px}
 #rsOpts .ai-pick{background:transparent;border:1px solid var(--fh-border-stroke-default);border-radius:999px;width:auto;max-width:100%}
 .rs-note.rs-foot{margin-top:28px;font-size:11.5px;opacity:.75}
 .rs-report{font-size:14.5px;line-height:1.75}
@@ -2345,9 +2510,9 @@ body.rs-drag iframe{pointer-events:none}
 .rs-tabs[data-t="quant"] .thumb{--fx:239,68,68}
 .rs-tabs[data-t="quant"] .thumb::after{animation:rsGlow 1.7s ease-in-out infinite}
 #tabQuant.on,#tabPredict.on{color:var(--fh-foreground-on-surface-emphasis)}
-/* Predict: green/red dot bands drifting left inside a plain grey ring */
-.rs-tabs[data-t="predict"] .thumb{--fx:150,150,150}
-.rs-tabs[data-t="predict"] .thumb::after{animation:none;box-shadow:inset 0 0 0 1px rgba(150,150,150,.5)}
+/* Predict: purple-to-pink dots (the Forecast button's colours), ring pulsing like the other modes */
+.rs-tabs[data-t="predict"] .thumb{--fx:192,104,206}
+.rs-tabs[data-t="predict"] .thumb::after{animation:rsGlow 1.5s ease-in-out infinite}
 .drawer:not(.full) .rs-tabs button{padding:6px 11px;font-size:12.5px}   /* four modes still leave room for the panel buttons */
 /* rsThumb() adds tabs-mid whenever the switch fits in the middle without touching the buttons on the right */
 .drawer-head.tabs-mid{position:relative}
@@ -2363,7 +2528,7 @@ body.rs-drag iframe{pointer-events:none}
 .rs-tabs button.on{text-shadow:0 0 6px var(--fh-background-surface-elevated),0 0 2px var(--fh-background-surface-elevated)}
 #tabChat.on{color:var(--fh-foreground-on-surface-emphasis)}
 #tabResearch.on{color:var(--fh-foreground-on-surface-emphasis)}
-@media (prefers-reduced-motion:reduce){ .rs-tabs[data-t="research"] .thumb::after,.rs-tabs[data-t="quant"] .thumb::after{animation:none} }
+@media (prefers-reduced-motion:reduce){ .rs-tabs[data-t="research"] .thumb::after,.rs-tabs[data-t="quant"] .thumb::after,.rs-tabs[data-t="predict"] .thumb::after{animation:none} }
 /* hover glow on the mode tabs (the active pill's ring brightens) and on the header's Research with Marvell button */
 .rs-tabs button:hover{color:var(--fh-foreground-on-surface-emphasis);text-shadow:0 0 8px rgba(var(--fx,193,165,120),.6)}
 .rs-tabs:has(button.on:hover) .thumb::after{box-shadow:inset 0 0 0 1px rgba(var(--fx),.9),0 0 18px rgba(var(--fx),.45)}
@@ -2489,6 +2654,7 @@ body.rs-drag iframe{pointer-events:none}
   </head>
   <body>
 <script src="indicators.js"></script>
+<script src="fundamentals.js"></script>
 <script src="drawing.js"></script>
 <script src="qengine.js"></script>
 <script>try{var c=JSON.parse(localStorage.getItem('fh3_cfg')||'{}'),t=c.theme||'dark';if(t==='auto')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
@@ -2509,14 +2675,16 @@ body.rs-drag iframe{pointer-events:none}
     <p id="bootMsg">Opening the terminal…</p>
   </div>
 </div>
-<header class="appbar">
-  <button class="icon-btn" id="railBtn" title="Collapse side panel" aria-label="Toggle side panel" aria-controls="rail">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
-  </button>
+<header class="brandbar">
   <a class="brand" href="#/" id="brandLink" aria-label="MercerFargo Finance Superhub home">
     <img class="logo-wm" src="assets/logo-wordmark.png" alt="Mercer Fargo">
     <span class="logo-box">Finance Superhub</span>
   </a>
+</header>
+<header class="appbar">
+  <button class="icon-btn" id="railBtn" title="Collapse side panel" aria-label="Toggle side panel" aria-controls="rail">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
+  </button>
   <form class="search" id="searchForm" role="search" autocomplete="off">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
     <input id="searchInput" placeholder="Search for stocks, ETFs, or ask a question" aria-label="Search for stocks, ETFs, or ask a question">
@@ -3104,7 +3272,7 @@ var TV_FIELDS = [
   'price_target_low','earnings_release_next_date','earnings_per_share_forecast_next_fq',
   'earnings_per_share_forecast_next_fy','revenue_forecast_next_fy','Recommend.All','update_mode',
   'price_target_median','recommendation_mark','recommendation_buy','recommendation_over','recommendation_hold','recommendation_under','recommendation_sell','recommendation_total','total_shares_outstanding',
-  'currency'
+  'currency','open','high','low','Value.Traded','float_shares_outstanding','price_book_fq','earnings_per_share_fy','High.All','Low.All','relative_volume_intraday|5','aum','nav','shares_outstanding','premarket_high','premarket_low','postmarket_high','postmarket_low','subtype'
 ].join(',');
 
 function applyTV(sym, d){
@@ -3132,7 +3300,7 @@ function applyTV(sym, d){
     state:extPrice != null ? extLabel : 'Regular session'
   });
   var nextEarn = numOf(d.earnings_release_next_date);
-  DATA.summary[s] = { t:Date.now(), d:{
+  DATA.summary[s] = { t:Date.now(), raw:d, d:{
     'Market Cap': d.market_cap_basic != null ? compact(d.market_cap_basic) : null,
     'Average Volume': d.average_volume_10d_calc != null ? compact(d.average_volume_10d_calc) : null,
     'Share Volume': d.volume != null ? compact(d.volume) : null,
@@ -4237,6 +4405,8 @@ function chartView(host, o){
   var info = function(){ var ks = Object.keys(pts), p = pts[ks[0]], p2 = pts[ks[1]];
     return ks.length > 1 ? { x:(p.x + p2.x) / 2, d:Math.abs(p.x - p2.x) + Math.abs(p.y - p2.y), n:2 } : p ? { x:p.x, d:0, n:1 } : null; };
   svg.addEventListener('pointerdown', function(e){
+    var gp = e.target.closest && e.target.closest('.ind-grab');   // the volume profile's grip: slide it left or right
+    if(gp){ var pit = CUR.inds.filter(function(it){ return it.id === gp.getAttribute('data-pf'); })[0]; if(pit){ c.pfd = { it:pit, x0:e.clientX, dx0:pit.dx || 0 }; try{ svg.setPointerCapture(e.pointerId); }catch(x){} e.preventDefault(); return; } }
     if(o.draw && DR.down(c, e)){ c.touchMode(); return; }   // drawing tools take the pointer first
     if(e.pointerType === 'mouse' && e.button !== 0) return;
     cancelAnimationFrame(coast); vel = 0; moved = 0;
@@ -4248,6 +4418,7 @@ function chartView(host, o){
     } else if(e.pointerType === 'touch') c.hoverOut();
   });
   svg.addEventListener('pointermove', function(e){
+    if(c.pfd && c.geo){ c.pfd.it.dx = clamp(c.pfd.dx0 + e.clientX - c.pfd.x0, 0, c.geo.plotW * .7); c.soon(); return; }
     if(o.draw && DR.move(c, e)) return;
     if(!pts[e.pointerId]){ if(e.pointerType !== 'touch') c.hover(e); return; }
     if(scrub){ c.hover(e); return; }
@@ -4264,6 +4435,7 @@ function chartView(host, o){
     vel = clamp(dBars / Math.max(8, now - lt), -vmax, vmax); lt = now; last = cur;
   });
   var up = function(e){
+    if(c.pfd){ c.pfd = null; indSave(); return; }
     if(o.draw && DR.up(c, e)){ c.touchMode(); return; }
     clearTimeout(hold);
     if(!pts[e.pointerId]) return;
@@ -4890,6 +5062,7 @@ function railSec(id, label, count, body, opts){
 }
 
 function renderRail(){
+  var S = {};   // sections are built here, then joined in display order below
   var html = '<div class="rail-top"><button class="rail-min-btn" data-act="rail-min" title="' + (CFG.railMin ? 'Expand' : 'Collapse') + ' side panel" aria-label="' + (CFG.railMin ? 'Expand' : 'Collapse') + ' side panel">' +
     railSvg('M17.6 6.4 16.2 5l-7 7 7 7 1.4-1.4L12 12zM11.6 6.4 10.2 5l-7 7 7 7 1.4-1.4L6 12z', 18) + '</button></div>', body = '';
   body = [['', 'Overview', RAIL_ICON.market], ['indices', 'Global indices', 'M3 17h2v4H3v-4zm4-5h2v9H7v-9zm4 3h2v6h-2v-6zm4-8h2v14h-2V7zm4 4h2v10h-2V11z'],
@@ -4900,7 +5073,7 @@ function renderRail(){
     return '<a class="rail-item' + (CUR.view === 'market' && (CUR.mkSec || '') === m[0] ? ' on' : '') + '" href="#/market' + (m[0] ? '/' + m[0] : '') + '">' +
       '<span class="ri-glyph">' + railSvg(m[2], 15) + '</span><span class="lbl">' + m[1] + '</span></a>';
   }).join('');
-  html += railSec('market', 'Market', null, body, { active:CUR.view === 'market' });
+  S.market = railSec('market', 'Market', null, body, { active:CUR.view === 'market' });
   body = '';
   Object.keys(LISTS).forEach(function(id){
     var l = LISTS[id];
@@ -4918,7 +5091,7 @@ function renderRail(){
       });
     }
   });
-  html += railSec('lists', 'Watchlists', Object.keys(LISTS).length, body, { add:['newlist', 'New watchlist'], active:CUR.view === 'list' });
+  S.lists = railSec('lists', 'Watchlists', Object.keys(LISTS).length, body, { add:['newlist', 'New watchlist'], active:CUR.view === 'list' });
 
   body = '';
   Object.keys(PFS).forEach(function(id){
@@ -4928,7 +5101,7 @@ function renderRail(){
       '<button class="rail-more" data-act="pf-menu" data-id="' + esc(id) + '" title="Manage ' + esc(p.name) + '" aria-label="Manage ' + esc(p.name) + '">' + railSvg('M6 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z', 16) + '</button></div>';
   });
   if(!body) body = '<button class="rail-item ri-empty" data-act="newpf"><span class="lbl">Create your first portfolio</span></button>';
-  html += railSec('pfs', 'Portfolios', Object.keys(PFS).length, body, { add:['newpf', 'Create a portfolio'], active:CUR.view === 'portfolio' });
+  S.pfs = railSec('pfs', 'Portfolios', Object.keys(PFS).length, body, { add:['newpf', 'Create a portfolio'], active:CUR.view === 'portfolio' });
 
   body = '<a class="rail-item' + (CUR.view === 'investors' && !CUR.guru ? ' on' : '') + '" href="#/investors"><span class="ri-stack">' +
     GURUS.slice(0, 3).map(function(g){ return '<img src="' + guruImg(g) + '" alt="" loading="lazy">'; }).join('') + '</span><span class="lbl">All investors</span></a>';
@@ -4936,7 +5109,7 @@ function renderRail(){
     body += '<a class="rail-item guru-item' + (CUR.view === 'investors' && CUR.guru === g.id ? ' on' : '') + '" href="#/investors/' + g.id + '">' +
       '<img src="' + guruImg(g) + '" alt="" loading="lazy"><span class="lbl">' + esc(g.name) + '</span></a>';
   });
-  html += railSec('smart', 'Smart Money', GURUS.length, body, { open:false, active:CUR.view === 'investors' });
+  S.smart = railSec('smart', 'Smart Money', GURUS.length, body, { open:false, active:CUR.view === 'investors' });
 
   var rec = insRecent().slice(0, 4);
   body = '<a class="rail-item' + (CUR.view === 'insiders' && !INS.sym ? ' on' : '') + '" href="#/insiders">' +
@@ -4945,7 +5118,7 @@ function renderRail(){
       return '<a class="rail-item' + (CUR.view === 'insiders' && INS.sym === r.s ? ' on' : '') + '" href="#/insiders/' + encodeURIComponent(r.s) + '">' + guruLogo({ t:r.s }, 'ri-logo') +
         '<span class="lbl"><b>' + esc(r.s) + '</b> ' + esc(r.n || '') + '</span></a>';
     }).join('');
-  html += railSec('insider', 'Insider Trading', null, body, { active:CUR.view === 'insiders' });
+  S.insider = railSec('insider', 'Insider Trading', null, body, { active:CUR.view === 'insiders' });
 
   body = '<a class="rail-item' + (CUR.view === 'filings' && !FIL.sym ? ' on' : '') + '" href="#/filings">' +
     '<span class="ri-glyph">' + railSvg('M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z', 16) + '</span><span class="lbl">Search filings</span></a>' +
@@ -4953,14 +5126,15 @@ function renderRail(){
       return '<a class="rail-item' + (CUR.view === 'filings' && FIL.sym === r.s ? ' on' : '') + '" href="#/filings/' + encodeURIComponent(r.s) + '">' + guruLogo({ t:r.s }, 'ri-logo') +
         '<span class="lbl"><b>' + esc(r.s) + '</b> ' + esc(r.n || '') + '</span></a>';
     }).join('');
-  html += railSec('filings', 'Filings & Reports', null, body, { active:CUR.view === 'filings' });
+  S.filings = railSec('filings', 'Filings & Reports', null, body, { active:CUR.view === 'filings' });
 
   var scrSec = CUR.view === 'screener' && CUR.screen ? (CUR.screen.sel && CUR.screen.sel.sector) || CUR.screen.sector || '' : null;
   body = [''].concat(SECTORS).map(function(s){
     return '<a class="rail-item sect-link' + (scrSec === s ? ' on' : '') + '" href="#/screener" data-act="sector" data-sector="' + esc(s) + '"><span class="ri-glyph">' +
       railSvg(s ? SECTOR_ICON[s] || RAIL_ICON.sectors : 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z', 15) + '</span><span class="lbl">' + esc(s || 'All stocks') + '</span></a>';
   }).join('');
-  html += railSec('sectors', 'Screener', null, body, { open:false, active:CUR.view === 'screener' });
+  S.sectors = railSec('sectors', 'Screener', null, body, { open:false, active:CUR.view === 'screener' });
+  html += [S.pfs, S.lists, S.market, S.insider, S.filings, S.smart, S.sectors].join('');
   html += '<div class="rail-foot">Quotes, market caps and history: Nasdaq public endpoints via serve.py · crypto: CoinGecko · FX: ECB (Frankfurter) · ' +
     'news: Google News RSS · fundamentals: SEC XBRL or your own CSV/AI input. Nothing is invented. Not investment advice.</div>';
   $('rail').innerHTML = html;
@@ -5554,10 +5728,9 @@ function rsFxFrame(now){
     var swell = .5 + .5 * Math.sin((x * 1.4 - t * .22) * Math.PI * 2);                     // Agent: one slow wave
     var eq = .35 + .65 * Math.abs(Math.sin(c * .55 + t * 4.2) * Math.cos(c * .21 - t * 2.7)); // Research: equalizer columns
     var wave = .5 + .24 * Math.sin((x * 1.7 - t * .62) * Math.PI * 2) + .13 * Math.sin((x * 3.4 + t * .95) * Math.PI * 2) + .06 * Math.sin((x * 7 - t * 1.7) * Math.PI * 2);   // Quant: the sea surface
-    if(wP > .001){   // Predict: green and red bands; phase x + t, so they travel left
-      var gr = .5 + .5 * Math.sin((x * 2.2 + t * .45) * Math.PI * 2);
-      var up = light ? [22, 163, 74] : [34, 214, 102], dn = light ? [220, 38, 38] : [248, 72, 72];
-      col = [0, 1, 2].map(function(i){ return Math.round(mix[i] + (dn[i] + (up[i] - dn[i]) * gr) * wP); }).join(',');
+    if(wP > .001){   // Predict: the Forecast button's colours, fixed in place: purple on the left, pink on the right
+      var pu = light ? [109, 70, 220] : [139, 92, 246], pk = light ? [214, 70, 110] : [240, 112, 138];
+      col = [0, 1, 2].map(function(i){ return Math.round(mix[i] + (pu[i] + (pk[i] - pu[i]) * x) * wP); }).join(',');
     }
     for(var r = 0; r < rows; r++){
       var y = rows > 1 ? r / (rows - 1) : .5, nz = RSFX.noise[c * rows + r];
@@ -5565,7 +5738,8 @@ function rsFxFrame(now){
       var lit = (1 - y) < eq ? 1 : .28;
       var a1 = (.12 + .5 * x) * lit * (.45 + .9 * nz);
       var dep = wave - (1 - y), a2 = dep < 0 ? .03 : (.14 + .5 * Math.exp(-dep * 7)) * (.6 + .7 * nz);   // brightest at the crest, dimmer in the deep
-      var a3 = (.13 + .24 * (.5 + .5 * Math.sin((x * 2 + y * .8 + t * .45) * Math.PI * 2))) * (.6 + .7 * nz);
+      var sw = .3 + .7 * Math.abs(Math.sin(c * .4 - t * 2.6) * Math.cos(c * .17 - t * 1.5)), crest = .5 + .5 * Math.sin((x * 1.6 - t * .55) * Math.PI * 2);   // columns swell like Research, a crest rolls right like Quant's sea
+      var a3 = ((1 - y) < sw ? .16 + .34 * crest : .04) * (.55 + .8 * nz);
       var a = a0 * wA + a1 * m + a2 * wQ + a3 * wP;
       if(a < .03) continue;
       ctx.fillStyle = 'rgba(' + col + ',' + Math.min(light ? .78 : .62, a * boost).toFixed(3) + ')';
@@ -5718,11 +5892,55 @@ function alNews(a){   // new SEC filing since the alert was set (checked every 5
 function alFire(a, detail){
   var m = { id:'m' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), aid:a.id, sym:a.sym, title:a.sym + ' · ' + alText(a),
     body:detail + (a.note ? ' — ' + a.note : ''), ts:Date.now(), read:false };
-  INBOX.unshift(m); alSave();
+  INBOX.unshift(m); alSave(); alChime();
   toast('🔔 ' + m.title);
   try{ if('Notification' in window && Notification.permission === 'granted') new Notification(m.title, { body:m.body, icon:'assets/favicon.png', tag:m.id }); }catch(e){}
   if($('inboxPanel') && !$('inboxPanel').hidden) alPanelPaint();
 }
+
+/* ---- Sound: a short two-note chime (Web Audio, nothing to download); Settings -> Notifications turns it off ---- */
+function alChime(){
+  if(CFG.sound === false) return;
+  try{
+    var A = window.AudioContext || window.webkitAudioContext; if(!A) return;
+    AL.ac = AL.ac || new A(); var ac = AL.ac; if(ac.state === 'suspended') ac.resume();
+    [[880, 0], [1320, .13]].forEach(function(n){
+      var o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + n[1];
+      o.type = 'sine'; o.frequency.value = n[0]; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.18, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .35);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + .4);
+    });
+  }catch(e){}
+}
+/* ---- Portfolio / watchlist news pushed to the inbox (every 5 minutes while the app is open) ---- */
+var NP = { seen:load('fh3_newsSeen', {}), timer:0 };
+function npSyms(){
+  var out = [];
+  Object.keys(PFS).forEach(function(id){ PFS[id].holdings.forEach(function(h){ out.push(dispSym(h.s)); }); });
+  Object.keys(LISTS).forEach(function(id){ (LISTS[id].syms || []).forEach(function(s){ out.push(dispSym(s)); }); });
+  return out.filter(function(s, i){ return s && out.indexOf(s) === i; }).slice(0, 12);   // ponytail: 12 symbols per cycle caps the request load
+}
+function npTick(){
+  if(CFG.newsPush === false || (document.hidden && Date.now() - (NP.last || 0) < 900000)) return;
+  NP.last = Date.now();
+  var fresh = [];
+  Promise.all(npSyms().map(function(sym){
+    return fetchNews(sym + ' stock', 5).then(function(items){
+      var seen = NP.seen[sym], first = !seen; seen = NP.seen[sym] = seen || [];
+      items.forEach(function(it){ if(seen.indexOf(it.link) < 0){ seen.unshift(it.link); if(!first) fresh.push({ sym:sym, it:it }); } });
+      NP.seen[sym] = seen.slice(0, 40);   // the first pass for a symbol only records what is already out, so adding a stock does not flood the inbox
+    }).catch(function(){});
+  })).then(function(){
+    save('fh3_newsSeen', NP.seen);
+    fresh.slice(0, 5).forEach(function(f){
+      INBOX.unshift({ id:'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), sym:f.sym, title:f.sym + ' · ' + f.it.title, body:f.it.src || 'News', ts:Date.now(), read:false, news:1 });
+    });
+    if(!fresh.length) return;
+    alSave(); alChime(); toast('📰 ' + fresh[0].sym + ' · ' + fresh[0].it.title);
+    try{ if('Notification' in window && Notification.permission === 'granted') new Notification(fresh[0].sym + ' news' + (fresh.length > 1 ? ' (+' + (Math.min(fresh.length, 5) - 1) + ' more)' : ''), { body:fresh[0].it.title, icon:'assets/favicon.png', tag:'news' }); }catch(e){}
+    if($('inboxPanel') && !$('inboxPanel').hidden) alPanelPaint();
+  });
+}
+function npStart(){ clearInterval(NP.timer); if(CFG.newsPush === false) return; NP.timer = setInterval(npTick, 300000); setTimeout(npTick, 8000); }
 
 /* ---- New Alert dialog ---- */
 function alNew(sym, id){
@@ -6271,7 +6489,7 @@ function renderMarket(sec){
       '<button data-act="mk-zoom" data-z="0" title="Reset view" aria-label="Reset view">' + railSvg('M12 5V2L8 6l4 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z', 15) + '</button></div>' +
       '<div class="mk-legend"><span><i class="up"></i>Up today</span><span><i class="down"></i>Down today</span><span class="mut">Hover for details · click to chart · pinch or + / \u2212 to zoom</span></div></div>' +
     '</div></div>' +
-    '<div class="section card mk-detail" id="mkDetail"><div class="chart-wrap" id="mkChartWrap"><div id="mkDetHead"></div><div class="chart-toolbar">' + indBtnHTML() + '<span class="grow"></span>' + fsBtnHTML() + '</div>' + indPanelHTML() + '<div class="chart-row">' + DR.barHTML() + '<div class="chart-col"><div class="chart-box ch-md" id="mkChartHost"></div><div id="indPanes"></div></div></div><div class="legend" id="mkInd">' + indChipsHTML() + '</div></div><div class="mk-stats" id="mkStats"></div></div>' +
+    '<div class="section card mk-detail" id="mkDetail"><div class="chart-wrap" id="mkChartWrap"><div id="mkDetHead"></div><div class="chart-toolbar">' + indBtnHTML() + '<span class="grow"></span>' + fsBtnHTML() + '</div>' + indPanelHTML() + mhHTML() + '<div class="chart-row">' + DR.barHTML() + '<div class="chart-col"><div class="chart-box ch-md" id="mkChartHost"></div><div id="indPanes"></div></div></div><div class="legend" id="mkInd">' + indChipsHTML() + '</div></div><div class="mk-stats" id="mkStats"></div></div>' +
     '<div class="section"><div class="section-head"><h2 id="mkListH">Indices</h2><div class="seg mk-sort" id="mkSort"></div></div><div class="mk-list" id="mkList"></div></div>' +
     MK_SECS.map(function(g){ return '<div class="section" id="mk-' + g[0] + '"><div class="section-head"><h2>' + esc(g[1]) + '</h2></div><div class="mk-grid" id="mkg-' + g[0] + '"></div></div>'; }).join('') +
     footerHTML();
@@ -8261,6 +8479,7 @@ function paintQuote(){
     '</div>';
 
   html += indPanelHTML();
+  html += mhHTML();
   html += '<div class="chart-row">' + DR.barHTML() + '<div class="chart-col"><div class="chart-box" id="chartHost"></div><div id="indPanes"></div></div></div>';
 
   html += '<div class="range-row"><div class="pills">' +
@@ -8305,6 +8524,27 @@ function chartFs(force){
 document.addEventListener('fullscreenchange', function(){ if(!document.fullscreenElement){ var w = $('chartWrap') || $('mkChartWrap'); if(w && w.classList.contains('fs')) chartFs(false); } });
 document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && document.body.classList.contains('chart-fs') && !$('dlgRoot').firstChild) chartFs(false); });
 window.addEventListener('hashchange', function(){ document.body.classList.remove('chart-fs'); });
+
+/* ---- Market hours line above the chart (US exchanges, shown in the viewer's own time zone; Settings -> Appearance turns it off) ---- */
+function mhText(){
+  var p = {}; new Intl.DateTimeFormat('en-US', { timeZone:'America/New_York', weekday:'short', hour:'numeric', minute:'numeric', hour12:false }).formatToParts(new Date()).forEach(function(x){ p[x.type] = x.value; });
+  var wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(p.weekday), m = (+p.hour % 24) * 60 + +p.minute, B = [240, 570, 960, 1200];   // pre 4:00, open 9:30, close 16:00, after-hours end 20:00 (ET)
+  var trade = wd > 0 && wd < 6, st = !trade ? 'closed' : m < B[0] ? 'closed' : m < B[1] ? 'pre' : m < B[2] ? 'open' : m < B[3] ? 'post' : 'closed';
+  var at = function(min){   // a minutes-from-now offset as a local clock time
+    var d = new Date(Date.now() + min * 60000), t = d.toLocaleTimeString([], { hour:'numeric', minute:'2-digit', timeZoneName:'short' });
+    return (d.toDateString() !== new Date().toDateString() ? d.toLocaleDateString([], { weekday:'short' }) + ' ' : '') + t;
+  };
+  var inn = function(min){ return min >= 60 ? Math.floor(min / 60) + 'h ' + (min % 60) + 'm' : min + 'm'; };
+  var next = function(target){ for(var k = 0; k < 8; k++){ var wk = (wd + k) % 7, ok = wk > 0 && wk < 6, mins = k * 1440 + target - m; if(ok && mins > 0) return mins; } return 0; };   // ponytail: exchange holidays are not modelled
+  if(st === 'pre') return 'Pre-market · regular session opens ' + at(B[1] - m) + ' (in ' + inn(B[1] - m) + ')';
+  if(st === 'open') return 'Market open · closes ' + at(B[2] - m) + ' (in ' + inn(B[2] - m) + ') · after-hours until ' + at(B[3] - m);
+  if(st === 'post') return 'After-hours · ends ' + at(B[3] - m) + ' (in ' + inn(B[3] - m) + ')';
+  var n = next(B[0]), o = next(B[1]);
+  return 'Market closed · pre-market opens ' + at(n) + ' · regular session ' + at(o) + ' (in ' + inn(o) + ')';
+}
+function mhHTML(){ return CFG.mHours === false ? '' : '<div class="mh-line" data-mh>' + esc(mhText()) + '</div>'; }
+function mhPaint(){ $$('[data-mh]').forEach(function(el){ if(CFG.mHours === false) el.remove(); else el.textContent = mhText(); }); }
+setInterval(mhPaint, 30000);
 
 /* ------------------------------------------------------------ indicators (maths and drawing: indicators.js) */
 CUR.inds = (function(){
@@ -8406,7 +8646,7 @@ function indSpecs(c){
 function indOverlays(c, r){
   return indSpecs(c).filter(function(x){ return x.def.kind === 'ov' || x.def.kind === 'prof'; }).map(function(x){
     return { spec:x.spec, draw:function(g){
-      return x.def.kind === 'prof' ? IND.profile(x.spec, g, x.def, x.it.p, { key:function(i){ var d = r[i].d; return CH_INTRA[c.lv] ? d : c.lv === 'd' ? d.slice(0, 7) : d.slice(0, 4); } }) : IND.overlay(x.spec, g);
+      return x.def.kind === 'prof' ? IND.profile(x.spec, g, x.def, x.it.p, { dx:x.it.dx, key:function(i){ var d = r[i].d; return CH_INTRA[c.lv] ? d : c.lv === 'd' ? d.slice(0, 7) : d.slice(0, 4); } }) : IND.overlay(x.spec, g);
     } };
   });
 }
@@ -8448,10 +8688,50 @@ function paintQuotePanel(){
   if(t === 'overview') panel.innerHTML = overviewHTML();
   else if(t === 'analysis') panel.innerHTML = analysisHTML();
   else if(t === 'earnings') panel.innerHTML = earningsTabHTML();
-  else if(t === 'financials') panel.innerHTML = financialsHTML();
+  else if(t === 'financials') panel.innerHTML = FD.html();
   else if(t === 'holdings') panel.innerHTML = holdingsHTML();
   else panel.innerHTML = researchTabHTML();
-  if(t === 'financials') drawFinChart();
+  if(t === 'financials') FD.draw();
+}
+
+/* --- Trading data grid (stocks and ETFs differ, like a broker's quote sheet) --------------- */
+function qsHTML(sym, q){
+  var d = DATA.summary[sym] && DATA.summary[sym].raw; if(!d || d.close == null) return '';
+  var etf = d.type === 'fund' || kindOf(sym) === 'etf';
+  var n = function(k){ return numOf(d[k]); }, close = n('close'), chg = n('change'), prev = close != null && chg != null ? close / (1 + chg / 100) : (q && q.pc), hi = n('high'), lo = n('low'), op = n('open'), vol = n('volume'), tv = n('Value.Traded');
+  var shares = etf ? n('shares_outstanding') : n('total_shares_outstanding'), flt = n('float_shares_outstanding'), eps = n('earnings_per_share_diluted_ttm');
+  var px = function(v){ return v == null ? '—' : num(v, 3); }, pc = function(v){ return v == null ? '—' : num(v, 2) + '%'; }, big = function(v){ return v == null ? '—' : compact(v); };
+  var vs = function(v){ return v == null || prev == null ? '' : v >= prev ? 'up' : 'down'; };
+  var yld = n('dividends_yield');
+  var C = [];
+  var add = function(l, v, cls){ C.push('<div class="qs-c"><span>' + l + '</span><b class="' + (cls || '') + '">' + v + '</b></div>'); };
+  add('High', px(hi), vs(hi)); add('Open', px(op), vs(op)); add('Volume', big(vol));
+  add('Low', px(lo), vs(lo)); add('Prev Close', px(prev), 'mut'); add('Turnover', big(tv));
+  if(etf){
+    var nav = n('nav');
+    add('AUM', big(n('aum'))); add('Range %', hi != null && lo != null && prev ? pc((hi - lo) / prev * 100) : '—'); add('Total Shares', big(shares));
+    add('Vol Ratio', n('relative_volume_intraday|5') == null ? '—' : num(n('relative_volume_intraday|5'), 2)); add('Div. Yield', pc(yld)); add('Premium', nav ? pc((close - nav) / nav * 100) : '—');
+    add('52wk High', px(n('price_52_week_high')), 'up'); add('Highest', px(n('High.All')), 'up'); add('NAV', px(nav));
+    add('52wk Low', px(n('price_52_week_low')), 'down'); add('Lowest', px(n('Low.All')), 'down'); add('Avg Price', px(vol && tv ? tv / vol : null), vs(vol && tv ? tv / vol : null));
+    add('Lot Size', '1'); add('Turnover %', vol && shares ? pc(vol / shares * 100) : '—');
+  } else {
+    var mc = n('market_cap_basic'), fy = n('earnings_per_share_fy'), fw = n('earnings_per_share_forecast_next_fy');
+    add('Mkt Cap', big(mc)); add('Float Mkt Cap', flt && close ? big(flt * close) : '—'); add('P/E TTM', n('price_earnings_ttm') == null ? '—' : num(n('price_earnings_ttm'), 2));
+    add('Total Shares', big(shares)); add('Free Float', big(flt)); add('P/E LFY', fy && close ? num(close / fy, 2) : '—');
+    add('P/B', n('price_book_fq') == null ? '—' : num(n('price_book_fq'), 3)); add('Dividend TTM', yld != null && close ? num(yld * close / 100, 3) : '—'); add('Div Yield', pc(yld));
+    add('P/E FWD', fw && close ? num(close / fw, 2) : '—'); add('Vol Ratio', n('relative_volume_intraday|5') == null ? '—' : num(n('relative_volume_intraday|5'), 2)); add('Avg Price', px(vol && tv ? tv / vol : null), vs(vol && tv ? tv / vol : null));
+    add('52wk High', px(n('price_52_week_high')), 'up'); add('Highest', px(n('High.All')), 'up'); add('Range %', hi != null && lo != null && prev ? pc((hi - lo) / prev * 100) : '—');
+    add('52wk Low', px(n('price_52_week_low')), 'down'); add('Lowest', px(n('Low.All')), 'down'); add('Turnover %', vol && flt ? pc(vol / flt * 100) : '—');
+    add('Beta', n('beta_1_year') == null ? '—' : num(n('beta_1_year'), 3)); add('Lot Size', '1');
+  }
+  var post = n('postmarket_close'), pre = n('premarket_close'), ext = post != null ? ['Post Mkt', post, n('postmarket_change'), n('postmarket_high'), n('postmarket_low'), n('postmarket_volume')] : pre != null ? ['Pre Mkt', pre, n('premarket_change'), n('premarket_high'), n('premarket_low'), n('premarket_volume')] : null, x = '';
+  if(ext && prev){
+    var ca = ext[1] - close, cls = ext[2] == null ? '' : ext[2] >= 0 ? 'up' : 'down';
+    x = '<div class="qs-ext"><div class="qs-eh"><b>' + ext[0] + '</b> <span class="' + cls + '">' + px(ext[1]) + ' &nbsp;' + (ca >= 0 ? '+' : '') + num(ca, 3) + ' &nbsp;' + (ext[2] == null ? '' : (ext[2] >= 0 ? '+' : '') + num(ext[2], 2) + '%') + '</span></div><div class="qs-g">' +
+      '<div class="qs-c"><span>High</span><b class="' + vs(ext[3]) + '">' + px(ext[3]) + '</b></div><div class="qs-c"><span>Low</span><b class="' + vs(ext[4]) + '">' + px(ext[4]) + '</b></div><div class="qs-c"><span>Volume</span><b>' + big(ext[5]) + '</b></div>' +
+      '<div class="qs-c"><span>Turnover</span><b>' + (ext[5] ? big(ext[5] * ext[1]) : '—') + '</b></div></div></div>';
+  }
+  return '<div class="section"><h2 style="margin-bottom:8px">Trading data</h2><div class="card"><div class="qs-g">' + C.join('') + '</div>' + x + '</div></div>';
 }
 
 /* --- Overview ----------------------------------------------------------- */
@@ -8514,17 +8794,10 @@ function overviewHTML(){
   var divAnn = pick('AnnualizedDividend', 'Annualized Dividend');
   var shares = numOf(pick('SharesOutstanding', 'Shares Outstanding'));
   var tgt = pick('OneYrTarget', '1 Year Target');
+  html += qsHTML(sym, q);
   html += '<div class="section"><h2 style="margin-bottom:8px">Key stats</h2><div class="stat-grid">' +
-    statKV('Mkt. cap', mcap ? money(mcap, cur) : '—') +
-    statKV('52-wk high', hi52 == null ? '—' : num(hi52, 2)) +
     statKV('Avg. vol.', avgVol == null ? '—' : compact(avgVol)) +
-    statKV('52-wk low', lo52 == null ? '—' : num(lo52, 2)) +
-    statKV('Volume', pick('ShareVolume', 'Share Volume') || (q.v ? compact(q.v) : '—')) +
     statKV('EPS', eps == null ? '—' : num(eps, 2)) +
-    statKV('Dividend', divAnn ? divAnn + (dyield != null ? ' (' + num(dyield, 2) + '%)' : '') : (dyield != null ? num(dyield, 2) + '%' : '—')) +
-    statKV('Beta (1Y vs SPY)', st.beta == null ? '—' : num(st.beta, 2)) +
-    statKV('P/E ratio', pe != null ? num(pe, 2) : ((eps && q.c) ? num(q.c / eps, 2) : '—')) +
-    statKV('Shares outstanding', shares ? compact(shares) : '—') +
     statKV('Ex-dividend date', pick('ExDividendDate', 'Ex Dividend Date') || '—') +
     statKV('1-year target', tgt || '—') +
     statKV('1-year return', st.ret1y == null ? '—' : pct(st.ret1y)) +
@@ -10060,6 +10333,22 @@ function srcHTML(m){
   return '<details class="srcs"><summary>Sources (' + s.length + ')</summary><ol>' + s.map(function(c){
     return '<li value="' + c.index + '"><a href="' + esc(c.url) + '" target="_blank" rel="noopener noreferrer">' + esc(c.title || c.url) + '</a></li>'; }).join('') + '</ol></details>';
 }
+/* One hero card at the top of every Marvell mode's start screen, tinted by the pane's --mc / --mc2 accent. */
+var MODE_HERO = {
+  chat:{ t:'Ask Marvell', i:'M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z',
+    p:'Your market co-pilot. Ask about any ticker, your portfolio or today’s news and get answers built on live data.', f:['Live prices', 'Your portfolio', 'Cited sources'] },
+  research:{ t:'Deep Research', i:'M7 9H2V7h5v2zm0 3H2v2h5v-2zm13.59 7-3.83-3.83c-.8.52-1.74.83-2.76.83-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5c0 1.02-.31 1.96-.83 2.75L22 17.59 20.59 19zM17 11c0-1.65-1.35-3-3-3s-3 1.35-3 3 1.35 3 3 3 3-1.35 3-3zM2 19h10v-2H2v2z',
+    p:'Hand Marvell a big question. It plans the work, reads filings and news, runs the numbers and writes you a cited report.', f:['Multi-step plan', 'Filings & news', 'Full report'] },
+  quant:{ t:'Quant', i:'M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z',
+    p:'Describe a strategy in plain English. Marvell writes the rules, backtests them on daily prices and projects them forward.', f:['Backtest', 'Projection', 'Live dials'] },
+  predict:{ t:'Predict', i:'M21 8c-1.45 0-2.26 1.44-1.93 2.51l-3.55 3.56c-.3-.09-.74-.09-1.04 0l-2.55-2.55C12.27 10.45 11.46 9 10 9c-1.45 0-2.27 1.44-1.93 2.52l-4.56 4.55C2.44 15.74 1 16.55 1 18c0 1.1.9 2 2 2 1.45 0 2.26-1.44 1.93-2.51l4.55-4.56c.3.09.74.09 1.04 0l2.55 2.55C12.73 16.55 13.54 18 15 18c1.45 0 2.27-1.44 1.93-2.52l3.56-3.55c1.07.33 2.51-.48 2.51-1.93 0-1.1-.9-2-2-2z',
+    p:'Forecast the next candles for any ticker with Kronos, an open-source model trained on 45+ exchanges. It runs on your own computer: free, private, no API key.', f:['Runs locally', 'Sampled paths', 'Confidence score'] }
+};
+function modeHero(k, extra){
+  var m = MODE_HERO[k];
+  return '<div class="mh"><div class="mh-top"><span class="mh-ic">' + railSvg(m.i, 22) + '</span><h2>' + m.t + '</h2>' + (extra || '') + '</div><p>' + m.p + '</p>' +
+    '<div class="mh-feats">' + m.f.map(function(x){ return '<span>' + railSvg('M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z', 13) + x + '</span>'; }).join('') + '</div></div>';
+}
 function chatRender(){
   var el = $('chat');
   if(!el) return;
@@ -10067,9 +10356,9 @@ function chatRender(){
   var msgs = sid ? chatMessages(sid) : [];
   if(!msgs.length){
     var sym = dispSym(CUR.sym), sug = [['market', 'What\u2019s moving the markets today?'], ['portfolio', 'How is my portfolio positioned?'], ['summary', 'Give me a quick read on ' + sym]];
-    el.innerHTML = '<div class="empty"><h2>What\u2019s on your mind?</h2>' +
+    el.innerHTML = '<div class="empty">' + modeHero('chat') +
       (aiReady() ? '' : '<div class="tr-row"><button type="button" class="tr-note" data-act="keys">Add an API key to start \u2192</button><button type="button" class="tr-note" data-act="tour-start">Take a quick tour</button></div>') +
-      '<div class="sug">' + sug.map(function(x){ return '<button type="button" data-act="ai" data-kind="' + x[0] + '"><span>' + esc(x[1]) + '</span>' +
+      '<div class="ex">Try asking</div><div class="sug">' + sug.map(function(x){ return '<button type="button" data-act="ai" data-kind="' + x[0] + '"><span>' + esc(x[1]) + '</span>' +
         '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>'; }).join('') + '</div>' +
       '<div class="ex">Explore</div><div class="chips">' + aiQuickHTML() + '</div></div>';
     return;
@@ -10519,8 +10808,22 @@ function renderSettingsPage(sec){
   return Promise.resolve();
 }
 function settingsAppearanceHTML(){
+  var cust = !!(CFG.up && CFG.dn && CFG.cust);
   return '<div class="card"><h3>Appearance</h3><label class="field"><span>Theme</span><select class="inp" id="setTheme" >' +
-    ['auto', 'light', 'dark'].map(function(t){ return '<option value="' + t + '"' + (CFG.theme === t || (!CFG.theme && t === 'auto') ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></label></div>';
+    ['auto', 'light', 'dark'].map(function(t){ return '<option value="' + t + '"' + (CFG.theme === t || (!CFG.theme && t === 'auto') ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></label>' +
+    '<label class="field"><span>Market hours above charts</span><select class="inp" id="setMh"><option value="1"' + (CFG.mHours === false ? '' : ' selected') + '>On</option><option value="0"' + (CFG.mHours === false ? ' selected' : '') + '>Off</option></select></label>' +
+    '<label class="field"><span>Market ticker bar</span><select class="inp" id="setTape"><option value="1"' + (CFG.tape === false ? '' : ' selected') + '>On</option><option value="0"' + (CFG.tape === false ? ' selected' : '') + '>Off</option></select></label></div>' +
+    '<div class="card"><h3>Notifications</h3><label class="field"><span>News for my portfolio and watchlists</span><select class="inp" id="setNews"><option value="1"' + (CFG.newsPush === false ? '' : ' selected') + '>On</option><option value="0"' + (CFG.newsPush === false ? ' selected' : '') + '>Off</option></select></label><label class="field"><span>Notification sound</span><select class="inp" id="setSound"><option value="1"' + (CFG.sound === false ? '' : ' selected') + '>On</option><option value="0"' + (CFG.sound === false ? ' selected' : '') + '>Off</option></select></label><div class="mut" style="font-size:13px">News checks run every 5 minutes while MercerFargo is open. Price alerts always arrive.</div></div>' +
+    '<div class="card"><h3>Chart colours</h3><div class="mut" style="font-size:13px;margin-bottom:10px">Up and down colours for every chart, candle and price change you see.</div>' +
+    '<label class="field"><span>Preset</span><select class="inp" id="setCcPreset"><option value="">Default (theme)</option>' +
+    CC_PRESETS.map(function(p, i){ return '<option value="' + i + '"' + (!cust && CFG.up === p[1] && CFG.dn === p[2] ? ' selected' : '') + '>' + p[0] + '</option>'; }).join('') + '<option value="c"' + (cust ? ' selected' : '') + '>Custom…</option></select></label>' +
+    (cust ? '<div class="key-row"><label class="field"><span>Up</span><input type="color" id="setCcUp" value="' + CFG.up + '"></label><label class="field"><span>Down</span><input type="color" id="setCcDn" value="' + CFG.dn + '"></label></div>' : '') + '</div>';
+}
+var CC_PRESETS = [['TradingView Classic', '#089981', '#F23645'], ['Traditional', '#26A69A', '#EF5350'], ['Bright Green & Red', '#00C853', '#FF1744'], ['Bloomberg-Inspired', '#00C176', '#FF4D4F'],
+  ['Binance Style', '#0ECB81', '#F6465D'], ['Blue & Red', '#2962FF', '#F23645'], ['Blue & Orange', '#3B82F6', '#F97316'], ['Purple & Orange', '#A855F7', '#F97316'], ['Chinese Market (red up)', '#F23645', '#089981']];
+function applyChartColors(){
+  var st = $('ccStyle'); if(!st){ st = document.createElement('style'); st.id = 'ccStyle'; document.head.appendChild(st); }
+  st.textContent = CFG.up && CFG.dn ? ':root:root:root{--fh-positive:' + CFG.up + '!important;--fh-negative:' + CFG.dn + '!important;--cc-up:' + CFG.up + ';--cc-dn:' + CFG.dn + '}' : '';
 }
 function settingsProfileHTML(){
   var a = acct();
@@ -11522,11 +11825,11 @@ function qnPaint(focus){
   }
   var cur = QS.cur;
   if(!cur){
-    host.innerHTML = '<div class="qn"><div class="qn-hero"><h2>Quant</h2><p class="mut">Describe a strategy and the conditions to test it under. Marvell writes the rules, backtests them on daily prices, projects them forward, and gives you dials to see how the results move.</p>' +
+    host.innerHTML = '<div class="qn"><div class="qn-hero">' + modeHero('quant') +
       (QS.err ? '<div class="qn-err">' + esc(QS.err) + '</div>' : '') +
       '<textarea id="qnQ" rows="4" placeholder="e.g. Buy QQQ when it closes above its 50-day average and VIX is below 20; sell when it closes below. Since 2012.">' + esc(QS.draft || '') + '</textarea>' +
       '<div class="qn-go"><span class="mut">Ctrl + Enter to run</span><span class="grow"></span>' + effBtnHTML('qn') + '<button class="btn filled sm qn-run" data-act="qn-run">Run Quant Analysis</button></div>' +
-      '<div class="qn-ex">' + QN_EXAMPLES.map(function(x){ return '<button data-act="qn-ex">' + esc(x) + '</button>'; }).join('') + '</div></div>' +
+      '<div class="ex">Try one</div><div class="qn-ex">' + QN_EXAMPLES.map(function(x){ return '<button data-act="qn-ex">' + esc(x) + '</button>'; }).join('') + '</div></div>' +
       (QN_RUNS.length ? '<div class="qn-recent"><div class="qn-dgrp">Recent tests</div>' + QN_RUNS.map(function(r){
         return '<button class="qn-rr" data-act="qn-open" data-id="' + esc(r.id) + '"><b>' + esc(r.spec.title || r.q) + '</b><span>' + esc(chatWhen(r.ts)) + ' · ' + esc(r.q.slice(0, 90)) + '</span></button>'; }).join('') + '</div>' : '') + '</div>';
     if(focus){ var q = $('qnQ'); if(q) q.focus(); }
@@ -11633,83 +11936,116 @@ document.addEventListener('keydown', function(e){
 
 /* ---- Predict mode: Kronos (NeoQuasar/Kronos-base), a candlestick foundation model, runs on the user's own machine
    (kronos/kronos_server.py on 127.0.0.1:8793). The site fetches the bars, the local model samples forecast paths. */
-var PD = { url:'http://127.0.0.1:8793', health:null, checked:false, busy:false, err:'', res:null, poll:0, os:'',
+var PD = { url:'http://127.0.0.1:8793', tape:[], health:null, checked:false, busy:false, err:'', res:null, poll:0, os:'',
   form:load('fh3_pd', { sym:'', tf:'1D', h:20, n:8 }) };
 var PD_SITE = 'https://innocentbear67-mercury.github.io/Mercer-Fargo';
 function pdBase(){ return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(location.origin) ? location.origin : PD_SITE; }
 function pdOS(){ return PD.os || (/Win/i.test(navigator.platform || navigator.userAgent) ? 'win' : /Mac/i.test(navigator.platform || navigator.userAgent) ? 'mac' : 'linux'); }
-function pdHue(h, light){   // spectrum colour for the chart's sampled paths, as [r,g,b]
-  var l = light ? .46 : .62, s = .9, k = function(n){ var q = (n + h / 30) % 12; return Math.round(255 * (l - s * Math.min(l, 1 - l) * Math.max(-1, Math.min(q - 3, 9 - q, 1)))); };
-  return [k(0), k(8), k(4)];
-}
 function pdCheck(){
   var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, to = setTimeout(function(){ if(ctl) ctl.abort(); }, 2500);
   return fetch(PD.url + '/health', { signal:ctl ? ctl.signal : undefined }).then(function(r){ return r.json(); })
-    .then(function(j){ PD.health = j && j.ok ? j : null; }, function(){ PD.health = null; })
+    .then(function(j){ PD.health = j && j.ok ? j : null; if(PD.health){ PD.waking = 0; try{ localStorage.setItem('pdSeen', '1'); }catch(e){} } }, function(){ PD.health = null; })
     .then(function(){ clearTimeout(to); PD.checked = true; });
 }
 function pdStopPoll(){ if(PD.poll){ clearInterval(PD.poll); PD.poll = 0; } }
 function pdVisible(){ var p = $('pdPane'), d = $('drawer'); return p && !p.hidden && d && d.classList.contains('open'); }
 function pdPaint(){
   var host = $('pdPane'); if(!host) return;
-  if(!PD.checked){ host.innerHTML = '<div class="qn pd"><div class="qn-busy"><div class="qn-pulse"></div><h3>Looking for Marvell Predict on this computer…</h3></div></div>'; pdCheck().then(pdPaint); return; }
+  var wrap = function(inner){ return '<div class="pd">' + modeHero('predict', PD_BADGE) + '<div class="kx">' + inner + '</div></div>'; };
+  if(!PD.checked){ host.innerHTML = wrap(pdHead('Looking for Marvell Predict…', 'off') + '<div class="kx-busy"><div class="kx-shimmer"></div></div>'); pdCheck().then(pdPaint); return; }
   var h = PD.health, ready = h && h.ready;
   /* Keep checking while the pane is open and the engine is missing or still loading, so the guide turns into the form by itself. */
   if(!ready && !PD.poll) PD.poll = setInterval(function(){ if(!pdVisible()) return pdStopPoll(); var was = !!(PD.health && PD.health.ready); pdCheck().then(function(){ if(!!(PD.health && PD.health.ready) !== was || !PD.health || PD.health.loading) pdPaint(); }); }, 4000);
   if(ready) pdStopPoll();
-  host.innerHTML = '<div class="qn pd">' + (!h ? pdGuideHTML() : !ready ? pdLoadingHTML(h) : pdFormHTML() + pdResultHTML()) + '</div>';
+  host.innerHTML = wrap(!h ? (pdSeen() || PD.waking ? pdWakeHTML() : pdGuideHTML()) : !ready ? pdLoadingHTML(h) : pdFormHTML());
   if(ready && PD.res) pdChart();
 }
-var PD_BADGE = '<a class="pd-by" href="https://huggingface.co/NeoQuasar/Kronos-base" target="_blank" rel="noopener" title="Kronos-base on Hugging Face"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 3 7-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><small>POWERED BY</small><b>Kronos AI</b></a>';
+function pdSeen(){ try{ return !!localStorage.getItem('pdSeen'); }catch(e){ return false; } }
+/* After the one-time install, the site wakes the local server through the marvell-predict:// link the server registers on launch. */
+function pdWake(){
+  PD.waking = Date.now(); PD.checked = true;
+  var a = document.createElement('a'); a.href = 'marvell-predict://start'; document.body.appendChild(a); a.click(); a.remove();
+  pdStopPoll(); PD.poll = setInterval(function(){ if(!pdVisible()) return pdStopPoll(); pdCheck().then(function(){ pdPaint(); }); }, 1500);
+  pdPaint();
+}
+function pdWakeHTML(){
+  var w = PD.waking, slow = w && Date.now() - w > 20000, os = pdOS();
+  return pdHead(w ? 'Waking Kronos…' : 'Kronos is asleep', 'off', w ? '' : '<button data-act="pd-retry">Check again</button>') +
+    '<div class="kx-wake"><h3>' + (w ? 'Starting on your computer…' : 'Wake Kronos up') + '</h3>' +
+    '<p>' + (w ? 'Loading takes 10–30 seconds. This page switches to the forecast form by itself.' : 'Kronos is already installed. One click starts it in the background; no window to keep open.') + '</p>' +
+    '<button class="kx-go' + (w ? ' on' : '') + '" data-act="pd-wake"' + (w && !slow ? ' disabled' : '') + '>' + railSvg('M8 5v14l11-7z', 18) + ' ' + (w ? (slow ? 'Try again' : 'Starting…') : 'Start Kronos') + '</button>' +
+    (slow ? '<p>Nothing happened? Your browser may have asked to open <b>Marvell Predict</b>: allow it (tick \u201cAlways allow\u201d). If there was no prompt, ' +
+      (os === 'win' ? 'double-click <b>Marvell Predict</b> on your Desktop' : 'double-click <b>Marvell Predict</b> on your Desktop') + ' once; after that this button works on its own.</p>' : '') +
+    '<p class="kx-keep"><b>Keep it running:</b> don\u2019t close the Marvell Predict window if one is open. Closing it stops Kronos, and you\u2019ll need to wake it again.</p>' +
+    '<p><a href="javascript:void(0)" data-act="pd-guide">Not installed yet? Show the setup guide</a></p></div>';
+}
+var PD_MARK = 'assets/kronos-mark.png';
+var PD_BADGE = '<a class="pd-by" href="https://huggingface.co/NeoQuasar/Kronos-base" target="_blank" rel="noopener" title="Kronos-base on Hugging Face"><img src="' + PD_MARK + '" alt="" width="20" height="20"><small>POWERED BY</small><b>Kronos AI</b></a>';
+function pdHead(status, cls, extra){
+  return '<div class="kx-head">' +
+    '<span class="kx-pill' + (cls ? ' ' + cls : '') + '"><i></i>' + status + (extra || '') + '</span></div>';
+}
 function pdLoadingHTML(h){
-  return '<div class="qn-hero pd-hero"><h2>Predict</h2>' + PD_BADGE + '</div>' + (h.error
-    ? '<div class="qn-err"><b>Kronos could not load.</b> ' + esc(h.error) + '<br>Close the Marvell Predict window and run the installer again; it repairs a broken setup.</div>'
-    : '<div class="qn-busy"><div class="qn-pulse"></div><h3>Connected. Loading Kronos-base into memory…</h3><p class="mut">Usually 10–30 seconds. This page updates by itself.</p></div>');
+  return pdHead(h.error ? 'Engine error' : 'Connected', h.error ? 'off' : '') + (h.error
+    ? '<div class="kx-err"><b>Kronos could not load.</b> ' + esc(h.error) + '<br>Close the Marvell Predict window and run the installer again; it repairs a broken setup.</div>'
+    : '<div class="kx-busy"><div class="kx-shimmer"></div><div class="kx-step"><i></i>Loading Kronos-base into memory…</div><div class="kx-dim">Usually 10–30 seconds. This page updates by itself.</div><p class="kx-keep"><b>Keep it running:</b> don\u2019t close the Marvell Predict window. Closing it stops Kronos, and you\u2019ll need to wake it again.</p></div>');
 }
 function pdGuideHTML(){
   var os = pdOS(), base = pdBase(), env = base === PD_SITE ? '' : 'MARVELL_BASE=' + base + ' ';
   var shOne = 'curl -fsSL ' + base + '/kronos/install.sh | ' + env + 'bash';
   var shFile = 'bash ~/Downloads/install-marvell-predict.sh';
   var tab = function(k, l){ return '<button class="' + (os === k ? 'on' : '') + '" data-act="pd-os" data-os="' + k + '">' + l + '</button>'; };
-  var copy = function(cmd){ return '<div class="pd-cmd"><code>' + esc(cmd) + '</code><button class="btn text sm" data-act="pd-copy" data-cmd="' + esc(cmd) + '">Copy</button></div>'; };
+  var copy = function(cmd){ return '<div class="pd-cmd"><code>' + esc(cmd) + '</code><button data-act="pd-copy" data-cmd="' + esc(cmd) + '">Copy</button></div>'; };
+  var dl = function(l){ return '<button class="kx-go pd-dl" data-act="pd-dl">' + railSvg('M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z', 18) + ' Download for ' + l + '</button>'; };
   var steps = os === 'win'
-    ? '<li><b>Download the installer.</b><button class="btn filled sm pd-dl" data-act="pd-dl">' + railSvg('M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z', 16) + ' Download for Windows</button></li>' +
+    ? '<li><b>Download the installer.</b>' + dl('Windows') + '</li>' +
       '<li><b>Double-click <code>install-marvell-predict.bat</code></b> in your Downloads. If Windows shows “Windows protected your PC”, click <i>More info</i> → <i>Run anyway</i>.</li>' +
       '<li><b>Wait for “Done”.</b> The first install takes 5–15 minutes. Leave the window open: that window is Marvell Predict running.</li>'
-    : '<li><b>Download the installer.</b><button class="btn filled sm pd-dl" data-act="pd-dl">' + railSvg('M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z', 16) + ' Download for ' + (os === 'mac' ? 'Mac' : 'Linux') + '</button></li>' +
+    : '<li><b>Download the installer.</b>' + dl(os === 'mac' ? 'Mac' : 'Linux') + '</li>' +
       '<li><b>Open Terminal and run it.</b> ' + (os === 'mac' ? 'Press <kbd>⌘</kbd> <kbd>Space</kbd>, type <i>Terminal</i>, press Return, then paste:' : 'Paste this into a terminal:') + copy(shFile) +
-      '<span class="mut pd-or">Or skip the download and paste this one line instead:</span>' + copy(shOne) + '</li>' +
+      // ponytail: macOS blocks pasting "curl … | bash" into Terminal as malware, so Mac gets the download route only
+      (os === 'mac' ? '' : '<span class="pd-or">Or skip the download and paste this one line instead:</span>' + copy(shOne)) + '</li>' +
       '<li><b>Wait for “Done”.</b> The first install takes 5–15 minutes. Leave the window open: that window is Marvell Predict running.</li>';
-  return '<div class="qn-hero"><div class="pd-hero"><h2>Predict</h2>' + PD_BADGE + '</div><p class="mut">Forecast the next candles for any ticker with <b>Kronos</b>, an open-source model trained on candlesticks from 45+ exchanges. It runs on your own computer: free, private, no API key.</p></div>' +
-    '<div class="pd-status"><i></i><span>Marvell Predict isn\'t running on this computer.</span><span class="grow"></span><button class="btn text sm" data-act="pd-retry">Check again</button></div>' +
-    '<div class="qn-box pd-guide"><div class="pd-os" role="tablist" aria-label="Your system">' + tab('mac', 'macOS') + tab('win', 'Windows') + tab('linux', 'Linux') + '</div>' +
+  return pdHead('Not running on this computer', 'off', '<button data-act="pd-retry">Check again</button>') +
+    '<p class="pd-next" style="margin:0">Already installed? <a href="javascript:void(0)" data-act="pd-wake">Start Kronos</a></p>' +
+    '<div class="kx-guide"><div class="pd-os" role="tablist" aria-label="Your system">' + tab('mac', 'macOS') + tab('win', 'Windows') + tab('linux', 'Linux') + '</div>' +
     '<h3>First-time setup</h3><ol class="pd-steps">' + steps +
     '<li><b>Come back here.</b> This tab connects by itself once the model is up.</li></ol>' +
-    '<p class="mut pd-next">Next time, double-click <b>Marvell Predict</b> on your Desktop' + (os === 'linux' ? ' (or run <code>~/.marvell-kronos/start.sh</code>)' : '') + ' before you open this tab.</p></div>' +
-    '<details class="qn-box"><summary>What the installer does</summary><ul class="pd-list">' +
+    '<p class="pd-next">Don\u2019t close the Marvell Predict window while you use this tab: closing it stops Kronos and you\u2019ll need to wake it again.</p><p class="pd-next">Next time, double-click <b>Marvell Predict</b> on your Desktop' + (os === 'linux' ? ' (or run <code>~/.marvell-kronos/start.sh</code>)' : '') + ' before you open this tab. It updates itself when it starts.</p></div>' +
+    '<details><summary>What the installer does</summary><ul class="pd-list">' +
     '<li>Puts everything in one folder, <code>' + (os === 'win' ? '%USERPROFILE%\\.marvell-kronos' : '~/.marvell-kronos') + '</code>. Delete that folder to uninstall. No admin password needed.</li>' +
     '<li>Installs <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener">uv</a>, which brings its own Python 3.11, so you don\'t need Python already.</li>' +
     '<li>Downloads PyTorch (~1 GB), the <a href="https://github.com/shiyu-coder/Kronos" target="_blank" rel="noopener">Kronos code</a> (pinned version) and the <a href="https://huggingface.co/NeoQuasar/Kronos-base" target="_blank" rel="noopener">Kronos-base weights</a> (~400 MB) from Hugging Face.</li>' +
     '<li>Runs a test forecast, then starts a small server that only listens on this computer (<code>127.0.0.1:8793</code>) and only answers this site.</li>' +
     '<li>Uses your GPU when it can: Apple Silicon (Metal) or NVIDIA (CUDA); otherwise the CPU, which is slower but works.</li></ul></details>' +
-    '<details class="qn-box"><summary>Trouble connecting?</summary><ul class="pd-list">' +
+    '<details><summary>Trouble connecting?</summary><ul class="pd-list">' +
     '<li>Chrome or Edge may ask to let this site <i>access devices on your local network</i>. Click <b>Allow</b>: that is how the page reaches the model on your computer.</li>' +
     '<li>Safari can block an https page from talking to your own computer. If this tab never connects in Safari, use Chrome, Edge or Firefox.</li>' +
     '<li>Is the Marvell Predict window still open, and does it say <i>listening on http://127.0.0.1:8793</i>? Closing it stops the model.</li>' +
     '<li>Needs about 2 GB of free disk and 8 GB of RAM.</li></ul></details>';
 }
+function pdDev(d){ return String(d || 'computer').replace(/^cuda.*/, 'NVIDIA GPU').replace('mps', 'Apple GPU').replace('cpu', 'CPU'); }
+function pdStamp(t){ var d = new Date(t || Date.now()); return d.toLocaleDateString('en-GB', { day:'numeric', month:'short' }) + ', ' + d.toTimeString().slice(0, 5); }
 function pdFormHTML(){
   var f = PD.form, h = PD.health, sym = f.sym || (CUR.sym ? dispSym(CUR.sym) : 'SPY');
   var opt = function(v, l, cur){ return '<option value="' + v + '"' + (String(cur) === String(v) ? ' selected' : '') + '>' + l + '</option>'; };
-  return '<div class="qn-hero pd-hero"><div><h2>Predict</h2><div class="pd-status ok"><i></i><span>Kronos-base on your ' + esc(String(h.device || 'computer').replace(/^cuda.*/, 'NVIDIA GPU').replace('mps', 'Apple GPU').replace('cpu', 'CPU')) + '</span></div></div>' + PD_BADGE + '</div>' +
+  var chips = PD.tape.length > 1 ? '<div class="kx-chips" aria-label="Recent forecasts">' + PD.tape.slice().reverse().map(function(x){
+      return '<button data-act="pd-chip" data-sym="' + esc(x.sym) + '"><b>' + esc(x.sym) + '</b><em class="' + (x.chg >= 0 ? 'up' : 'dn') + '">' + esc(pct(x.chg)) + '</em></button>'; }).join('') + '</div>' : '';
+  return pdHead('Running on your ' + esc(pdDev(h.device))) +
     '<div class="pd-form">' +
-    '<label><span>Ticker</span><input class="inp" id="pdSym" value="' + esc(sym) + '" placeholder="AAPL, D05.SI, BTC" autocomplete="off" spellcheck="false"></label>' +
-    '<label><span>Candles</span><select class="inp" id="pdTf">' + opt('1D', 'Daily', f.tf) + opt('H1', 'Hourly', f.tf) + '</select></label>' +
-    '<label><span>Forecast</span><select class="inp" id="pdH">' + [5, 10, 20, 30, 60].map(function(n){ return opt(n, n + ' candles', f.h); }).join('') + '</select></label>' +
-    '<label><span>Paths</span><select class="inp" id="pdN">' + [4, 8, 16, 32].map(function(n){ return opt(n, n + ' paths', f.n); }).join('') + '</select></label>' +
-    '<button class="btn filled sm pd-run" data-act="pd-run"' + (PD.busy ? ' disabled' : '') + '>' + (PD.busy ? 'Forecasting…' : 'Forecast') + '</button></div>' +
-    (PD.err ? '<div class="qn-err">' + esc(PD.err) + '</div>' : '') +
-    (PD.busy ? '<div class="qn-busy"><div class="qn-pulse"></div><h3>Kronos is sampling ' + esc(String(f.n)) + ' futures for ' + esc(sym) + '…</h3><p class="mut">A few seconds on a GPU, up to a minute on CPU.</p></div>' : '');
+    '<label>Ticker<input class="inp" id="pdSym" value="' + esc(sym) + '" placeholder="AAPL, D05.SI, BTC" autocomplete="off" spellcheck="false"></label>' +
+    '<label>Candles<select class="inp" id="pdTf">' + opt('1D', 'Daily', f.tf) + opt('H1', 'Hourly', f.tf) + '</select></label>' +
+    '<label>Bars ahead<select class="inp" id="pdH">' + [5, 10, 20, 30, 60].map(function(n){ return opt(n, n, f.h); }).join('') + '</select></label>' +
+    '<label>Paths<select class="inp" id="pdN">' + [4, 8, 16, 32].map(function(n){ return opt(n, n, f.n); }).join('') + '</select></label>' +
+    '<button class="kx-go" data-act="pd-run"' + (PD.busy ? ' disabled' : '') + '>' + railSvg('M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z', 18) + (PD.busy ? 'Forecasting…' : 'Forecast') + '</button></div>' +
+    chips +
+    (PD.err ? '<div class="kx-err">' + esc(PD.err) + '</div>' : '') +
+    (PD.busy ? '<div class="kx-busy"><div class="kx-shimmer"></div>' +
+      '<div class="kx-step"><i></i>Loading ' + esc(sym) + ' ' + (f.tf === 'H1' ? 'hourly' : 'daily') + ' candles from Yahoo Finance</div>' +
+      '<div class="kx-step"><i></i>Sampling ' + esc(String(f.n)) + ' paths × ' + esc(String(f.h)) + ' bars on your ' + esc(pdDev(h.device)) + '</div>' +
+      '<div class="kx-step"><i></i>Checking the last 8 windows for a confidence rating</div>' +
+      '<div class="kx-dim">About 10 seconds on a GPU, up to a minute or two on CPU.</div></div>' : '') +
+    pdResultHTML();
 }
 function pdYahoo(s){
   s = dispSym(s).replace(/^SGX:/, '');
@@ -11725,11 +12061,13 @@ function pdRun(){
   var ysym = pdYahoo(f.sym), crypto = /-USD$/.test(ysym), want = { sym:f.sym, tf:f.tf, h:f.h, n:f.n };
   // The local server pulls raw candles itself: the edge worker's daily bars mix an adjusted close with raw o/h/l, which Kronos reads as a downtrend.
   fetch(PD.url + '/predict', { method:'POST', headers:{ 'Content-Type':'application/json' },
-    body:JSON.stringify({ symbol:ysym, pred_len:f.h, samples:f.n, freq:f.tf === 'H1' ? 'H' : (crypto ? 'D' : 'B'), interval_sec:3600 }) })
+    body:JSON.stringify({ symbol:ysym, backtest:8, pred_len:f.h, samples:f.n, freq:f.tf === 'H1' ? 'H' : (crypto ? 'D' : 'B'), interval_sec:3600 }) })
     .then(function(x){ return x.json().then(function(j){ if(!x.ok || j.error) throw new Error(j.error || ('Kronos error ' + x.status)); return j; }); })
     .then(function(j){
       if(!j.history) throw new Error('Marvell Predict is out of date. Run the installer again to update it.');
       PD.res = { q:want, cur:j.currency || currencyOf(f.sym), hist:j.history, out:j, stats:pdStats(j.history, j) };
+      var st = PD.res.stats; PD.res.at = Date.now();
+      PD.tape = PD.tape.filter(function(x){ return x.sym !== f.sym; }).concat([{ sym:f.sym, last:st.last, chg:(st.end.p50 / st.last - 1) * 100, h:'MED ' + f.h + (f.tf === 'H1' ? 'H' : 'D') }]).slice(-8);
   }).catch(function(e){
     PD.err = /Failed to fetch|NetworkError|Load failed/i.test(String(e.message || e)) ? 'Lost the connection to Marvell Predict. Is its window still open?' : String(e.message || e);
     pdCheck();
@@ -11747,39 +12085,110 @@ function pdStats(hist, out){
 }
 function pdResultHTML(){
   var R = PD.res; if(!R || PD.busy) return '';
-  var s = R.stats, e = s.end, chg = (e.p50 / s.last - 1) * 100, unit = R.q.tf === 'H1' ? 'hour' : (/-USD$/.test(pdYahoo(R.q.sym)) ? 'day' : 'trading day');
-  var stat = function(l, v, sub, cls){ return '<div class="qn-stat"><span>' + l + '</span><b class="' + (cls || '') + '">' + v + '</b><i>' + sub + '</i></div>'; };
-  return '<div class="qn-box qn-chart pd-chart"><div class="qn-ch"><b>' + esc(R.q.sym) + ' · next ' + R.q.h + ' ' + unit + 's</b><span class="qn-leg"><i class="pd-l-med"></i>Median<i class="pd-l-band"></i>10th–90th pct<i class="pd-l-path"></i>Sampled paths</span></div><div class="qn-svg" id="pdSvg"></div></div>' +
-    '<div class="qn-stats">' +
+  var s = R.stats, e = s.end, chg = (e.p50 / s.last - 1) * 100, up = chg >= 0, unit = R.q.tf === 'H1' ? 'hours' : 'days';
+  var stat = function(l, v, sub, cls){ return '<div class="kx-stat"><span>' + l + '</span><b class="' + (cls || '') + '">' + v + '</b><i>' + sub + '</i></div>'; };
+  return '<div class="kx-quote"><b>' + esc(R.q.sym) + '</b><strong>' + money(s.last, R.cur) + '</strong><span class="kx-cur">' + esc(R.cur || '') + '</span>' +
+      '<span class="kx-target">Median in ' + R.q.h + ' ' + unit + ' <b class="' + (up ? 'up' : 'dn') + '">' + money(e.p50, R.cur) + ' ' + (up ? '▲' : '▼') + ' ' + esc(pct(chg)) + '</b></span>' +
+      '<span class="kx-dim">' + esc(pdStamp(R.at)) + '</span></div>' +
+    '<div class="kx-chart" id="pdSvg"></div>' +
+    '<div class="kx-leg"><span><i class="l-hist"></i>History</span><span><i class="l-med"></i>Median forecast</span><span><i class="l-band"></i>10–90% range</span><span><i class="l-up"></i><i class="l-dn"></i>Sampled paths</span></div>' +
+    '<div class="kx-stats">' +
     stat('Last close', money(s.last, R.cur), esc(new Date(R.hist[R.hist.length - 1].t * 1000).toISOString().slice(0, 10))) +
-    stat('Median forecast', money(e.p50, R.cur), pct(chg), chg >= 0 ? 'up' : 'down') +
+    stat('Median target', money(e.p50, R.cur), (up ? '▲ ' : '▼ ') + esc(pct(chg)) + ' in ' + R.q.h + ' ' + unit, up ? 'up' : 'dn') +
     stat('Likely range', money(e.p10, R.cur) + ' – ' + money(e.p90, R.cur), '10th to 90th percentile') +
-    stat('Paths ending higher', num(s.up * 100, 0) + '%', R.out.paths.length + ' samples', s.up >= .5 ? 'up' : 'down') + '</div>' +
-    '<div class="qn-fine mut">Kronos-base read ' + R.out.context + ' ' + (R.q.tf === 'H1' ? 'hourly' : 'daily') + ' candles and sampled ' + R.out.paths.length + ' futures on your ' + esc(R.out.device) + ' in ' + R.out.seconds + 's. ' +
-    'A statistical model of price patterns: it knows nothing about news, earnings or the economy. ' +
-    '<b>How good is it?</b> In our backtest of 30 twenty-day forecasts across 6 tickers, Kronos was right about direction about half the time and its median was further off than simply assuming no change. Treat the fan as a range of plausible paths, not a call. Not investment advice.</div>';
+    stat('Paths ending higher', num(s.up * 100, 0) + '%', Math.round(s.up * R.out.paths.length) + ' of ' + R.out.paths.length, s.up >= .5 ? 'up' : 'dn') + '</div>' +
+    pdConfHTML(R) +
+    '<div class="kx-note"><b>How good is it?</b>In our backtest of 30 twenty-day forecasts across 6 tickers, Kronos called direction about half the time, and its median was further off than simply assuming no change. Read the fan as a range of plausible paths, not a call. ' +
+      'It is a statistical model of price patterns and knows nothing about news, earnings or the economy. Not investment advice.' +
+      '<div class="kx-dim">Kronos-base read ' + R.out.context + ' ' + (R.q.tf === 'H1' ? 'hourly' : 'daily') + ' candles and sampled ' + R.out.paths.length + ' paths on your ' + esc(pdDev(R.out.device)) + ' in ' + R.out.seconds + 's.</div></div>';
+}
+/* Confidence comes from Kronos's track record on this ticker, not from the model's own spread: across tickers its fan runs far
+   narrower than real moves (often 0.2x), so a tight fan is shown as a warning and never raises the rating. */
+function pdConfidence(R){
+  var s = R.stats, n = R.out.paths.length, tr = R.out.track, h = R.q.h;
+  var agree = Math.max(s.up, 1 - s.up);
+  var c = R.hist.map(function(b){ return b.c; }), lr = [];
+  for(var i = 1; i < c.length; i++) if(c[i] > 0 && c[i - 1] > 0) lr.push(Math.log(c[i] / c[i - 1]));
+  var mu = lr.reduce(function(a, b){ return a + b; }, 0) / (lr.length || 1);
+  var sd = Math.sqrt(lr.reduce(function(a, b){ return a + (b - mu) * (b - mu); }, 0) / Math.max(1, lr.length - 1));
+  var usual = 2.563 * sd * Math.sqrt(h) * s.last;   // 10th-90th width of a normal move over h bars at this stock's own volatility
+  var ratio = usual ? (s.end.p90 - s.end.p10) / usual : null;
+  var lvl, why, sym = R.q.sym, win = h + (R.q.tf === 'H1' ? 'H' : 'D');
+  if(!tr){ lvl = 'n/a'; why = 'No track record from this Marvell Predict version. Run the installer again to update it.'; }
+  else {
+    var hit = tr.hit / tr.n, beat = tr.beat / tr.n, better = tr.err_model <= tr.err_flat * .9, worse = tr.err_model > tr.err_flat * 1.1;   // within ±10% of “no change” is noise on 8 windows
+    var gap = Math.round(Math.abs(tr.err_model / tr.err_flat - 1) * 100);
+    if(beat < .5 || hit < .5 || worse){
+      lvl = 'low';
+      why = 'On the last ' + tr.n + ' ' + win + ' windows of ' + sym + ', Kronos ' + (worse ? 'missed by ' + gap + '% more on average than assuming no change' : 'beat “no change” only ' + tr.beat + ' time' + (tr.beat === 1 ? '' : 's')) + ', and called direction ' + tr.hit + ' of ' + tr.n + '.';
+    } else if(beat >= .625 && hit >= .625 && better && agree >= .75){
+      lvl = 'high'; why = 'On recent ' + sym + ' windows Kronos beat “no change” ' + tr.beat + ' of ' + tr.n + ' times with a ' + gap + '% smaller average miss, called direction ' + tr.hit + ' of ' + tr.n + ', and its paths agree now.';
+    } else {
+      lvl = 'med';
+      var lim = [];
+      if(!better) lim.push('its average miss was within 10% of assuming no change (' + (tr.err_model < tr.err_flat ? gap + '% smaller' : gap + '% larger') + '), so no real edge');
+      if(beat < .625 || hit < .625) lim.push('it won only ' + tr.beat + ' of ' + tr.n + ' windows and called direction ' + tr.hit + ' of ' + tr.n);
+      if(agree < .75) lim.push('the paths split on direction');
+      why = 'Kronos has roughly kept up with “no change” on recent ' + sym + ' windows, but ' + lim.join(', and ') + '.';
+    }
+  }
+  return { lvl:lvl, why:why, agree:agree, upN:Math.round(s.up * n), n:n, ratio:ratio, tr:tr, win:win };
+}
+function pdConfHTML(R){
+  var C = pdConfidence(R), L = { low:'LOW', med:'MEDIUM', high:'HIGH', 'n/a':'UNRATED' }[C.lvl], k = { low:1, med:2, high:3, 'n/a':0 }[C.lvl], lv = 'lv-' + C.lvl.replace('/', '');
+  var bar = function(f, cls){ return '<i class="kx-bar' + (cls ? ' ' + cls : '') + '"><i style="width:' + Math.round(Math.max(0, Math.min(1, f)) * 100) + '%"></i></i>'; };
+  var row = function(l, meter, v, sub){ return '<div class="kx-row"><span>' + l + '</span>' + meter + '<b>' + v + '</b><em>' + sub + '</em></div>'; };
+  var dir = C.upN * 2 >= C.n ? C.upN + ' of ' + C.n + ' paths end higher' : (C.n - C.upN) + ' of ' + C.n + ' paths end lower';
+  var tight = C.ratio != null && C.ratio < .6;
+  return '<div class="kx-conf"><div class="kx-conf-h"><span>Confidence</span><b class="kx-lv ' + lv + '">' + L + '</b>' +
+      '<i class="kx-meter" aria-hidden="true">' + [1, 2, 3].map(function(j){ return '<i class="' + (j <= k ? 'on' : '') + '"></i>'; }).join('') + '</i></div>' +
+    '<p>' + esc(C.why) + '</p>' +
+    (C.tr ? row('Track record', bar(C.tr.beat / C.tr.n), C.tr.beat + '/' + C.tr.n, 'windows that beat “no change” · direction right ' + C.tr.hit + '/' + C.tr.n) +
+      row('Average miss', bar(Math.min(1, C.tr.err_flat / C.tr.err_model)), num(C.tr.err_model * 100, 1) + '%', 'vs ' + num(C.tr.err_flat * 100, 1) + '% for “no change” · last ' + C.tr.n + ' ' + esc(C.win) + ' windows') : '') +
+    row('Path agreement', bar((C.agree - .5) * 2), num(C.agree * 100, 0) + '%', esc(dir)) +
+    (C.ratio == null ? '' : row('Fan width', bar(Math.min(1, C.ratio), tight ? 'warn' : ''), num(C.ratio, 2) + '×', 'of ' + esc(R.q.sym) + '’s usual ' + esc(C.win) + ' range' + (tight ? ' · <span class="kx-warn">the fan understates risk; real outcomes spread wider</span>' : ''))) +
+    '<div class="kx-dim">Not a probability of being right. The rating comes from the track record; path agreement can only lift it to HIGH, and fan width never changes it. ' + (C.tr ? 'The same data always gives the same rating, but ' + C.tr.n + ' windows is a small sample.' : '') + '</div></div>';
 }
 function pdChart(){
   var R = PD.res, box = $('pdSvg'); if(!R || !box) return;
-  var W = 640, H = 260, padL = 8, padR = 58, padT = 10, padB = 18;
-  var hist = R.hist.slice(-Math.max(40, R.q.h * 3)), s = R.stats, n = s.band.length, N = hist.length + n;
+  if(!PD.ro && 'ResizeObserver' in window){ PD.ro = new ResizeObserver(function(){ if(PD.res && !PD.busy && $('pdSvg')) pdChart(); }); PD.ro.observe($('pdPane')); }   // panel <-> full screen: redraw so labels re-scale
+  /* Text sizes are in viewBox units; scale them up when the chart is drawn narrow so labels stay ~11px on screen. */
+  var W = 680, k = Math.min(1.9, Math.max(1, W / Math.max(300, box.clientWidth || W))), FS = 11 * k;
+  var H = 300, padL = 10, padR = Math.round(68 * k), padT = Math.round(26 * k), padB = Math.round(26 * k), FONT = "'Plus Jakarta Sans',system-ui,sans-serif";
+  var hist = R.hist.slice(-Math.max(60, R.q.h * 3)), s = R.stats, n = s.band.length, N = hist.length + n;
+  var paths = R.out.paths.slice(0, 16);
   var vals = hist.map(function(b){ return b.c; }).concat(s.band.map(function(b){ return b.p10; }), s.band.map(function(b){ return b.p90; }));
-  R.out.paths.slice(0, 12).forEach(function(p){ p.forEach(function(b){ vals.push(b.c); }); });
-  var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals), sp = (mx - mn) || 1; mn -= sp * .04; mx += sp * .04; sp = mx - mn;
+  paths.forEach(function(p){ p.forEach(function(b){ vals.push(b.c); }); });
+  var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals), sp = (mx - mn) || 1; mn -= sp * .06; mx += sp * .06; sp = mx - mn;
   var X = function(i){ return padL + i / (N - 1) * (W - padL - padR); }, Y = function(v){ return padT + (1 - (v - mn) / sp) * (H - padT - padB); };
   var line = function(pts){ return pts.map(function(p, i){ return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' '); };
-  var h0 = hist.length - 1, last = [X(h0), Y(s.last)];
-  var area = function(lo, hi){ return line([last].concat(s.band.map(function(b, i){ return [X(h0 + 1 + i), Y(b[hi])]; }))) + ' ' + line(s.band.map(function(b, i){ return [X(h0 + 1 + i), Y(b[lo])]; }).reverse().concat([last])).replace(/^M/, 'L') + 'Z'; };
-  var grid = [0, .25, .5, .75, 1].map(function(k){ var v = mn + sp * k, y = Y(v).toFixed(1);
-    return '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y + '" y2="' + y + '" stroke="var(--fh-border-stroke-default)" stroke-dasharray="2 4"/><text x="' + (W - padR + 6) + '" y="' + (+y + 4) + '" font-size="10.5" fill="var(--fh-foreground-on-surface-de-emphasis)">' + esc(num(v, v < 10 ? 3 : 2)) + '</text>'; }).join('');
-  var paths = R.out.paths.slice(0, 12).map(function(p, k){ var c = pdHue(k * 360 / Math.min(12, R.out.paths.length), document.documentElement.getAttribute('data-theme') !== 'dark').join(',');
-    return '<path d="' + line([last].concat(p.map(function(b, i){ return [X(h0 + 1 + i), Y(b.c)]; }))) + '" fill="none" stroke="rgba(' + c + ',.45)" stroke-width="1"/>'; }).join('');
-  box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" style="display:block;height:auto" role="img" aria-label="Price history and Kronos forecast">' + grid +
-    '<line x1="' + last[0].toFixed(1) + '" x2="' + last[0].toFixed(1) + '" y1="' + padT + '" y2="' + (H - padB) + '" stroke="var(--fh-border-stroke-emphasis)" stroke-dasharray="3 3"/>' +
-    '<text x="' + (last[0] + 4).toFixed(1) + '" y="' + (H - 5) + '" font-size="10.5" fill="var(--fh-foreground-on-surface-de-emphasis)">forecast →</text>' +
-    '<path d="' + area('p10', 'p90') + '" fill="rgba(56,189,248,.13)"/><path d="' + area('p25', 'p75') + '" fill="rgba(56,189,248,.2)"/>' + paths +
-    '<path d="' + line(hist.map(function(b, i){ return [X(i), Y(b.c)]; })) + '" fill="none" stroke="var(--fh-foreground-on-surface-default)" stroke-width="1.6" stroke-linejoin="round"/>' +
-    '<path d="' + line([last].concat(s.band.map(function(b, i){ return [X(h0 + 1 + i), Y(b.p50)]; }))) + '" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-dasharray="5 3"/></svg>';
+  var h0 = hist.length - 1, last = [X(h0), Y(s.last)], fx = function(i){ return X(h0 + 1 + i); };
+  var area = function(lo, hi){ return line([last].concat(s.band.map(function(b, i){ return [fx(i), Y(b[hi])]; }))) + ' ' + line(s.band.map(function(b, i){ return [fx(i), Y(b[lo])]; }).reverse().concat([last])).replace(/^M/, 'L') + 'Z'; };
+  var T = function(x, y, t, o){ o = o || {}; return '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" font-family="' + FONT + '" font-size="' + (o.s || FS) + '" fill="' + (o.c || '#8d8eab') + '"' + (o.a ? ' text-anchor="' + o.a + '"' : '') + (o.w ? ' font-weight="' + o.w + '"' : '') + '>' + t + '</text>'; };
+  var g = '';
+  for(var gi = 0; gi <= 5; gi++){ var v = mn + sp * gi / 5, y = Y(v); g += '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="rgba(255,255,255,.06)" stroke-dasharray="2 5"/>' + T(W - padR + 10, y + FS / 3, esc(num(v, v < 10 ? 3 : 2))); }
+  var day = function(t){ var d = new Date(t * 1000); return d.toLocaleDateString('en-GB', { day:'numeric', month:'short' }) + (R.q.tf === 'H1' ? ' ' + d.toTimeString().slice(0, 5) : ''); };
+  var xl = T(padL, H - FS * .6, esc(day(hist[0].t))) + T(last[0] - 6, H - FS * .6, esc(day(hist[h0].t)), { a:'end', c:'#c9c8ff' }) +
+    (W - padR - last[0] > 80 * k ? T(W - padR, H - FS * .6, esc(day(R.out.t[n - 1])), { a:'end' }) : '');   // the end date only when the forecast side has room
+  var pathsSvg = paths.map(function(p){ var upP = p[n - 1].c >= s.last;
+    return '<path d="' + line([last].concat(p.map(function(b, i){ return [fx(i), Y(b.c)]; }))) + '" fill="none" stroke="' + (upP ? 'rgba(52,211,153,.32)' : 'rgba(251,113,133,.32)') + '" stroke-width="1.1"/>'; }).join('');
+  var medEnd = [fx(n - 1), Y(s.end.p50)];
+  var tag = function(y, txt, fill, fg){ var h = FS * 1.7; return '<rect x="' + (W - padR + 4) + '" y="' + (y - h / 2).toFixed(1) + '" width="' + (padR - 6) + '" height="' + h.toFixed(1) + '" rx="' + (h / 2).toFixed(1) + '" fill="' + fill + '"/>' + T(W - padR + 4 + (padR - 6) / 2, y + FS / 3, txt, { c:fg, w:700, a:'middle' }); };
+  var histLine = line(hist.map(function(b, i){ return [X(i), Y(b.c)]; }));
+  box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" style="display:block;height:auto" role="img" aria-label="Price history and Kronos forecast fan">' +
+    '<defs><linearGradient id="kxArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8b5cf6" stop-opacity=".28"/><stop offset="1" stop-color="#4f46e5" stop-opacity="0"/></linearGradient>' +
+    '<linearGradient id="kxBand" x1="0" x2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#ff9d6c"/></linearGradient>' +
+    '<linearGradient id="kxMed" x1="0" x2="1"><stop offset="0" stop-color="#4cb8ff"/><stop offset=".5" stop-color="#c06bd8"/><stop offset="1" stop-color="#ff9d6c"/></linearGradient>' +
+    '<linearGradient id="kxTag" x1="0" x2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#ff9d6c"/></linearGradient></defs>' + g +
+    '<path d="' + area('p10', 'p90') + '" fill="url(#kxBand)" fill-opacity=".16"/><path d="' + area('p25', 'p75') + '" fill="url(#kxBand)" fill-opacity=".22"/>' + pathsSvg +
+    '<path d="' + histLine + ' L' + last[0].toFixed(1) + ' ' + (H - padB) + ' L' + X(0).toFixed(1) + ' ' + (H - padB) + 'Z" fill="url(#kxArea)"/>' +
+    '<path d="' + histLine + '" fill="none" stroke="#c9c8ff" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>' +
+    '<line x1="' + last[0].toFixed(1) + '" x2="' + last[0].toFixed(1) + '" y1="' + padT + '" y2="' + (H - padB) + '" stroke="rgba(255,255,255,.22)" stroke-dasharray="3 4"/>' +
+    T(last[0] - 8, padT - FS * .55, 'Now', { a:'end', c:'#c9c8ff', w:600 }) + T(last[0] + 8, padT - FS * .55, 'Forecast →', { c:'#ffb38f', w:600 }) +
+    '<path d="' + line([last].concat(s.band.map(function(b, i){ return [fx(i), Y(b.p50)]; }))) + '" fill="none" stroke="url(#kxMed)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<circle cx="' + last[0].toFixed(1) + '" cy="' + last[1].toFixed(1) + '" r="4.5" fill="#0d0f1e" stroke="#c9c8ff" stroke-width="2"/>' +
+    '<circle cx="' + medEnd[0].toFixed(1) + '" cy="' + medEnd[1].toFixed(1) + '" r="4.5" fill="#ff9d6c" stroke="#0d0f1e" stroke-width="2"/>' +
+    tag(last[1], esc(num(s.last, s.last < 10 ? 3 : 2)), '#c9c8ff', '#0d0f1e') + (Math.abs(medEnd[1] - last[1]) > FS * 1.8 ? tag(medEnd[1], esc(num(s.end.p50, s.end.p50 < 10 ? 3 : 2)), 'url(#kxTag)', '#fff') : '') + xl + '</svg>';
 }
 function pdInstaller(){
   var os = pdOS(), base = pdBase();
@@ -11794,7 +12203,10 @@ function pdInstaller(){
 }
 function pdAction(act, el){
   if(act === 'pd-run') pdRun();
+  else if(act === 'pd-chip'){ var si = $('pdSym'); if(si && !PD.busy){ si.value = el.getAttribute('data-sym'); pdRun(); } }
   else if(act === 'pd-retry'){ PD.checked = false; pdPaint(); }
+  else if(act === 'pd-wake') pdWake();
+  else if(act === 'pd-guide'){ try{ localStorage.removeItem('pdSeen'); }catch(e){} PD.waking = 0; pdPaint(); }
   else if(act === 'pd-os'){ PD.os = el.getAttribute('data-os'); pdPaint(); }
   else if(act === 'pd-copy'){ var c = el.getAttribute('data-cmd'); (navigator.clipboard ? navigator.clipboard.writeText(c) : Promise.reject()).then(function(){ el.textContent = 'Copied'; setTimeout(function(){ el.textContent = 'Copy'; }, 1500); }, function(){ toast('Copy failed: select the command and copy it by hand.'); }); }
   else if(act === 'pd-dl'){
@@ -11804,6 +12216,15 @@ function pdAction(act, el){
     }).catch(function(){ toast('Could not fetch the installer. Use the one-line command instead.'); });
   }
 }
+/* The side panel starts at the appbar's bottom edge: below the brand bar at the top of the page, flush with the top once the appbar sticks. */
+(function(){
+  var raf = 0;
+  function sync(){ raf = 0; var a = document.querySelector('.appbar'); if(!a) return; document.documentElement.style.setProperty('--drawer-top', Math.max(0, Math.round(a.getBoundingClientRect().bottom)) + 'px'); }
+  function soon(){ if(!raf) raf = requestAnimationFrame(sync); }
+  window.addEventListener('scroll', soon, { passive:true }); window.addEventListener('resize', soon);
+  if(window.ResizeObserver){ var bb = document.querySelector('.brandbar'); if(bb) new ResizeObserver(soon).observe(bb); }
+  sync();
+})();
 document.addEventListener('keydown', function(e){ if(e.target && e.target.id === 'pdSym' && e.key === 'Enter'){ e.preventDefault(); pdAction('pd-run'); } });
 document.addEventListener('pointermove', function(e){ if(e.target && e.target.closest && e.target.closest('#qnPane .qn-chart')) qnHover(e); });
 document.addEventListener('pointerout', function(e){ if(e.target && e.target.closest && e.target.closest('#qnPane .qn-chart') && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.qn-chart'))) qnHoverOut(e); });
@@ -12204,7 +12625,7 @@ function rsPanelHTML(){
   var prov = RS.provider || KEYS.provider || 'openrouter';
   var model = RS.model || (prov === (KEYS.provider || 'openrouter') ? (KEYS.model || '') : '') ||
     RS_DEFAULT_MODEL[prov] || AI_DEFAULT_MODEL[prov] || '';
-  var h = '<div class="section"><div class="card"><h2 class="rs-h">What should we dig into?</h2><div class="section-head rs-top">' + rsChip() +
+  var h = '<div class="section"><div class="card">' + modeHero('research') + '<div class="section-head rs-top">' + rsChip() +
     '<button class="btn text sm" data-act="rs-runs">Past runs</button>' +
     '<button class="btn text sm" data-act="keys">Keys</button></div>';
   h += rsAskHTML() + '<div class="rs-form' + (RS.running ? ' shut' : '') + '" id="rsForm"><div><div class="rs-grid"><div>' +
@@ -12529,6 +12950,7 @@ function bindEvents(){
     var el = ev.target.closest('[data-act]');
     /* Any click outside a picker collapses it, whether or not it also triggers an action. */
     if(!ev.target.closest('#aiPick, #keyPanel, #rsOpts, #rsOptsBtn, .pickmenu')) closeAiPickers();
+    if(CUR.indOpen && !ev.target.closest('#indPanel, #indBtn, #dlgRoot')){ CUR.indOpen = false; CUR.indAll = false; indPanelSync(); }
     if(!el){ closeMenu(); DR.closeFly(); return; }
     var act = el.getAttribute('data-act');
     var sym = el.getAttribute('data-sym');
@@ -12635,7 +13057,7 @@ function bindEvents(){
       case 'drawer-full': setFull(!$('drawer').classList.contains('full')); break;
       case 'drawer-tab': rsShowTab(el.getAttribute('data-tab')); break;
       case 'qn-run': case 'qn-ex': case 'qn-new': case 'qn-open': case 'qn-log': case 'qn-reset': case 'qn-refine': case 'qn-pdf': case 'qn-pdf-dl': case 'qn-log-open': case 'qn-log-del': qnAction(act, el); break;
-      case 'pd-run': case 'pd-retry': case 'pd-os': case 'pd-copy': case 'pd-dl': pdAction(act, el); break;
+      case 'pd-wake': case 'pd-guide': case 'pd-run': case 'pd-retry': case 'pd-os': case 'pd-copy': case 'pd-dl': case 'pd-chip': pdAction(act, el); break;
       case 'rs-close': closeDrawer(); break;
       case 'quote': ev.preventDefault(); go('#/quote/' + encodeURIComponent(sym)); break;
       case 'openlist': go('#/list/' + el.getAttribute('data-id')); break;
@@ -12962,7 +13384,16 @@ function bindEvents(){
     menu(this, '<div class="mhead">' + (ok ? 'Key Live' : 'Disconnected') + '</div><a class="mi" href="#/settings/ai">Manage keys</a>');
   });
   $('moreBtn').addEventListener('click', function(ev){ ev.stopPropagation(); menu(this, moreMenuHTML()); });
-  document.addEventListener('change', function(ev){ var t = ev.target; if(t.id === 'setTheme'){ CFG.theme = $('setTheme').value; saveCfg(); applyTheme(); renderSubnav(); } });
+  document.addEventListener('input', function(ev){ var t = ev.target;
+    if(t.id === 'setCcUp' || t.id === 'setCcDn'){ CFG.up = $('setCcUp').value; CFG.dn = $('setCcDn').value; saveCfg(); applyChartColors(); }
+  });
+  document.addEventListener('change', function(ev){ var t = ev.target;
+    if(t.id === 'setNews'){ CFG.newsPush = t.value === '1'; saveCfg(); npStart(); }
+    if(t.id === 'setSound'){ CFG.sound = t.value === '1'; saveCfg(); alChime(); }
+    if(t.id === 'setMh'){ CFG.mHours = t.value === '1'; saveCfg(); mhPaint(); }
+    if(t.id === 'setTape'){ CFG.tape = t.value === '1'; saveCfg(); applyTheme(); }
+    if(t.id === 'setCcPreset'){ var p = CC_PRESETS[t.value]; if(p){ CFG.up = p[1]; CFG.dn = p[2]; delete CFG.cust; } else if(t.value === 'c'){ CFG.cust = true; CFG.up = CFG.up || '#4db848'; CFG.dn = CFG.dn || '#ff5c67'; } else { delete CFG.up; delete CFG.dn; delete CFG.cust; } saveCfg(); applyChartColors(); route(); }
+    if(t.id === 'setTheme'){ CFG.theme = $('setTheme').value; saveCfg(); applyTheme(); renderSubnav(); } });
   $('signInBtn').addEventListener('click', function(ev){ ev.stopPropagation(); if(acct()) menu(this, acctMenuHTML()); else openAuth('register'); });
   $('rsBtn').addEventListener('click', rsTogglePanel);
   $('railBtn').addEventListener('click', function(){
@@ -13187,6 +13618,7 @@ function toggleTheme(){
   saveCfg(); applyTheme();
 }
 function applyTheme(){
+  applyChartColors(); document.body.classList.toggle('no-tape', CFG.tape === false);
   var t = CFG.theme;
   if(!t){ t = 'dark'; }
   else if(t === 'auto'){
@@ -13334,7 +13766,7 @@ function boot(){
     tourMaybeStart();
   });
   scheduleBriefings();
-  alBadge(); alStart();
+  alBadge(); alStart(); npStart();
   window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ if(!CFG.theme || CFG.theme === 'auto') applyTheme(); });
 }
 document.addEventListener('DOMContentLoaded', boot);

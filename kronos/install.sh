@@ -36,7 +36,10 @@ uv pip install --python venv/bin/python "torch>=2.0" numpy "pandas>=2.0" einops=
 
 cat > start.sh <<EOF
 #!/usr/bin/env bash
-cd "$DIR" && exec ./venv/bin/python kronos_server.py
+cd "$DIR" || exit 1
+# pick up server updates from the site; offline, keep the copy we have
+curl -fsSL "$BASE/kronos/kronos_server.py" -o kronos_server.py.new 2>/dev/null && mv kronos_server.py.new kronos_server.py || rm -f kronos_server.py.new
+exec ./venv/bin/python kronos_server.py
 EOF
 chmod +x start.sh
 if [ "$(uname)" = "Darwin" ] && [ -d "$HOME/Desktop" ]; then
