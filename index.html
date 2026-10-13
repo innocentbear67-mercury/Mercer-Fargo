@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700&text=POWEREDBYKronosAI%20&display=swap" rel="stylesheet"><!-- only the glyphs of the Predict badge -->
 <style>
 /* ============================================================================
    MercerFargo Finance Superhub — market dashboard UI
@@ -635,6 +636,42 @@ tr:hover .wl-add,.wl-add:focus-visible,.wl-add.on{opacity:1}
 .qn-ch b{font-size:13.5px}
 .qn-leg{display:inline-flex;align-items:center;gap:5px;color:var(--fh-foreground-on-surface-de-emphasis)}
 .qn-leg i{width:10px;height:3px;border-radius:2px;display:inline-block;margin-left:6px}
+/* Predict mode pane (Kronos on the user's machine) */
+.pd{--qr:#0ea5e9}
+.pd-status{display:flex;align-items:center;gap:8px;font-size:13px;border:1px solid var(--fh-border-stroke-default);border-radius:10px;padding:8px 12px}
+.pd-status i{width:8px;height:8px;border-radius:50%;background:var(--fh-negative,#e0353b);flex:none}
+.pd-status.ok{border:0;padding:0;color:var(--fh-foreground-on-surface-de-emphasis)}
+.pd-status.ok i{background:var(--fh-positive,#1f9d55);box-shadow:0 0 0 3px rgba(31,157,85,.18)}
+.pd-hero{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.pd-hero h2{margin-bottom:0}
+.pd-guide h3{margin:10px 0 4px;font-size:15px}
+.pd-os{display:inline-flex;gap:2px;background:var(--fh-background-surface-container);border-radius:999px;padding:3px}
+.pd-os button{border:0;background:none;color:var(--fh-foreground-on-surface-de-emphasis);border-radius:999px;padding:4px 12px;font-size:12.5px;cursor:pointer}
+.pd-os button.on{background:var(--fh-background-surface-elevated);color:var(--fh-foreground-on-surface-emphasis);box-shadow:var(--fh-elevation-1)}
+.pd-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:12px;font-size:13.5px;line-height:20px}
+.pd-steps li>b{display:block;margin-bottom:4px}
+.pd .btn.pd-dl,.pd .btn.pd-run{background:var(--qr);border-color:var(--qr);color:#fff;display:inline-flex;align-items:center;gap:6px}
+.pd-cmd{display:flex;align-items:center;gap:6px;margin:6px 0;border:1px solid var(--fh-border-stroke-default);border-radius:8px;padding:4px 4px 4px 10px;background:var(--fh-background-surface-container);min-width:0}
+.pd-cmd code{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;font-size:12px}
+.pd-or{display:block;font-size:12px;margin-top:8px}
+.pd-next{font-size:12.5px;margin:12px 0 0}
+.pd-list{margin:8px 0 0;padding-left:18px;font-size:13px;line-height:19px;display:flex;flex-direction:column;gap:6px}
+.pd kbd{border:1px solid var(--fh-border-stroke-emphasis);border-bottom-width:2px;border-radius:4px;padding:0 4px;font-size:11.5px}
+.pd-form{display:grid;grid-template-columns:minmax(110px,1.4fr) repeat(3,minmax(84px,1fr)) auto;gap:8px;align-items:end}
+.pd-form label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:600;color:var(--fh-foreground-on-surface-de-emphasis);min-width:0}
+.pd-form .inp{height:34px;width:100%;box-sizing:border-box;padding-top:0;padding-bottom:0;line-height:32px}
+.pd-form .pd-run{height:34px}
+@media (max-width:560px){ .pd-form{grid-template-columns:1fr 1fr} .pd-form label:first-child{grid-column:1/-1} }
+.drawer:not(.full) .pd-form{grid-template-columns:1fr 1fr 1fr}.drawer:not(.full) .pd-form label:first-child{grid-column:1/-1}
+.pd-chart .qn-leg i{margin-left:8px}
+.pd-l-med{background:#38bdf8}.pd-l-band{background:rgba(56,189,248,.45);height:8px!important}
+.pd-by{display:inline-flex;align-items:center;gap:7px;text-decoration:none;font-family:Unbounded,var(--fh-font-family,system-ui),sans-serif;line-height:1;padding:6px 11px 6px 9px;border-radius:999px;
+  border:1px solid var(--fh-border-stroke-emphasis);color:var(--fh-foreground-on-surface-emphasis);transition:border-color .2s}
+.pd-by:hover{border-color:var(--fh-foreground-on-surface-emphasis)}
+.pd-by small{font-size:8.5px;letter-spacing:1.6px;font-weight:400;opacity:.7}
+.pd-by b{font-size:13px;font-weight:700;letter-spacing:.3px}
+.pd-by svg{flex:none}
+.pd-hero{justify-content:space-between}
+.pd-l-path{background:linear-gradient(90deg,#ef4444,#f59e0b,#22c55e,#06b6d4,#6366f1,#d946ef)}
 .qn-svg svg{width:100%;height:auto;display:block}
 .qn-chart{touch-action:pan-y}
 .qn-tip{position:absolute;pointer-events:none;opacity:0;transition:opacity .1s;background:var(--fh-background-surface-elevated);border:1px solid var(--fh-border-stroke-default);box-shadow:var(--fh-elevation-2);border-radius:8px;padding:6px 9px;font-size:12px;display:flex;flex-direction:column;gap:2px;z-index:3;white-space:nowrap}
@@ -1439,6 +1476,7 @@ html{overflow-x:clip}
   transition:transform .28s cubic-bezier(.3,.7,.2,1),width .28s cubic-bezier(.3,.7,.2,1)}
 .rs-tabs[data-t="research"] .thumb{transform:translateX(var(--tx,76px));width:var(--tw2,108px)}
 .rs-tabs[data-t="quant"] .thumb{transform:translateX(var(--tx3,184px));width:var(--tw3,64px)}
+.rs-tabs[data-t="predict"] .thumb{transform:translateX(var(--tx4,248px));width:var(--tw4,72px)}
 .drawer-head .rs-tabs + .status-chip + .icon-btn{margin-left:auto}
 .drawer-head .icon-btn{width:34px;height:34px;color:var(--fh-foreground-on-surface-de-emphasis)}
 .drawer-head .icon-btn:hover{color:var(--fh-foreground-on-surface-emphasis)}
@@ -1503,6 +1541,7 @@ html{overflow-x:clip}
 .newsess .lbl{display:none}
 @container dr (min-width:400px){.newsess .lbl{display:inline}}
 .drawer-head .rs-tabs + .status-chip + .newsess + .icon-btn{margin-left:0}
+#drawerFull{margin-left:auto}.drawer-head .newsess:not([hidden]) ~ #drawerFull{margin-left:0}   /* Predict has no New button: the icons still sit right */
 .att-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
 .att{display:inline-flex;align-items:center;gap:8px;max-width:100%;background:var(--fh-background-surface-elevated);border-radius:12px;padding:5px 6px 5px 5px;font-size:12.5px}
 .att img{width:30px;height:30px;border-radius:8px;object-fit:cover}
@@ -2305,8 +2344,11 @@ body.rs-drag iframe{pointer-events:none}
 .rs-tabs[data-t="research"] .thumb{--fx:167,139,250}
 .rs-tabs[data-t="quant"] .thumb{--fx:239,68,68}
 .rs-tabs[data-t="quant"] .thumb::after{animation:rsGlow 1.7s ease-in-out infinite}
-#tabQuant.on{color:var(--fh-foreground-on-surface-emphasis)}
-.drawer:not(.full) .rs-tabs button{padding:6px 14px;font-size:12.5px}   /* three modes still leave room for the panel buttons */
+#tabQuant.on,#tabPredict.on{color:var(--fh-foreground-on-surface-emphasis)}
+/* Predict: green/red dot bands drifting left inside a plain grey ring */
+.rs-tabs[data-t="predict"] .thumb{--fx:150,150,150}
+.rs-tabs[data-t="predict"] .thumb::after{animation:none;box-shadow:inset 0 0 0 1px rgba(150,150,150,.5)}
+.drawer:not(.full) .rs-tabs button{padding:6px 11px;font-size:12.5px}   /* four modes still leave room for the panel buttons */
 /* rsThumb() adds tabs-mid whenever the switch fits in the middle without touching the buttons on the right */
 .drawer-head.tabs-mid{position:relative}
 .drawer-head.no-lbl .lbl{display:none!important}
@@ -2527,6 +2569,7 @@ body.rs-drag iframe{pointer-events:none}
       <button role="tab" id="tabChat" data-act="drawer-tab" data-tab="chat">Agent</button>
       <button role="tab" id="tabResearch" data-act="drawer-tab" data-tab="research"><span class="tab-deep">Deep </span>Research</button>
       <button role="tab" id="tabQuant" data-act="drawer-tab" data-tab="quant">Quant</button>
+      <button role="tab" id="tabPredict" data-act="drawer-tab" data-tab="predict">Predict</button>
     </div>
     <span class="status-chip" id="aiChip" hidden>no key</span>
     <button class="newsess" id="newChatBtn" data-act="chat-new" title="New session" aria-label="New session">
@@ -2549,6 +2592,7 @@ body.rs-drag iframe{pointer-events:none}
   <div class="drawer-body" id="chat"></div>
   <div class="drawer-body" id="rsPane" hidden></div>
   <div class="drawer-body" id="qnPane" hidden></div>
+  <div class="drawer-body" id="pdPane" hidden></div>
   <div class="drawer-foot">
     <div class="ai-quick" id="aiQuick" hidden></div>
     <div class="pickmenu" id="pickMenuA" hidden></div>
@@ -2968,7 +3012,8 @@ function currencyOf(sym){
   var s = dispSym(sym);
   if(INSTRUMENTS[s] && INSTRUMENTS[s].cur) return INSTRUMENTS[s].cur;
   if(s.indexOf('/') > 0) return s.split('/')[1];   /* the pair is priced in the quote currency */
-  if(/^\d/.test(s)) return 'SGD';
+  if(DATA.quotes[s] && DATA.quotes[s].cur) return DATA.quotes[s].cur;   /* the exchange's own currency, from the quote feed */
+  if(/^\d/.test(s) || /\.SI$/.test(s) || /^SGX:/.test(s)) return 'SGD';
   return 'USD';
 }
 function isCrypto(s){ return !!CG[dispSym(s)]; }
@@ -3006,8 +3051,15 @@ var TV_SEED = {
 };
 var TVMAP = Object.assign({}, TV_SEED, load('fh3_tvmap', {}));
 function saveTVMap(){ save('fh3_tvmap', TVMAP); }
+/* Yahoo-style exchange suffixes → TradingView exchange (D05.SI → SGX:D05, 0700.HK → HKEX:700). */
+var TV_SUFFIX = { SI:'SGX', HK:'HKEX', L:'LSE', TO:'TSX', AX:'ASX', T:'TSE' };
 function tvCandidates(sym){
   var s = dispSym(sym);
+  var m = s.match(/^([A-Z0-9]+)\.([A-Z]{1,2})$/);
+  if(m && TV_SUFFIX[m[2]]) return [TV_SUFFIX[m[2]] + ':' + (m[2] === 'HK' ? m[1].replace(/^0+/, '') : m[1])];
+  if(/^[A-Z]+:/.test(s)) return [s];
+  // ponytail: a short ticker with a digit (D05, O39, C6L) is SGX-shaped; US tickers almost never carry digits
+  if(/^(?=.*\d)[A-Z0-9]{3,4}$/.test(s)) return ['SGX:' + s];
   var out = [];
   var alt = s.indexOf('-') >= 0 ? s.replace('-', '.') : null;
   var bases = alt ? [s, alt] : [s];
@@ -3051,7 +3103,8 @@ var TV_FIELDS = [
   'postmarket_change','postmarket_close','postmarket_volume','price_target_average','price_target_high',
   'price_target_low','earnings_release_next_date','earnings_per_share_forecast_next_fq',
   'earnings_per_share_forecast_next_fy','revenue_forecast_next_fy','Recommend.All','update_mode',
-  'price_target_median','recommendation_mark','recommendation_buy','recommendation_over','recommendation_hold','recommendation_under','recommendation_sell','recommendation_total','total_shares_outstanding'
+  'price_target_median','recommendation_mark','recommendation_buy','recommendation_over','recommendation_hold','recommendation_under','recommendation_sell','recommendation_total','total_shares_outstanding',
+  'currency'
 ].join(',');
 
 function applyTV(sym, d){
@@ -3074,7 +3127,7 @@ function applyTV(sym, d){
   var abs = (price != null && prev != null) ? price - prev : null;
   DATA.quotes[s] = Object.assign({}, DATA.quotes[s], {
     c:price, pc:prev, ch:abs, pct:pctv, regClose:close,
-    v:numOf(d.volume), shares:numOf(d.total_shares_outstanding), cur:'USD', src:'tradingview', ts:Date.now(),
+    v:numOf(d.volume), shares:numOf(d.total_shares_outstanding), cur:d.currency || 'USD', src:'tradingview', ts:Date.now(),
     name:d.description || labelOf(s), exch:d.exchange, ext:extPrice != null, extLabel:extLabel,
     state:extPrice != null ? extLabel : 'Regular session'
   });
@@ -3160,6 +3213,32 @@ function fetchCrypto(symbols){
   });
 }
 
+/* --- currency engine ----------------------------------------------------
+   One USD-based rate table: ECB reference rates (Frankfurter) are the official source and win;
+   open.er-api.com fills currencies the ECB does not publish. Cached in the browser for 6 hours,
+   so a failed fetch keeps the last good table instead of zeroing anything. */
+var FX = load('fh3_fx', { t:0, date:'', rates:{ USD:1 } });
+function fxRate(from, to){
+  from = from || 'USD'; to = to || 'USD';
+  if(from === to) return 1;
+  var a = FX.rates[from], b = FX.rates[to];
+  return a && b ? b / a : null;
+}
+function fxConvert(v, from, to){ var r = fxRate(from, to); return v == null || r == null ? null : v * r; }
+function loadFXRates(force){
+  if(!force && Date.now() - FX.t < 6 * 3600e3) return Promise.resolve(FX);
+  var ecb = fetchJSON('https://api.frankfurter.dev/v1/latest?base=USD', 10000).catch(function(){ return null; });
+  var era = fetchJSON('https://open.er-api.com/v6/latest/USD', 10000).catch(function(){ return null; });
+  return Promise.all([ecb, era]).then(function(r){
+    var rates = Object.assign({}, r[1] && r[1].rates, r[0] && r[0].rates, { USD:1 });
+    if(Object.keys(rates).length > 1){
+      FX = { t:Date.now(), date:(r[0] && r[0].date) || '', src:r[0] ? 'ECB' : 'open.er-api', rates:rates };
+      save('fh3_fx', FX);
+    }
+    return FX;
+  });
+}
+
 /* FX pairs come from Frankfurter (ECB reference rates, CORS friendly). */
 function fetchFX(pairs){
   var list = pairs.filter(isFx);
@@ -3204,6 +3283,7 @@ function fetchQuotes(symbols, concurrency){
   if(crypto.length) jobs.push(fetchCrypto(crypto));
   if(fx.length) jobs.push(fetchFX(fx));
   if(rest.length) jobs.push(tvQuotes(rest, concurrency));
+  jobs.push(loadFXRates().then(function(){ return 0; }));   // portfolio totals need the rate table ready with the prices
   return Promise.all(jobs).then(function(arr){
     var ok = arr.reduce(function(a, b){ return a + (b || 0); }, 0);
     DATA.lastUpdate = Date.now();
@@ -3352,7 +3432,7 @@ function oaQuoteOne(sym){
     DATA.quotes[s] = Object.assign({}, DATA.quotes[s], {
       c:r.price, pc:pc, ch:pc != null ? r.price - pc : null,
       pct:(pc ? (r.price / pc - 1) * 100 : null),
-      cur:'USD', v:0, src:'yahoo-oa', ts:Date.now(),
+      cur:r.currency || null, v:0, src:'yahoo-oa', ts:Date.now(),
       name:labelOf(s) || s, state:'delayed', ext:false, extLabel:''
     });
     return true;
@@ -5063,14 +5143,14 @@ function glSeries(pf, r, st){
     if(!I || syms.some(function(x){ return !I[x]; })) return { pending:true };
     var ok = syms.every(function(x){ return !I[x].fail && I[x].pc && I[x].bars.length > 3; });
     if(ok){
-      var qty = {}; pf.holdings.forEach(function(h){ qty[dispSym(h.s)] = h.q; });
+      var qty = {}; pf.holdings.forEach(function(h){ qty[dispSym(h.s)] = h.q * (fxRate(currencyOf(h.s), st.base) || 0); });
       var byT = {}, n = pf.holdings.length;
       pf.holdings.forEach(function(h){ var x = dispSym(h.s); I[x].bars.forEach(function(b){ (byT[b.t] = byT[b.t] || {})[x] = b.c * qty[x]; }); });
       var ts = Object.keys(byT).sort(function(a, b){ return a - b; }).filter(function(t){ return Object.keys(byT[t]).length >= n; });
       var spyBy = {}; I.SPY.bars.forEach(function(b){ spyBy[b.t] = b.c; });
       ts = ts.filter(function(t){ return spyBy[t] != null; });
       if(ts.length > 3){
-        var base = pf.holdings.reduce(function(a, h){ return a + I[dispSym(h.s)].pc * h.q; }, 0);
+        var base = pf.holdings.reduce(function(a, h){ return a + I[dispSym(h.s)].pc * qty[dispSym(h.s)]; }, 0);
         return { ser:[{ d:'prev', v:base }].concat(ts.map(function(t){ return { d:t, v:Object.keys(byT[t]).reduce(function(a, k){ return a + byT[t][k]; }, 0) }; })),
                  spx:[I.SPY.pc].concat(ts.map(function(t){ return spyBy[t]; })), intra:true };
       }
@@ -5096,7 +5176,8 @@ function glSeries(pf, r, st){
     var rows = DATA.hist['gl_' + r + '_' + dispSym(h.s)];
     if(!rows || rows.length < 2) return;
     n2++;
-    rows.forEach(function(x){ if(x.c != null && x.d >= cut) (byDate[x.d] = byDate[x.d] || {})[dispSym(h.s)] = x.c * h.q; });
+    var k = h.q * (fxRate(currencyOf(h.s), st.base) || 0);
+    rows.forEach(function(x){ if(x.c != null && x.d >= cut) (byDate[x.d] = byDate[x.d] || {})[dispSym(h.s)] = x.c * k; });
   });
   if(!n2) return { ser:[], spx:null };
   var spyBy2 = {}; spyRows.forEach(function(x){ if(x.c != null) spyBy2[x.d] = x.c; });
@@ -5128,14 +5209,14 @@ function glanceHTML(){
       '<div class="gl-cta"><button class="btn filled" data-act="addholding">Add a holding</button>' +
       '<button class="btn text" data-act="importpf">Import CSV</button></div></div></div>';
   }
-  var st = pfStats(pf), cur = st.rows.length ? st.rows[0].cur : 'USD';
+  var st = pfStats(pf), cur = st.base;
   var priced = st.rows.filter(function(r){ return DATA.quotes[r.s] && DATA.quotes[r.s].c != null; }).length;
   var loading = priced < st.rows.length;
   var prev = st.total - st.day;
   var dayPct = prev ? st.day / prev * 100 : null;
   var haveDay = st.rows.some(function(r){ return r.day != null; });
   var up = st.day >= 0, rup = st.ret >= 0;
-  var movers = st.rows.filter(function(r){ return r.day != null; }).sort(function(a, b){ return b.day - a.day; });
+  var movers = st.rows.filter(function(r){ return r.day != null; }).sort(function(a, b){ return b.bd - a.bd; });
   var lead = movers[0], drag = movers[movers.length - 1];
   var line = !haveDay ? (loading ? 'Loading prices…' : 'No day change yet — markets may be closed.')
     : (Math.abs(dayPct) < 0.05 ? 'Flat today' : (up ? 'Up ' : 'Down ') + money(Math.abs(st.day), cur) + ' today') +
@@ -5159,9 +5240,9 @@ function glanceHTML(){
   var verdict = (pr != null && sr != null && Math.abs(pr - sr) >= 0.05)
     ? '<div class="gl-vs ' + (pr > sr ? 'win' : 'lose') + '">' + (pr > sr ? 'You are beating the S&amp;P500!' : 'You are losing to the S&amp;P500!') +
       ' <span class="num">' + (pr - sr >= 0 ? '+' : '−') + num(Math.abs(pr - sr), 1) + ' pts ' + (R === '1D' || R === 'YTD' || R === 'AT' ? '' : 'over ') + esc(GL_TXT[R]) + '</span></div>' : '';
-  var sorted = st.rows.slice().sort(function(a, b){ return b.value - a.value; });
+  var sorted = st.rows.slice().sort(function(a, b){ return b.bv - a.bv; });
   var bar = sorted.map(function(r, i){
-    var w = st.total ? r.value / st.total * 100 : 0;
+    var w = st.total ? r.bv / st.total * 100 : 0;
     return '<i style="width:' + w.toFixed(2) + '%;background:hsl(' + ((i * 47 + 38) % 360) + ' 28% ' + (62 - Math.min(i, 5) * 4) + '%)" title="' + esc(r.s) + ' ' + num(w, 1) + '%"></i>';
   }).join('');
   var tiles = sorted.slice(0, 8).map(function(r){
@@ -5170,7 +5251,7 @@ function glanceHTML(){
     var bg = p == null ? 'var(--fh-background-surface-container)' : (p >= 0 ? 'rgba(77,184,72,' + a + ')' : 'rgba(255,92,103,' + a + ')');
     return '<a class="gl-tile" href="#/quote/' + encodeURIComponent(r.s) + '" data-act="quote" data-sym="' + esc(r.s) + '" style="background:' + bg + '">' +
       '<b>' + esc(r.s) + '</b><span class="' + cls + ' num">' + (p == null ? '—' : pct(p, 1)) + '</span>' +
-      '<small class="num">' + (st.total ? num(r.value / st.total * 100, 0) : 0) + '%</small></a>';
+      '<small class="num">' + (st.total ? num(r.bv / st.total * 100, 0) : 0) + '%</small></a>';
   }).join('');
   return '<div class="card glance' + (loading ? ' loading' : '') + '">' +
     '<div class="gl-top"><div><div class="mut gl-lab">' + esc(pf.name) + '</div>' +
@@ -5191,7 +5272,7 @@ function glFullHTML(st, sorted, cur){
   var cls = function(v){ return v == null ? 'mut' : (v >= 0 ? 'up' : 'down'); };
   var sg = function(v, c){ return (v >= 0 ? '+' : '−') + money(Math.abs(v), c); };
   var rows = sorted.map(function(r){
-    var w = st.total ? r.value / st.total * 100 : 0, hasCost = r.cost > 0;
+    var w = st.total ? r.bv / st.total * 100 : 0, hasCost = r.cost > 0;
     return '<tr><td class="gf-sym"><a href="#/quote/' + encodeURIComponent(r.s) + '" data-act="quote" data-sym="' + esc(r.s) + '"><b>' + esc(r.s) + '</b><span>' + esc(r.name || '') + '</span></a></td>' +
       '<td class="num ' + cls(r.day) + '">' + money(r.price, r.cur) + '</td>' +
       '<td class="num ' + cls(r.day) + '">' + (r.day == null ? '—' : sg(r.day, r.cur) + '<small>' + pct(r.dayPct) + '</small>') + '</td>' +
@@ -5435,7 +5516,7 @@ function panelInit(){
   addEventListener('resize', function(){ if(!document.body.classList.contains('rs-drag')) panelApply(); });
   panelApply();
   railSync();
-  if('ResizeObserver' in window){ var ro = new ResizeObserver(function(){ rsThumb(); rsFxStart(); }); ['tabChat', 'tabResearch', 'tabQuant', 'rsFx'].forEach(function(id){ if($(id)) ro.observe($(id)); }); var dh = document.querySelector('.drawer-head'); if(dh) ro.observe(dh); }
+  if('ResizeObserver' in window){ var ro = new ResizeObserver(function(){ rsThumb(); rsFxStart(); }); ['tabChat', 'tabResearch', 'tabQuant', 'tabPredict', 'rsFx'].forEach(function(id){ if($(id)) ro.observe($(id)); }); var dh = document.querySelector('.drawer-head'); if(dh) ro.observe(dh); }
 }
 
 /* ---- Mode toggle effect: an LED dot matrix inside the sliding pill.
@@ -5454,18 +5535,18 @@ function rsFxFrame(now){
   if(!w || !h) return;
   if(cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)){ cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
   var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var mode = tabs.getAttribute('data-t'), target = [mode === 'chat' || !mode ? 1 : 0, mode === 'research' ? 1 : 0, mode === 'quant' ? 1 : 0];
+  var mode = tabs.getAttribute('data-t'), target = [mode === 'chat' || !mode ? 1 : 0, mode === 'research' ? 1 : 0, mode === 'quant' ? 1 : 0, mode === 'predict' ? 1 : 0];
   var dt = Math.min(.1, (now - (RSFX.last || now)) / 1000); RSFX.last = now;
   RSFX.w = (!RSFX.w || still) ? target : RSFX.w.map(function(v, i){ return v + (target[i] - v) * Math.min(1, dt * 7); });   // reduced motion: one frame, so snap
-  var wA = RSFX.w[0], m = RSFX.w[1], wQ = RSFX.w[2], t = still ? 0 : now / 1000;
+  var wA = RSFX.w[0], m = RSFX.w[1], wQ = RSFX.w[2], wP = RSFX.w[3] || 0, t = still ? 0 : now / 1000;
   var P = 4, S = 2.6, cols = Math.max(1, Math.floor(w / P)), rows = Math.max(1, Math.floor(h / P));
   var ox = (w - cols * P + (P - S)) / 2, oy = (h - rows * P + (P - S)) / 2, n = cols * rows;
   if(RSFX.noise.length !== n){ RSFX.noise = []; for(var k = 0; k < n; k++) RSFX.noise.push(Math.random()); }
-  var rate = still ? 0 : (2 * wA + 36 * m + 12 * wQ) * dt;   // share of dots re-rolled this frame: a twinkle for Agent, flicker for Research, a shimmer for Quant
+  var rate = still ? 0 : (2 * wA + 36 * m + 12 * wQ + 8 * wP) * dt;   // share of dots re-rolled this frame: a twinkle for Agent, flicker for Research, a shimmer for Quant
   for(var j = 0; j < n; j++) if(Math.random() < rate) RSFX.noise[j] = Math.random();
   var light = document.documentElement.getAttribute('data-theme') !== 'dark', boost = light ? 2.4 : 1;   // deeper ink on white
   var g = light ? [150, 118, 62] : [193, 165, 120], v = light ? [112, 80, 220] : [167, 139, 250], rd = light ? [200, 30, 42] : [239, 68, 68];
-  var col = [0, 1, 2].map(function(i){ return Math.round(g[i] * wA + v[i] * m + rd[i] * wQ); }).join(',');
+  var mix = [0, 1, 2].map(function(i){ return g[i] * wA + v[i] * m + rd[i] * wQ; }), col = mix.map(Math.round).join(',');
   var ctx = cv.getContext('2d');
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
   for(var c = 0; c < cols; c++){
@@ -5473,13 +5554,19 @@ function rsFxFrame(now){
     var swell = .5 + .5 * Math.sin((x * 1.4 - t * .22) * Math.PI * 2);                     // Agent: one slow wave
     var eq = .35 + .65 * Math.abs(Math.sin(c * .55 + t * 4.2) * Math.cos(c * .21 - t * 2.7)); // Research: equalizer columns
     var wave = .5 + .24 * Math.sin((x * 1.7 - t * .62) * Math.PI * 2) + .13 * Math.sin((x * 3.4 + t * .95) * Math.PI * 2) + .06 * Math.sin((x * 7 - t * 1.7) * Math.PI * 2);   // Quant: the sea surface
+    if(wP > .001){   // Predict: green and red bands; phase x + t, so they travel left
+      var gr = .5 + .5 * Math.sin((x * 2.2 + t * .45) * Math.PI * 2);
+      var up = light ? [22, 163, 74] : [34, 214, 102], dn = light ? [220, 38, 38] : [248, 72, 72];
+      col = [0, 1, 2].map(function(i){ return Math.round(mix[i] + (dn[i] + (up[i] - dn[i]) * gr) * wP); }).join(',');
+    }
     for(var r = 0; r < rows; r++){
       var y = rows > 1 ? r / (rows - 1) : .5, nz = RSFX.noise[c * rows + r];
       var a0 = (.1 + .26 * swell) * (.75 + .5 * nz) * (1 - .35 * Math.abs(y - .5));
       var lit = (1 - y) < eq ? 1 : .28;
       var a1 = (.12 + .5 * x) * lit * (.45 + .9 * nz);
       var dep = wave - (1 - y), a2 = dep < 0 ? .03 : (.14 + .5 * Math.exp(-dep * 7)) * (.6 + .7 * nz);   // brightest at the crest, dimmer in the deep
-      var a = a0 * wA + a1 * m + a2 * wQ;
+      var a3 = (.13 + .24 * (.5 + .5 * Math.sin((x * 2 + y * .8 + t * .45) * Math.PI * 2))) * (.6 + .7 * nz);
+      var a = a0 * wA + a1 * m + a2 * wQ + a3 * wP;
       if(a < .03) continue;
       ctx.fillStyle = 'rgba(' + col + ',' + Math.min(light ? .78 : .62, a * boost).toFixed(3) + ')';
       ctx.fillRect(ox + c * P, oy + r * P, S, S);
@@ -6278,6 +6365,7 @@ function loadNewsData(){
 /* --------------------------------------------------------- portfolio view */
 
 function pfStats(pf){
+  var base = CFG.currency || 'USD', fxMissing = [];
   var rows = pf.holdings.map(function(h){
     var s = dispSym(h.s);
     var q = DATA.quotes[s] || {};
@@ -6292,10 +6380,17 @@ function pfStats(pf){
       sector:sectorOf(s) || 'Other', cur:currencyOf(s)
     };
   });
-  var total = rows.reduce(function(a, r){ return a + r.value; }, 0);
-  var cost = rows.reduce(function(a, r){ return a + r.cost; }, 0);
-  var day = rows.reduce(function(a, r){ return a + (r.day || 0); }, 0);
-  return { rows:rows, total:total, cost:cost, day:day, ret:total - cost, retPct:cost ? (total / cost - 1) * 100 : 0 };
+  /* Cost basis is in the holding's own currency; both sides convert at today's rate, so P/L is the
+     stock's move only. ponytail: no historical FX, add trade-date rates if FX gain/loss matters. */
+  rows.forEach(function(r){
+    var fx = fxRate(r.cur, base);
+    if(fx == null){ fxMissing.push(r.cur); fx = 0; }   // unconvertible: shown in its row, left out of totals
+    r.fx = fx; r.bv = r.value * fx; r.bc = r.cost * fx; r.bd = r.day == null ? null : r.day * fx;
+  });
+  var total = rows.reduce(function(a, r){ return a + r.bv; }, 0);
+  var cost = rows.reduce(function(a, r){ return a + r.bc; }, 0);
+  var day = rows.reduce(function(a, r){ return a + (r.bd || 0); }, 0);
+  return { rows:rows, base:base, fxMissing:fxMissing, total:total, cost:cost, day:day, ret:total - cost, retPct:cost ? (total / cost - 1) * 100 : 0 };
 }
 
 function renderPortfolio(){
@@ -6305,7 +6400,7 @@ function renderPortfolio(){
   return loadQuotesFor(pf.holdings.map(function(h){ return h.s; })).then(function(){
     if(CUR.view !== 'portfolio') return;
     var st = pfStats(pf);
-    var cur = st.rows.length ? st.rows[0].cur : 'USD';
+    var cur = st.base;
     var html = '';
     html += '<div class="section"><div class="section-head"><h2>' + esc(pf.name) + '</h2>' +
       '<button class="btn text sm" data-act="addholding">Add holding</button>' +
@@ -6328,15 +6423,17 @@ function renderPortfolio(){
         '<td class="num ' + (r.dayPct == null ? 'mut' : (r.dayPct >= 0 ? 'up' : 'down')) + '">' + (r.dayPct == null ? '—' : pct(r.dayPct)) + '</td>' +
         '<td class="num">' + money(r.value, r.cur) + '</td>' +
         '<td class="num ' + (r.retPct >= 0 ? 'up' : 'down') + '">' + pct(r.retPct) + '</td>' +
-        '<td class="num">' + (st.total ? num(r.value / st.total * 100, 1) + '%' : '—') + '</td>' +
+        '<td class="num">' + (st.total ? num(r.bv / st.total * 100, 1) + '%' : '—') + '</td>' +
         '<td><button class="icon-btn" data-act="delholding" data-sym="' + esc(r.s) + '" title="Remove"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></td></tr>';
     }).join('');
     html += '<div class="tbl-wrap" style="margin-top:8px"><table class="fh"><thead>' + th + '</thead><tbody>' +
       (body || '<tr><td colspan="9" class="empty">No holdings yet. Add one, import a CSV, or let AI draft a portfolio.</td></tr>') + '</tbody></table></div>';
-    html += '<div class="movers-note">Positions live in this browser only. Quotes delayed; cost basis is whatever you enter.</div></div>';
+    html += '<div class="movers-note">Positions live in this browser only. Quotes delayed; cost basis is whatever you enter, in each holding\'s own currency.' +
+      (st.rows.some(function(r){ return r.cur !== st.base; }) ? ' Totals in ' + esc(st.base) + ' at ' + esc(FX.src || 'ECB') + ' rates' + (FX.date ? ' (' + esc(FX.date) + ')' : '') + '.' : '') +
+      (st.fxMissing.length ? ' <b class="down">No ' + esc(st.fxMissing.join(', ')) + ' rate yet: those holdings are left out of the totals.</b>' : '') + '</div></div>';
 
     var bySector = {};
-    st.rows.forEach(function(r){ bySector[r.sector] = (bySector[r.sector] || 0) + r.value; });
+    st.rows.forEach(function(r){ bySector[r.sector] = (bySector[r.sector] || 0) + r.bv; });
     var parts = Object.keys(bySector).map(function(k){ return { label:k, v:bySector[k] }; });
     var maxS = Math.max.apply(null, parts.map(function(p){ return p.v; }).concat([1]));
     html += '<div class="section"><div class="grid-2">' +
@@ -6362,9 +6459,9 @@ function statCard(label, value, sub, cls){
 
 function concentrationHTML(st){
   if(!st.rows.length) return '<div class="empty">Add holdings to see concentration.</div>';
-  var sorted = st.rows.slice().sort(function(a, b){ return b.value - a.value; });
-  var top = sorted[0], top3 = sorted.slice(0, 3).reduce(function(a, r){ return a + r.value; }, 0);
-  var hhi = sorted.reduce(function(a, r){ var w = r.value / (st.total || 1); return a + w * w; }, 0);
+  var sorted = st.rows.slice().sort(function(a, b){ return b.bv - a.bv; });
+  var top = sorted[0], top3 = sorted.slice(0, 3).reduce(function(a, r){ return a + r.bv; }, 0);
+  var hhi = sorted.reduce(function(a, r){ var w = r.bv / (st.total || 1); return a + w * w; }, 0);
   var heat = sorted.slice(0, 12).map(function(r){
     var p = r.retPct;
     var bg = p >= 0 ? 'rgba(31,139,26,' + clamp(0.15 + Math.abs(p) / 40, 0.15, 0.9) + ')' : 'rgba(227,41,53,' + clamp(0.15 + Math.abs(p) / 40, 0.15, 0.9) + ')';
@@ -6372,7 +6469,7 @@ function concentrationHTML(st){
   }).join('');
   return '<div class="heat">' + heat + '</div>' +
     '<div class="kv-inline" style="margin-top:14px">' +
-    '<span>Largest: <b>' + esc(top.s) + '</b> ' + num(top.value / (st.total || 1) * 100, 1) + '%</span>' +
+    '<span>Largest: <b>' + esc(top.s) + '</b> ' + num(top.bv / (st.total || 1) * 100, 1) + '%</span>' +
     '<span>Top 3: <b>' + num(top3 / (st.total || 1) * 100, 1) + '%</b></span>' +
     '<span>HHI: <b>' + num(hhi, 3) + '</b></span></div>' +
     '<div class="mut" style="font-size:12px;margin-top:8px">Tile colour shows total return per position.</div>';
@@ -11533,6 +11630,181 @@ document.addEventListener('keydown', function(e){
   if(e.target.id === 'qnQ' && e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); qnAction('qn-run'); }
   if(e.target.id === 'qnRefine' && e.key === 'Enter'){ e.preventDefault(); qnAction('qn-refine'); }
 });
+
+/* ---- Predict mode: Kronos (NeoQuasar/Kronos-base), a candlestick foundation model, runs on the user's own machine
+   (kronos/kronos_server.py on 127.0.0.1:8793). The site fetches the bars, the local model samples forecast paths. */
+var PD = { url:'http://127.0.0.1:8793', health:null, checked:false, busy:false, err:'', res:null, poll:0, os:'',
+  form:load('fh3_pd', { sym:'', tf:'1D', h:20, n:8 }) };
+var PD_SITE = 'https://innocentbear67-mercury.github.io/Mercer-Fargo';
+function pdBase(){ return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(location.origin) ? location.origin : PD_SITE; }
+function pdOS(){ return PD.os || (/Win/i.test(navigator.platform || navigator.userAgent) ? 'win' : /Mac/i.test(navigator.platform || navigator.userAgent) ? 'mac' : 'linux'); }
+function pdHue(h, light){   // spectrum colour for the chart's sampled paths, as [r,g,b]
+  var l = light ? .46 : .62, s = .9, k = function(n){ var q = (n + h / 30) % 12; return Math.round(255 * (l - s * Math.min(l, 1 - l) * Math.max(-1, Math.min(q - 3, 9 - q, 1)))); };
+  return [k(0), k(8), k(4)];
+}
+function pdCheck(){
+  var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, to = setTimeout(function(){ if(ctl) ctl.abort(); }, 2500);
+  return fetch(PD.url + '/health', { signal:ctl ? ctl.signal : undefined }).then(function(r){ return r.json(); })
+    .then(function(j){ PD.health = j && j.ok ? j : null; }, function(){ PD.health = null; })
+    .then(function(){ clearTimeout(to); PD.checked = true; });
+}
+function pdStopPoll(){ if(PD.poll){ clearInterval(PD.poll); PD.poll = 0; } }
+function pdVisible(){ var p = $('pdPane'), d = $('drawer'); return p && !p.hidden && d && d.classList.contains('open'); }
+function pdPaint(){
+  var host = $('pdPane'); if(!host) return;
+  if(!PD.checked){ host.innerHTML = '<div class="qn pd"><div class="qn-busy"><div class="qn-pulse"></div><h3>Looking for Marvell Predict on this computer…</h3></div></div>'; pdCheck().then(pdPaint); return; }
+  var h = PD.health, ready = h && h.ready;
+  /* Keep checking while the pane is open and the engine is missing or still loading, so the guide turns into the form by itself. */
+  if(!ready && !PD.poll) PD.poll = setInterval(function(){ if(!pdVisible()) return pdStopPoll(); var was = !!(PD.health && PD.health.ready); pdCheck().then(function(){ if(!!(PD.health && PD.health.ready) !== was || !PD.health || PD.health.loading) pdPaint(); }); }, 4000);
+  if(ready) pdStopPoll();
+  host.innerHTML = '<div class="qn pd">' + (!h ? pdGuideHTML() : !ready ? pdLoadingHTML(h) : pdFormHTML() + pdResultHTML()) + '</div>';
+  if(ready && PD.res) pdChart();
+}
+var PD_BADGE = '<a class="pd-by" href="https://huggingface.co/NeoQuasar/Kronos-base" target="_blank" rel="noopener" title="Kronos-base on Hugging Face"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 3 7-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><small>POWERED BY</small><b>Kronos AI</b></a>';
+function pdLoadingHTML(h){
+  return '<div class="qn-hero pd-hero"><h2>Predict</h2>' + PD_BADGE + '</div>' + (h.error
+    ? '<div class="qn-err"><b>Kronos could not load.</b> ' + esc(h.error) + '<br>Close the Marvell Predict window and run the installer again; it repairs a broken setup.</div>'
+    : '<div class="qn-busy"><div class="qn-pulse"></div><h3>Connected. Loading Kronos-base into memory…</h3><p class="mut">Usually 10–30 seconds. This page updates by itself.</p></div>');
+}
+function pdGuideHTML(){
+  var os = pdOS(), base = pdBase(), env = base === PD_SITE ? '' : 'MARVELL_BASE=' + base + ' ';
+  var shOne = 'curl -fsSL ' + base + '/kronos/install.sh | ' + env + 'bash';
+  var shFile = 'bash ~/Downloads/install-marvell-predict.sh';
+  var tab = function(k, l){ return '<button class="' + (os === k ? 'on' : '') + '" data-act="pd-os" data-os="' + k + '">' + l + '</button>'; };
+  var copy = function(cmd){ return '<div class="pd-cmd"><code>' + esc(cmd) + '</code><button class="btn text sm" data-act="pd-copy" data-cmd="' + esc(cmd) + '">Copy</button></div>'; };
+  var steps = os === 'win'
+    ? '<li><b>Download the installer.</b><button class="btn filled sm pd-dl" data-act="pd-dl">' + railSvg('M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z', 16) + ' Download for Windows</button></li>' +
+      '<li><b>Double-click <code>install-marvell-predict.bat</code></b> in your Downloads. If Windows shows “Windows protected your PC”, click <i>More info</i> → <i>Run anyway</i>.</li>' +
+      '<li><b>Wait for “Done”.</b> The first install takes 5–15 minutes. Leave the window open: that window is Marvell Predict running.</li>'
+    : '<li><b>Download the installer.</b><button class="btn filled sm pd-dl" data-act="pd-dl">' + railSvg('M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z', 16) + ' Download for ' + (os === 'mac' ? 'Mac' : 'Linux') + '</button></li>' +
+      '<li><b>Open Terminal and run it.</b> ' + (os === 'mac' ? 'Press <kbd>⌘</kbd> <kbd>Space</kbd>, type <i>Terminal</i>, press Return, then paste:' : 'Paste this into a terminal:') + copy(shFile) +
+      '<span class="mut pd-or">Or skip the download and paste this one line instead:</span>' + copy(shOne) + '</li>' +
+      '<li><b>Wait for “Done”.</b> The first install takes 5–15 minutes. Leave the window open: that window is Marvell Predict running.</li>';
+  return '<div class="qn-hero"><div class="pd-hero"><h2>Predict</h2>' + PD_BADGE + '</div><p class="mut">Forecast the next candles for any ticker with <b>Kronos</b>, an open-source model trained on candlesticks from 45+ exchanges. It runs on your own computer: free, private, no API key.</p></div>' +
+    '<div class="pd-status"><i></i><span>Marvell Predict isn\'t running on this computer.</span><span class="grow"></span><button class="btn text sm" data-act="pd-retry">Check again</button></div>' +
+    '<div class="qn-box pd-guide"><div class="pd-os" role="tablist" aria-label="Your system">' + tab('mac', 'macOS') + tab('win', 'Windows') + tab('linux', 'Linux') + '</div>' +
+    '<h3>First-time setup</h3><ol class="pd-steps">' + steps +
+    '<li><b>Come back here.</b> This tab connects by itself once the model is up.</li></ol>' +
+    '<p class="mut pd-next">Next time, double-click <b>Marvell Predict</b> on your Desktop' + (os === 'linux' ? ' (or run <code>~/.marvell-kronos/start.sh</code>)' : '') + ' before you open this tab.</p></div>' +
+    '<details class="qn-box"><summary>What the installer does</summary><ul class="pd-list">' +
+    '<li>Puts everything in one folder, <code>' + (os === 'win' ? '%USERPROFILE%\\.marvell-kronos' : '~/.marvell-kronos') + '</code>. Delete that folder to uninstall. No admin password needed.</li>' +
+    '<li>Installs <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener">uv</a>, which brings its own Python 3.11, so you don\'t need Python already.</li>' +
+    '<li>Downloads PyTorch (~1 GB), the <a href="https://github.com/shiyu-coder/Kronos" target="_blank" rel="noopener">Kronos code</a> (pinned version) and the <a href="https://huggingface.co/NeoQuasar/Kronos-base" target="_blank" rel="noopener">Kronos-base weights</a> (~400 MB) from Hugging Face.</li>' +
+    '<li>Runs a test forecast, then starts a small server that only listens on this computer (<code>127.0.0.1:8793</code>) and only answers this site.</li>' +
+    '<li>Uses your GPU when it can: Apple Silicon (Metal) or NVIDIA (CUDA); otherwise the CPU, which is slower but works.</li></ul></details>' +
+    '<details class="qn-box"><summary>Trouble connecting?</summary><ul class="pd-list">' +
+    '<li>Chrome or Edge may ask to let this site <i>access devices on your local network</i>. Click <b>Allow</b>: that is how the page reaches the model on your computer.</li>' +
+    '<li>Safari can block an https page from talking to your own computer. If this tab never connects in Safari, use Chrome, Edge or Firefox.</li>' +
+    '<li>Is the Marvell Predict window still open, and does it say <i>listening on http://127.0.0.1:8793</i>? Closing it stops the model.</li>' +
+    '<li>Needs about 2 GB of free disk and 8 GB of RAM.</li></ul></details>';
+}
+function pdFormHTML(){
+  var f = PD.form, h = PD.health, sym = f.sym || (CUR.sym ? dispSym(CUR.sym) : 'SPY');
+  var opt = function(v, l, cur){ return '<option value="' + v + '"' + (String(cur) === String(v) ? ' selected' : '') + '>' + l + '</option>'; };
+  return '<div class="qn-hero pd-hero"><div><h2>Predict</h2><div class="pd-status ok"><i></i><span>Kronos-base on your ' + esc(String(h.device || 'computer').replace(/^cuda.*/, 'NVIDIA GPU').replace('mps', 'Apple GPU').replace('cpu', 'CPU')) + '</span></div></div>' + PD_BADGE + '</div>' +
+    '<div class="pd-form">' +
+    '<label><span>Ticker</span><input class="inp" id="pdSym" value="' + esc(sym) + '" placeholder="AAPL, D05.SI, BTC" autocomplete="off" spellcheck="false"></label>' +
+    '<label><span>Candles</span><select class="inp" id="pdTf">' + opt('1D', 'Daily', f.tf) + opt('H1', 'Hourly', f.tf) + '</select></label>' +
+    '<label><span>Forecast</span><select class="inp" id="pdH">' + [5, 10, 20, 30, 60].map(function(n){ return opt(n, n + ' candles', f.h); }).join('') + '</select></label>' +
+    '<label><span>Paths</span><select class="inp" id="pdN">' + [4, 8, 16, 32].map(function(n){ return opt(n, n + ' paths', f.n); }).join('') + '</select></label>' +
+    '<button class="btn filled sm pd-run" data-act="pd-run"' + (PD.busy ? ' disabled' : '') + '>' + (PD.busy ? 'Forecasting…' : 'Forecast') + '</button></div>' +
+    (PD.err ? '<div class="qn-err">' + esc(PD.err) + '</div>' : '') +
+    (PD.busy ? '<div class="qn-busy"><div class="qn-pulse"></div><h3>Kronos is sampling ' + esc(String(f.n)) + ' futures for ' + esc(sym) + '…</h3><p class="mut">A few seconds on a GPU, up to a minute on CPU.</p></div>' : '');
+}
+function pdYahoo(s){
+  s = dispSym(s).replace(/^SGX:/, '');
+  if(isCrypto(s)) return s + '-USD';
+  if(/^(?=.*\d)[A-Z0-9]{3,4}$/.test(s)) return s + '.SI';   // SGX-shaped (D05) -> Yahoo's suffix
+  return s;
+}
+function pdRun(){
+  var f = PD.form, el = function(id){ return $(id); };
+  f.sym = (el('pdSym').value || '').trim().toUpperCase(); f.tf = el('pdTf').value; f.h = +el('pdH').value; f.n = +el('pdN').value; save('fh3_pd', f);
+  if(!f.sym){ PD.err = 'Type a ticker first.'; return pdPaint(); }
+  PD.busy = true; PD.err = ''; PD.res = null; pdPaint();
+  var ysym = pdYahoo(f.sym), crypto = /-USD$/.test(ysym), want = { sym:f.sym, tf:f.tf, h:f.h, n:f.n };
+  // The local server pulls raw candles itself: the edge worker's daily bars mix an adjusted close with raw o/h/l, which Kronos reads as a downtrend.
+  fetch(PD.url + '/predict', { method:'POST', headers:{ 'Content-Type':'application/json' },
+    body:JSON.stringify({ symbol:ysym, pred_len:f.h, samples:f.n, freq:f.tf === 'H1' ? 'H' : (crypto ? 'D' : 'B'), interval_sec:3600 }) })
+    .then(function(x){ return x.json().then(function(j){ if(!x.ok || j.error) throw new Error(j.error || ('Kronos error ' + x.status)); return j; }); })
+    .then(function(j){
+      if(!j.history) throw new Error('Marvell Predict is out of date. Run the installer again to update it.');
+      PD.res = { q:want, cur:j.currency || currencyOf(f.sym), hist:j.history, out:j, stats:pdStats(j.history, j) };
+  }).catch(function(e){
+    PD.err = /Failed to fetch|NetworkError|Load failed/i.test(String(e.message || e)) ? 'Lost the connection to Marvell Predict. Is its window still open?' : String(e.message || e);
+    pdCheck();
+  }).then(function(){ PD.busy = false; if(pdVisible()) pdPaint(); });
+}
+function pdQuantile(arr, q){ var a = arr.slice().sort(function(x, y){ return x - y; }), i = (a.length - 1) * q, lo = Math.floor(i); return a[lo] + (a[Math.min(lo + 1, a.length - 1)] - a[lo]) * (i - lo); }
+function pdStats(hist, out){
+  var last = hist[hist.length - 1].c, P = out.paths, n = out.t.length, band = [];
+  for(var i = 0; i < n; i++){
+    var cs = P.map(function(p){ return p[i].c; });
+    band.push({ p10:pdQuantile(cs, .1), p25:pdQuantile(cs, .25), p50:pdQuantile(cs, .5), p75:pdQuantile(cs, .75), p90:pdQuantile(cs, .9) });
+  }
+  var ends = P.map(function(p){ return p[n - 1].c; });
+  return { last:last, band:band, end:band[n - 1], up:ends.filter(function(c){ return c > last; }).length / ends.length };
+}
+function pdResultHTML(){
+  var R = PD.res; if(!R || PD.busy) return '';
+  var s = R.stats, e = s.end, chg = (e.p50 / s.last - 1) * 100, unit = R.q.tf === 'H1' ? 'hour' : (/-USD$/.test(pdYahoo(R.q.sym)) ? 'day' : 'trading day');
+  var stat = function(l, v, sub, cls){ return '<div class="qn-stat"><span>' + l + '</span><b class="' + (cls || '') + '">' + v + '</b><i>' + sub + '</i></div>'; };
+  return '<div class="qn-box qn-chart pd-chart"><div class="qn-ch"><b>' + esc(R.q.sym) + ' · next ' + R.q.h + ' ' + unit + 's</b><span class="qn-leg"><i class="pd-l-med"></i>Median<i class="pd-l-band"></i>10th–90th pct<i class="pd-l-path"></i>Sampled paths</span></div><div class="qn-svg" id="pdSvg"></div></div>' +
+    '<div class="qn-stats">' +
+    stat('Last close', money(s.last, R.cur), esc(new Date(R.hist[R.hist.length - 1].t * 1000).toISOString().slice(0, 10))) +
+    stat('Median forecast', money(e.p50, R.cur), pct(chg), chg >= 0 ? 'up' : 'down') +
+    stat('Likely range', money(e.p10, R.cur) + ' – ' + money(e.p90, R.cur), '10th to 90th percentile') +
+    stat('Paths ending higher', num(s.up * 100, 0) + '%', R.out.paths.length + ' samples', s.up >= .5 ? 'up' : 'down') + '</div>' +
+    '<div class="qn-fine mut">Kronos-base read ' + R.out.context + ' ' + (R.q.tf === 'H1' ? 'hourly' : 'daily') + ' candles and sampled ' + R.out.paths.length + ' futures on your ' + esc(R.out.device) + ' in ' + R.out.seconds + 's. ' +
+    'A statistical model of price patterns: it knows nothing about news, earnings or the economy. ' +
+    '<b>How good is it?</b> In our backtest of 30 twenty-day forecasts across 6 tickers, Kronos was right about direction about half the time and its median was further off than simply assuming no change. Treat the fan as a range of plausible paths, not a call. Not investment advice.</div>';
+}
+function pdChart(){
+  var R = PD.res, box = $('pdSvg'); if(!R || !box) return;
+  var W = 640, H = 260, padL = 8, padR = 58, padT = 10, padB = 18;
+  var hist = R.hist.slice(-Math.max(40, R.q.h * 3)), s = R.stats, n = s.band.length, N = hist.length + n;
+  var vals = hist.map(function(b){ return b.c; }).concat(s.band.map(function(b){ return b.p10; }), s.band.map(function(b){ return b.p90; }));
+  R.out.paths.slice(0, 12).forEach(function(p){ p.forEach(function(b){ vals.push(b.c); }); });
+  var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals), sp = (mx - mn) || 1; mn -= sp * .04; mx += sp * .04; sp = mx - mn;
+  var X = function(i){ return padL + i / (N - 1) * (W - padL - padR); }, Y = function(v){ return padT + (1 - (v - mn) / sp) * (H - padT - padB); };
+  var line = function(pts){ return pts.map(function(p, i){ return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' '); };
+  var h0 = hist.length - 1, last = [X(h0), Y(s.last)];
+  var area = function(lo, hi){ return line([last].concat(s.band.map(function(b, i){ return [X(h0 + 1 + i), Y(b[hi])]; }))) + ' ' + line(s.band.map(function(b, i){ return [X(h0 + 1 + i), Y(b[lo])]; }).reverse().concat([last])).replace(/^M/, 'L') + 'Z'; };
+  var grid = [0, .25, .5, .75, 1].map(function(k){ var v = mn + sp * k, y = Y(v).toFixed(1);
+    return '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y + '" y2="' + y + '" stroke="var(--fh-border-stroke-default)" stroke-dasharray="2 4"/><text x="' + (W - padR + 6) + '" y="' + (+y + 4) + '" font-size="10.5" fill="var(--fh-foreground-on-surface-de-emphasis)">' + esc(num(v, v < 10 ? 3 : 2)) + '</text>'; }).join('');
+  var paths = R.out.paths.slice(0, 12).map(function(p, k){ var c = pdHue(k * 360 / Math.min(12, R.out.paths.length), document.documentElement.getAttribute('data-theme') !== 'dark').join(',');
+    return '<path d="' + line([last].concat(p.map(function(b, i){ return [X(h0 + 1 + i), Y(b.c)]; }))) + '" fill="none" stroke="rgba(' + c + ',.45)" stroke-width="1"/>'; }).join('');
+  box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" style="display:block;height:auto" role="img" aria-label="Price history and Kronos forecast">' + grid +
+    '<line x1="' + last[0].toFixed(1) + '" x2="' + last[0].toFixed(1) + '" y1="' + padT + '" y2="' + (H - padB) + '" stroke="var(--fh-border-stroke-emphasis)" stroke-dasharray="3 3"/>' +
+    '<text x="' + (last[0] + 4).toFixed(1) + '" y="' + (H - 5) + '" font-size="10.5" fill="var(--fh-foreground-on-surface-de-emphasis)">forecast →</text>' +
+    '<path d="' + area('p10', 'p90') + '" fill="rgba(56,189,248,.13)"/><path d="' + area('p25', 'p75') + '" fill="rgba(56,189,248,.2)"/>' + paths +
+    '<path d="' + line(hist.map(function(b, i){ return [X(i), Y(b.c)]; })) + '" fill="none" stroke="var(--fh-foreground-on-surface-default)" stroke-width="1.6" stroke-linejoin="round"/>' +
+    '<path d="' + line([last].concat(s.band.map(function(b, i){ return [X(h0 + 1 + i), Y(b.p50)]; }))) + '" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-dasharray="5 3"/></svg>';
+}
+function pdInstaller(){
+  var os = pdOS(), base = pdBase();
+  if(os === 'win'){
+    var bat = '@echo off\r\ntitle Marvell Predict installer\r\necho Installing Marvell Predict (Kronos). This window will stay open.\r\n' +
+      'powershell -NoProfile -ExecutionPolicy Bypass -Command "$env:MARVELL_BASE=\'' + base + '\'; irm \'' + base + '/kronos/install.ps1\' | iex"\r\npause\r\n';
+    return Promise.resolve({ name:'install-marvell-predict.bat', text:bat });
+  }
+  return fetchText(base + '/kronos/install.sh', 15000).then(function(t){
+    return { name:'install-marvell-predict.sh', text:t.replace(/MARVELL_BASE:-[^}]*/, 'MARVELL_BASE:-' + base) };
+  });
+}
+function pdAction(act, el){
+  if(act === 'pd-run') pdRun();
+  else if(act === 'pd-retry'){ PD.checked = false; pdPaint(); }
+  else if(act === 'pd-os'){ PD.os = el.getAttribute('data-os'); pdPaint(); }
+  else if(act === 'pd-copy'){ var c = el.getAttribute('data-cmd'); (navigator.clipboard ? navigator.clipboard.writeText(c) : Promise.reject()).then(function(){ el.textContent = 'Copied'; setTimeout(function(){ el.textContent = 'Copy'; }, 1500); }, function(){ toast('Copy failed: select the command and copy it by hand.'); }); }
+  else if(act === 'pd-dl'){
+    pdInstaller().then(function(f){
+      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([f.text], { type:'application/octet-stream' })); a.download = f.name;
+      document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    }).catch(function(){ toast('Could not fetch the installer. Use the one-line command instead.'); });
+  }
+}
+document.addEventListener('keydown', function(e){ if(e.target && e.target.id === 'pdSym' && e.key === 'Enter'){ e.preventDefault(); pdAction('pd-run'); } });
 document.addEventListener('pointermove', function(e){ if(e.target && e.target.closest && e.target.closest('#qnPane .qn-chart')) qnHover(e); });
 document.addEventListener('pointerout', function(e){ if(e.target && e.target.closest && e.target.closest('#qnPane .qn-chart') && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.qn-chart'))) qnHoverOut(e); });
 if('ResizeObserver' in window) new ResizeObserver(function(){ if(QS.cur && !QS.busy) qnChartsPaint(); }).observe(document.documentElement);
@@ -11677,6 +11949,7 @@ function rsThumb(){   // size the sliding pill to the actual tab buttons
   if(!tabs || !a || !b || !a.offsetWidth) return;
   tabs.style.setProperty('--tw', a.offsetWidth + 'px'); tabs.style.setProperty('--tx', (b.offsetLeft - a.offsetLeft) + 'px'); tabs.style.setProperty('--tw2', b.offsetWidth + 'px');
   if(c){ tabs.style.setProperty('--tx3', (c.offsetLeft - a.offsetLeft) + 'px'); tabs.style.setProperty('--tw3', c.offsetWidth + 'px'); }
+  var d = $('tabPredict'); if(d){ tabs.style.setProperty('--tx4', (d.offsetLeft - a.offsetLeft) + 'px'); tabs.style.setProperty('--tw4', d.offsetWidth + 'px'); }
   /* Centre the switch only if it then clears the buttons on the right; measured, since padding differs in full screen. */
   var head = tabs.parentNode;
   var clear = function(){
@@ -11692,21 +11965,24 @@ function rsShowTab(tab, focus){
   if(!chat || !pane) return;
   var t = tab || 'chat', prev = CFG.rtab;
   CFG.rtab = t; saveCfg();
-  var tabs = document.querySelector('.rs-tabs'); if(tabs){ tabs.setAttribute('data-t', t); rsThumb(); rsFxStart(); }
-  var a = $('tabChat'), b = $('tabResearch'), q = $('tabQuant'), qp = $('qnPane');
+  var tabs = document.querySelector('.rs-tabs'); if(tabs) tabs.setAttribute('data-t', t);
+  var a = $('tabChat'), b = $('tabResearch'), q = $('tabQuant'), qp = $('qnPane'), pt = $('tabPredict'), pp = $('pdPane');
+  if(pt) pt.className = (t === 'predict') ? 'on' : '';
   if(a) a.className = (t === 'chat') ? 'on' : '';
   if(b) b.className = (t === 'research') ? 'on' : '';
   if(q) q.className = (t === 'quant') ? 'on' : '';
-  var paneOf = function(k){ return k === 'chat' ? chat : k === 'quant' ? qp : pane; };
+  var paneOf = function(k){ return k === 'chat' ? chat : k === 'quant' ? qp : k === 'predict' ? pp : pane; };
   var foot = document.querySelector('.drawer .drawer-foot'), nc = $('newChatBtn');
   if(nc) nc.hidden = (t !== 'chat');
   var nr = $('newResBtn'); if(nr){ nr.hidden = (t !== 'research'); nr.disabled = !!RS.running; }
   var nq = $('newQnBtn'); if(nq){ nq.hidden = (t !== 'quant'); nq.disabled = !!QS.busy; }
+  if(tabs){ rsThumb(); rsFxStart(); }   // measure after the New buttons swap, or the switch is placed against the previous tab's header
   var apply = function(){
-    chat.hidden = (t !== 'chat'); pane.hidden = (t !== 'research'); if(qp) qp.hidden = (t !== 'quant');
+    chat.hidden = (t !== 'chat'); pane.hidden = (t !== 'research'); if(qp) qp.hidden = (t !== 'quant'); if(pp) pp.hidden = (t !== 'predict');
     if(foot) foot.hidden = (t !== 'chat');
     if(t === 'research'){ rsPaint(); if(focus){ var q = $('rsQ'); if(q) q.focus(); } }
     if(t === 'quant') qnPaint(focus);
+    if(t === 'predict') pdPaint(); else pdStopPoll();
     [paneOf(t), t === 'chat' ? foot : null].forEach(function(e){
       if(!e) return; e.classList.remove('fadeout'); e.classList.remove('fadein'); void e.offsetWidth; e.classList.add('fadein');
     });
@@ -12359,6 +12635,7 @@ function bindEvents(){
       case 'drawer-full': setFull(!$('drawer').classList.contains('full')); break;
       case 'drawer-tab': rsShowTab(el.getAttribute('data-tab')); break;
       case 'qn-run': case 'qn-ex': case 'qn-new': case 'qn-open': case 'qn-log': case 'qn-reset': case 'qn-refine': case 'qn-pdf': case 'qn-pdf-dl': case 'qn-log-open': case 'qn-log-del': qnAction(act, el); break;
+      case 'pd-run': case 'pd-retry': case 'pd-os': case 'pd-copy': case 'pd-dl': pdAction(act, el); break;
       case 'rs-close': closeDrawer(); break;
       case 'quote': ev.preventDefault(); go('#/quote/' + encodeURIComponent(sym)); break;
       case 'openlist': go('#/list/' + el.getAttribute('data-id')); break;
@@ -12948,8 +13225,8 @@ function exportCSV(what){
     });
   } else if(what === 'portfolio'){
     var st = pfStats(PFS[CUR.pf]);
-    rows = [['symbol', 'shares', 'avg_cost', 'price', 'value', 'return_pct']].concat(st.rows.map(function(r){
-      return [r.s, r.q, r.costPx, r.price, r.value.toFixed(2), r.retPct.toFixed(2)];
+    rows = [['symbol', 'shares', 'avg_cost', 'price', 'currency', 'value', 'value_' + st.base, 'return_pct']].concat(st.rows.map(function(r){
+      return [r.s, r.q, r.costPx, r.price, r.cur, r.value.toFixed(2), r.bv.toFixed(2), r.retPct.toFixed(2)];
     }));
   } else if(what === 'quotes'){
     rows = [['symbol', 'name', 'price', 'change', 'change_pct', 'volume']];
