@@ -265,31 +265,31 @@ var MH = (function(){
       }
     },
     calculate:{
-      modes:'chat research', label:function(){ return '🧮 Calculating'; },
-      description:'Evaluate an arithmetic expression exactly (+ - * / ^ % parentheses, decimals). Use instead of mental math.',
-      params:S({ expression:STR('e.g. (229.33/176.5-1)*100') }, ['expression']),
+      modes:'chat research', label:function(){ return '🧮 Running the numbers'; },
+      description:'The math engine: exact, repeatable results for ANY calculation. Never do arithmetic yourself, not even simple percentages. ' +
+        'Give fn + args for one calculation, or batch:[{id, fn, args}] for several at once (an arg "$id.field" uses an earlier result, e.g. "$w.waccPct"). ' +
+        'Rates and returns are in percent (8 = 8%). Wherever a price series is wanted, pass {"history":"NVDA","range":"1Y"} (1M 6M YTD 1Y 5Y MAX) and the engine fetches the full daily closes itself: never paste prices. ' +
+        'Functions: ' + (typeof ME !== 'undefined' ? ME.catalog() : 'eval(expression)'),
+      params:S({ fn:STR('Function name', typeof ME !== 'undefined' ? Object.keys(ME.fns) : ['eval']), args:{ type:'object', description:'Arguments for fn' },
+        batch:ARR('Several calculations, run in order', { type:'object', properties:{ id:STR('Short name to reference the result'), fn:STR('Function name'), args:{ type:'object', description:'Arguments' } } }),
+        expression:STR('Shortcut for fn "eval", e.g. (229.33/176.5-1)*100') }),
       run:function(a){
-        var e = String(a.expression || '').replace(/,/g, '');
-        if(!/^[\d\s+\-*/().%^eE]+$/.test(e)) throw new Error('only numbers and + - * / ^ % ( ) are allowed');
-        var v = Function('"use strict";return (' + e.replace(/\^/g, '**') + ')')();   // ponytail: whitelist above keeps this to arithmetic
-        if(typeof v !== 'number' || !isFinite(v)) throw new Error('not a finite number');
-        return { expression:a.expression, result:Math.round(v * 1e8) / 1e8 };
-      }
-    },
-    dcf:{
-      modes:'chat research', label:function(){ return '🧮 DCF model'; },
-      description:'Simple discounted cash flow: project free cash flow at a growth rate, add a Gordon terminal value, discount, and (optionally) convert to value per share.',
-      params:S({ fcf:NUM('Current annual free cash flow, in dollars'), growth_pct:NUM('Annual FCF growth % during the projection'), years:NUM('Projection years, default 5'),
-        discount_pct:NUM('Discount rate (WACC) %'), terminal_growth_pct:NUM('Terminal growth %, default 2.5'), net_debt:NUM('Net debt in dollars (negative for net cash), default 0'), shares:NUM('Diluted shares outstanding (optional)') },
-        ['fcf', 'growth_pct', 'discount_pct']),
-      run:function(a){
-        var n = Math.max(1, Math.min(15, a.years || 5)), g = a.growth_pct / 100, r = a.discount_pct / 100, tg = (a.terminal_growth_pct == null ? 2.5 : a.terminal_growth_pct) / 100;
-        if(!(r > tg)) throw new Error('discount rate must exceed terminal growth');
-        var f = a.fcf, pv = 0, flows = [];
-        for(var t = 1; t <= n; t++){ f *= 1 + g; var d = f / Math.pow(1 + r, t); pv += d; flows.push({ year:t, fcf:compact(f), pv:compact(d) }); }
-        var tv = f * (1 + tg) / (r - tg), pvTv = tv / Math.pow(1 + r, n), ev = pv + pvTv, eq = ev - (a.net_debt || 0);
-        return { flows:flows, pvOfFlows:compact(pv), terminalValue:compact(tv), pvOfTerminal:compact(pvTv), terminalSharePct:num2(pvTv / ev * 100),
-          enterpriseValue:compact(ev), equityValue:compact(eq), perShare:a.shares ? num2(eq / a.shares) : null, note:'Sensitive to growth and discount rate; show a range.' };
+        var env = {
+          history:function(s, r){
+            s = symOf(s); if(!s) throw new Error('bad ticker'); r = /^(1M|6M|YTD|1Y|5Y|MAX)$/.test(r) ? r : '1Y';
+            // fetchHistory returns weekly bars for 5Y and monthly for MAX; the engine wants daily, so those ranges come from the daily source Quant uses (cut to 5 years for 5Y)
+            if((r === '5Y' || r === 'MAX') && typeof qnHist === 'function') return qnHist(s).then(function(rows){ var from = ymd(new Date(Date.now() - 5 * 365.25 * 864e5)); return r === 'MAX' ? rows : rows.filter(function(x){ return x.d >= from; }); }, function(){ return fetchHistory(s, r); });
+            return fetchHistory(s, r);
+          },
+          fx:function(f, t){ return loadFXRates().then(function(){ return { rate:fxRate(f, t), date:FX.date, src:FX.src }; }); },
+          portfolio:function(name){
+            var ref = String(name || '').toLowerCase(), id = Object.keys(PFS).filter(function(k){ return k === ref || String(PFS[k].name).toLowerCase() === ref; })[0] || (PFS[CUR.pf] ? CUR.pf : Object.keys(PFS)[0]);
+            var pf = PFS[id]; if(!pf || !pf.holdings.length) throw new Error('that portfolio is empty');
+            return loadQuotesFor(pf.holdings.map(function(h){ return h.s; })).then(function(){ var st = pfStats(pf); st.name = pf.name; return st; });
+          }
+        };
+        if(Array.isArray(a.batch) && a.batch.length) return ME.batch(a.batch.slice(0, 25), env).then(function(r){ return { results:r }; });
+        return ME.run(a.fn || 'eval', a.fn ? a.args || {} : { expression:a.expression || (a.args || {}).expression }, env);
       }
     },
     read_docs:{
@@ -434,11 +434,13 @@ var MH = (function(){
   };
 
   /* ---- prompts ---------------------------------------------------------- */
+  var MATH_RULE = 'MATH: never do arithmetic in your head. Every figure you derive (changes, ratios, growth, margins, valuations, returns, risk, P/L, currency, options, projections) comes from calculate; ' +
+    'put independent calculations in one batch. Use its numbers as returned; quote derived percentages and multiples to one decimal place (12.4%, 24.3x), never rounded to a whole number, so they can be checked. The user sees results, not workings: do not show formulas, code or tool calls unless they ask how it was worked out.';
   var CHAT_PROMPT = '\n\nTOOLS: you run inside the Marvell harness with live tools. You cannot see the app\'s screen or its cached data, and the user may change topic at any time: answer the LATEST message. ' +
     'For every quote, number, news item, insider trade, filing or market fact, call the data tools (get_quote, get_price_history, get_financials, list_filings, read_filing, get_insider_trades, get_news, get_investor_holdings, company_profile, screen_stocks) in this turn, ' +
     'even if an earlier turn already covered it, because earlier answers go stale. Use web search (and read_webpage) for anything else, recent, or non-US. ' +
     'Never say you only have the data on the page. Only say something is unavailable after a tool failed or returned nothing, and name the tool. ' +
-    'Every number in your answer must come from a tool result or an attachment; cite data-tool sources as [n] and web search results as inline links. Use calculate or dcf for arithmetic.\n' +
+    'Every number in your answer must come from a tool result or an attachment; cite data-tool sources as [n] and web search results as inline links.\n' + MATH_RULE + '\n' +
     'APP CONTROL: you can drive MercerFargo. When the user wants to see something, or a page would clearly help, open it (open_quote, navigate, compare, set_chart, run_screener, open_filing). ' +
     'Portfolio, watchlist and price-alert changes go through propose_changes and wait for the user\'s Apply click; say what you proposed. ' +
     'For stock ideas, peers or "find me stocks that..." use screen_stocks with real filters (valuation, growth, margins, dividends, technicals, ETFs) over the whole US market; offer run_screener so the user can browse the same screen. ' +
@@ -453,7 +455,7 @@ var MH = (function(){
     'Work efficiently: call independent tools in parallel, stop as soon as you can answer well, and never claim a page shows something you have not fetched.';
   var RESEARCH_PROMPT = '\n\nDEEP RESEARCH MODE: produce a thorough, well-sourced report. First call update_plan with 3-6 concrete steps and keep it current. ' +
     'Gather evidence with the tools: real numbers from the data tools, SEC filings for company facts, web search plus read_webpage for news, guidance, competitors, industry and macro context (cite web search results as inline links). ' +
-    'Prefer primary sources, cross-check key figures, and compute with calculate/dcf. Then write the final report in markdown: a short answer first, then the analysis the question needs, ' +
+    'Prefer primary sources and cross-check key figures. ' + MATH_RULE + ' Then write the final report in markdown: a short answer first, then the analysis the question needs, ' +
     'key risks, and what to watch next. Cite every specific figure or claim as [n] using the source numbers from tool results. Do not write a Sources list; the app appends it.';
   var REVIEW_PROMPT = 'Before this is final, reread your report against the tool results above. For any specific figure or claim you cannot tie to one of them, attribute it to whoever stated it ' +
     'or soften it to what you can support; leave everything already grounded, including figures you computed with tools, exactly as it is. Do not call tools. Reply with the complete revised report only.';
@@ -589,6 +591,7 @@ var MH = (function(){
     var maxRounds = o.maxRounds || (mode === 'research' ? 40 : 15), deadline = Date.now() + (o.maxMs || (mode === 'research' ? 600000 : 240000));
     var hist = (o.history || []).map(function(m){ return { role:m.role, content:m.content, text:m.content, calls:[], raw:m.role === 'assistant' ? aiAssistantRaw(ep, m.content) : null }; });
     hist.push({ role:'user', content:o.user, images:o.images || [] });
+    var prior = hist.length;   // earlier turns (already checked) end here; anything after is this run's own output
     var sources = [], acts = [], rounds = 0, stop = o.stop || {}, nat = nativeSearch(ep, model), natOff = false, carry = '', cuts = 0;
     var ctx = {
       source:function(title, url){
@@ -682,7 +685,21 @@ var MH = (function(){
         });
       });
     }
-    return loop().then(function(text){
+    /* The number check: figures in the draft that no tool result, question or instruction contains get one silent
+       repair round (with tools, so the model can work them out with calculate). Wrong stated arithmetic is fixed at the end. */
+    function checkNumbers(text){
+      if(stop.stopped || !text || typeof ME === 'undefined') return text;
+      var led = ME.ledger([sys, o.user].concat(hist.map(function(m, i){ return m.role === 'assistant' ? (i < prior ? m.text : '') : m.content; })));   // the model's own text from this run is not evidence: its figures would vouch for themselves
+      var miss = ME.untraced(ME.fix(text).text, led);
+      if(!miss.length) return text;
+      hist.push({ role:'assistant', text:text, calls:[], raw:aiAssistantRaw(ep, text) });
+      hist.push({ role:'user', content:'(Automatic check, not from the user.) These figures in your draft are not in any tool result: ' + miss.slice(0, 15).join(', ') + '. ' +
+        'Work each one out with calculate (or fetch it with a data tool), or drop it; if one is an assumption or a rule of thumb, keep it and call it that. ' +
+        'Then reply with the complete corrected answer only, without mentioning this check.', images:[] });
+      step({ kind:'round', label:'Double-checking the numbers' });
+      return loop().then(function(t){ return t || text; });
+    }
+    return loop().then(checkNumbers).then(function(text){
       if(stop.stopped || mode !== 'research' || !text) return text;
       hist.push({ role:'assistant', text:text, calls:[], raw:aiAssistantRaw(ep, text) });
       step({ kind:'round', label:'Checking the report against its sources' });
@@ -690,6 +707,7 @@ var MH = (function(){
     }).then(function(text){
       var used = hist.filter(function(m){ return m.role === 'tool'; }).map(function(m){ return { name:m.name, err:!!m.err }; });
       text = guard(text, sys);
+      if(typeof ME !== 'undefined') text = ME.fix(text).text;
       return { text:text || '', sources:sources, acts:acts, rounds:rounds, stopped:!!stop.stopped, tools:used };
     });
   }

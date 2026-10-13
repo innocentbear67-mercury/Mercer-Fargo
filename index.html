@@ -915,6 +915,9 @@ tr:hover .wl-add,.wl-add:focus-visible,.wl-add.on{opacity:1}
 .mt-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:var(--fh-foreground-on-surface-de-emphasis);cursor:pointer}
 .mt-btn:hover{background:var(--fh-states-neutral-hovered);color:var(--fh-foreground-on-surface-emphasis)}
 .mt-btn.on{color:var(--mf-gold)}
+.sel-reply{position:fixed;z-index:9999;padding:5px 12px;border:0;border-radius:8px;background:var(--mf-gold);color:#1a1405;font-weight:600;font-size:12.5px;font-family:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.sel-reply[hidden]{display:none}
+.msg-tools.me{justify-content:flex-end;margin:-14px 4px 14px 0;}
 .mt-form{margin:-6px 0 14px;padding:12px;border-radius:12px;border:1px solid var(--fh-border-stroke-default);background:var(--fh-background-surface-container-de-emphasis)}
 .mt-q{font-size:13px;margin-bottom:8px;color:var(--fh-foreground-on-surface-emphasis)}
 .mt-form textarea{width:100%;box-sizing:border-box;resize:vertical;border-radius:8px;border:1px solid var(--fh-border-stroke-default);background:var(--fh-background-surface);color:inherit;font:inherit;font-size:13px;padding:8px}
@@ -2514,10 +2517,6 @@ body.rs-drag iframe{pointer-events:none}
 .rs-tabs[data-t="predict"] .thumb{--fx:192,104,206}
 .rs-tabs[data-t="predict"] .thumb::after{animation:rsGlow 1.5s ease-in-out infinite}
 .drawer:not(.full) .rs-tabs button{padding:6px 11px;font-size:12.5px}   /* four modes still leave room for the panel buttons */
-/* rsThumb() adds tabs-mid whenever the switch fits in the middle without touching the buttons on the right */
-.drawer-head.tabs-mid{position:relative}
-.drawer-head.no-lbl .lbl{display:none!important}
-.drawer-head.tabs-mid .rs-tabs{position:absolute;left:50%;top:calc(50% + 3px);transform:translate(-50%,-50%)}
 .drawer-head{container-type:inline-size}
 @container (max-width:420px){ .newsess .lbl,.newres .lbl{display:none} }
 @container (max-width:360px){ .rs-tabs button{padding:6px 7px!important} .tab-deep{display:none} }
@@ -2543,7 +2542,6 @@ body.rs-drag iframe{pointer-events:none}
 .drawer.full .rs-tabs button{padding:9px 30px;font-size:15.5px}
 @container dr (min-width:720px){
   .drawer.full .drawer-head{position:relative;min-height:62px}
-  .drawer.full .drawer-head.tabs-mid .rs-tabs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}   /* only when rsThumb() found room beside the buttons */
 }
 .mk-map{touch-action:pan-y}
 .mk-map.zoomed{touch-action:none;cursor:grab}
@@ -2657,6 +2655,7 @@ body.rs-drag iframe{pointer-events:none}
 <script src="fundamentals.js"></script>
 <script src="drawing.js"></script>
 <script src="qengine.js"></script>
+<script src="mathengine.js"></script>
 <script>try{var c=JSON.parse(localStorage.getItem('fh3_cfg')||'{}'),t=c.theme||'dark';if(t==='auto')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 <div class="sys" id="bootScreen" role="status" aria-live="polite" aria-label="Loading MercerFargo">
   <div class="sys-in">
@@ -10367,6 +10366,7 @@ function chatRender(){
     return '<div class="msg ' + (m.role === 'user' ? 'me' : (m.err ? 'err' : '')) + '">' +
       (m.role === 'user' ? esc(m.text) : mdToHTML(m.text) + srcHTML(m) + actCards(m) + skillCard(m) +
         (m.keyCta ? '<div class="act-b" style="margin-top:10px"><button class="btn filled sm" data-act="keys">Add API key</button><button class="btn text sm" data-act="tour-start">Show me how</button></div>' : '')) + '</div>' +
+      (m.role === 'user' ? userToolsHTML(m) : '') +
       (m.role !== 'user' && !m.err && !m.keyCta && m.text && !(AI_BUSY && i === msgs.length - 1) ? msgToolsHTML(m) + learnHTML(m) : '');
   }).join('') + (AI_BUSY && msgs[msgs.length - 1].role === 'user' ? thinkHTML() : '');
   el.scrollTop = el.scrollHeight;
@@ -10376,15 +10376,51 @@ function chatRender(){
 var MSG_ICON = {
   copy:'M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z',
   up:'M2 20h3V9H2v11zm19-9a2 2 0 0 0-2-2h-6.3l1-4.6v-.3c0-.4-.2-.8-.4-1.1L12.2 2 6.6 7.6C6.2 8 6 8.5 6 9v10a2 2 0 0 0 2 2h9c.8 0 1.5-.5 1.8-1.2l3-7.1c.1-.2.2-.5.2-.7v-2z',
+  rewind:'M11 18V6l-8.5 6 8.5 6zm.5-6 8.5 6V6l-8.5 6z',
+  edit:'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
+  regen:'M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z',
+  quote:'M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z',
   down:'M22 4h-3v11h3V4zM3 13a2 2 0 0 0 2 2h6.3l-1 4.6v.3c0 .4.2.8.4 1.1l1.1 1 5.6-5.6c.4-.4.6-.9.6-1.4V5a2 2 0 0 0-2-2H7c-.8 0-1.5.5-1.8 1.2l-3 7.1c-.1.2-.2.5-.2.7v2z'
 };
 function msgToolsHTML(m){
+  var ag = msgAgent(m);
   var b = function(act, ic, title, on){ return '<button class="mt-btn' + (on ? ' on' : '') + '" data-act="' + act + '" data-ts="' + m.ts + '" title="' + title + '" aria-label="' + title + '"' + (on != null ? ' aria-pressed="' + !!on + '"' : '') + '>' + railSvg(MSG_ICON[ic], 15) + '</button>'; };
   var form = m.fbOpen ? '<div class="mt-form"><div class="mt-q">What went wrong? A sentence or two helps us fix it.</div>' +
       '<textarea id="mtText' + m.ts + '" rows="3" maxlength="2000" placeholder="e.g. The P/E it quoted is wrong, or it ignored my question about…"></textarea>' +
       '<div class="mt-row"><button class="btn text sm" data-act="msg-fb-cancel" data-ts="' + m.ts + '">Cancel</button><button class="btn filled sm" data-act="msg-fb-send" data-ts="' + m.ts + '">Send feedback</button></div></div>'
     : m.fbSent ? '<div class="mt-thanks">Thank you, your feedback was sent. It helps make Marvell better.</div>' : '';
-  return '<div class="msg-tools">' + b('msg-copy', 'copy', 'Copy answer') + b('msg-up', 'up', 'Good answer', m.fb === 'up') + b('msg-down', 'down', 'Bad answer', m.fb === 'down') + '</div>' + form;
+  return '<div class="msg-tools">' + b('msg-copy', 'copy', 'Copy answer') + (ag ? b('msg-regen', 'regen', 'Regenerate') + b('msg-quote', 'quote', 'Quote & reply') : '') + b('msg-up', 'up', 'Good answer', m.fb === 'up') + b('msg-down', 'down', 'Bad answer', m.fb === 'down') + '</div>' + form;
+}
+/* Agent chats only: user prompts carry ak (the aiRun kind) and q (the question), so they can be edited, rewound or regenerated. */
+function msgAgent(m){ var i = CHAT.indexOf(m); for(var j = i - 1; j >= 0 && CHAT[j].sid === m.sid; j--){ if(CHAT[j].role === 'user') return !!CHAT[j].q; } return false; }
+function userToolsHTML(m){
+  var b = function(act, ic, title){ return '<button class="mt-btn" data-act="' + act + '" data-ts="' + m.ts + '" title="' + title + '" aria-label="' + title + '">' + railSvg(MSG_ICON[ic], 15) + '</button>'; };
+  return '<div class="msg-tools me">' + b('msg-copy', 'copy', 'Copy prompt') + b('msg-edit', 'edit', 'Edit prompt') + b('msg-rewind', 'rewind', 'Rewind to before this prompt') + '</div>';
+}
+var EDIT_TS = 0;
+function quoteReply(t){
+  var pr = $('prompt'); if(!pr) return;
+  pr.value = t.slice(0, 600).split('\n').map(function(l){ return '> ' + l; }).join('\n') + '\n\n'; pr.focus(); pr.dispatchEvent(new Event('input', { bubbles:true }));
+}
+/* Highlight text inside one of Marvell's answers and a floating Reply button appears beside it. */
+(function(){
+  var b = document.createElement('button'); b.type = 'button'; b.className = 'sel-reply'; b.hidden = true; b.textContent = 'Reply';
+  b.addEventListener('mousedown', function(e){ e.preventDefault(); });   // keep the selection alive
+  b.addEventListener('click', function(){ var t = String(getSelection()).trim(); b.hidden = true; if(t) quoteReply(t); getSelection().removeAllRanges(); });
+  document.body.appendChild(b);
+  function sync(){
+    var sel = getSelection(), n = sel && sel.rangeCount && !sel.isCollapsed ? sel.getRangeAt(0).commonAncestorContainer : null;
+    var msg = n && (n.nodeType === 1 ? n : n.parentNode).closest('#chat .msg:not(.me)');
+    if(!msg || !String(sel).trim()){ b.hidden = true; return; }
+    var rs = sel.getRangeAt(0).getClientRects(), f = rs[0], l = rs[rs.length - 1], r = { left:Math.min(f.left, l.left), width:Math.abs(l.right - f.left), top:f.top };   // first line's top, last line's end
+    b.hidden = false; b.style.left = Math.max(8, Math.min(innerWidth - b.offsetWidth - 8, r.left + r.width / 2 - b.offsetWidth / 2)) + 'px'; b.style.top = Math.max(8, r.top - b.offsetHeight - 8) + 'px';
+  }
+  document.addEventListener('selectionchange', function(){ clearTimeout(sync.t); sync.t = setTimeout(sync, 120); });
+})();
+function chatCut(m){   // drop m and everything after it in its chat
+  var i = CHAT.indexOf(m);
+  CHAT = CHAT.filter(function(x, j){ return x.sid !== m.sid || j < i; });
+  save(LS.chat, CHAT);
 }
 function msgByTs(ts){ return CHAT.filter(function(x){ return String(x.ts) === String(ts); })[0]; }
 function msgFeedbackSend(m){
@@ -10527,9 +10563,10 @@ function aiRun(kind, question, opts){
   openDrawer();
   var label = opts.silent ? '' : ('**' + spec.label + (CUR.view === 'quote' ? ' · ' + dispSym(CUR.sym) : '') + '**');
   var atts = ATT.slice(); ATT = []; attPaint();
+  var ed = EDIT_TS && msgByTs(EDIT_TS); EDIT_TS = 0; if(ed) chatCut(ed);   // an edited prompt replaces the old one and what followed
   var attNote = atts.length ? '\n\n\ud83d\udcce ' + atts.map(function(a){ return a.name; }).join(', ') : '';
   if(opts.shown) chatPush('user', opts.shown + attNote);
-  else if(question) chatPush('user', question + attNote);
+  else if(question) chatPush('user', question + attNote, (kind === 'custom' || kind === 'deep') ? { ak:kind, q:question } : null);
   else if(label) chatPush('user', label.replace(/\*\*/g, '') + attNote);
   var prompt = opts.skill ? skillPromptFor(opts.skill, question) : spec.ask + (question ? (kind === 'learn' ? '\n\nRequest: ' : '\n\nQuestion: ') + question : '');
   var attImgs = atts.filter(function(a){ return a.kind === 'image'; });
@@ -11618,7 +11655,8 @@ var QN_SPEC_SYS = 'You turn an investor\'s description of a trading or allocatio
   '"params":[{"id":"len","label":"RSI length","value":14,"min":2,"max":40,"step":1},{"id":"buy","label":"Buy below RSI","value":30,"min":5,"max":50,"step":1},{"id":"sell","label":"Sell above RSI","value":70,"min":50,"max":95,"step":1}],' +
   '"projection":{"years":5,"drift":0,"volMult":1,"note":"Historical behaviour carried forward."},"assumptions":["Long only, fully invested when in a trade"],"unsupported":""}';
 var QN_NOTE_SYS = 'You are Marvell\'s quant analyst in MercerFargo. You write the short analyst note for a strategy backtest, in the style of an equity research report: plain English, specific numbers, balanced, no hype. ' +
-  'Never tell the user to buy or sell, never promise returns. Past results and simulations are not predictions. Reply with JSON only.';
+  'Never tell the user to buy or sell, never promise returns. Past results and simulations are not predictions. ' +
+  'Every number you write must appear in the facts you are given (the Derived line has the comparisons, already worked out by the engine): never do arithmetic of your own. Reply with JSON only.';
 
 function qnSave(){ save('fh3_quant', QN_RUNS.slice(0, 30)); }
 /* A Quant session: the first description, every refinement (turns) and every PDF made from it. Kept in this browser and listed in the Research Log. */
@@ -11688,7 +11726,7 @@ function qnEngine(){
 }
 function qnSpec(q, prev){
   var pfs = qnPortfolios();
-  var ask = prev ? 'Current spec:\n' + JSON.stringify(prev.spec) + '\n\nThe user wants this change: ' + q + '\nReturn the full updated spec.' : 'Today is ' + ymd(new Date()) + '. Strategy to test: ' + q +
+  var ask = prev ? 'Current spec:\n' + JSON.stringify(prev.spec) + '\n\nThe user wants this change: ' + q + '\nReturn the full updated spec.' : 'Today is ' + ymd(new Date()) + ' (15 years ago is ' + ymd(new Date(Date.now() - 15 * 365.25 * 864e5)) + '). Strategy to test: ' + q +
     (pfs ? '\n\nThe user\'s portfolios (weights by cost). If they mean "my portfolio", test it as an allocation with these weights (rebalanced quarterly) against SPY:\n' + pfs : '');
   var tryOne = function(content, round){
     return aiCall([{ role:'user', content:content }], QN_SPEC_SYS, qnEffortKey()).then(function(t){
@@ -11748,14 +11786,34 @@ function qnFacts(cur){
     '\nBeta ' + f(m.beta, 2) + ', alpha ' + f(m.alpha) + '%/yr, correlation ' + f(m.corr, 2) + ', time invested ' + f(m.exposure, 0) + '%, trades ' + m.trades + (m.winRate != null ? ', win rate ' + f(m.winRate, 0) + '%, average trade ' + f(m.avgTrade) + '% over ' + f(m.avgDays, 0) + ' days' : '') +
     ', beat the benchmark in ' + m.beatYears + ' of ' + m.nYears + ' years.\nRating ' + cur.rating + '/5 stars, edge ' + cur.edge + ', uncertainty ' + cur.unc +
     '\nProjection (' + p.years + ' years from $10,000, return shift ' + cur.proj.drift + '%/yr, volatility x' + cur.proj.volMult + '): 5th pct ' + QN.money(p.end[0]) + ', median ' + QN.money(p.end[2]) + ', 95th ' + QN.money(p.end[4]) + ', chance of losing money ' + f(p.lossProb, 0) + '%.' +
-    (cur.spec.assumptions && cur.spec.assumptions.length ? '\nAssumptions: ' + cur.spec.assumptions.join('; ') : '') + (cur.spec.unsupported ? '\nNot modelled: ' + cur.spec.unsupported : '');
+    (cur.spec.assumptions && cur.spec.assumptions.length ? '\nAssumptions: ' + cur.spec.assumptions.join('; ') : '') + (cur.spec.unsupported ? '\nNot modelled: ' + cur.spec.unsupported : '') +
+    // comparisons the note will want, worked out here so the model never does the arithmetic
+    '\nDerived (exact; use these rather than working out your own): CAGR ' + f(m.s.cagr - m.b.cagr, 1) + ' points vs benchmark, total return ' + f(m.s.total - m.b.total, 0) + ' points vs benchmark, ' +
+    'max drawdown ' + f(m.s.maxdd - m.b.maxdd, 1) + ' points vs benchmark' + (m.b.maxdd ? ' (' + f(m.s.maxdd / m.b.maxdd * 100, 0) + '% of the benchmark\'s)' : '') + ', volatility ' + (m.b.vol ? f(m.s.vol / m.b.vol * 100, 0) + '% of the benchmark\'s' : 'n/a') +
+    ', Sharpe ' + f(m.s.sharpe - m.b.sharpe, 2) + ' vs benchmark, beat the benchmark in ' + (m.nYears ? f(m.beatYears / m.nYears * 100, 0) : 'n/a') + '% of years. ' +
+    'Projection: median ' + f((p.end[2] / p.capital - 1) * 100, 0) + '% total gain (' + f(p.cagr[2], 1) + '%/yr), 5th pct ' + f((p.end[0] / p.capital - 1) * 100, 0) + '% (' + f(p.cagr[0], 1) + '%/yr), 95th pct ' + f((p.end[4] / p.capital - 1) * 100, 0) + '% (' + f(p.cagr[4], 1) + '%/yr).';
 }
 function qnNote(cur){
   return aiCall([{ role:'user', content:qnFacts(cur) + '\n\nWrite JSON: {"headline":"a report-style headline under 14 words","note":"2-3 sentences: what the test shows, with the key numbers",' +
     '"why":"1-2 sentences: why it matters for someone considering this approach","bottom_line":"1-2 sentences","strengths":["3 short points"],"risks":["3 short points, include what could make the past not repeat"],' +
     '"drivers":"1-2 sentences: what moves the projection most and how the dials change it"}' }], QN_NOTE_SYS, qnEffortKey()).then(function(t){
-    var j = jsonFrom(t); if(!j || !j.headline) throw new Error('no note'); return j;
+    var j = jsonFrom(t); if(!j || !j.headline) throw new Error('no note');
+    return qnNoteCheck(cur, j, t);
   });
+}
+/* The math engine checks the note: stated arithmetic is corrected, and figures that are not in the facts get one rewrite. */
+function qnNoteCheck(cur, j, raw, again){
+  if(typeof ME === 'undefined') return j;
+  var facts = qnFacts(cur), led = ME.ledger([facts]), miss = [];
+  Object.keys(j).forEach(function(k){
+    var fixOne = function(s){ if(typeof s !== 'string') return s; s = ME.fix(s).text; miss = miss.concat(ME.untraced(s, led)); return s; };
+    j[k] = Array.isArray(j[k]) ? j[k].map(fixOne) : fixOne(j[k]);
+  });
+  if(!miss.length || again) return j;
+  return aiCall([{ role:'user', content:facts + '\n\nYour note:\n' + raw + '\n\nThese figures are not in the facts above: ' + miss.slice(0, 12).join(', ') +
+    '. Rewrite the note using only figures that appear in the facts (the Derived line has the comparisons), or describe them without a number. Same JSON shape.' }], QN_NOTE_SYS, qnEffortKey()).then(function(t){
+    var k = jsonFrom(t); return k && k.headline ? qnNoteCheck(cur, k, t, true) : j;
+  }, function(){ return j; });
 }
 
 /* ---- painting */
@@ -12371,15 +12429,6 @@ function rsThumb(){   // size the sliding pill to the actual tab buttons
   tabs.style.setProperty('--tw', a.offsetWidth + 'px'); tabs.style.setProperty('--tx', (b.offsetLeft - a.offsetLeft) + 'px'); tabs.style.setProperty('--tw2', b.offsetWidth + 'px');
   if(c){ tabs.style.setProperty('--tx3', (c.offsetLeft - a.offsetLeft) + 'px'); tabs.style.setProperty('--tw3', c.offsetWidth + 'px'); }
   var d = $('tabPredict'); if(d){ tabs.style.setProperty('--tx4', (d.offsetLeft - a.offsetLeft) + 'px'); tabs.style.setProperty('--tw4', d.offsetWidth + 'px'); }
-  /* Centre the switch only if it then clears the buttons on the right; measured, since padding differs in full screen. */
-  var head = tabs.parentNode;
-  var clear = function(){
-    var t = tabs.getBoundingClientRect(), ok = true;
-    [].forEach.call(head.children, function(el){ if(el !== tabs && el.offsetWidth && el.getBoundingClientRect().left < t.right + 8) ok = false; });
-    return ok;
-  };
-  head.classList.remove('no-lbl'); head.classList.add('tabs-mid');
-  if(!clear()){ head.classList.add('no-lbl'); if(!clear()) head.classList.remove('tabs-mid', 'no-lbl'); }   // then icon-only New buttons, else back to the left
 }
 function rsShowTab(tab, focus){
   var chat = $('chat'), pane = $('rsPane');
@@ -13228,7 +13277,7 @@ function bindEvents(){
       case 'nlportfolio': aiRun('custom', 'Propose a diversified 8-position starter portfolio for a long-horizon investor, with a one-line rationale per position and the main risk. Do not invent specific prices.'); break;
       case 'msg-copy': {
         var mc = msgByTs(el.getAttribute('data-ts'));
-        if(mc) (navigator.clipboard ? navigator.clipboard.writeText(mc.text) : Promise.reject()).then(function(){ toast('Copied'); }, function(){ toast('Couldn\u2019t copy'); });
+        if(mc) (navigator.clipboard ? navigator.clipboard.writeText(mc.role === 'user' && mc.q ? mc.q : mc.text) : Promise.reject()).then(function(){ toast('Copied'); }, function(){ toast('Couldn\u2019t copy'); });
         break;
       }
       case 'msg-up': case 'msg-down': {
@@ -13240,6 +13289,20 @@ function bindEvents(){
         save(LS.chat, CHAT); chatRender();
         if(!dn && mf.fb) toast('Thanks for the feedback!');
         if(mf.fbOpen) setTimeout(function(){ var t = $('mtText' + mf.ts); if(t) t.focus(); }, 30);
+        break;
+      }
+      case 'msg-edit': case 'msg-rewind': case 'msg-regen': case 'msg-quote': {
+        var mm = msgByTs(el.getAttribute('data-ts')), pr = $('prompt');
+        if(!mm) break;
+        if(AI_BUSY){ toast('Wait for Marvell to finish first.'); break; }
+        if(act === 'msg-quote') quoteReply(String(window.getSelection ? window.getSelection() : '').trim() || mm.text); else if(act === 'msg-edit') {
+          EDIT_TS = mm.ts; pr.value = mm.q || mm.text; pr.focus(); pr.dispatchEvent(new Event('input', { bubbles:true })); toast('Edit it and send: your old prompt and the reply after it will be replaced.');
+        } else if(act === 'msg-rewind') { chatCut(mm); chatRender(); toast('Rewound'); }
+        else {   // regenerate: back to the prompt that led to this answer, then ask again
+          var ui = CHAT.indexOf(mm), u = null;
+          for(var j = ui - 1; j >= 0 && !u; j--){ if(CHAT[j].role === 'user') u = CHAT[j]; }
+          if(u && u.q){ chatCut(u); aiRun(u.ak, u.q); }
+        }
         break;
       }
       case 'msg-fb-cancel': { var mx = msgByTs(el.getAttribute('data-ts')); if(mx){ mx.fbOpen = false; if(!mx.fbSent) mx.fb = ''; save(LS.chat, CHAT); chatRender(); } break; }

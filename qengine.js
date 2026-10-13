@@ -189,7 +189,7 @@ function sd(a){ var m = mean(a), s = 0; for(var i = 0; i < a.length; i++) s += (
 function stats(dates, q, rf){
   var r = q.map(function(v, k){ return k ? v / q[k - 1] - 1 : 0; }).slice(1), yrs = Math.max(1 / DAY, r.length / DAY);
   var cagr = Math.pow(q[q.length - 1] / q[0], 1 / yrs) - 1, vol = sd(r) * Math.sqrt(DAY);
-  var dn = r.filter(function(x){ return x < 0; }), dvol = Math.sqrt(mean(dn.map(function(x){ return x * x; }))) * Math.sqrt(DAY);
+  var dvol = Math.sqrt(mean(r.map(function(x){ return x < 0 ? x * x : 0; }))) * Math.sqrt(DAY);   // downside deviation: every day counts, gains as zero
   var pk = q[0], mdd = 0, ddStart = 0, longest = 0, cur = 0, dd = [];
   q.forEach(function(v, k){ if(v >= pk){ pk = v; cur = 0; } else cur++; longest = Math.max(longest, cur); var d = v / pk - 1; dd.push(d); if(d < mdd){ mdd = d; ddStart = k; } });
   var years = {}; q.forEach(function(v, k){ if(!k) return; var y = dates[k].slice(0, 4); if(!years[y]) years[y] = { a:q[k - 1] }; years[y].b = v; });
