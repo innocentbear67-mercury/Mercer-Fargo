@@ -4,7 +4,7 @@ brand: the header search and market tab strip, horizontal quote cards, a quote p
 with Overview / Analysis / Earnings / Financials / Holdings / Research tabs,
 watchlists, portfolios, a screener, a compare view, and Marvell, a BYOK AI agent with
 live data tools, web search and Deep Research.
-The app is **`index.html`** plus Marvell's agent loop in **`harness.js`**. No build step, no
+The app is **`index.html`** plus Marvell's agent loop in **`harness.js`** and the Intelligent UI renderer in **`genui.js`**. No build step, no
 framework, no account, and no API keys required for market data.
 
 **Brand:** charcoal black is the default theme — canvas `#141414` up through
@@ -246,6 +246,8 @@ OpenRouter catalog; "Add custom model…" stores ids under Custom.
 ```
 index.html                 the app (markup, CSS, data layer, views, AI, research panel)
 harness.js                 Marvell's agent loop: provider adapters, tools, sources, review pass
+genui.js                   Intelligent UI: draws the charts, tables, diagrams, forms and explorers Agent chat answers with
+genui.test.mjs             node --test genui.test.mjs (parsing, formulas, escaping, limits)
 docs/marvell-guide.md      the app guide Marvell reads with its read_docs tool
 serve.py                   static server, /proxy allow-list, /api/search and /api/read
 worker/                    Cloudflare worker: charts, feed relay, web search and page reading
@@ -289,6 +291,24 @@ hosted copy and locally.
   then a grounding review; runs are saved in this browser (Research Log, Past runs).
 
 After changing `worker/opencode-proxy.js`, redeploy it: `cd worker && npx wrangler deploy`.
+
+### Intelligent UI — Agent chat that picks its own format
+
+Marvell chooses per question between plain text and a visual: a line or bar **chart**, a **table**,
+**side-by-side comparison** cards, a **diagram** (tap a box for detail), tappable **buttons**
+(a tap sends the follow-up), a small **form**, an **explorer** (change an input, see the result and
+its curve update live), a step-by-step **walkthrough**, inline **images and graphics**, and **parallel
+columns**. Settings → AI & API keys → *Visuals in Agent chat* sets Auto, Fewer or Off.
+
+* **The model writes data, not code.** It emits one JSON spec in a fenced block labelled `ui`;
+  `genui.js` validates it and draws it with its own components. Spec text is escaped, colours come from
+  a fixed palette, formulas run in a small parser (no `eval`), and images load only from a short host
+  list (`IMG_HOSTS`), so a prompt-injected spec cannot run script or send data out in a URL.
+* **Interactions stay local.** Sliders, steps and diagram taps re-draw in the page; buttons and forms
+  send an ordinary user message to the agent. State survives a chat re-render (not a reload).
+* **History stays small.** Earlier visuals reach the model as one-line stand-ins, and *Copy* copies the text.
+* Deep Research reports and Quant keep their own renderers; they do not use this.
+* Test it: `node --test genui.test.mjs`.
 
 ## Notes and limits
 

@@ -195,7 +195,7 @@ var MH = (function(){
       description:'Fetch a public web page and return its readable text (up to ~20k characters). Some sites block automated reading; then try another source.',
       params:S({ url:STR('Full https URL') }, ['url']),
       run:function(a, ctx){
-        if(/innocentbear67-mercury|mercer-fargo|marvell-system-prompts|harness\.js/i.test(String(a.url || '')))   // the site's own source and prompts
+        if(/innocentbear67-mercury|mercer-fargo|marvell-system-prompts|harness\.js|genui\.js/i.test(String(a.url || '')))   // the site's own source and prompts
           return Promise.reject(new Error('This page is MercerFargo\'s own source code, which Marvell does not read. Answer from the guide (read_docs) instead.'));
         return apiGet('/api/read?u=' + encodeURIComponent(String(a.url || ''))).then(function(j){
           return 'source [' + ctx.source(j.title || host(j.url), j.url) + '] ' + (j.title || '') + ' (' + j.url + ')' + (j.truncated ? ' [first 20k chars]' : '') + '\n\n' + j.text;
@@ -436,6 +436,8 @@ var MH = (function(){
   /* ---- prompts ---------------------------------------------------------- */
   var MATH_RULE = 'MATH: never do arithmetic in your head. Every figure you derive (changes, ratios, growth, margins, valuations, returns, risk, P/L, currency, options, projections) comes from calculate; ' +
     'put independent calculations in one batch. Use its numbers as returned; quote derived percentages and multiples to one decimal place (12.4%, 24.3x), never rounded to a whole number, so they can be checked. The user sees results, not workings: do not show formulas, code or tool calls unless they ask how it was worked out.';
+  /* Intelligent UI: Agent chat may answer with ui blocks that genui.js draws (see genui.js for the block types). */
+  function visualsPrompt(level){ return typeof GENUI !== 'undefined' ? GENUI.promptFor(level) : ''; }
   var CHAT_PROMPT = '\n\nTOOLS: you run inside the Marvell harness with live tools. You cannot see the app\'s screen or its cached data, and the user may change topic at any time: answer the LATEST message. ' +
     'For every quote, number, news item, insider trade, filing or market fact, call the data tools (get_quote, get_price_history, get_financials, list_filings, read_filing, get_insider_trades, get_news, get_investor_holdings, company_profile, screen_stocks) in this turn, ' +
     'even if an earlier turn already covered it, because earlier answers go stale. Use web search (and read_webpage) for anything else, recent, or non-US. ' +
@@ -585,7 +587,7 @@ var MH = (function(){
     var ep = aiEndpoint(prov, model), effortKey = AI_EFFORT[o.effort] ? o.effort : 'medium';
     var tools = {};
     Object.keys(TOOLS).forEach(function(n){ if(TOOLS[n].modes.indexOf(mode) >= 0) tools[n] = TOOLS[n]; });
-    var sys = o.system + (mode === 'research' ? RESEARCH_PROMPT : CHAT_PROMPT.replace('%DOCS%', Object.keys(DOCS).join(', ') || 'guide unavailable'));
+    var sys = o.system + (mode === 'research' ? RESEARCH_PROMPT : CHAT_PROMPT.replace('%DOCS%', Object.keys(DOCS).join(', ') || 'guide unavailable') + visualsPrompt(o.visuals));
     var maxTokens = Math.max(AI_EFFORT[effortKey].mt, mode === 'research' ? 8000 : 3000);
     if(ep.wire !== 'a' && ep.wire !== 'm') maxTokens += THINK_ROOM[effortKey] || 4096;   // reasoning shares the output limit
     var maxRounds = o.maxRounds || (mode === 'research' ? 40 : 15), deadline = Date.now() + (o.maxMs || (mode === 'research' ? 600000 : 240000));
@@ -726,7 +728,7 @@ var MH = (function(){
   function leakNorm(s){ return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
   function guard(text, sys){
     var priv = String(sys || '').replace(/\n\nMEMORY \(saved[\s\S]*?(?=\n\n[A-Z][A-Z ]{3,}:|$)/, '');
-    var corpus = [priv, CHAT_PROMPT, RESEARCH_PROMPT, REVIEW_PROMPT].concat(Object.keys(TOOLS).map(function(n){ return TOOLS[n].description; })).join(' ');
+    var corpus = [priv, CHAT_PROMPT, visualsPrompt('auto'), RESEARCH_PROMPT, REVIEW_PROMPT].concat(Object.keys(TOOLS).map(function(n){ return TOOLS[n].description; })).join(' ');
     var w = leakNorm(corpus).split(' '), t = ' ' + leakNorm(text) + ' ', hits = 0;
     for(var i = 0; i + 12 <= w.length; i += 6){ if(t.indexOf(' ' + w.slice(i, i + 12).join(' ') + ' ') >= 0 && ++hits >= 3) return LEAK_MSG; }
     return text;

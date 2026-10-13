@@ -165,8 +165,23 @@ The **Agent** tab of the Marvell panel. Open it with *Research with Marvell*; �
 - **Mic**: dictate a question.
 - **Skills**: type `/` (see `skills`).
 - Actions: Marvell opens pages instantly; creating/adding/deleting and price alerts show an approval card (**Apply** / Dismiss).
-- Under each answer: **copy** (copies the whole answer), **thumbs up**, **thumbs down**. Thumbs down asks what went wrong and emails it, with the question and answer, to the MercerFargo team, then thanks the user.
+- **Visuals**: for some questions Marvell answers with a chart, table, side-by-side comparison, diagram, tappable buttons, a small form, a step-by-step walkthrough or an explorer you can change. See `visuals`.
+- Under each answer: **copy** (copies the whole answer's text), **thumbs up**, **thumbs down**. Thumbs down asks what went wrong and emails it, with the question and answer, to the MercerFargo team, then thanks the user.
 Limits per message: up to 15 tool rounds or about 4 minutes, then it answers with what it has.
+
+## visuals
+Agent chat can answer with more than text. Marvell picks the format per question: plain text for a quick fact or opinion, and a visual when it explains better.
+- **Chart** (line or bar) for numbers over time or a ranking; hover or long-press a point or bar for its value.
+- **Table** and **side-by-side comparison** cards for several things across several attributes.
+- **Diagram**: boxes and arrows for a process; tap a box to read more.
+- **Buttons**: tappable follow-up questions; a tap sends that question for you.
+- **Form**: a few inputs (number, text, choice, slider) with a button that sends your answer.
+- **Explorer**: change a slider and watch the result and its curve update at once, e.g. "what if I add $200 a month?". Assumed inputs are labelled as assumptions.
+- **Walkthrough**: a step-by-step explanation with Back and Next.
+- **Images and graphics**: small inline pictures; images load only from a short list of trusted sites.
+- Parallel layouts put two or three of these side by side (they stack on a narrow panel).
+Marvell always writes the main point in plain text too. Charts and tables use numbers it fetched; explorer inputs are examples, not forecasts.
+Settings → AI & API keys → **Visuals in Agent chat**: *Auto* (default), *Fewer* or *Off, text only*. Copy on an answer copies its text, not the visuals. If a visual cannot be drawn, you see "This visual could not be drawn" and the text still stands.
 
 ## deep-research
 The **Deep Research** tab of the Marvell panel, or *Start deep research on SYM* on a quote's Research tab. Produces a structured, cited report.
