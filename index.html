@@ -11771,7 +11771,10 @@ var QN_SPEC_SYS = 'You turn an investor\'s description of a trading or allocatio
   '"projection":{"years":5,"drift":0,"volMult":1,"note":"Historical behaviour carried forward."},"assumptions":["Long only, fully invested when in a trade"],"unsupported":""}';
 var QN_NOTE_SYS = 'You are Marvell\'s quant analyst in MercerFargo. You write the short analyst note for a strategy backtest, in the style of an equity research report: plain English, specific numbers, balanced, no hype. ' +
   'Never tell the user to buy or sell, never promise returns. Past results and simulations are not predictions. ' +
-  'Every number you write must appear in the facts you are given (the Derived line has the comparisons, already worked out by the engine): never do arithmetic of your own. Reply with JSON only.';
+  'Every number you write must appear in the facts you are given (the Derived line has the comparisons, already worked out by the engine): never do arithmetic of your own. ' +
+  'Name a weighting method in plain words (risk parity: every asset carries the same share of the portfolio\'s risk; minimum variance: the mix with the least volatility; momentum: hold the recent winners; HRP: risk is split down a tree of similar assets) and mention a volatility target or weight cap if the facts have one. ' +
+  'When the facts have a Pair line, say plainly whether the pair is cointegrated and how long its spread typically takes to close, and that borrowing costs on the short leg are not modelled; if the verdict is "Not cointegrated", say the spread has no statistical tendency to close, so any profit may be luck. ' +
+  'You may quote the tail-risk, regime and crisis-replay figures when they are in the facts. Never call a result proven or robust: the overfitting checks are a separate panel the user runs, so you may suggest running them. Reply with JSON only.';
 
 function qnSave(){ save('fh3_quant', QN_RUNS.slice(0, 30)); }
 /* A Quant session: the first description, every refinement (turns) and every PDF made from it. Kept in this browser and listed in the Research Log. */
@@ -11894,11 +11897,30 @@ function qnCompute(cur){
   cur.pr = QN.project(cur.bt.ret, cur.proj);
   var m = cur.bt.metrics; cur.rating = QN.rating(m); cur.edge = QN.edge(m); cur.unc = QN.uncertainty(QN.project(cur.bt.ret, { years:1, drift:cur.proj.drift, volMult:cur.proj.volMult }).spread1y);
 }
+
+/* Facts about the weighting method, the pair rules, regimes and replayed crises, so the note can describe them with numbers the checker accepts. */
+function qnExtraFacts(cur, f){
+  var out = '';
+  try{
+    var a = cur.bt.alloc, pr = cur.bt.pair;
+    if(a){
+      out += '\nWeighting: ' + (QN.METHODS[a.method] || a.method) + (a.method !== 'fixed' && a.method !== 'equal' ? ', re-estimated at each rebalance from the previous ' + a.lookback + ' days' : '') + (a.volTarget ? ', volatility target ' + f(a.volTarget, 0) + '%' : '') + (a.maxWeight ? ', no asset above ' + f(a.maxWeight, 0) + '%' : '') +
+        '. Latest weights: ' + a.syms.map(function(sy, i){ return [sy, a.weights[i]]; }).sort(function(u, v){ return v[1] - u[1]; }).slice(0, 4).filter(function(x){ return x[1] > .005; }).map(function(x){ return x[0] + ' ' + f(x[1] * 100, 0) + '%'; }).join(', ');
+    }
+    if(pr) out += '\nPair rules: enter when the spread is beyond ' + f(pr.entryZ, 1) + ' standard deviations, exit within ' + f(pr.exitZ, 1) + (pr.stopZ ? ', stop beyond ' + f(pr.stopZ, 1) : '') + '; hedge ratio re-fitted on the last ' + pr.lookback + ' days.';
+    var rg = QN.regimes(cur.bt, cur.al);
+    if(rg) out += '\nRegimes (annualised return, strategy vs ' + rg.bench + '): ' + rg.trend.concat(rg.vol).map(function(x){ return ({ up:'uptrend', down:'downtrend', calm:'calm markets', normal:'normal markets', stormy:'stormy markets' })[x.id] + ' ' + f(x.s && x.s.ann, 1) + '% vs ' + f(x.b && x.b.ann, 1) + '%'; }).join('; ') + '.';
+    var sb = qnStressBT(cur), st = QN.stress(sb).rows.filter(function(r){ return r.s; }).sort(function(u, v){ return u.b.ret - v.b.ret; }).slice(0, 3);
+    if(st.length) out += '\nCrisis replays on the full history from ' + sb.dates[0] + ' (return, benchmark): ' + st.map(function(r){ return r.name + ' ' + f(r.s.ret, 1) + '% vs ' + f(r.b.ret, 1) + '%'; }).join('; ') + '.';
+  }catch(e){}
+  return out;
+}
 function qnFacts(cur){
   var m = cur.bt.metrics, p = cur.pr, f = function(v, d){ return v == null ? 'n/a' : (+v).toFixed(d == null ? 1 : d); };
   return 'Strategy: ' + cur.spec.title + ' — ' + cur.spec.summary + '\nUser asked: ' + cur.q + '\nPeriod: ' + m.from + ' to ' + m.to + ' (' + m.nYears + ' calendar years). Benchmark: ' + cur.bt.bsym +
     '\nStrategy: CAGR ' + f(m.s.cagr) + '%, total ' + f(m.s.total, 0) + '%, volatility ' + f(m.s.vol) + '%, Sharpe ' + f(m.s.sharpe, 2) + ', Sortino ' + f(m.s.sortino, 2) + ', max drawdown ' + f(m.s.maxdd) + '%, best year ' + f(m.s.best) + '%, worst year ' + f(m.s.worst) + '%' +
     '\nBenchmark: CAGR ' + f(m.b.cagr) + '%, volatility ' + f(m.b.vol) + '%, Sharpe ' + f(m.b.sharpe, 2) + ', max drawdown ' + f(m.b.maxdd) + '%' +
+    qnExtraFacts(cur, f) +
     (cur.bt.pair && cur.bt.pair.coint ? '\nPair: ' + cur.bt.pair.a + ' vs ' + cur.bt.pair.b + ', cointegration ' + cur.bt.pair.coint.verdict + ' (ADF ' + f(cur.bt.pair.coint.tau, 2) + '), hedge ratio ' + f(cur.bt.pair.coint.beta, 2) + (cur.bt.pair.coint.halfLife != null ? ', half-life ' + f(cur.bt.pair.coint.halfLife, 0) + ' days' : ', no mean reversion') + ', long one leg and short the other' : '') +
     (m.risk ? '\nTail risk (1 day, 95%): VaR ' + f(m.risk.var95, 2) + '%, CVaR ' + f(m.risk.cvar95, 2) + '%, Omega ' + f(m.risk.omega, 2) + (m.risk.ir != null ? ', information ratio ' + f(m.risk.ir, 2) : '') + (m.profitFactor != null ? ', profit factor ' + f(m.profitFactor, 2) : '') : '') +
     '\nBeta ' + f(m.beta, 2) + ', alpha ' + f(m.alpha) + '%/yr, correlation ' + f(m.corr, 2) + ', time invested ' + f(m.exposure, 0) + '%, trades ' + m.trades + (m.winRate != null ? ', win rate ' + f(m.winRate, 0) + '%, average trade ' + f(m.avgTrade) + '% over ' + f(m.avgDays, 0) + ' days' : '') +
