@@ -5,7 +5,7 @@ set -e
 cd "$(dirname "$0")/.."
 out=.work/site
 rm -rf "$out" && mkdir -p "$out/docs"
-cp index.html 404.html cloud.js desk.js drawing.js fundamentals.js genui.js harness.js indicators.js mathengine.js memo-pdf.js qengine.js "$out"/
+cp index.html 404.html cloud.js xpf.js desk.js drawing.js fundamentals.js genui.js harness.js indicators.js mathengine.js memo-pdf.js qengine.js "$out"/
 cp -R assets "$out"/assets
 cp docs/marvell-guide.md "$out"/docs/
 cp -R kronos "$out"/kronos

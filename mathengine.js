@@ -680,6 +680,42 @@ def('rebalance', 'holdings:[{symbol, value} | {symbol, shares, price}], targets:
   return { total:total, trades:h.map(function(x){ var w = num(tg[x.s], x.s, 0) / tw, d = total * w - x.v;
     return { symbol:x.s, currentPct:total ? x.v / total * 100 : 0, targetPct:w * 100, buy:d > 0 ? d : 0, sell:d < 0 ? -d : 0, shares:x.px ? d / x.px : undefined }; }) };
 });
+/* experimental portfolios: positions come from the user's chosen weights, the portfolio size and live prices, never typed in */
+var PER_YEAR = { none:0, weekly:52, monthly:12, quarterly:4, yearly:1 };
+ME.PER_YEAR = PER_YEAR; ME.MAX_POSITIONS = 20;
+def('build_portfolio', 'size (total money), positions:[{symbol, weight_pct}] (weights must total 100), prices:{SYMBOL: live price}, whole_shares?[false]: each position\'s value = size x weight, shares = value / price (whole shares leave the remainder as cash)', function(a){
+  var size = num(a.size, 'size'); if(!(size > 0)) bad('size must be above zero');
+  var pos = list(a.positions, 'positions'); if(pos.length > ME.MAX_POSITIONS) bad('at most ' + ME.MAX_POSITIONS + ' positions');
+  var px = a.prices || {}, seen = {}, total = 0, missing = [], whole = a.whole_shares === true || a.whole_shares === 'true';
+  var rows = pos.map(function(p, i){
+    var s = String(p.symbol || '').trim().toUpperCase(); if(!s) bad('positions[' + i + '].symbol is required');
+    if(seen[s]) bad(s + ' appears twice'); seen[s] = 1;
+    var w = num(p.weight_pct, s + ' weight_pct'); if(!(w > 0) || w > 100) bad(s + ' weight must be between 0 and 100');
+    var price = px[s] == null ? NaN : num(px[s], s + ' price'); if(!(price > 0)) missing.push(s);
+    total += w; return { s:s, w:w, price:price };
+  });
+  if(missing.length) bad('no live price for ' + missing.join(', '));
+  if(Math.abs(total - 100) > 0.01) bad('weights total ' + Math.round(total * 100) / 100 + '%, not 100%');
+  var invested = 0, out = rows.map(function(r){
+    var target = size * r.w / 100, shares = whole ? Math.floor(target / r.price) : target / r.price, value = shares * r.price; invested += value;
+    return { symbol:r.s, weightPct:r.w, price:r.price, targetValue:target, shares:shares, value:value };
+  });
+  out.forEach(function(r){ r.actualWeightPct = size ? r.value / size * 100 : 0; });
+  return { size:size, invested:invested, cash:size - invested, cashPct:(size - invested) / size * 100, positions:out };
+});
+function addMonths(y, m, d, k){ var t = m + k, yy = y + Math.floor(t / 12), mm = ((t % 12) + 12) % 12, last = new Date(Date.UTC(yy, mm + 1, 0)).getUTCDate(); return Date.UTC(yy, mm, Math.min(d, last)); }
+def('contribution_schedule', 'amount, freq (weekly | monthly | quarterly | yearly), start?[today] (YYYY-MM-DD), years?[1]: every deposit date, the count and the total contributed', function(a){
+  var freq = String(a.freq || '').toLowerCase(); if(!PER_YEAR[freq]) bad('freq must be weekly, monthly, quarterly or yearly');
+  var amt = num(a.amount, 'amount'); if(!(amt > 0)) bad('amount must be above zero');
+  var yrs = Math.max(0.1, Math.min(50, num(a.years, 'years', 1)));
+  var st = a.start ? Date.parse(a.start + 'T00:00:00Z') : Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()); if(!isFinite(st)) bad('start must be YYYY-MM-DD');
+  var end = st + yrs * 365 * 864e5, s0 = new Date(st), dates = [], k = 1, t = st;
+  while(dates.length < 2600){
+    t = freq === 'weekly' ? st + 7 * 864e5 * k : addMonths(s0.getUTCFullYear(), s0.getUTCMonth(), s0.getUTCDate(), k * (freq === 'monthly' ? 1 : freq === 'quarterly' ? 3 : 12));
+    if(t > end) break; dates.push(new Date(t).toISOString().slice(0, 10)); k++;
+  }
+  return { freq:freq, amount:amt, perYear:PER_YEAR[freq], perYearAmount:amt * PER_YEAR[freq], count:dates.length, total:amt * dates.length, first:dates[0] || null, last:dates[dates.length - 1] || null, dates:dates.slice(0, 60) };
+});
 def('dividend_income', 'shares, dividend (annual per share), price?, cost_per_share?, growth_pct?, years?: income, yield, yield on cost, projection', function(a){
   var s = num(a.shares, 'shares'), d = num(a.dividend, 'dividend'), o = { annualIncome:s * d, monthlyIncome:s * d / 12 };
   if(a.price != null) o.yieldPct = d / num(a.price, 'price') * 100;

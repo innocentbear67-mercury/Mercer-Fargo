@@ -713,35 +713,60 @@ QN.style = function(ret, dates, hist){
 /* ------------------------------------------------------------------ the projection */
 function rng(seed){ return function(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 /* Monthly percentiles of the value of `capital` over `years`. Same seed every time, so moving a dial changes the fan, not the luck. */
+QN.PER_YEAR = { none:0, weekly:52, monthly:12, quarterly:4, yearly:1 };
+/* o.amount added every o.freq (a deposit plan): `end` and the bands include the deposits, `cagr` stays the strategy's own return (a pot with deposits has no single CAGR). */
 QN.project = function(r, o){
   o = o || {};
   var years = Math.max(1, Math.min(30, o.years || 5)), paths = o.paths || 400, B = 21, N = years * DAY, cap = o.capital || 10000;
+  var py = QN.PER_YEAR[o.freq || 'none'] || 0, amt = py ? Math.max(0, +o.amount || 0) : 0, every = amt ? Math.max(1, Math.round(DAY / py)) : 0;   // ponytail: deposits every 252/perYear trading days, not calendar dates
+  var invested = cap + (every ? amt * Math.floor(N / every) : 0);
   if(!r || r.length < 20) throw new Error('not enough history to project');
   var m = mean(r), shift = (o.drift || 0) / 100 / DAY, k = o.volMult == null ? 1 : o.volMult, rand = rng(o.seed || 7);
   var src = r.length > B ? r : r.concat(r, r, r);
-  var steps = years * 12, at = [], ends = [], one = [];
+  var steps = years * 12, at = [], ends = [], ends0 = [], one = [];
   for(var s = 0; s <= steps; s++) at.push([]);
   for(var p = 0; p < paths; p++){
-    var v = cap, d = 0, step = 1, yr1 = null; at[0].push(v);
+    var v = cap, v0 = cap, d = 0, step = 1, yr1 = null; at[0].push(v);
     while(d < N){
       var st = Math.floor(rand() * (src.length - B));
       for(var j = 0; j < B && d < N; j++, d++){
-        v *= 1 + m + (src[st + j] - m) * k + shift;
-        if(v < 0) v = 0;
+        var f = 1 + m + (src[st + j] - m) * k + shift;
+        v *= f; v0 *= f;
+        if(v < 0) v = 0; if(v0 < 0) v0 = 0;
+        if(every && (d + 1) % every === 0) v += amt;
         if(d + 1 === DAY) yr1 = v;
         if((d + 1) % 21 === 0 && step <= steps){ at[step].push(v); step++; }
       }
     }
     while(step <= steps){ at[step].push(v); step++; }
-    ends.push(v); one.push(yr1 == null ? v : yr1);
+    ends.push(v); ends0.push(v0); one.push(yr1 == null ? v : yr1);
   }
   var pct = function(a, q){ var x = a.slice().sort(function(u, w){ return u - w; }), i = (x.length - 1) * q, lo = Math.floor(i); return x[lo] + (x[Math.min(lo + 1, x.length - 1)] - x[lo]) * (i - lo); };
   var Q = [.05, .25, .5, .75, .95], bands = Q.map(function(q){ return at.map(function(a){ return pct(a, q); }); });
   var c = function(v){ return (Math.pow(v / cap, 1 / years) - 1) * 100; };
   return { years:years, capital:cap, months:steps, p5:bands[0], p25:bands[1], p50:bands[2], p75:bands[3], p95:bands[4],
-    end:Q.map(function(q){ return pct(ends, q); }), cagr:Q.map(function(q){ return c(pct(ends, q)); }),
-    lossProb:ends.filter(function(v){ return v < cap; }).length / paths * 100,
+    end:Q.map(function(q){ return pct(ends, q); }), cagr:Q.map(function(q){ return c(pct(ends0, q)); }), invested:invested,
+    lossProb:ends.filter(function(v){ return v < invested; }).length / paths * 100,
     spread1y:(pct(one, .95) - pct(one, .05)) / cap * 100 };
+};
+
+/* What a deposit plan would have grown to over the backtest: `capital` on day one, `amount` added every `freq`, all riding the strategy's daily returns.
+   dates has one more entry than ret. Returns the value and invested curves, the end value and the money-weighted (XIRR) annual return. */
+QN.progress = function(dates, ret, plan){
+  var cap = Math.max(0, +plan.capital || 0), py = QN.PER_YEAR[plan.freq || 'none'] || 0, amt = py ? Math.max(0, +plan.amount || 0) : 0, every = amt ? Math.max(1, Math.round(DAY / py)) : 0;
+  if(!cap && !amt) throw new Error('the plan needs a starting amount or a deposit');
+  var v = cap, inv = cap, val = [v], invs = [inv], flows = [[dates[0], -cap]], deposits = 0;
+  for(var k = 0; k < ret.length; k++){
+    v *= 1 + ret[k];
+    if(every && (k + 1) % every === 0){ v += amt; inv += amt; deposits++; flows.push([dates[k + 1], -amt]); }
+    val.push(v); invs.push(inv);
+  }
+  flows.push([dates[dates.length - 1], v]);
+  var t0 = Date.parse(dates[0]), yrs = function(d){ return (Date.parse(d) - t0) / 864e5 / 365; };
+  var npv = function(r){ var s = 0; for(var i = 0; i < flows.length; i++) s += flows[i][1] / Math.pow(1 + r, yrs(flows[i][0])); return s; };
+  var lo = -0.95, hi = 10, irr = null;
+  if(npv(lo) * npv(hi) < 0){ for(var it = 0; it < 100; it++){ var mid = (lo + hi) / 2; if(npv(lo) * npv(mid) <= 0) hi = mid; else lo = mid; } irr = (lo + hi) / 2 * 100; }
+  return { dates:dates, value:val, invested:invs, end:v, totalInvested:inv, gain:v - inv, multiple:inv ? v / inv : null, deposits:deposits, irrPct:irr };
 };
 
 /* ------------------------------------------------------------------ charts (SVG strings with explicit colours, so the same chart goes into the PDF) */

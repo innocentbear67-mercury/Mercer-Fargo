@@ -1725,6 +1725,36 @@ body.chart-fs{overflow:hidden}
 .g-slot{position:absolute;inset:0;opacity:.01;overflow:hidden;cursor:pointer}
 .g-slot>div{transform-origin:0 0}
 @media (prefers-reduced-motion:reduce){.g-btn,.g-btn::before,.g-arr{transition:none}}
+/* experimental portfolios */
+.ri-main{font-size:11px;line-height:1;color:var(--mf-gold);margin-left:6px;flex:none}
+.xpf-tag{font:600 11px/1 var(--mf-serif);letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;border-radius:6px;border:1px solid color-mix(in srgb,var(--mf-gold) 50%,transparent);color:var(--mf-gold);vertical-align:middle;margin-left:8px}
+.xpf-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.xpf-lead{margin:2px 0 16px;max-width:62ch}
+.xpf-grid{display:grid;grid-template-columns:minmax(260px,320px) 1fr;gap:16px;align-items:start}
+@media (max-width:860px){.xpf-grid{grid-template-columns:1fr}}
+.xpf-setup h3,.xpf-pos h3{margin:0 0 12px}
+.xpf-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.xpf-note{font-size:12.5px;line-height:18px;margin:-2px 0 12px}
+.xpf-chk{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;cursor:pointer;margin-top:4px}
+.xpf-chk input{margin-top:3px;accent-color:var(--mf-gold)}
+.xpf-tbl td,.xpf-tbl th{height:48px}
+.xpf-sym{width:110px;text-transform:uppercase}.xpf-w{width:92px}
+.xpf-tbl td.num,.xpf-tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+.xpf-x{opacity:.55}.xpf-x:hover{opacity:1}
+.xpf-bar{display:flex;height:8px;border-radius:5px;overflow:hidden;gap:2px;background:var(--fh-states-neutral-hovered)}
+.xpf-bar i{display:block;background:var(--mf-gold);min-width:2px;border-radius:2px}
+#xpBar{margin:14px 0 10px}
+.xpf-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.xpf-total{font-size:13.5px}.xpf-tools{display:flex;gap:2px;flex-wrap:wrap}
+.xpf-sum{margin-top:10px;font-size:13.5px;min-height:20px}
+.xpf-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.xpf-card{display:flex;flex-direction:column;gap:6px;text-decoration:none;color:inherit;transition:border-color .2s,transform .2s}
+a.xpf-card:hover{border-color:var(--mf-gold);transform:translateY(-2px)}
+.xpf-card.empty{grid-column:1/-1}
+.xpf-mini{margin-top:6px}
+.qn-plan .qn-pl-row{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0;font-size:13.5px;line-height:21px}
+.qn-plan .qn-pl-row b{font-variant-numeric:tabular-nums}
+.qn-plan svg{width:100%;height:70px;display:block;margin-top:6px}
 .g-or{display:flex;align-items:center;gap:10px;margin:14px 0 4px;font-size:12px;color:var(--fh-foreground-on-surface-de-emphasis)}
 .g-or::before,.g-or::after{content:"";flex:1;height:1px;background:var(--fh-border-stroke-default)}
 .auth-tabs{display:flex;gap:6px;margin-bottom:12px}
@@ -2897,6 +2927,7 @@ body.rs-drag iframe{pointer-events:none}
 <script src="desk.js"></script>
 <script src="memo-pdf.js"></script>
 <script src="cloud.js"></script>
+<script src="xpf.js"></script>
 <script>try{var c=JSON.parse(localStorage.getItem('fh3_cfg')||'{}'),t=c.theme||'dark';if(t==='auto')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 <div class="sys" id="bootScreen" role="status" aria-live="polite" aria-label="Loading MercerFargo">
   <div class="sys-in">
@@ -4937,6 +4968,7 @@ Object.keys(PFS).forEach(function(k){ var p = PFS[k]; if(!p || typeof p !== 'obj
   p.name = String(p.name || k);
   p.holdings = p.holdings.filter(function(h){ return h && typeof h.s === 'string' && h.s && isFinite(h.q); }).map(function(h){ var o = { s:h.s, q:+h.q, px:isFinite(h.px) ? +h.px : 0 }; if(/^\d{4}-\d\d-\d\d$/.test(h.d || '')) o.d = h.d; return o; }); } });
 if(!Object.keys(PFS).length) PFS.main = { name:'Main portfolio', holdings:[] };
+pfNormMain();   // exactly one main portfolio
 var TASKS = load(LS.tasks, []).filter(function(t){ return t && typeof t === 'object'; });
 
 var CUR = {
@@ -5201,6 +5233,7 @@ function parseRoute(){
   }
   if(name === 'list') return { name:'list', id:parts[1] || CUR.list };
   if(name === 'portfolio') return { name:'portfolio', id:parts[1] || CUR.pf };
+  if(name === 'xpf') return { name:'xpf', id:parts[1] || '' };
   if(name === 'market' || name === 'markets') return { name:'market', sec:parts[1] || '' };
   if(name === 'screener') return { name:'screener' };
   if(name === 'compare') return { name:'compare' };
@@ -5236,6 +5269,7 @@ function route(){
   else if(r.name === 'quote') p = renderQuote();
   else if(r.name === 'list') p = renderList();
   else if(r.name === 'portfolio') p = renderPortfolio();
+  else if(r.name === 'xpf') p = renderXpf(r.id);
   else if(r.name === 'market') p = renderMarket(r.sec);
   else if(r.name === '404') p = render404(r.path);
   else if(r.name === 'screener') p = renderScreener();
@@ -5310,6 +5344,7 @@ var RAIL_GLYPH = {
   insider:'<path d="M2.8 12S6.3 6 12 6s9.2 6 9.2 6-3.5 6-9.2 6S2.8 12 2.8 12z"/><circle class="ia" cx="12" cy="12" r="2.6"/>',
   filings:'<path d="M7 3.5h7l4.5 4.5v11a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5zM14 3.5V8h4.5M9 12.5h6"/><rect class="ia" x="9" y="15.2" width="3.4" height="2" rx=".6"/>',
   smart:'<path d="M12 3.8l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.8l-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/><circle class="ia" cx="12" cy="12" r="1.6"/>',
+  xpf:'<path d="M9 3.5h6M10 3.5v5.2L5.2 17a2.2 2.2 0 0 0 1.9 3.3h9.8a2.2 2.2 0 0 0 1.9-3.3L14 8.7V3.5"/><circle class="ia" cx="12" cy="15.6" r="1.6"/>',
   sectors:'<circle cx="12" cy="12" r="8.5"/><path class="ia" d="M12 12V3.5a8.5 8.5 0 0 1 8.5 8.5z"/>'
 };
 function railGlyph(id, s){ return '<svg width="' + (s || 16) + '" height="' + (s || 16) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + RAIL_GLYPH[id] + '</svg>'; }
@@ -5364,7 +5399,7 @@ function renderRail(){
   Object.keys(PFS).forEach(function(id){
     var p = PFS[id];
     body += '<div class="rail-row"><button class="rail-item' + (CUR.view === 'portfolio' && CUR.pf === id ? ' on' : '') + '" data-act="openpf" data-id="' + esc(id) + '">' +
-      '<span class="ri-dot"></span><span class="lbl">' + esc(p.name) + '</span><span class="cnt">' + p.holdings.length + '</span></button>' +
+      '<span class="ri-dot"></span><span class="lbl">' + esc(p.name) + '</span>' + (id === mainPfId() ? '<span class="ri-main" title="Main portfolio: the Terminal shows it">\u2605</span>' : '') + '<span class="cnt">' + p.holdings.length + '</span></button>' +
       '<button class="rail-more" data-act="pf-menu" data-id="' + esc(id) + '" title="Manage ' + esc(p.name) + '" aria-label="Manage ' + esc(p.name) + '">' + railSvg('M6 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z', 16) + '</button></div>';
   });
   if(!body) body = '<button class="rail-item ri-empty" data-act="newpf"><span class="lbl">Create your first portfolio</span></button>';
@@ -5401,7 +5436,8 @@ function renderRail(){
       railSvg(s ? SECTOR_ICON[s] || RAIL_ICON.sectors : 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z', 15) + '</span><span class="lbl">' + esc(s || 'All stocks') + '</span></a>';
   }).join('');
   S.sectors = railSec('sectors', 'Screener', null, body, { open:false, active:CUR.view === 'screener' });
-  html += [S.pfs, S.lists, S.market, S.insider, S.filings, S.smart, S.sectors].join('');
+  S.xpf = railSec('xpf', 'Experiments', xpfIds().length, xpfRailHTML(), { add:['xpf-new', 'New experiment'], active:CUR.view === 'xpf', open:false });
+  html += [S.pfs, S.xpf, S.lists, S.market, S.insider, S.filings, S.smart, S.sectors].join('');
   html += '<div class="rail-foot">Quotes, market caps and history: Nasdaq public endpoints via serve.py · crypto: CoinGecko · FX: ECB (Frankfurter) · ' +
     'news: Google News RSS · fundamentals: SEC XBRL or your own CSV/AI input. Nothing is invented. Not investment advice.</div>';
   $('rail').innerHTML = html;
@@ -5533,7 +5569,7 @@ function renderHome(){
     '<div class="section">' + glanceHTML() + '</div>' +
     '<div class="section"><div class="section-head"><h2>Top movers in your watchlists</h2></div>' + skeletonRows(6) + '</div>' +
     '<div class="section"><div class="section-head"><h2>Market news</h2></div>' + skeletonRows(4, 200) + '</div>';
-  var pf0 = PFS[CUR.pf] || PFS[Object.keys(PFS)[0]];
+  var pf0 = mainPf();
   var hs = pf0 ? pf0.holdings.map(function(h){ return h.s; }) : [];
   /* Portfolio first: its quotes + 1M closes resolve on their own, so the summary can paint before the rest. */
   if(hs.length) loadQuotesFor(hs.concat(['SPY'])).then(function(){ if(CUR.view === 'home') repaintGlance(); });
@@ -5645,7 +5681,7 @@ function vsSVG(a, b, w, h){
     '<path d="' + path(pa) + '" fill="none" stroke="var(--fh-colors-and-accents-primary)" stroke-width="2.4" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>';
 }
 function glanceHTML(){
-  var pf = PFS[CUR.pf] || PFS[Object.keys(PFS)[0]];
+  var pf = mainPf();
   if(!pf || !pf.holdings.length){
     return '<div class="card glance"><div class="gl-empty"><div><div class="gl-big">Your portfolio</div>' +
       '<div class="mut">Add what you own and this spot shows value, today\'s move and what drove it, at a glance.</div></div>' +
@@ -5727,7 +5763,7 @@ function paintHome(){
   var listId = CUR.list && LISTS[CUR.list] ? CUR.list : Object.keys(LISTS)[0];
   var listSyms = (LISTS[listId] ? LISTS[listId].syms : []).slice(0, 12);
   var gainers = topMovers('gainers'), losers = topMovers('losers'), active = topMovers('active');
-  var pf = PFS[CUR.pf] || PFS[Object.keys(PFS)[0]];
+  var pf = mainPf();
   var html = '';
 
   html += deskHTML();
@@ -10486,6 +10522,7 @@ function actRun(a){
   else if(a.do === 'create_portfolio'){
     var rows = a.holdings.map(function(h){ return { s:h.s, q:h.q, px:h.px }; });
     var empty = Object.keys(PFS).filter(function(k){ return !PFS[k].holdings.length; })[0];   // fill the empty placeholder instead of leaving it behind
+    if(!empty && pfFull()){ toast(pfLimitMsg(), 5000); return; }
     var base = a.name, n = 1, nm = base; while(Object.keys(PFS).some(function(k){ return k !== empty && PFS[k].name === nm; })) nm = base + ' (' + (++n) + ')';
     var pid = empty || ('p' + Date.now().toString(36)); PFS[pid] = { name:nm, holdings:rows };
     CUR.pf = pid; savePfs(); renderRail(); go('#/portfolio/' + pid);
@@ -12174,6 +12211,7 @@ var QN_SPEC_SYS = 'You turn an investor\'s description of a trading or allocatio
  ' "method":"fixed"|"equal"|"inverse_vol"|"risk_parity"|"min_variance"|"max_sharpe"|"hrp"|"momentum" (allocation weighting; "fixed" uses the weights above, the others re-estimate weights from the last "lookback" days at every rebalance), "lookback":252, "top_n":null, "skip":21 (momentum: hold the top_n assets by return over lookback days, ignoring the last skip days), "max_weight":null or the most any one asset may hold, in % (dynamic methods only), "vol_target":null or an annual volatility % that positions are scaled down to (the rest sits in cash), "max_leverage":1,\n' +
   ' "params":[{"id":"rsi_len","label":"RSI length","value":14,"min":2,"max":50,"step":1}],\n' +
   ' "projection":{"years":5,"drift":0,"volMult":1,"note":"why these settings"},\n' +
+  ' "plan":{"capital":10000,"amount":0,"freq":"none"|"weekly"|"monthly"|"quarterly"|"yearly"} (optional deposit plan: money at the start and a repeated deposit; include it only when the user mentions a starting amount or regular contributions),\n' +
   ' "assumptions":["each assumption you had to make"], "unsupported":"anything you could not model, or empty"}\n\n' +
   'cond: {"a":expr,"op":"<"|">"|"<="|">="|"cross_above"|"cross_below","b":expr}\n' +
   'expr: a number, "$param_id", or {"ind":NAME,"len":n or "$param_id","sym":"OTHER" (optional, another ticker such as ^VIX or SPY)}\n' +
@@ -12285,6 +12323,7 @@ function qnLoad(sp){
   if(sp.type === 'pairs' && !(sp.a && sp.b && String(sp.a).toUpperCase() !== String(sp.b).toUpperCase())) throw new Error('pairs strategy needs two different tickers (a and b)');
   if(sp.type !== 'allocation' && sp.type !== 'pairs' && !sp.symbol) throw new Error('signal strategy with no symbol');
   sp.params = (sp.params || []).filter(function(p){ return p && p.id && isFinite(+p.value); }).slice(0, 8);
+  if(sp.plan){ var pl = sp.plan; pl.capital = Math.max(0, +pl.capital || 0); pl.amount = Math.max(0, +pl.amount || 0); if(!QN.PER_YEAR[pl.freq]) pl.freq = 'none'; if(pl.freq === 'none') pl.amount = 0; if(!pl.capital && !pl.amount) delete sp.plan; }   // a deposit plan: starting money + repeated deposits
   var syms = QN.symbols(sp), main = syms[0];
   qnStep('Fetching daily prices: ' + syms.join(', '));
   return Promise.all(syms.map(qnHist)).then(function(rows){
@@ -12295,28 +12334,52 @@ function qnLoad(sp){
     return { spec:sp, al:al };
   });
 }
+function qnBuild(r, q, prev){   // a loaded spec -> a finished session (backtest, projection, analyst note)
+  var sp = r.spec, pj = sp.projection || {};
+  var cur = { q:prev ? prev.q : q, spec:sp, al:r.al, over:{}, proj:{ years:pj.years || 5, drift:pj.drift || 0, volMult:pj.volMult || 1 }, ts:Date.now(),
+    id:prev ? prev.id : 'q' + Date.now().toString(36), turns:prev ? (prev.turns || []).slice() : [], pdfs:prev ? prev.pdfs || [] : [] };   // a refinement stays in the same session
+  qnStep('Backtesting and projecting 400 paths'); qnCompute(cur); qnStepDone(true, cur.bt.trades.length + ' trades · ' + cur.bt.metrics.nYears + ' years');
+  qnStep('Writing the analyst note');
+  return qnNote(cur).then(function(note){ cur.note = note; qnStepDone(true); return cur; }, function(){ cur.note = null; qnStepDone(false, 'summary unavailable'); return cur; });
+}
+function qnDone(cur, q){
+  var m = cur.bt.metrics;
+  cur.turns.push({ q:q, title:cur.spec.title, headline:cur.note ? cur.note.headline : '', cagr:m.s.cagr, bcagr:m.b.cagr, maxdd:m.s.maxdd, ts:Date.now() });
+  QS.cur = cur; QS.busy = false; qnVault(cur); qnRemember(cur); qnPaint();
+}
 function qnRun(q, refine){
   q = String(q || '').trim(); if(!q){ toast('Describe a strategy to test first.'); return; }
   if(!aiReady()){ toast('Add an AI key first (Settings → AI & API keys).'); return; }
   var prev = refine ? QS.cur : null;
   QS.busy = true; QS.err = ''; QS.steps = []; if(!refine) QS.cur = null;
   qnStep(refine ? 'Updating the rules' : 'Reading your strategy');
-  qnEngine().then(function(){ return qnSpec(q, prev); }).then(function(r){
-    var sp = r.spec, pj = sp.projection || {};
-    var cur = { q:prev ? prev.q : q, spec:sp, al:r.al, over:{}, proj:{ years:pj.years || 5, drift:pj.drift || 0, volMult:pj.volMult || 1 }, ts:Date.now(),
-      id:prev ? prev.id : 'q' + Date.now().toString(36), turns:prev ? (prev.turns || []).slice() : [], pdfs:prev ? prev.pdfs || [] : [] };   // a refinement stays in the same session
-    qnStep('Backtesting and projecting 400 paths'); qnCompute(cur); qnStepDone(true, cur.bt.trades.length + ' trades · ' + cur.bt.metrics.nYears + ' years');
-    qnStep('Writing the analyst note');
-    return qnNote(cur).then(function(note){ cur.note = note; qnStepDone(true); return cur; }, function(){ cur.note = null; qnStepDone(false, 'summary unavailable'); return cur; });
-  }).then(function(cur){
-    var m = cur.bt.metrics;
-    cur.turns.push({ q:q, title:cur.spec.title, headline:cur.note ? cur.note.headline : '', cagr:m.s.cagr, bcagr:m.b.cagr, maxdd:m.s.maxdd, ts:Date.now() });
-    QS.cur = cur; QS.busy = false; qnVault(cur); qnRemember(cur); qnPaint();
-  }).catch(function(e){ QS.busy = false; QS.err = String((e && e.message) || e); if(prev) QS.cur = prev; qnPaint(); });
+  qnEngine().then(function(){ return qnSpec(q, prev); }).then(function(r){ return qnBuild(r, q, prev); }).then(function(cur){ qnDone(cur, q); })
+    .catch(function(e){ QS.busy = false; QS.err = String((e && e.message) || e); if(prev) QS.cur = prev; qnPaint(); });
+}
+/* A ready-made spec (an experimental portfolio) goes straight to the engine: no model call is needed to read it; the analyst note is skipped quietly without a key. */
+function qnRunSpec(sp, label){
+  if(QS.busy){ toast('Quant is still running a test.'); return; }
+  QS.busy = true; QS.err = ''; QS.steps = []; QS.cur = null;
+  qnStep(label || 'Loading the portfolio'); qnPaint();
+  qnEngine().then(function(){ return qnLoad(sp); }).then(function(r){ return qnBuild(r, sp.title, null); }).then(function(cur){ qnDone(cur, sp.title); })
+    .catch(function(e){ QS.busy = false; QS.err = String((e && e.message) || e); qnPaint(); });
+}
+function qnPlanOpts(cur){ var pl = cur.spec.plan; return pl ? { capital:pl.capital || 10000, amount:pl.amount, freq:pl.freq } : {}; }
+function qnPlanHTML(cur){
+  var pl = cur && cur.spec.plan; if(!pl) return '';
+  var h; try{ h = QN.progress(cur.bt.dates, cur.bt.ret, pl); }catch(e){ return ''; }
+  var p = cur.pr, d = function(v){ return '$' + Math.round(v).toLocaleString(); }, per = { weekly:'a week', monthly:'a month', quarterly:'a quarter', yearly:'a year' }[pl.freq];
+  var step = Math.max(1, Math.floor(h.value.length / 120)), hi = Math.max.apply(null, h.value), W = 600, H = 70;
+  var pts = function(a){ var o = []; for(var i = 0; i < a.length; i += step) o.push((i / (a.length - 1) * W).toFixed(1) + ',' + (H - 4 - a[i] / hi * (H - 8)).toFixed(1)); return o.join(' '); };
+  return '<div class="qn-box qn-plan" id="qnPlan"><div class="qn-ch"><b>Your plan</b><span class="mut">' + d(pl.capital) + ' to start' + (pl.amount ? ' + ' + d(pl.amount) + ' ' + per : '') + '</span></div>' +
+    '<div class="qn-pl-row"><span>If you had followed it since ' + esc(cur.bt.dates[0]) + ': put in <b>' + d(h.totalInvested) + '</b>' + (h.deposits ? ' (' + h.deposits + ' deposits)' : '') + ', it would be <b>' + d(h.end) + '</b>' +
+      ', <b>' + (h.gain >= 0 ? '+' : '\u2212') + d(Math.abs(h.gain)) + '</b>' + (h.irrPct != null ? ' \u00b7 <b>' + h.irrPct.toFixed(1) + '%</b> a year on the money you added' : '') + '.</span></div>' +
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts(h.invested) + '" fill="none" stroke="' + qnTheme().b + '" stroke-width="1.6" vector-effect="non-scaling-stroke"/><polyline points="' + pts(h.value) + '" fill="none" stroke="' + qnTheme().s + '" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>' +
+    '<div class="qn-pl-row"><span>Next ' + p.years + ' years (simulated): you add <b>' + d(p.invested - p.capital) + '</b>, putting in <b>' + d(p.invested) + '</b> in total. Middle outcome <b>' + d(p.end[2]) + '</b>, a bad one (5th percentile) <b>' + d(p.end[0]) + '</b>, a good one (95th) <b>' + d(p.end[4]) + '</b>. About <b>' + p.lossProb.toFixed(0) + '%</b> of paths end below what you put in.</span></div></div>';
 }
 function qnCompute(cur){
   cur.bt = QN.backtest(cur.spec, cur.al, cur.over);
-  cur.pr = QN.project(cur.bt.ret, cur.proj);
+  cur.pr = QN.project(cur.bt.ret, Object.assign({}, cur.proj, qnPlanOpts(cur)));
   var m = cur.bt.metrics; cur.rating = QN.rating(m); cur.edge = QN.edge(m); cur.unc = QN.uncertainty(QN.project(cur.bt.ret, { years:1, drift:cur.proj.drift, volMult:cur.proj.volMult }).spread1y);
 }
 
@@ -12432,6 +12495,7 @@ function qnStatsHTML(cur){
       (m.profitFactor != null ? t('Profit factor', m.profitFactor.toFixed(2), 'trade wins ÷ trade losses', m.profitFactor > 1 ? 'up' : 'down') : t('Gain-to-pain', m.risk.gainToPain == null ? '—' : m.risk.gainToPain.toFixed(2), 'net return ÷ total losses')) : '');
 }
 function qnChartsPaint(){
+  var pe = $('qnPlan'); if(pe) pe.outerHTML = qnPlanHTML(QS.cur);
   var cur = QS.cur; if(!cur || !$('qnEq')) return;
   var T = qnTheme(), W = Math.max(300, Math.round($('qnEq').clientWidth || 600)), bt = cur.bt, m = bt.metrics, cap = 10000;
   var put = function(id, chart, meta){ var el = $(id); if(!el) return; el.querySelector('.qn-svg').innerHTML = chart.svg; QS.geo[id] = Object.assign({ geo:chart.geo }, meta); };
@@ -12491,7 +12555,7 @@ function qnPaint(focus){
     (n ? '<div class="qn-note"><h3>' + esc(n.headline) + '</h3><p>' + esc(n.note) + '</p><p><b>Why it matters:</b> ' + esc(n.why || '') + '</p><p><b>The bottom line:</b> ' + esc(n.bottom_line || '') + '</p>' +
       (changed ? '<div class="qn-fine mut">The note describes the original settings; the numbers and charts follow your dials.</div>' : '') + '</div>'
       : '<div class="qn-note"><p>' + esc(cur.spec.summary || '') + '</p></div>') +
-    qnSessionHTML(cur) + qnAllocHTML(cur) + qnPairHTML(cur) +
+    qnPlanHTML(cur) + qnSessionHTML(cur) + qnAllocHTML(cur) + qnPairHTML(cur) +
     '<details class="qn-box" open><summary>Tweak the factors</summary><div class="qn-dials" id="qnDials">' + qnDialsHTML(cur) + '</div></details>' +
     '<div class="qn-box qn-chart" id="qnEq"><div class="qn-ch"><b>Growth of $10,000</b><span class="qn-leg"><i style="background:' + qnTheme().s + '"></i>Strategy<i style="background:' + qnTheme().b + '"></i>' + esc(cur.bt.bsym) + '</span><span class="grow"></span><button class="btn text sm" data-act="qn-log">' + (QS.log ? 'Log scale' : 'Linear scale') + '</button></div><div class="qn-svg"></div><div class="qn-tip"></div></div>' +
     '<div class="qn-box qn-chart" id="qnProj"><div class="qn-ch"><b>Projection</b><span class="mut">5th–95th and 25th–75th percentile bands, median line</span></div><div class="qn-svg"></div><div class="qn-tip"></div><div id="qnProjTbl"></div></div>' +
@@ -13906,7 +13970,9 @@ function bindEvents(){
       case 'list-rename': closeMenu(); renameWatchlist(el.getAttribute('data-id')); break;
       case 'pf-menu': { var pmid = el.getAttribute('data-id');
         menu(el, '<div class="mhead">' + esc((PFS[pmid] || {}).name || 'Portfolio') + '</div><button class="mi" data-act="openpf" data-id="' + esc(pmid) + '">Open</button>' +
-          '<button class="mi" data-act="pf-rename" data-id="' + esc(pmid) + '">Rename</button><button class="mi" data-act="pf-del" data-id="' + esc(pmid) + '" style="color:var(--fh-negative,#ea4335)">Delete</button>'); break; }
+          (pmid === mainPfId() ? '' : '<button class="mi" data-act="pf-main" data-id="' + esc(pmid) + '">Set as main</button>') + '<button class="mi" data-act="pf-rename" data-id="' + esc(pmid) + '">Rename</button><button class="mi" data-act="pf-del" data-id="' + esc(pmid) + '" style="color:var(--fh-negative,#ea4335)">Delete</button>'); break; }
+      case 'pf-main': closeMenu(); pfSetMain(el.getAttribute('data-id')); toast('\u201c' + PFS[el.getAttribute('data-id')].name + '\u201d is now your main portfolio. The Terminal shows it.'); break;
+      case 'xpf-new': case 'xpf-add': case 'xpf-rm': case 'xpf-eq': case 'xpf-norm': case 'xpf-rename': case 'xpf-del': case 'xpf-del-go': case 'xpf-quant': xpfAct(act, el); break;
       case 'pf-rename': { closeMenu(); var prn = PFS[el.getAttribute('data-id')]; if(!prn) break;
         askText('Rename portfolio', 'Name', prn.name, function(name){ prn.name = name; savePfs(); renderRail(); if(CUR.view === 'portfolio') renderPortfolio(); toast('Renamed to ' + name); }); break; }
       case 'pf-del': { closeMenu(); var pdid = el.getAttribute('data-id'), pd = PFS[pdid]; if(!pd) break;
@@ -13915,7 +13981,7 @@ function bindEvents(){
       case 'pf-del-go': { var pgid = el.getAttribute('data-id'), pgname = (PFS[pgid] || {}).name; delete PFS[pgid];
         if(!Object.keys(PFS).length) PFS.main = { name:'Main portfolio', holdings:[] };   // always keep one to add holdings to
         if(!PFS[CUR.pf]) CUR.pf = Object.keys(PFS)[0];
-        savePfs(); closeDialog(); renderRail(); toast('Deleted ' + pgname + '.');
+        pfNormMain(); savePfs(); closeDialog(); renderRail(); toast('Deleted ' + pgname + '.');
         if(CUR.view === 'portfolio') go('#/portfolio/' + CUR.pf); break; }
       case 'list-menu': { var mid = el.getAttribute('data-id');
         menu(el, '<div class="mhead">' + esc((LISTS[mid] || {}).name || 'Watchlist') + '</div><button class="mi" data-act="openlist" data-id="' + esc(mid) + '">Open</button>' +
@@ -14105,6 +14171,7 @@ function bindEvents(){
       }
       case 'addtolist': openAddToList(dispSym(CUR.sym)); break;
       case 'newpf': {
+        if(pfFull()){ toast(pfLimitMsg(), 5000); break; }
         askText('New portfolio', 'Name', 'Portfolio ' + (Object.keys(PFS).length + 1), function(pname){ var pid = 'p' + Date.now().toString(36); PFS[pid] = { name:pname, holdings:[] }; savePfs(); renderRail(); go('#/portfolio/' + pid); });
         break;
       }

@@ -109,7 +109,7 @@ function deskSince(t){
   var h = (Date.now() - t) / 36e5;
   return h < 1 ? 'in the last hour' : h < 24 ? 'in the last ' + Math.round(h) + 'h' : 'since ' + new Date(t).toLocaleDateString([], { month:'short', day:'numeric' });
 }
-function deskPf(){ return PFS[CUR.pf] || PFS[Object.keys(PFS)[0]]; }
+function deskPf(){ return mainPf(); }
 function deskHk(pf){ return pf.holdings.map(function(h){ return h.s + ':' + h.q; }).join(); }
 function deskVisit(){ if(DESK.visit === undefined) DESK.visit = load('fh3_visit', null); return DESK.visit; }
 function deskSnap(){   // remember this visit once an hour at most, after prices are in
@@ -117,14 +117,14 @@ function deskSnap(){   // remember this visit once an hour at most, after prices
   setTimeout(function(){
     var v = load('fh3_visit', null) || { t:0, rets:{} }, pf = deskPf();
     if(Date.now() - v.t < 36e5) return;
-    if(pf && pf.holdings.length){ var st = pfStats(pf); v.rets = v.rets || {}; v.rets[CUR.pf] = { ret:st.ret, hk:deskHk(pf) }; }
+    if(pf && pf.holdings.length){ var st = pfStats(pf); v.rets = v.rets || {}; v.rets[mainPfId()] = { ret:st.ret, hk:deskHk(pf) }; }
     v.t = Date.now(); save('fh3_visit', v);
   }, 15000);
 }
 function dkBrief(){
   var v = deskVisit(), pf = deskPf(), st = pf && pf.holdings.length ? pfStats(pf) : null, tiles = [];
   var cur = st ? st.base : 'USD', sg = function(x){ return (x >= 0 ? '+' : '−') + money(Math.abs(x), cur); };
-  var was = v && v.rets && v.rets[CUR.pf];
+  var was = v && v.rets && v.rets[mainPfId()];
   if(st && was && was.hk === deskHk(pf)){ var d = st.ret - was.ret; tiles.push([sg(d), 'portfolio ' + deskSince(v.t), d >= 0, 'dk-go', '#/portfolio']); }
   else if(st) tiles.push([sg(st.day), 'portfolio today', st.day >= 0, 'dk-go', '#/portfolio']);
   else tiles.push(['Add holdings', 'to see your value move', null, 'addholding', '']);

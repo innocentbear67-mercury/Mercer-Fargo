@@ -303,3 +303,38 @@ test('quality_gate evidences the kill-gate flags', async () => {
   assert.ok(q.flags.some((x) => /HARD FAIL on dilution/.test(x)) && q.flags.some((x) => /ROIC has been below WACC/.test(x)) && q.flags.some((x) => /FCF conversion/.test(x)));
   near(q.netDebtToEbitda, 100 / 120, 1e-6);
 });
+
+// ---- experimental portfolios: allocation from size x weights x live prices, deposit schedules, deposit plans in the Quant engine ----
+test('build_portfolio sizes every position from the portfolio size, weights and live prices', async () => {
+  const r = await run('build_portfolio', { size: 10000, positions: [{ symbol: 'aapl', weight_pct: 60 }, { symbol: 'MSFT', weight_pct: 40 }], prices: { AAPL: 200, MSFT: 400 } });
+  near(r.positions[0].targetValue, 6000); near(r.positions[0].shares, 30); near(r.positions[1].shares, 10); near(r.cash, 0); near(r.invested, 10000);
+  const w = await run('build_portfolio', { size: 1000, positions: [{ symbol: 'A', weight_pct: 50 }, { symbol: 'B', weight_pct: 50 }], prices: { A: 300, B: 70 }, whole_shares: true });
+  assert.equal(w.positions[0].shares, 1); assert.equal(w.positions[1].shares, 7); near(w.cash, 1000 - 300 - 490);
+});
+test('build_portfolio refuses bad weights, missing prices, duplicates and too many positions', async () => {
+  const p = (w) => w.map((x, i) => ({ symbol: 'S' + i, weight_pct: x }));
+  const px = Object.fromEntries(Array.from({ length: 30 }, (_, i) => ['S' + i, 10]));
+  await assert.rejects(async () => run('build_portfolio', { size: 1000, positions: p([50, 40]), prices: px }), /total 90%/);
+  await assert.rejects(async () => run('build_portfolio', { size: 1000, positions: p([100]), prices: {} }), /no live price for S0/);
+  await assert.rejects(async () => run('build_portfolio', { size: 1000, positions: [{ symbol: 'A', weight_pct: 50 }, { symbol: 'a', weight_pct: 50 }], prices: { A: 1 } }), /twice/);
+  await assert.rejects(async () => run('build_portfolio', { size: 0, positions: p([100]), prices: px }), /above zero/);
+  await assert.rejects(async () => run('build_portfolio', { size: 1000, positions: p(Array(21).fill(100 / 21)), prices: px }), /at most 20/);
+});
+test('contribution_schedule: dates by frequency, month-end days clamp without drifting', async () => {
+  const m = await run('contribution_schedule', { amount: 500, freq: 'monthly', start: '2026-01-31', years: 1 });
+  assert.equal(m.count, 12); assert.deepEqual(m.dates.slice(0, 3), ['2026-02-28', '2026-03-31', '2026-04-30']); near(m.total, 6000);
+  assert.equal((await run('contribution_schedule', { amount: 10, freq: 'weekly', start: '2026-01-01', years: 1 })).count, 52);
+  assert.equal((await run('contribution_schedule', { amount: 10, freq: 'quarterly', start: '2026-01-01', years: 2 })).count, 8);
+  await assert.rejects(async () => run('contribution_schedule', { amount: 10, freq: 'daily' }), /freq must be/);
+});
+test('QN.progress adds deposits to the strategy returns; project carries them forward', async () => {
+  const n = 505, dates = Array.from({ length: n }, (_, i) => new Date(Date.UTC(2020, 0, 1) + i * 864e5).toISOString().slice(0, 10));
+  const flat = QN.progress(dates, Array(n - 1).fill(0), { capital: 1000, amount: 100, freq: 'monthly' });
+  assert.equal(flat.deposits, Math.floor((n - 1) / 21)); near(flat.end, 1000 + 100 * flat.deposits); near(flat.gain, 0); near(flat.irrPct, 0, 0.01);
+  const up = QN.progress(dates, Array(n - 1).fill(0.0004), { capital: 1000, amount: 0, freq: 'none' });
+  near(up.end, 1000 * Math.pow(1.0004, n - 1), 1e-6); near(up.irrPct, (Math.pow(1.0004, 365) - 1) * 100, 0.05);
+  assert.throws(() => QN.progress(dates, [0.01], { capital: 0, amount: 0, freq: 'none' }), /starting amount/);
+  const r = Array.from({ length: 600 }, (_, i) => (i % 2 ? 0.001 : -0.0005));
+  const a = QN.project(r, { years: 2, capital: 1000, paths: 50 }), b = QN.project(r, { years: 2, capital: 1000, paths: 50, amount: 100, freq: 'monthly' });
+  near(b.invested, 1000 + 100 * Math.floor(2 * 252 / 21)); assert.ok(b.end[2] > a.end[2] + 2000); near(b.cagr[2], a.cagr[2], 1e-9);
+});
