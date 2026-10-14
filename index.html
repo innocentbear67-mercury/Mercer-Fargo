@@ -2670,6 +2670,7 @@ html{overflow-x:clip}
 .klink{margin-left:auto;font-size:12px;font-weight:600;color:var(--fh-primary,#b8903a);text-decoration:none;white-space:nowrap}.klink:hover{text-decoration:underline}
 .kg-steps{margin:0 0 10px;padding-left:20px;font-size:13px;line-height:1.55;display:flex;flex-direction:column;gap:4px}
 .kg-row{padding:8px 0;border-top:1px solid var(--fh-outline-variant,rgba(128,128,128,.2));font-size:13px;line-height:1.5}.kg-h{display:flex;align-items:center;gap:8px}
+.lk+#keyGuide{max-width:560px;margin:0 auto 40px}
 .lk{max-width:560px;margin:40px auto;display:flex;flex-direction:column;gap:14px}.lk h2{margin:0}.lk p{margin:0;font-size:14px;line-height:1.5}
 .lk-step{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--fh-outline-variant,rgba(128,128,128,.25));border-radius:12px}
 .lk-step>b{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--fh-surface-container-high,rgba(128,128,128,.15));font-size:13px;flex:none}
@@ -9991,7 +9992,7 @@ function renderLocked(){
   $('main').innerHTML = '<div class="section"><div class="card lk"><h2>Finish setup to unlock this</h2>' +
     '<p class="mut">The Terminal, quotes, charts, watchlists, your main portfolio and Market work without setup. Research, Screener, Compare, Earnings, Investors, Insiders, Filings, Experiments and the Marvell agent need an account and your own AI key.</p>' +
     step(a, 1, 'Create an account', 'Sign in with Google. Your portfolios and chats are saved to it.', 'signin', 'Sign in') +
-    step(k, 2, 'Add your AI key', 'Paste a key for your provider. It stays on this device.', 'keys', 'Add key') + '</div></div>';
+    step(k, 2, 'Add your AI key', 'Paste a key for your provider. It stays on this device.', 'keys', 'Add key') + '</div>' + keyGuideHTML() + '</div>';
 }
 function paintKeyBtn(){
   var b = $('keysBtn'), l = $('keyLabel'); if(!b || !l) return;
