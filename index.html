@@ -701,6 +701,8 @@ tr:hover .wl-add,.wl-add:focus-visible,.wl-add.on{opacity:1}
 .qn-bar{height:8px;border-radius:4px;background:var(--fh-border-stroke-default);overflow:hidden}.qn-bar i{display:block;height:100%;background:var(--qr);border-radius:4px}
 .qn-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0 8px}.qn-tbl td{padding:6px 4px;border-bottom:1px solid var(--fh-border-stroke-default);vertical-align:top}
 .qn-tbl td:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:12px}.qn-tbl td i{display:block;font-style:normal;font-weight:400;font-size:11px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.qn-grid{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0 8px;font-variant-numeric:tabular-nums}.qn-grid th{font-size:11px;font-weight:600;color:var(--fh-foreground-on-surface-de-emphasis);text-align:right;padding:4px 6px;border-bottom:1px solid var(--fh-border-stroke-default)}
+.qn-grid th:first-child,.qn-grid td:first-child{text-align:left}.qn-grid td{padding:6px;text-align:right;border-bottom:1px solid var(--fh-border-stroke-default);white-space:nowrap}.qn-grid td.mut{color:var(--fh-foreground-on-surface-de-emphasis)}
 .qn-vb{margin-top:6px}.qn-verdict{margin:0 0 4px;font-size:13.5px}
 .qn-dial select.inp{width:100%;height:30px;font-size:12.5px}
 .qn-ch{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;margin-bottom:4px}
@@ -11735,26 +11737,28 @@ var QN_EXAMPLES = ['Buy SPY when RSI(14) drops below 30, sell when it goes above
   'Risk parity across SPY, TLT, GLD and DBC, rebalanced monthly, targeting 8% volatility, vs a 60/40',
   'NVDA 50/200-day golden cross with a 10% trailing stop'];
 var QN_SPEC_SYS = 'You turn an investor\'s description of a trading or allocation strategy into a JSON backtest spec for MercerFargo\'s quant engine. Reply with JSON only, no prose.\n\n' +
-  'SPEC\n{"title":"short name","summary":"1-2 plain-English sentences of the rules","type":"signal"|"allocation",\n' +
+  'SPEC\n{"title":"short name","summary":"1-2 plain-English sentences of the rules","type":"signal"|"allocation"|"pairs",\n' +
   ' "symbol":"SPY" (signal: the one traded symbol),\n' +
+  ' "a":"KO", "b":"PEP", "lookback":60, "entry_z":2, "exit_z":0.5, "stop_z":null (pairs: long one stock and short the other when their price spread is stretched; lookback = days for the hedge ratio and z-score; enter beyond entry_z, exit within exit_z of the mean, stop beyond stop_z),\n' +
   ' "assets":[{"sym":"SPY","weight":60},{"sym":"TLT","weight":40}] (allocation), "rebalance":"monthly"|"quarterly"|"yearly"|"none",\n' +
   ' "side":"long"|"short", "entry":[cond...] (all must be true to enter), "exit":[cond...] (any one exits), "filter":[cond...] (allocation: invest only while all true),\n' +
   ' "stop_pct":null, "take_pct":null, "trail_pct":null, "max_hold_days":null, "alt":null or a ticker held when out of the market (e.g. "SHY"),\n' +
   ' "size":1 (share of capital when in a trade, 0-1), "benchmark":"SPY", "start":"YYYY-MM-DD", "cost_bps":5,\n' +
- ' "method":"fixed"|"equal"|"inverse_vol"|"risk_parity"|"min_variance"|"max_sharpe"|"hrp" (allocation weighting; "fixed" uses the weights above, the others re-estimate weights from the last "lookback" days at every rebalance), "lookback":252, "max_weight":null or the most any one asset may hold, in % (dynamic methods only), "vol_target":null or an annual volatility % that positions are scaled down to (the rest sits in cash), "max_leverage":1,\n' +
+ ' "method":"fixed"|"equal"|"inverse_vol"|"risk_parity"|"min_variance"|"max_sharpe"|"hrp"|"momentum" (allocation weighting; "fixed" uses the weights above, the others re-estimate weights from the last "lookback" days at every rebalance), "lookback":252, "top_n":null, "skip":21 (momentum: hold the top_n assets by return over lookback days, ignoring the last skip days), "max_weight":null or the most any one asset may hold, in % (dynamic methods only), "vol_target":null or an annual volatility % that positions are scaled down to (the rest sits in cash), "max_leverage":1,\n' +
   ' "params":[{"id":"rsi_len","label":"RSI length","value":14,"min":2,"max":50,"step":1}],\n' +
   ' "projection":{"years":5,"drift":0,"volMult":1,"note":"why these settings"},\n' +
   ' "assumptions":["each assumption you had to make"], "unsupported":"anything you could not model, or empty"}\n\n' +
   'cond: {"a":expr,"op":"<"|">"|"<="|">="|"cross_above"|"cross_below","b":expr}\n' +
   'expr: a number, "$param_id", or {"ind":NAME,"len":n or "$param_id","sym":"OTHER" (optional, another ticker such as ^VIX or SPY)}\n' +
   'NAME: close, open, high, low, volume, sma, ema, rsi, macd/macd_signal/macd_hist (fast, slow, signal), bb_upper/bb_mid/bb_lower (len, k), ' +
-  'roc or ret (% change over len days), highest/lowest (of the previous len closes, for breakouts), atr, vol (annualised % volatility over len days), drawdown (% below the len-day high), zscore.\n\n' +
+  'roc or ret (% change over len days), highest/lowest (of the previous len closes, for breakouts), atr, vol (annualised % volatility over len days), drawdown (% below the len-day high), zscore, adx (trend strength 0-100), cci, donchian_high/donchian_low (the previous len highs/lows, for channel breakouts).\n\n' +
   'RULES\n- Use US tickers Yahoo knows (ETFs for asset classes: SPY, QQQ, IWM, TLT, IEF, SHY, GLD, DBC, VNQ, EFA, EEM; ^VIX for volatility; BTC-USD for bitcoin).\n' +
   '- Every number a user might want to tweak (lengths, thresholds, weights, stop %) goes in params and is referenced as "$id"; give each a sensible min, max and step. 2-6 params.\n' +
   '- "Under specific conditions" become conditions: e.g. "only when VIX is above 25" -> {"a":{"ind":"close","sym":"^VIX"},"op":">","b":"$vix"}; "in downtrends" -> close below sma 200.\n' +
   '- Default start: 15 years ago, or the date range the user names. Default benchmark: SPY (or the traded symbol for single-stock timing). Default cost 5 bps.\n' +
   '- projection: years 5 unless asked; drift/volMult 0 and 1 unless the user describes a scenario (e.g. "if returns are 3% lower" -> drift -3; "in a high-volatility regime" -> volMult 1.5).\n' +
-  '- Weighting words: "equal risk" or "risk parity" -> risk_parity; "minimum variance" -> min_variance; "inverse volatility" -> inverse_vol; "max Sharpe" -> max_sharpe; "hierarchical risk parity" or "HRP" -> hrp; "equal weight" -> equal; "target 10% volatility" -> vol_target 10. Dynamic methods still need the assets list (the weights are ignored). Only allocation uses method; vol_target works for both types.\n' +
+  '- Pairs words: "pairs trade", "spread between X and Y", "X vs Y mean reversion" -> type pairs with a and b (stock pairs usually need params for entry_z and lookback). Momentum words: "buy the top 3 performers", "momentum", "relative strength" -> allocation with method momentum and top_n; "dual momentum" -> momentum plus a filter (close above its 200-day average) and an alt such as SHY. A pairs strategy goes long one leg and short the other, so say in assumptions that borrowing costs are not modelled.\n' +
+  '- Weighting words: "equal risk" or "risk parity" -> risk_parity; "minimum variance" -> min_variance; "inverse volatility" -> inverse_vol; "max Sharpe" -> max_sharpe; "hierarchical risk parity" or "HRP" -> hrp; "equal weight" -> equal; "target 10% volatility" -> vol_target 10. Dynamic methods still need the assets list (the weights are ignored). Only allocation uses method; pairs ignores entry/exit conditions; vol_target works for both types.\n' +
   '- Signals act at the close and earn from the next day. Prices are daily adjusted closes. If something cannot be modelled (intraday, options, fundamentals), approximate it and say so in unsupported.\n\n' +
   'EXAMPLE: "buy SPY when RSI(14) < 30, sell above 70" -> {"title":"SPY RSI mean reversion","summary":"Buys SPY when the 14-day RSI falls below 30 and sells when it rises above 70.","type":"signal","symbol":"SPY","side":"long",' +
   '"entry":[{"a":{"ind":"rsi","len":"$len"},"op":"<","b":"$buy"}],"exit":[{"a":{"ind":"rsi","len":"$len"},"op":">","b":"$sell"}],"benchmark":"SPY","start":"2011-01-01","cost_bps":5,' +
@@ -11848,7 +11852,8 @@ function qnSpec(q, prev){
 }
 function qnLoad(sp){
   if(sp.type === 'allocation' && !(sp.assets || []).length) throw new Error('allocation with no assets');
-  if(sp.type !== 'allocation' && !sp.symbol) throw new Error('signal strategy with no symbol');
+  if(sp.type === 'pairs' && !(sp.a && sp.b && String(sp.a).toUpperCase() !== String(sp.b).toUpperCase())) throw new Error('pairs strategy needs two different tickers (a and b)');
+  if(sp.type !== 'allocation' && sp.type !== 'pairs' && !sp.symbol) throw new Error('signal strategy with no symbol');
   sp.params = (sp.params || []).filter(function(p){ return p && p.id && isFinite(+p.value); }).slice(0, 8);
   var syms = QN.symbols(sp), main = syms[0];
   qnStep('Fetching daily prices: ' + syms.join(', '));
@@ -11889,6 +11894,7 @@ function qnFacts(cur){
   return 'Strategy: ' + cur.spec.title + ' — ' + cur.spec.summary + '\nUser asked: ' + cur.q + '\nPeriod: ' + m.from + ' to ' + m.to + ' (' + m.nYears + ' calendar years). Benchmark: ' + cur.bt.bsym +
     '\nStrategy: CAGR ' + f(m.s.cagr) + '%, total ' + f(m.s.total, 0) + '%, volatility ' + f(m.s.vol) + '%, Sharpe ' + f(m.s.sharpe, 2) + ', Sortino ' + f(m.s.sortino, 2) + ', max drawdown ' + f(m.s.maxdd) + '%, best year ' + f(m.s.best) + '%, worst year ' + f(m.s.worst) + '%' +
     '\nBenchmark: CAGR ' + f(m.b.cagr) + '%, volatility ' + f(m.b.vol) + '%, Sharpe ' + f(m.b.sharpe, 2) + ', max drawdown ' + f(m.b.maxdd) + '%' +
+    (cur.bt.pair && cur.bt.pair.coint ? '\nPair: ' + cur.bt.pair.a + ' vs ' + cur.bt.pair.b + ', cointegration ' + cur.bt.pair.coint.verdict + ' (ADF ' + f(cur.bt.pair.coint.tau, 2) + '), hedge ratio ' + f(cur.bt.pair.coint.beta, 2) + (cur.bt.pair.coint.halfLife != null ? ', half-life ' + f(cur.bt.pair.coint.halfLife, 0) + ' days' : ', no mean reversion') + ', long one leg and short the other' : '') +
     (m.risk ? '\nTail risk (1 day, 95%): VaR ' + f(m.risk.var95, 2) + '%, CVaR ' + f(m.risk.cvar95, 2) + '%, Omega ' + f(m.risk.omega, 2) + (m.risk.ir != null ? ', information ratio ' + f(m.risk.ir, 2) : '') + (m.profitFactor != null ? ', profit factor ' + f(m.profitFactor, 2) : '') : '') +
     '\nBeta ' + f(m.beta, 2) + ', alpha ' + f(m.alpha) + '%/yr, correlation ' + f(m.corr, 2) + ', time invested ' + f(m.exposure, 0) + '%, trades ' + m.trades + (m.winRate != null ? ', win rate ' + f(m.winRate, 0) + '%, average trade ' + f(m.avgTrade) + '% over ' + f(m.avgDays, 0) + ' days' : '') +
     ', beat the benchmark in ' + m.beatYears + ' of ' + m.nYears + ' years.\nRating ' + cur.rating + '/5 stars, edge ' + cur.edge + ', uncertainty ' + cur.unc +
@@ -11936,8 +11942,13 @@ function qnDials(cur){
   d.push({ id:'cost_bps', label:'Trading cost (bps per side)', min:0, max:50, step:1, v:cur.over.cost_bps != null ? cur.over.cost_bps : (cur.spec.cost_bps || 0), grp:'Test settings' });
   if(cur.spec.type !== 'allocation') d.push({ id:'size', label:'Position size', min:.1, max:1, step:.05, v:cur.over.size != null ? cur.over.size : (cur.spec.size == null ? 1 : cur.spec.size), grp:'Test settings', fmt:function(v){ return Math.round(v * 100) + '%'; } });
   var meth = QN.method(cur.over.method || cur.spec.method), vtv = cur.over.vol_target != null ? cur.over.vol_target : (parseFloat(cur.spec.vol_target) || 0);
-  d.push({ id:'vol_target', label:'Volatility target (0 = off)', min:0, max:40, step:1, v:vtv, grp:'Risk control', fmt:function(v){ return +v ? v + '%' : 'Off'; } });
-  if(cur.spec.type === 'allocation' && meth !== 'fixed' && meth !== 'equal') d.push({ id:'max_weight', label:'Max weight per asset (100 = no cap)', min:10, max:100, step:5, v:cur.over.max_weight != null ? cur.over.max_weight : (parseFloat(cur.spec.max_weight) || 100), grp:'Risk control', fmt:function(v){ return +v >= 100 ? 'No cap' : v + '%'; } });
+  if(cur.spec.type !== 'pairs') d.push({ id:'vol_target', label:'Volatility target (0 = off)', min:0, max:40, step:1, v:vtv, grp:'Risk control', fmt:function(v){ return +v ? v + '%' : 'Off'; } });
+  if(cur.spec.type === 'allocation' && meth === 'momentum'){
+    var na = (cur.spec.assets || []).length;
+    d.push({ id:'top_n', label:'Hold the top N assets', min:1, max:Math.max(1, na - 1), step:1, v:cur.over.top_n != null ? cur.over.top_n : (parseFloat(cur.spec.top_n) || Math.ceil(na / 3)), grp:'Momentum' });
+    d.push({ id:'skip', label:'Skip the latest days', min:0, max:63, step:1, v:cur.over.skip != null ? cur.over.skip : (cur.spec.skip != null ? parseFloat(cur.spec.skip) || 0 : 21), grp:'Momentum' });
+  }
+  if(cur.spec.type === 'allocation' && meth !== 'fixed' && meth !== 'equal' && meth !== 'momentum') d.push({ id:'max_weight', label:'Max weight per asset (100 = no cap)', min:10, max:100, step:5, v:cur.over.max_weight != null ? cur.over.max_weight : (parseFloat(cur.spec.max_weight) || 100), grp:'Risk control', fmt:function(v){ return +v >= 100 ? 'No cap' : v + '%'; } });
   if((cur.spec.type === 'allocation' && meth !== 'fixed') || vtv) d.push({ id:'lookback', label:'Lookback (days)', min:60, max:504, step:21, v:cur.over.lookback != null ? cur.over.lookback : (+cur.spec.lookback || 252), grp:'Risk control' });
   d.push({ id:'years', label:'Projection years', min:1, max:15, step:1, v:cur.proj.years, grp:'Projection', proj:1 });
   d.push({ id:'drift', label:'Return shift (% a year)', min:-10, max:10, step:.5, v:cur.proj.drift, grp:'Projection', proj:1, fmt:function(v){ return (v > 0 ? '+' : '') + v + '%'; } });
@@ -11985,6 +11996,11 @@ function qnChartsPaint(){
   put('qnDD', QN.lines({ T:T, W:W, H:170, x:bt.dates, zero:1, yfmt:function(v){ return v.toFixed(0) + '%'; }, series:[{ name:bt.bsym, v:bdd, col:T.b, w:1 }, { name:'Strategy', v:dd, col:T.s, w:1.4, area:T.band1 }] }),
     { x:bt.dates, fmt:function(v){ return v.toFixed(1) + '%'; }, series:[['Strategy', dd, T.s], [bt.bsym, bdd, T.b]] });
   var by = {}; m.b.years.forEach(function(y){ by[y[0]] = y[1]; });
+  if(bt.pair && $('qnPairZ')){
+    var pz = bt.pair, nz = function(v){ return bt.dates.map(function(){ return v; }); };
+    put('qnPairZ', QN.lines({ T:T, W:W, H:170, x:bt.dates, zero:1, yfmt:function(v){ return v.toFixed(1); }, series:[{ name:'z', v:pz.z, col:T.s, w:1.3 }, { name:'entry', v:nz(pz.entryZ), col:T.mut, dash:1, w:1 }, { name:'entry', v:nz(-pz.entryZ), col:T.mut, dash:1, w:1 }] }),
+      { x:bt.dates, fmt:function(v){ return v == null ? '—' : (+v).toFixed(2); }, series:[['z-score', pz.z, T.s]] });
+  }
   var yb = $('qnYears'); if(yb) yb.querySelector('.qn-svg').innerHTML = QN.bars({ T:T, W:W, H:190, rows:m.s.years.map(function(y){ return [y[0], y[1], by[y[0]]]; }) });
   var pt = $('qnProjTbl'); if(pt) pt.innerHTML = '<table class="qn-tbl"><tr><th>After ' + p.years + ' yr' + (p.years > 1 ? 's' : '') + '</th><th>5th</th><th>25th</th><th>Median</th><th>75th</th><th>95th</th></tr>' +
     '<tr><td>Value of $10k</td>' + p.end.map(function(v){ return '<td>' + QN.money(v) + '</td>'; }).join('') + '</tr><tr><td>Per year</td>' + p.cagr.map(function(v){ return '<td class="' + (v >= 0 ? 'up' : 'down') + '">' + qnPct(v) + '</td>'; }).join('') + '</tr></table>' +
@@ -12026,13 +12042,13 @@ function qnPaint(focus){
     (n ? '<div class="qn-note"><h3>' + esc(n.headline) + '</h3><p>' + esc(n.note) + '</p><p><b>Why it matters:</b> ' + esc(n.why || '') + '</p><p><b>The bottom line:</b> ' + esc(n.bottom_line || '') + '</p>' +
       (changed ? '<div class="qn-fine mut">The note describes the original settings; the numbers and charts follow your dials.</div>' : '') + '</div>'
       : '<div class="qn-note"><p>' + esc(cur.spec.summary || '') + '</p></div>') +
-    qnSessionHTML(cur) + qnAllocHTML(cur) +
+    qnSessionHTML(cur) + qnAllocHTML(cur) + qnPairHTML(cur) +
     '<details class="qn-box" open><summary>Tweak the factors</summary><div class="qn-dials" id="qnDials">' + qnDialsHTML(cur) + '</div></details>' +
     '<div class="qn-box qn-chart" id="qnEq"><div class="qn-ch"><b>Growth of $10,000</b><span class="qn-leg"><i style="background:' + qnTheme().s + '"></i>Strategy<i style="background:' + qnTheme().b + '"></i>' + esc(cur.bt.bsym) + '</span><span class="grow"></span><button class="btn text sm" data-act="qn-log">' + (QS.log ? 'Log scale' : 'Linear scale') + '</button></div><div class="qn-svg"></div><div class="qn-tip"></div></div>' +
     '<div class="qn-box qn-chart" id="qnProj"><div class="qn-ch"><b>Projection</b><span class="mut">5th–95th and 25th–75th percentile bands, median line</span></div><div class="qn-svg"></div><div class="qn-tip"></div><div id="qnProjTbl"></div></div>' +
     '<div class="qn-box qn-chart" id="qnDD"><div class="qn-ch"><b>Drawdown</b><span class="mut">% below the previous high</span></div><div class="qn-svg"></div><div class="qn-tip"></div></div>' +
     '<div class="qn-box qn-chart" id="qnYears"><div class="qn-ch"><b>Calendar-year returns</b><span class="qn-leg"><i style="background:' + qnTheme().s + '"></i>Strategy<i style="background:' + qnTheme().b + '"></i>' + esc(cur.bt.bsym) + '</span></div><div class="qn-svg"></div></div>' +
-    qnValHTML(cur) + qnVolHTML(cur) +
+    qnRegimeHTML(cur) + qnStressHTML(cur) + qnValHTML(cur) + qnDriversHTML(cur) + qnVolHTML(cur) +
     '<details class="qn-box"><summary>Monthly returns</summary><div id="qnMonths" class="qn-scroll"></div></details>' +
     '<details class="qn-box"><summary>Rules, assumptions and trades</summary><div class="qn-rules"><p>' + esc(cur.spec.summary || '') + '</p>' +
       ((cur.spec.assumptions || []).length ? '<ul>' + cur.spec.assumptions.map(function(a){ return '<li>' + esc(a) + '</li>'; }).join('') + '</ul>' : '') +
@@ -12117,6 +12133,78 @@ function qnVolUse(el){
   var cur = QS.cur; if(!cur) return; var m = +el.getAttribute('data-mult'); if(!isFinite(m)) return;
   cur.proj.volMult = m; cur.volOpen = true; qnCompute(cur); qnPaint();
 }
+
+/* ---- batch 2 panels: pair diagnostics, market regimes, stress tests, what drives it */
+function qnT(cols, rows, cls){ return '<div class="qn-scroll"><table class="qn-grid ' + (cls || '') + '"><tr>' + cols.map(function(c){ return '<th>' + esc(c) + '</th>'; }).join('') + '</tr>' + rows.map(function(r){
+  return '<tr>' + r.map(function(c, i){ return '<td' + (c && c.cls ? ' class="' + c.cls + '"' : '') + '>' + (i === 0 ? '<b>' + esc(c) + '</b>' : esc(c && c.t != null ? c.t : c)) + '</td>'; }).join('') + '</tr>'; }).join('') + '</table></div>'; }
+function qnPairHTML(cur){
+  var pr = cur.bt.pair; if(!pr) return '';
+  var c = pr.coint, f = function(x, d){ return x == null || !isFinite(x) ? '—' : (+x).toFixed(d == null ? 2 : d); }, lastB = pr.beta.filter(function(x){ return x != null; }).slice(-1)[0], lastZ = pr.z.filter(function(x){ return x != null; }).slice(-1)[0];
+  var rows = [['Pair', pr.a + ' vs ' + pr.b, 'long one leg, short the other when the spread is stretched'],
+    ['Hedge ratio now', f(lastB), 'dollars of ' + pr.b + ' per dollar of ' + pr.a + ', re-fitted each day on the last ' + pr.lookback + ' days'],
+    ['Rules', 'enter beyond ' + f(pr.entryZ, 1) + ' sd', 'exit within ' + f(pr.exitZ, 1) + ' sd of the mean' + (pr.stopZ ? ', stop beyond ' + f(pr.stopZ, 1) + ' sd' : '')],
+    ['Spread z-score now', f(lastZ), Math.abs(lastZ) > pr.entryZ ? 'beyond the entry level' : 'inside the entry level']];
+  if(c) rows.push(['Cointegration (whole test)', c.verdict, 'ADF ' + f(c.tau) + ' vs ' + f(c.crit.p5) + ' at 5% · hedge ratio ' + f(c.beta) + ' · R² ' + f(c.r2)], ['Half-life of the spread', c.halfLife == null ? 'none' : f(c.halfLife, 0) + ' days', c.halfLife == null ? 'the spread does not mean-revert here' : c.halfLife > 60 ? 'slow: capital sits in trades for a long time' : 'how fast a stretch typically closes']);
+  return '<details class="qn-box" id="qnPair" open><summary>Pair diagnostics · ' + esc(pr.a) + ' vs ' + esc(pr.b) + '</summary><table class="qn-tbl">' + rows.map(function(x){ return '<tr><td>' + esc(x[0]) + '<i>' + esc(x[2]) + '</i></td><td>' + esc(x[1]) + '</td></tr>'; }).join('') + '</table>' +
+    '<div class="mut qn-fine">Cointegration found over the whole test is in-sample: it is a reason to look, not proof the pair keeps behaving. Borrowing costs on the short leg are not modelled.</div></details>' +
+    '<div class="qn-box qn-chart" id="qnPairZ"><div class="qn-ch"><b>Spread z-score</b><span class="mut">trades open beyond the dashed lines</span></div><div class="qn-svg"></div><div class="qn-tip"></div></div>';
+}
+function qnRegimeInner(cur){
+  var rg = null; try{ rg = QN.regimes(cur.bt, cur.al); }catch(e){}
+  if(!rg) return '<p class="mut qn-fine">Needs about 200 days of benchmark history before the test starts, and at least a few months of data.</p>';
+  var pc = function(v){ return v == null ? '—' : qnPct(v); }, f2 = function(v){ return v == null ? '—' : v.toFixed(2); }, nm = { up:'Uptrend (above 200-day average)', down:'Downtrend (below it)', calm:'Calm markets', normal:'Normal markets', stormy:'Stormy markets' };
+  var row = function(x){ return [nm[x.id], x.share.toFixed(0) + '%', { t:pc(x.s && x.s.ann), cls:x.s && x.s.ann >= 0 ? 'up' : 'down' }, f2(x.s && x.s.sharpe), pc(x.b && x.b.ann), f2(x.b && x.b.sharpe)]; };
+  var cols = ['', 'Days', 'Strategy / yr', 'Sharpe', rg.bench + ' / yr', 'Sharpe'];
+  return '<div class="qn-fine mut">Read at the prior close, so there is no look-ahead. Volatility terciles use ' + esc(rg.bench) + '\'s own 21-day volatility over this test (calm under ' + rg.volCuts[0].toFixed(0) + '%, stormy over ' + rg.volCuts[1].toFixed(0) + '%).</div>' +
+    qnT(cols, rg.trend.map(row)) + qnT(cols, rg.vol.map(row));
+}
+function qnRegimeHTML(cur){ return '<details class="qn-box" id="qnRegime"' + (cur.regOpen ? ' open' : '') + '><summary>Performance by market regime</summary><div class="qn-vb">' + qnRegimeInner(cur) + '</div></details>'; }
+function qnStressBT(cur){   // the same rules over every day of price history, whatever the Start dial says: crises before the chosen start are still testable
+  var k = qnKey(cur); if(cur.stk === k && cur.stbt) return cur.stbt;
+  var bt; try{ bt = QN.backtest(cur.spec, cur.al, Object.assign({}, cur.over, { start:cur.al.dates[0] })); }catch(e){ bt = cur.bt; }
+  cur.stk = k; cur.stbt = bt; return bt;
+}
+function qnStressInner(cur){
+  var sb = qnStressBT(cur), st = QN.stress(sb), pc = function(v){ return v == null ? '—' : qnPct(v); };
+  var rows = st.rows.map(function(r){ return r.s ? [r.name, { t:pc(r.s.ret), cls:r.s.ret >= 0 ? 'up' : 'down' }, pc(r.s.maxdd), pc(r.b.ret), pc(r.b.maxdd)] : [r.name, { t:'not covered', cls:'mut' }, '', '', '']; });
+  var h = '<div class="qn-fine mut">Each scenario replays the same rules on the full price history (from ' + esc(sb.dates[0]) + ', ignoring the Start dial), where the data reaches.</div>' + qnT(['Scenario', 'Strategy', 'Worst dip', st.bsym, 'Worst dip'], rows);
+  if(st.downBeta != null) h += '<div class="qn-fine" style="margin-top:8px"><b>If ' + esc(st.bsym) + ' fell…</b> using its downside beta (' + st.downBeta.toFixed(2) + ', measured only on days it fell): ' + st.shocks.map(function(x){ return x.bench + '% → about ' + qnPct(x.est, 0); }).join(', ') + '.' +
+    (st.reverse ? ' A ' + qnPct(st.reverse, 0) + ' move in ' + esc(st.bsym) + ' would cost about 20%.' : '') + '</div><div class="qn-fine mut">A beta shock is a straight-line estimate. Real crashes also move correlations and spreads.</div>';
+  return h;
+}
+function qnStressHTML(cur){ return '<details class="qn-box" id="qnStress"' + (cur.strOpen ? ' open' : '') + '><summary>Stress tests</summary><div class="qn-vb">' + qnStressInner(cur) + '</div></details>'; }
+function qnDriversHTML(cur){
+  var head = '<details class="qn-box" id="qnDrv"' + (cur.drvOpen ? ' open' : '') + '><summary>What drives it? Factors and style</summary><div class="qn-vb">', tail = '</div></details>';
+  if(cur.drvBusy) return head + '<p class="mut">Fetching the factor and asset-class ETFs…</p>' + tail;
+  var v = cur.drv && cur.drv.key === qnKey(cur) ? cur.drv.res : null;
+  if(!v) return head + (cur.drv ? '<p class="mut qn-fine">The dials changed since the last run.</p>' : '') + '<p class="qn-fine mut">Regresses the strategy\'s daily returns on market, size, value, momentum and low-volatility ETF proxies, and finds the mix of asset-class ETFs it behaves like.</p>' +
+    (cur.drvErr ? '<div class="qn-err">' + esc(cur.drvErr) + '</div>' : '') + '<button class="btn filled sm" data-act="qn-drv">Run the analysis</button>' + tail;
+  var f = v.fm, st = v.style, out = '', b1 = function(x, d){ return x == null || !isFinite(x) ? '—' : (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x).toFixed(d == null ? 2 : d); };
+  if(f){
+    out += '<div class="qn-fine"><b>Factor exposure</b> · ' + f.n + ' days, ' + esc(f.from) + ' to ' + esc(f.to) + ' · R² ' + f.r2.toFixed(2) + ' · alpha ' + qnPct(f.alpha) + ' a year (t ' + f.alphaT.toFixed(1) + ')</div>' +
+      qnT(['Factor', 'Beta', 't', 'Return / yr'], f.factors.map(function(x){ return [x.name, b1(x.beta), { t:b1(x.t, 1), cls:Math.abs(x.t) >= 2 ? '' : 'mut' }, qnPct(x.contrib)]; })) +
+      '<div class="mut qn-fine">ETF proxies, not the academic Fama-French factors. t-statistics use Newey-West errors; grey means not distinguishable from zero.' + (f.dropped.length ? ' Left out: ' + esc(f.dropped.join('; ')) + '.' : '') + '</div>';
+  } else out += '<p class="mut qn-fine">Factor model: not enough history shared with the factor ETFs (needs about two years).</p>';
+  if(st && st.r2 < .1){
+    out += '<div class="qn-fine" style="margin-top:10px"><b>Behaves like</b> · no asset-class mix explains it (R² ' + st.r2.toFixed(2) + ', ' + st.n + ' days): it is not acting like a long-only blend of stocks, bonds, gold and commodities, which is typical of market-neutral or very concentrated strategies.</div>';
+  } else if(st){
+    out += '<div class="qn-fine" style="margin-top:10px"><b>Behaves like</b> · R² ' + st.r2.toFixed(2) + ' · tracking error ' + st.trackingErr.toFixed(1) + '% · ' + st.n + ' days</div>' +
+      st.weights.filter(function(x){ return x.w >= .5; }).map(function(x){ return '<div class="qn-wr"><span>' + esc(x.sym) + '</span><div class="qn-bar"><i style="width:' + Math.min(100, x.w).toFixed(1) + '%"></i></div><b>' + x.w.toFixed(0) + '%</b><em>' + esc(x.name) + '</em></div>'; }).join('') +
+      '<div class="mut qn-fine">The closest long-only mix of these ETFs, not the actual holdings.</div>';
+  } else out += '<p class="mut qn-fine">Style analysis: not enough overlapping history with the asset-class ETFs.</p>';
+  return head + out + tail;
+}
+function qnDrvPaint(){ var cur = QS.cur, el = $('qnDrv'); if(cur && el) el.outerHTML = qnDriversHTML(cur); }
+function qnRunDrv(){
+  var cur = QS.cur; if(!cur || cur.drvBusy) return; cur.drvBusy = true; cur.drvOpen = true; cur.drvErr = ''; qnDrvPaint();
+  var syms = QN.FACTOR_SYMS.concat(QN.STYLE_ASSETS.map(function(a){ return a[0]; })).filter(function(x, i, a){ return a.indexOf(x) === i; });
+  Promise.all(syms.map(function(sy){ return qnHist(sy).then(function(r){ return [sy, r]; }, function(){ return [sy, null]; }); })).then(function(pairs){
+    var hist = {}; pairs.forEach(function(p){ if(p[1]) hist[p[0]] = p[1]; });
+    var d = cur.bt.dates.slice(1), fm = QN.factorModel(cur.bt.ret, d, hist), st = QN.style(cur.bt.ret, d, hist);
+    if(!fm && !st) throw new Error('Not enough history shared with the factor and asset-class ETFs to say anything (about two years is needed).');
+    cur.drv = { key:qnKey(cur), res:{ fm:fm, style:st } };
+  }).catch(function(e){ cur.drvErr = String((e && e.message) || e); }).then(function(){ cur.drvBusy = false; qnDrvPaint(); });
+}
 function qnSessionHTML(cur){
   var t = cur.turns || [], pd = cur.pdfs || [];
   if(t.length < 2 && !pd.length) return '';
@@ -12144,7 +12232,10 @@ function qnDial(inp){
     var meta = document.querySelector('.qn-meta'); if(meta) meta.firstChild.outerHTML = qnStars(cur.rating, 15);
     if(meta){ var bs = meta.querySelectorAll('b'); bs[0].textContent = cur.edge; bs[1].textContent = cur.unc; }
     var al = $('qnAlloc'); if(al) al.outerHTML = qnAllocHTML(cur);
-    if(!inp.getAttribute('data-proj')){ qnValPaint(); qnVolPaint(); }
+    var rgn = $('qnRegime'); if(rgn){ cur.regOpen = rgn.open; rgn.outerHTML = qnRegimeHTML(cur); }
+    var sts = $('qnStress'); if(sts){ cur.strOpen = sts.open; sts.outerHTML = qnStressHTML(cur); }
+    var pp = $('qnPair'); if(pp) pp.outerHTML = qnPairHTML(cur).split('<div class="qn-box qn-chart" id="qnPairZ">')[0];
+    if(!inp.getAttribute('data-proj')){ qnValPaint(); qnVolPaint(); qnDrvPaint(); }
     qnChartsPaint();
   });
 }
@@ -12179,6 +12270,7 @@ function qnAction(act, el){
   else if(act === 'qn-refine'){ var r = $('qnRefine'); if(r && r.value.trim()) qnRun(r.value, true); }
   else if(act === 'qn-val') qnRunVal();
   else if(act === 'qn-vol') qnRunVol();
+  else if(act === 'qn-drv') qnRunDrv();
   else if(act === 'qn-vol-use') qnVolUse(el);
   else if(act === 'qn-pdf') qnPDF(el);
   else if(act === 'qn-pdf-dl') qnPdfGet(el.getAttribute('data-id'), el.getAttribute('data-name'));
@@ -12519,7 +12611,7 @@ function qnPDF(btn){
   ];
   load.then(function(){ return Promise.all(charts.map(function(c){ return QN.png(c[0], c[1], c[2], 2); })); }).then(function(img){
     var doc = new window.jspdf.jsPDF({ unit:'pt', format:'letter', compress:true }), PW = 612, PH = 792, M = 40, CW = PW - 2 * M, now = new Date();
-    var dstr = now.toISOString().slice(0, 10), pages = m.risk ? 5 : 4, n = cur.note || {};
+    var dstr = now.toISOString().slice(0, 10), pages = m.risk ? 6 : 4, n = cur.note || {};
     var ink = [29, 29, 31], grey = [107, 114, 128], red = [200, 30, 42], rule = [210, 210, 214];
     var col = function(c){ doc.setTextColor(c[0], c[1], c[2]); };
     var ascii = function(s){ return String(s == null ? '' : s).replace(/\u2212/g, '-').replace(/[\u2018\u2019]/g, "'").replace(/[\u201c\u201d]/g, '"').replace(/\u2026/g, '...').replace(/\u2192/g, '->').replace(/[\u2013\u2014]/g, '-'); };   // the PDF's built-in font has no minus sign
@@ -12562,7 +12654,7 @@ function qnPDF(btn){
     y += 44; hr(y);
     var cx = M, cw = 170, nx = M + cw + 22, nw = CW - cw - 22, y0 = y + 16;
     txt('Contents', cx, y0, { s:9.5, b:1 });
-    var toc = ['Quant Note', 'Strategy Description', 'Strengths / Risks', 'Projection Drivers', 'Risk and Uncertainty', 'Projection', 'Risk Statistics', 'Monthly Returns', 'Trade Log', 'Appendix: Methodology'].concat(m.risk ? ['Tail Risk and Robustness'] : []);
+    var toc = ['Quant Note', 'Strategy Description', 'Strengths / Risks', 'Projection Drivers', 'Risk and Uncertainty', 'Projection', 'Risk Statistics', 'Monthly Returns', 'Trade Log', 'Appendix: Methodology'].concat(m.risk ? ['Tail Risk and Robustness', 'Stress, Regimes and Drivers'] : []);
     toc.forEach(function(c, k){ txt(c, cx, y0 + 15 + k * 13, { s:8.2 }); });
     var yl = y0 + 15 + toc.length * 13 + 4; doc.setDrawColor.apply(doc, rule); doc.line(cx, yl, cx + cw, yl);
     txt('About this report', cx, yl + 13, { s:7, b:1 });
@@ -12655,6 +12747,33 @@ function qnPDF(btn){
       y = para('VaR and CVaR: the loss on a 1-in-20 day, and the average loss on the worst 5% of days (historical, from the daily returns). Omega: total gains divided by total losses. Information ratio: active return over the benchmark divided by tracking error. ' +
         'Treynor: excess return per unit of beta. Probabilistic Sharpe: the chance the true Sharpe ratio is above 0, adjusting for skew and fat tails. Deflated Sharpe: the same, after charging for the number of dial settings tried. ' +
         'Resampling: 500 histories built from 21-day blocks of the strategy\'s own daily returns. First 70% / last 30%: the same fixed rules measured on each part; it checks stability over time, it does not re-tune. A passing grade lowers the odds of a lucky result and does not prove an edge.', M, y, CW, { s:8.2 });
+      foot();
+    }
+    if(m.risk){   /* page 6: pair diagnostics, stress tests, regimes, drivers */
+      doc.addPage(); head(6); y = 136;
+      var g3 = function(v, d){ return v == null || !isFinite(v) ? '—' : v.toFixed(d); };
+      if(bt.pair){
+        var pr6 = bt.pair, c6 = pr6.coint; y = sec('Pair Diagnostics: ' + pr6.a + ' vs ' + pr6.b, y);
+        var pz6 = pr6.z.filter(function(x){ return x != null; }), pb6 = pr6.beta.filter(function(x){ return x != null; });
+        y = table([['Item', 'Value'], ['Entry / exit / stop (z-score)', g3(pr6.entryZ, 1) + ' / ' + g3(pr6.exitZ, 1) + ' / ' + (pr6.stopZ ? g3(pr6.stopZ, 1) : 'none')], ['Lookback for hedge ratio and z', pr6.lookback + ' days'], ['Hedge ratio now', g3(pb6[pb6.length - 1], 2)], ['Spread z-score now', g3(pz6[pz6.length - 1], 2)]]
+          .concat(c6 ? [['Cointegration (Engle-Granger)', c6.verdict], ['ADF statistic (5% critical ' + g3(c6.crit.p5, 2) + ')', g3(c6.tau, 2)], ['Half-life of the spread', c6.halfLife == null ? 'none' : g3(c6.halfLife, 0) + ' days']] : []), M, y, [250, 120], { head:1 }) + 10;
+      }
+      var sb6 = qnStressBT(cur), st6 = QN.stress(sb6); y = sec('Stress Tests (same rules on the full history from ' + sb6.dates[0] + ')', y);
+      y = table([['Scenario', 'Strategy', 'Worst dip', bt.bsym, 'Worst dip']].concat(st6.rows.map(function(r){ return r.s ? [r.name, qnPct(r.s.ret), qnPct(r.s.maxdd), qnPct(r.b.ret), qnPct(r.b.maxdd)] : [r.name, 'not covered', '', '', '']; })), M, y, [170, 90, 90, 90, 90], { head:1 }) + 4;
+      if(st6.downBeta != null){ y = para('If ' + bt.bsym + ' fell 10% / 20% / 30%, the downside beta of ' + g3(st6.downBeta, 2) + ' suggests about ' + st6.shocks.map(function(x){ return qnPct(x.est, 0); }).join(' / ') + ' for this strategy. A straight-line estimate: real crashes also move correlations.', M, y + 6, CW, { s:8, c:grey }) + 6; }
+      var rg6 = null; try{ rg6 = QN.regimes(bt, cur.al); }catch(e){}
+      if(rg6){
+        var nm6 = { up:'Uptrend (above 200-day avg)', down:'Downtrend', calm:'Calm markets', normal:'Normal markets', stormy:'Stormy markets' };
+        y = sec('Performance by Market Regime (read at the prior close)', y + 4);
+        y = table([['Regime', 'Days', 'Strategy / yr', 'Sharpe', bt.bsym + ' / yr', 'Sharpe']].concat(rg6.trend.concat(rg6.vol).map(function(x){ return [nm6[x.id], g3(x.share, 0) + '%', qnPct(x.s && x.s.ann), g3(x.s && x.s.sharpe, 2), qnPct(x.b && x.b.ann), g3(x.b && x.b.sharpe, 2)]; })), M, y, [170, 60, 90, 70, 90, 70], { head:1 }) + 8;
+      }
+      var dv6 = cur.drv && cur.drv.key === qnKey(cur) ? cur.drv.res : null;
+      if(dv6 && (dv6.fm || dv6.style)){
+        y = sec('What Drives It (ETF-proxy factors and style)', y);
+        if(dv6.fm){ y = table([['Factor', 'Beta', 't', 'Return / yr']].concat(dv6.fm.factors.map(function(x){ return [x.name, g3(x.beta, 2), g3(x.t, 1), qnPct(x.contrib)]; })).concat([['Alpha (per year) / R-squared', qnPct(dv6.fm.alpha), g3(dv6.fm.alphaT, 1), 'R2 ' + g3(dv6.fm.r2, 2)]]), M, y, [220, 70, 60, 90], { head:1 }) + 6; }
+        if(dv6.style && dv6.style.r2 < .1){ y = para('Behaves like: no asset-class mix explains it (R-squared ' + g3(dv6.style.r2, 2) + '). It is not acting like a long-only blend of stocks, bonds, gold and commodities.', M, y + 4, CW, { s:8.5 }) + 4; }
+        else if(dv6.style){ y = para('Behaves like: ' + dv6.style.weights.filter(function(x){ return x.w >= .5; }).map(function(x){ return x.sym + ' ' + g3(x.w, 0) + '%'; }).join(', ') + ' (R-squared ' + g3(dv6.style.r2, 2) + ', tracking error ' + g3(dv6.style.trackingErr, 1) + '%). The closest long-only mix of asset-class ETFs, not the holdings.', M, y + 4, CW, { s:8.5 }) + 4; }
+      }
       foot();
     }
     var name = 'MercerFargo-Quant_' + cur.spec.title.replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').slice(0, 50) + '_' + dstr + '.pdf', blob = doc.output('blob'), fid = 'pdf-' + Date.now().toString(36);
@@ -13349,7 +13468,7 @@ function bindEvents(){
       case 'quick-toggle': { var q = $('aiQuick'); q.hidden = !q.hidden; break; }
       case 'drawer-full': setFull(!$('drawer').classList.contains('full')); break;
       case 'drawer-tab': rsShowTab(el.getAttribute('data-tab')); break;
-      case 'qn-run': case 'qn-ex': case 'qn-new': case 'qn-open': case 'qn-log': case 'qn-reset': case 'qn-refine': case 'qn-val': case 'qn-vol': case 'qn-vol-use': case 'qn-pdf': case 'qn-pdf-dl': case 'qn-log-open': case 'qn-log-del': qnAction(act, el); break;
+      case 'qn-run': case 'qn-ex': case 'qn-new': case 'qn-open': case 'qn-log': case 'qn-reset': case 'qn-refine': case 'qn-val': case 'qn-vol': case 'qn-drv': case 'qn-vol-use': case 'qn-pdf': case 'qn-pdf-dl': case 'qn-log-open': case 'qn-log-del': qnAction(act, el); break;
       case 'pd-wake': case 'pd-guide': case 'pd-run': case 'pd-retry': case 'pd-os': case 'pd-copy': case 'pd-dl': case 'pd-chip': pdAction(act, el); break;
       case 'rs-close': closeDrawer(); break;
       case 'quote': ev.preventDefault(); go('#/quote/' + encodeURIComponent(sym)); break;

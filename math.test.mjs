@@ -228,3 +228,42 @@ test('batch-1 tools: risk metrics, robustness, allocation, volatility, fractiona
   const k = await run('kelly', { win_rate_pct: 55, win_loss_ratio: 1.5, fraction: 0.25 });
   near(k.fractionalKellyPct, k.kellyPct * 0.25, 1e-9);
 });
+
+test('batch-2 tools: cointegration, stress, regimes, factors and style on planted structure', async () => {
+  const g = (() => { const r = rng(21); return () => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r()); })(), n = 1500, y0 = Date.UTC(2019, 0, 1);
+  const dstr = (i) => new Date(y0 + i * 864e5).toISOString().slice(0, 10);
+  const walk = (mu, sg) => Array.from({ length: n }, () => mu + sg * g());
+  const mkRows = (r) => { let p = 100; return [{ d: dstr(0), c: p }].concat(r.map((x, i) => ({ d: dstr(i + 1), c: (p *= 1 + x) }))); };
+  const raw = { SPY: walk(.0004, .01), IWM: walk(.0004, .012), IVE: walk(.0003, .01), IVW: walk(.0004, .011), MTUM: walk(.0004, .011), USMV: walk(.0003, .007), AGG: walk(.0001, .003), TLT: walk(.0001, .008), EFA: walk(.0003, .011), EEM: walk(.0003, .013), GLD: walk(.0002, .009), DBC: walk(.0001, .01), VNQ: walk(.0003, .012) };
+  const extra = {};
+  const env3 = { history: (s) => (extra[s] || mkRows(raw[s])) };
+  const toSeries = (rows) => { const a = rows.map((x) => x.c); a.dates = rows.map((x) => x.d); return a; };
+
+  // planted cointegrated pair
+  let lb = Math.log(100), e = 0; const A = [], B = [];
+  for (let i = 0; i <= n; i++) { lb += .0003 + .01 * g(); e = .94 * e + .01 * g(); B.push(Math.exp(lb)); A.push(Math.exp(.4 + 1.2 * lb + e)); }
+  extra.PA = A.map((c, i) => ({ d: dstr(i), c })); extra.PB = B.map((c, i) => ({ d: dstr(i), c }));
+  const co = await run('cointegration', { a: { history: 'PA', range: '5Y' }, b: { history: 'PB', range: '5Y' } }, env3);
+  assert.ok(/^Cointegrated/.test(co.verdict)); near(co.hedgeRatio, 1.2, .06); assert.ok(co.halfLifeDays > 5 && co.halfLifeDays < 30);
+  await assert.rejects(run('cointegration', { a: [1, 2, 3, 4], b: [1, 2, 3, 4] }, env3));      // no dates / too short
+
+  // a strategy that is 0.8 market + 0.4 size, 0.3 short value
+  const strat = raw.SPY.map((x, i) => .0002 + .8 * x + .4 * (raw.IWM[i] - raw.SPY[i]) - .3 * (raw.IVE[i] - raw.IVW[i]) + .002 * g());
+  extra.STRAT = mkRows(strat).slice(250); const ss = { history: 'STRAT', range: '5Y' };
+  const fx = await run('factor_exposure', { series: ss }, env3), by = Object.fromEntries(fx.factors.map((f) => [f.factor, f]));
+  near(by['Market'].beta, .8, .03); near(by['Size (small minus large)'].beta, .4, .08); near(by['Value (value minus growth)'].beta, -.3, .08); assert.ok(fx.rSquared > .9);
+
+  extra.MIX = mkRows(raw.SPY.map((x, i) => .6 * x + .3 * raw.TLT[i] + .1 * raw.GLD[i] + .0005 * g()));
+  const sty = await run('style_analysis', { series: { history: 'MIX', range: '5Y' } }, env3), w = Object.fromEntries(sty.mix.map((x) => [x.symbol, x.weightPct]));
+  near(w.SPY, 60, 5); near(w.TLT, 30, 5); near(w.GLD, 10, 5);
+
+  // regimes and stress against the SPY proxy as benchmark (its history stands in for the real one)
+  const rg = await run('regime_stats', { series: ss, benchmark: 'SPY', range: 'MAX' }, env3);
+  near(rg.trend.reduce((s, x) => s + x.sharePct, 0), 100, 1e-6); assert.equal(rg.volatility.length, 3);
+  const stt = await run('stress_test', { series: ss, benchmark: 'SPY', range: 'MAX' }, env3);
+  assert.ok(stt.scenarios.find((x) => x.name.includes('COVID')).returnPct != null && stt.scenarios.find((x) => x.name.includes('Dot-com')).notCovered);
+  assert.ok(stt.downsideBeta > .3 && stt.benchmarkShocks.length === 3);
+
+  const al = await run('allocate', { assets: ['SPY', 'IWM', 'EFA', 'EEM'], method: 'momentum', top_n: 2, skip_days: 21 }, env3);
+  near(al.assets.filter((x) => x.weightPct > 0).length, 2, 0); near(al.assets.reduce((s, x) => s + x.weightPct, 0), 100, 1e-6);
+});

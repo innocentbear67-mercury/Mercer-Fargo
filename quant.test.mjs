@@ -185,3 +185,97 @@ test('weight cap: nobody above the cap, still sums to 1, and a cap below equal s
   const free = QN.backtest(spec, al), capped = QN.backtest({ ...spec, max_weight: '55%' }, al);
   assert.ok(Math.max(...capped.alloc.weights) <= .55 + 1e-9 && Math.abs(capped.alloc.maxWeight - 55) < 1e-9 && Math.max(...free.alloc.weights) > .55);
 });
+
+// ---- batch 2: pairs, cointegration, momentum, regimes, stress, factors, style
+const dayStr = (i, y0 = 2015) => new Date(Date.UTC(y0, 0, 1) + i * 864e5).toISOString().slice(0, 10);
+const rowsOf = (closes, y0 = 2015) => closes.map((c, i) => ({ d: dayStr(i, y0), o: c, h: c * 1.005, l: c * .995, c, v: 1 }));
+const cointPair = (n, phi, seed, beta = 1.2) => {   // ln B random walk, ln A = a + beta ln B + OU spread
+  const g = gauss(rnd(seed)); let lb = Math.log(100), e = 0; const A = [], B = [];
+  for (let i = 0; i < n; i++) { lb += .0003 + .01 * g(); e = phi * e + .01 * g(); B.push(Math.exp(lb)); A.push(Math.exp(.4 + beta * lb + e)); }
+  return { A, B };
+};
+
+test('Engle-Granger: finds a planted cointegrated pair, rejects independent walks, recovers hedge ratio and half-life', () => {
+  const { A, B } = cointPair(1500, .94, 51), c = QN.coint(A, B);
+  assert.ok(/^Cointegrated/.test(c.verdict) && c.tau < -3.34); near(c.beta, 1.2, .05); near(c.halfLife, Math.log(.5) / Math.log(.94), 4);
+  let rej = 0; for (let s = 0; s < 12; s++) { const g1 = gauss(rnd(100 + s)), g2 = gauss(rnd(200 + s)); let x = 0, y = 0; const a = [], b = []; for (let i = 0; i < 1500; i++) { x += .01 * g1(); y += .01 * g2(); a.push(Math.exp(x)); b.push(Math.exp(y)); } if (/^Cointegrated/.test(QN.coint(a, b).verdict)) rej++; }
+  assert.ok(rej <= 2, `false positives ${rej}/12`);              // 5% test: a couple of misses is normal, not half of them
+  const rw = QN.adf(Array.from({ length: 1500 }, (() => { const g = gauss(rnd(7)); let v = 0; return () => (v += g()); })())), st = QN.adf(series(1500, 0, 1, 8));
+  assert.ok(st.tau < -10 && rw.tau > -3.5);                          // stationary vs unit root
+});
+
+test('pairs backtest: trades the spread, market-neutral, makes money on a mean-reverting pair', () => {
+  const { A, B } = cointPair(2200, .93, 61), data2 = { KO: rowsOf(A), PEP: rowsOf(B), SPY: rowsOf(B.map((x, i) => x * (1 + .1 * Math.sin(i / 90)))) };
+  const spec = { type: 'pairs', a: 'KO', b: 'PEP', lookback: 60, entry_z: 2, exit_z: .5, stop_z: 4, benchmark: 'SPY', cost_bps: 2, start: '2016-06-01' };
+  const al = QN.align(data2, 'KO', QN.symbols(spec)), r = QN.backtest(spec, al);
+  assert.deepEqual(QN.symbols(spec).slice(0, 2), ['KO', 'PEP']);
+  assert.ok(r.trades.length > 10 && r.metrics.s.total > 0 && r.metrics.exposure > 5 && r.metrics.exposure < 95);
+  assert.ok(Math.abs(r.metrics.beta) < .35);                         // long one leg, short the other: little market exposure
+  assert.ok(r.pair.coint && r.pair.z.length === r.dates.length && r.pair.entryZ === 2);
+  assert.ok(r.trades.filter((t) => !t.open).every((t) => ['reverted', 'stop', 'time'].includes(t.why)));
+  assert.ok(QN.backtest(spec, al, { cost_bps: 40 }).eq.at(-1) < r.eq.at(-1));
+  const wider = QN.backtest({ ...spec, entry_z: 3 }, al); assert.ok(wider.trades.length < r.trades.length);
+});
+
+test('momentum method: holds the top-N winners over the window, skipping the last month', () => {
+  const g = gauss(rnd(71)), mkAsset = (mu) => { let p = 100; return rowsOf(Array.from({ length: 1800 }, () => (p *= 1 + mu + .01 * g()))); };
+  const dm = { W1: mkAsset(.0012), W2: mkAsset(.0008), M1: mkAsset(.0002), L1: mkAsset(-.0004), L2: mkAsset(-.0008) };
+  const spec = { type: 'allocation', assets: Object.keys(dm).map((s) => ({ sym: s, weight: 1 })), rebalance: 'monthly', method: 'momentum', top_n: 2, lookback: 252, skip: 21, benchmark: 'W1', cost_bps: 0, start: '2017-01-01' };
+  const al = QN.align(dm, 'W1', Object.keys(dm)), r = QN.backtest(spec, al);
+  assert.deepEqual(r.alloc.weights.map((w) => +w.toFixed(2)), [.5, .5, 0, 0, 0]);
+  assert.ok(r.metrics.s.cagr > QN.backtest({ ...spec, method: 'equal' }, al).metrics.s.cagr);
+  assert.equal(QN.method('Cross-Sectional Momentum'), 'momentum');
+  const w = QN.weights('momentum', [[.01, .01, -.5], [-.01, -.01, .5]], 0, { topN: 1, skip: 0 }); near(w[0], .5, 1e-12);   // tiny sample falls back to equal weight, no crash
+});
+
+test('regimes: trend and volatility buckets partition the days and carry the right sign', () => {
+  const g = gauss(rnd(81)); let p = 100;
+  const spy = rowsOf(Array.from({ length: 2400 }, (_, i) => (p *= 1 + (i < 1500 ? .0008 : -.0007) + (i % 300 < 60 ? .02 : .006) * g())));
+  const spec = { type: 'allocation', assets: [{ sym: 'SPY', weight: 1 }], rebalance: 'none', benchmark: 'SPY', cost_bps: 0, start: '2016-01-01' };
+  const al = QN.align({ SPY: spy }, 'SPY', ['SPY']), bt = QN.backtest(spec, al), rg = QN.regimes(bt, al);
+  near(rg.trend.reduce((a, x) => a + x.share, 0), 100, 1e-6); near(rg.vol.reduce((a, x) => a + x.share, 0), 100, 1e-6);
+  assert.ok(rg.trend[0].s.ann > rg.trend[1].s.ann);                  // uptrend days beat downtrend days
+  assert.ok(rg.vol[2].s.vol > rg.vol[0].s.vol * 1.5);                // stormy tercile is more volatile than calm
+  assert.ok(rg.volCuts[0] < rg.volCuts[1]);
+});
+
+test('stress: replays a covered crash window exactly, marks uncovered ones, beta shocks scale with downside beta', () => {
+  const g = gauss(rnd(91)); let p = 100; const days = 1500, start = '2019-06-03';
+  const px = Array.from({ length: days }, (_, i) => { const d = dayStr(i + 154, 2019); p *= 1 + (d >= '2020-02-20' && d <= '2020-03-23' ? -.012 : .0006) + .004 * g(); return p; });
+  const rows = px.map((c, i) => ({ d: dayStr(i + 154, 2019), o: c, h: c * 1.003, l: c * .997, c, v: 1 })).filter((r) => ![0, 6].includes(new Date(r.d).getUTCDay()));
+  const spec = { type: 'allocation', assets: [{ sym: 'SPY', weight: 1 }], rebalance: 'none', benchmark: 'SPY', cost_bps: 0, start };
+  const al = QN.align({ SPY: rows }, 'SPY', ['SPY']), bt = QN.backtest(spec, al), st = QN.stress(bt), cv = st.rows.find((x) => x.id === 'covid'), gfc = st.rows.find((x) => x.id === 'gfc');
+  assert.ok(cv.s && cv.s.ret < -20 && cv.s.maxdd <= cv.s.ret + 1e-9); near(cv.s.ret, cv.b.ret, 1e-6);
+  assert.ok(!gfc.s && /history starts/.test(gfc.why));
+  near(st.downBeta, 1, .02); near(st.shocks[1].est, -20, .5); near(st.reverse, -20, .5);
+});
+
+test('factor model recovers planted betas and alpha; style analysis recovers a planted mix', () => {
+  const g = gauss(rnd(95)), n = 1300, mk = (mu, sg) => Array.from({ length: n }, () => mu + sg * g());
+  const raw = { SPY: mk(.0004, .01), IWM: mk(.0004, .012), IVE: mk(.0003, .01), IVW: mk(.0004, .011), MTUM: mk(.0004, .011), USMV: mk(.0003, .007), AGG: mk(.0001, .003), TLT: mk(.0001, .008), EFA: mk(.0003, .011), EEM: mk(.0003, .013), GLD: mk(.0002, .009), DBC: mk(.0001, .01), VNQ: mk(.0003, .012) };
+  const hist = {}; Object.entries(raw).forEach(([k, r]) => { let p = 100; hist[k] = [{ d: dayStr(0), c: p }].concat(r.map((x, i) => ({ d: dayStr(i + 1), c: (p *= 1 + x) }))); });
+  const dates = Array.from({ length: n }, (_, i) => dayStr(i + 1));
+  const strat = raw.SPY.map((x, i) => .0002 + .8 * x + .4 * (raw.IWM[i] - raw.SPY[i]) - .3 * (raw.IVE[i] - raw.IVW[i]) + .002 * g());
+  const fm = QN.factorModel(strat, dates, hist), by = Object.fromEntries(fm.factors.map((f) => [f.id, f]));
+  near(by.MKT.beta, .8 + .4 * 0 + 0 - 0, .08 + .4); near(by.SIZE.beta, .4, .08); near(by.VALUE.beta, -.3, .08); assert.ok(Math.abs(by.MOM.beta) < .15 && Math.abs(by.LOWVOL.beta) < .15);
+  near(by.MKT.beta, .8, .02 + 0); assert.ok(fm.r2 > .9); near(fm.alpha, .0002 * 252 * 100, 2.5); assert.ok(Math.abs(by.SIZE.t) > 5 && Math.abs(by.MOM.t) < 3.5);
+  const mix = raw.SPY.map((x, i) => .6 * x + .3 * raw.TLT[i] + .1 * raw.GLD[i] + .0005 * g()), st = QN.style(mix, dates, hist), w = Object.fromEntries(st.weights.map((x) => [x.sym, x.w]));
+  near(w.SPY, 60, 4); near(w.TLT, 30, 4); near(w.GLD, 10, 4); assert.ok(st.r2 > .99); near(st.weights.reduce((a, x) => a + x.w, 0), 100, 1e-6);
+  const short = QN.factorModel(strat.slice(0, 200), dates.slice(0, 200), hist); assert.equal(short, null);   // under a year of shared data: refuses
+});
+
+test('batch-2 edge cases: degenerate prices, caps, momentum skip', () => {
+  assert.equal(QN.coint(new Array(300).fill(100), series(300, 0, .01, 5).map((x, i) => 100 + i)), null);                // flat leg
+  assert.equal(QN.coint(series(300, 0, .01, 6).map((x, i) => (i === 5 ? 0 : 100 + x)), series(300, 0, .01, 7).map((x) => 100 + x)), null);   // zero price
+  assert.equal(QN.adf(series(15, 0, 1, 4)), null); assert.equal(QN.adf(new Array(200).fill(1)), null);
+  const z = QN.pairZ(Array.from({ length: 200 }, (_, i) => 100 + i % 7), Array.from({ length: 200 }, (_, i) => 2 * (100 + i % 7)), 60);   // exact scaled copy: zero spread
+  assert.ok(z.z.filter((v) => v != null).every((v) => v === 0));
+  const c = QN.cap([.5, .5, 0, 0], .4); near(c.reduce((a, b) => a + b), 1, 1e-12); assert.ok(c.every((x) => x <= .4 + 1e-9) && c[0] === .4 && c[2] > 0);
+  assert.deepEqual(QN.cap([.4, .4, .2], .4).map((x) => +x.toFixed(6)), [.4, .4, .2]);
+  const X = [series(300, .002, .01, 1), series(300, .001, .01, 2), series(300, -.001, .01, 3), series(300, -.002, .01, 4)];
+  const w = QN.weights('momentum', X, 0, { topN: 2, skip: 99999 }); near(w.reduce((a, b) => a + b), 1, 1e-12); assert.equal(w.filter((x) => x > 0).length, 2);   // oversized skip is cut back, not ignored
+  const al = QN.align(data, 'SPY', ['SPY', 'TLT']), spec = { type: 'allocation', assets: [{ sym: 'SPY', weight: 1 }, { sym: 'TLT', weight: 1 }], rebalance: 'monthly', method: 'momentum', top_n: 1, max_weight: 40, benchmark: 'SPY', cost_bps: 0, start: '2016-01-01' };
+  assert.ok(Math.max(...QN.backtest(spec, al).alloc.weights) > .99);                                                  // max_weight does not dilute a momentum pick
+  const s2 = QN.style(series(400, 0, .01, 9), Array.from({ length: 400 }, (_, i) => dayStr(i)), Object.fromEntries(['SPY', 'IWM', 'EFA'].map((k, j) => [k, (() => { let p = 100; return [{ d: dayStr(-1), c: p }].concat(series(400, 0, .01, 20 + j).map((x, i) => ({ d: dayStr(i), c: (p *= 1 + x) }))); })()])));
+  assert.ok(s2.r2 >= 0 && s2.r2 < .2);                                                                                // unrelated strategy: R-squared floors at 0
+});

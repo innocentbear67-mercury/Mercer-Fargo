@@ -32,7 +32,7 @@ QN.ind = { sma:sma, ema:ema, rsi:rsi, stdev:stdev };
 
 /* One series for an expression. ctx: { bars:{sym:{c,h,l,o,v}}, main, P (params) } */
 var IND_NAMES = ['close', 'open', 'high', 'low', 'volume', 'sma', 'ema', 'rsi', 'macd', 'macd_signal', 'macd_hist', 'bb_upper', 'bb_mid', 'bb_lower',
-  'roc', 'ret', 'highest', 'lowest', 'atr', 'vol', 'drawdown', 'zscore'];
+  'roc', 'ret', 'highest', 'lowest', 'atr', 'vol', 'drawdown', 'zscore', 'adx', 'cci', 'donchian_high', 'donchian_low'];
 QN.IND_NAMES = IND_NAMES;
 function val(v, P){ if(typeof v === 'string' && v.charAt(0) === '$'){ var p = P[v.slice(1)]; if(p == null) throw new Error('unknown parameter ' + v); return +p; } return v == null ? v : +v; }
 function series(e, ctx){
@@ -73,6 +73,33 @@ function series(e, ctx){
       var tr = c.map(function(v, i){ var h = B.h[i] != null ? B.h[i] : v, l = B.l[i] != null ? B.l[i] : v, pc = i ? c[i - 1] : v; return Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc)); });
       out = sma(tr, len); break;
     }
+    case 'adx': {   // Wilder's average directional index: trend strength 0-100 whatever the direction
+      var m0 = c.length, trs = [], pdm = [], mdm = [], k0;
+      for(k0 = 0; k0 < m0; k0++){
+        var h1 = B.h[k0] != null ? B.h[k0] : c[k0], l1 = B.l[k0] != null ? B.l[k0] : c[k0], pc1 = k0 ? c[k0 - 1] : c[k0], ph = k0 ? (B.h[k0 - 1] != null ? B.h[k0 - 1] : c[k0 - 1]) : h1, pl = k0 ? (B.l[k0 - 1] != null ? B.l[k0 - 1] : c[k0 - 1]) : l1;
+        var up = h1 - ph, dn = pl - l1; trs.push(Math.max(h1 - l1, Math.abs(h1 - pc1), Math.abs(l1 - pc1))); pdm.push(up > dn && up > 0 ? up : 0); mdm.push(dn > up && dn > 0 ? dn : 0);
+      }
+      out = new Array(m0).fill(null);
+      if(m0 > 2 * len){
+        var sT = 0, sP = 0, sM = 0, dx = [], ax = null;
+        for(k0 = 1; k0 <= len; k0++){ sT += trs[k0]; sP += pdm[k0]; sM += mdm[k0]; }
+        var di = function(){ var pi = sT ? 100 * sP / sT : 0, mi = sT ? 100 * sM / sT : 0; return pi + mi ? 100 * Math.abs(pi - mi) / (pi + mi) : 0; };
+        dx.push(di());
+        for(k0 = len + 1; k0 < m0; k0++){
+          sT = sT - sT / len + trs[k0]; sP = sP - sP / len + pdm[k0]; sM = sM - sM / len + mdm[k0]; var d0 = di(); dx.push(d0);
+          if(dx.length === len) ax = dx.reduce(function(a, b){ return a + b; }, 0) / len; else if(dx.length > len) ax = (ax * (len - 1) + d0) / len;
+          if(ax != null) out[k0] = ax;
+        }
+      }
+      break;
+    }
+    case 'cci': {   // commodity channel index on the typical price
+      var tp = c.map(function(v, i){ var h2 = B.h[i] != null ? B.h[i] : v, l2 = B.l[i] != null ? B.l[i] : v; return (h2 + l2 + v) / 3; }), mt = sma(tp, len);
+      out = tp.map(function(v, i){ if(mt[i] == null) return null; var md = 0, j; for(j = i - len + 1; j <= i; j++) md += Math.abs(tp[j] - mt[i]); md /= len; return md ? (v - mt[i]) / (.015 * md) : 0; });
+      break;
+    }
+    case 'donchian_high': out = rollMax(B.h.map(function(v, i){ return v != null ? v : c[i]; }), len, true); break;   // of the previous len highs: "close > donchian_high(20)" is the classic breakout
+    case 'donchian_low': out = rollMin(B.l.map(function(v, i){ return v != null ? v : c[i]; }), len, true); break;
     case 'vol': { var r = rets(c), sd2 = stdev(r, len); out = sd2.map(function(v){ return v == null ? null : v * Math.sqrt(DAY) * 100; }); break; }
     case 'drawdown': { var pk = rollMax(c, len, false); out = c.map(function(v, i){ return pk[i] ? (v / pk[i] - 1) * 100 : null; }); break; }
     case 'zscore': { var mu = sma(c, len), sd3 = stdev(c, len); out = c.map(function(v, i){ return mu[i] == null || !sd3[i] ? null : (v - mu[i]) / sd3[i]; }); break; }
@@ -131,7 +158,7 @@ QN.align = function(data, main, syms){
 /* Every symbol a spec needs (main first). */
 QN.symbols = function(spec){
   var set = [], add = function(s){ s = String(s || '').toUpperCase().trim(); if(s && set.indexOf(s) < 0) set.push(s); };
-  if(spec.type === 'allocation') (spec.assets || []).forEach(function(a){ add(a.sym); }); else add(spec.symbol);
+  if(spec.type === 'allocation') (spec.assets || []).forEach(function(a){ add(a.sym); }); else if(spec.type === 'pairs'){ add(spec.a); add(spec.b); } else add(spec.symbol);
   add(spec.alt); add(spec.benchmark || 'SPY');
   var walk = function(e){ if(e && typeof e === 'object'){ if(e.sym) add(e.sym); walk(e.a); walk(e.b); } };
   ['entry', 'exit', 'filter'].forEach(function(k){ (spec[k] || []).forEach(walk); });
@@ -141,7 +168,7 @@ QN.symbols = function(spec){
 /* ------------------------------------------------------------------ the backtest */
 QN.params = function(spec, over){ var P = {}; (spec.params || []).forEach(function(p){ P[p.id] = p.value; }); return Object.assign(P, over || {}); };
 QN.backtest = function(spec, al, over){
-  var P = QN.params(spec, over), main = spec.type === 'allocation' ? String(spec.assets[0].sym).toUpperCase() : String(spec.symbol).toUpperCase();
+  var P = QN.params(spec, over), main = spec.type === 'allocation' ? String(spec.assets[0].sym).toUpperCase() : spec.type === 'pairs' ? String(spec.a).toUpperCase() : String(spec.symbol).toUpperCase();
   var ctx = { bars:al.bars, main:main, P:P, cache:{} }, n = al.dates.length;
   var start = String((over && over.start != null ? over.start : spec.start) || ''), i0 = 1;
   while(i0 < n - 1 && al.dates[i0] < start) i0++;
@@ -161,6 +188,12 @@ QN.backtest = function(spec, al, over){
   var lb = Math.max(60, Math.round(pnum(over && over.lookback != null ? over.lookback : (spec.lookback || 252)) || 252));
   var mw = pnum(over && over.max_weight != null ? over.max_weight : spec.max_weight) / 100, vt = Math.max(0, pnum(over && over.vol_target != null ? over.vol_target : spec.vol_target)), maxLev = Math.min(3, Math.max(.1, pnum(spec.max_leverage) || 1));   // ponytail: leverage is capped at 3x and borrowing is not charged
   if(spec.type === 'allocation') spec.assets.forEach(function(a){ var s = String(a.sym).toUpperCase(); if(aSyms.indexOf(s) < 0) aSyms.push(s); });
+  var topN = pnum(over && over.top_n != null ? over.top_n : spec.top_n), mskip = over && over.skip != null ? pnum(over.skip) : (spec.skip != null ? pnum(spec.skip) : 21);
+  /* pairs: long one leg and short the other when the spread between them is stretched, out when it has mostly closed. Hedge ratio and z-score come from the previous `lookback` days. */
+  var pairs = spec.type === 'pairs', pa = pairs ? String(spec.a).toUpperCase() : '', pb = pairs ? String(spec.b).toUpperCase() : '';
+  var pL = Math.max(20, Math.round(pnum(spec.lookback || 60) || 60)), entryZ = pnum(spec.entry_z) || 2, exitZ = spec.exit_z == null ? .5 : pnum(spec.exit_z), stopZ = pnum(spec.stop_z);
+  if(!(exitZ >= 0) || exitZ >= entryZ) exitZ = Math.min(.5, entryZ / 4);
+  var pz = pairs ? QN.pairZ(al.bars[pa].c, al.bars[pb].c, pL) : null;
   var winX = function(syms, i){ var a = Math.max(1, i - lb + 1); return syms.map(function(s){ return R[s].slice(a, i + 1); }); };
   var volScale = function(t, i){
     if(!vt) return 1; var syms = Object.keys(t), a = Math.max(1, i - lb + 1), pr = [];
@@ -174,11 +207,20 @@ QN.backtest = function(spec, al, over){
       if(memoK !== curKey || !memoW){
         var tot = spec.assets.reduce(function(s, a){ return s + (+val(a.weight, P) || 0); }, 0) || 1;
         spec.assets.forEach(function(a){ var s = String(a.sym).toUpperCase(); t[s] = (t[s] || 0) + (+val(a.weight, P) || 0) / tot; });
-        if(method !== 'fixed' && aSyms.length > 1){ var X = winX(aSyms, i); if(X[0].length >= 60){ var wv = QN.weights(method, X, rfp); if(mw > 0 && mw < 1) wv = QN.cap(wv, mw); t = {}; aSyms.forEach(function(s, k){ t[s] = wv[k]; }); } }
+        if(method !== 'fixed' && aSyms.length > 1){ var X = winX(aSyms, i); if(X[0].length >= 60){ var wv = QN.weights(method, X, rfp, { topN:topN, skip:mskip }); if(mw > 0 && mw < 1 && method !== 'momentum') wv = QN.cap(wv, mw); /* a cap on a concentrated momentum book would buy the losers */ t = {}; aSyms.forEach(function(s, k){ t[s] = wv[k]; }); } }
         var sc = volScale(t, i); if(sc !== 1) Object.keys(t).forEach(function(s){ t[s] *= sc; });
         memoW = t; memoK = curKey;
       }
       return memoW;
+    }
+    if(pairs){
+      var z = pz.z[i];
+      if(open){
+        var why2 = ''; if(z == null) why2 = 'data'; else if(open.dir < 0 ? z <= exitZ : z >= -exitZ) why2 = 'reverted';   // the spread has come back to within exit_z of its mean else if(stopZ && Math.abs(z) > stopZ) why2 = 'stop'; else if(maxHold && i - open.i >= maxHold) why2 = 'time';
+        if(why2){ trades.push({ in:al.dates[open.i], out:al.dates[i], pxIn:open.z, pxOut:z, ret:(open.acc - 1) * 100, days:i - open.i, why:why2 }); open = null; }
+      } else if(z != null && Math.abs(z) > entryZ && (!stopZ || Math.abs(z) < stopZ)) open = { i:i, z:z, dir:z > 0 ? -1 : 1, beta:pz.beta[i], acc:1 };
+      var t3 = {}; if(open){ var wa = open.dir * size / (1 + Math.abs(open.beta)); t3[pa] = wa; t3[pb] = -wa * open.beta; }   // dollar-neutral when beta > 0
+      return t3;
     }
     var px = mc[i];
     if(open){
@@ -198,6 +240,7 @@ QN.backtest = function(spec, al, over){
   for(var i = i0; i < n; i++){
     var r = 0, bret = R[bsym] ? R[bsym][i] : 0;
     if(i > i0) Object.keys(w).forEach(function(s){ r += w[s] * R[s][i]; });
+    if(pairs && open && i > i0) open.acc *= 1 + r;
     // drift the weights with the day's moves (allocation), then decide today's target
     var nw = w, base = w;
     if(spec.type === 'allocation'){
@@ -213,12 +256,15 @@ QN.backtest = function(spec, al, over){
     else if(turn) { eq[0] = 1 - turn * cost; }
     w = nw; inPos.push(Object.keys(w).some(function(s){ return w[s] && s !== alt; }) ? 1 : 0);
   }
-  if(open) trades.push({ in:al.dates[open.i], out:al.dates[n - 1], pxIn:open.px, pxOut:mc[n - 1], ret:side * (mc[n - 1] / open.px - 1) * 100, days:n - 1 - open.i, why:'open', open:true });
+  if(open && pairs) trades.push({ in:al.dates[open.i], out:al.dates[n - 1], pxIn:open.z, pxOut:pz.z[n - 1], ret:(open.acc - 1) * 100, days:n - 1 - open.i, why:'open', open:true });
+  else if(open) trades.push({ in:al.dates[open.i], out:al.dates[n - 1], pxIn:open.px, pxOut:mc[n - 1], ret:side * (mc[n - 1] / open.px - 1) * 100, days:n - 1 - open.i, why:'open', open:true });
   var alloc = null;
   if(spec.type === 'allocation' && memoW){ var X2 = winX(aSyms, n - 1), ws = aSyms.map(function(s){ return memoW[s] || 0; }), sw = ws.reduce(function(a, b){ return a + b; }, 0) || 1;
     alloc = { method:method, lookback:lb, volTarget:vt, maxWeight:mw > 0 && mw < 1 ? mw * 100 : 0, syms:aSyms, weights:ws, exposure:sw * 100, share:aSyms.length > 1 && X2[0].length > 30 ? QN.riskShare(ws.map(function(x){ return x / sw; }), X2) : null }; }
+  var pair = null;
+  if(pairs){ var ca = al.bars[pa].c.slice(i0), cb = al.bars[pb].c.slice(i0); pair = { a:pa, b:pb, lookback:pL, entryZ:entryZ, exitZ:exitZ, stopZ:stopZ, z:pz.z.slice(i0), beta:pz.beta.slice(i0), coint:QN.coint(ca, cb) }; }
   var dates = al.dates.slice(i0);
-  return { alloc:alloc, dates:dates, eq:eq, bench:bq, ret:dr, bret:bq.map(function(v, k){ return k ? v / bq[k - 1] - 1 : 0; }).slice(1), inPos:inPos, trades:trades, metrics:QN.metrics(dates, eq, bq, trades, inPos, val(spec.rf, P) || 0), P:P, main:main, bsym:bsym };
+  return { pair:pair, alloc:alloc, dates:dates, eq:eq, bench:bq, ret:dr, bret:bq.map(function(v, k){ return k ? v / bq[k - 1] - 1 : 0; }).slice(1), inPos:inPos, trades:trades, metrics:QN.metrics(dates, eq, bq, trades, inPos, val(spec.rf, P) || 0), P:P, main:main, bsym:bsym };
 };
 
 /* ------------------------------------------------------------------ metrics */
@@ -409,13 +455,19 @@ function hrpW(S){   // Hierarchical Risk Parity (Lopez de Prado 2016): cluster b
 /* The model may write "Risk Parity", "ERC" or "min-var": map the usual names onto the engine's. */
 var ALIAS = { erc:'risk_parity', equal_risk:'risk_parity', equal_risk_contribution:'risk_parity', riskparity:'risk_parity', inverse_volatility:'inverse_vol', inverse_variance:'inverse_vol', invvol:'inverse_vol', ivp:'inverse_vol',
   minimum_variance:'min_variance', min_var:'min_variance', minvar:'min_variance', gmv:'min_variance', global_minimum_variance:'min_variance', maximum_sharpe:'max_sharpe', tangency:'max_sharpe', max_sharpe_ratio:'max_sharpe',
-  hierarchical_risk_parity:'hrp', equal_weight:'equal', equal_weighted:'equal', equally_weighted:'equal', fixed_weights:'fixed', none:'fixed', static:'fixed' };
+  hierarchical_risk_parity:'hrp', relative_strength:'momentum', cross_sectional_momentum:'momentum', xsmom:'momentum', top_n:'momentum', winners:'momentum', equal_weight:'equal', equal_weighted:'equal', equally_weighted:'equal', fixed_weights:'fixed', none:'fixed', static:'fixed' };
 QN.method = function(m){ var k = String(m == null ? '' : m).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''); return QN.METHODS[k] ? k : (ALIAS[k] || 'fixed'); };
-QN.METHODS = { fixed:'Fixed weights', equal:'Equal weight', inverse_vol:'Inverse volatility', risk_parity:'Risk parity (equal risk)', min_variance:'Minimum variance', max_sharpe:'Maximum Sharpe', hrp:'Hierarchical risk parity' };
+QN.METHODS = { fixed:'Fixed weights', momentum:'Momentum (top N winners)', equal:'Equal weight', inverse_vol:'Inverse volatility', risk_parity:'Risk parity (equal risk)', min_variance:'Minimum variance', max_sharpe:'Maximum Sharpe', hrp:'Hierarchical risk parity' };
 /* Weights for `method` from X (assets x days of daily returns). Falls back to equal weight if the maths cannot be solved. */
-QN.weights = function(method, X, rf){
+QN.weights = function(method, X, rf, opts){
   var p = X.length, eq = new Array(p).fill(1 / p);
   if(p < 2 || method === 'equal' || !QN.METHODS[method]) return eq;
+  if(method === 'momentum'){   // rank by return over the window, skipping the most recent `skip` days (the 12-1 convention: last month tends to reverse), hold the top N equally
+    var skip = Math.max(0, Math.min(Math.round(opts && opts.skip != null ? opts.skip : 21), X[0].length - 40)), nn = X[0].length - skip, tn = Math.max(1, Math.min(p, Math.round(opts && opts.topN ? opts.topN : Math.ceil(p / 3))));
+    if(nn < 20) return eq;
+    var sc = X.map(function(r){ var q = 1; for(var k = 0; k < nn; k++) q *= 1 + r[k]; return q; }), ord = sc.map(function(v, i){ return i; }).sort(function(a, b){ return sc[b] - sc[a] || a - b; }), w0 = new Array(p).fill(0);
+    ord.slice(0, tn).forEach(function(i){ w0[i] = 1 / tn; }); return w0;
+  }
   var sh = QN.shrink(X), S = sh.S, w = null;
   if(method === 'inverse_vol'){ var iv = S.map(function(r, i){ return 1 / Math.sqrt(r[i]); }), t = iv.reduce(function(a, b){ return a + b; }, 0); w = iv.map(function(x){ return x / t; }); }
   else if(method === 'risk_parity') w = ercW(S);
@@ -431,9 +483,9 @@ QN.weights = function(method, X, rf){
 QN.cap = function(w, cap){
   var p = w.length; cap = Math.max(cap, 1 / p); w = w.slice();
   for(var it = 0; it <= p; it++){
-    var over = 0, free = 0; w.forEach(function(x){ if(x > cap + 1e-12) over += x - cap; else if(x < cap - 1e-12) free += x; });   // assets already at the cap are full: they take none of the excess
-    if(over < 1e-12) break;
-    w = w.map(function(x){ return x > cap - 1e-12 ? cap : x + (free ? x / free * over : over / p); });
+    var over = 0, free = 0, open = 0; w.forEach(function(x){ if(x > cap + 1e-12) over += x - cap; else if(x < cap - 1e-12){ free += x; open++; } });   // assets already at the cap are full: they take none of the excess
+    if(over < 1e-12 || !open) break;
+    w = w.map(function(x){ return x > cap - 1e-12 ? cap : x + (free > 1e-12 ? x / free * over : over / open); });
   }
   return w;
 };
@@ -487,6 +539,175 @@ QN.volReport = function(r, bars){
   var m = mean(r); ew = r.slice(0, 30).reduce(function(s, x){ return s + (x - m) * (x - m); }, 0) / 30; for(i = 0; i < n; i++) ew = .94 * ew + .06 * (r[i] - m) * (r[i] - m);
   var last = r.slice(-21), g = QN.garch(r), full = sd(r) * Math.sqrt(DAY) * 100;
   return { realized21:sd(last) * Math.sqrt(DAY) * 100, realized63:sd(r.slice(-63)) * Math.sqrt(DAY) * 100, full:full, ewma:annual(ew), garch:g, range:bars ? QN.rangeVol(bars, 63) : null };
+};
+
+
+/* ------------------------------------------------------------------ batch 2: regression toolkit, pairs, regimes, stress tests, factors and style */
+function inv(A){   // Gauss-Jordan inverse of a small symmetric matrix; null if singular
+  var n = A.length, M = A.map(function(r, i){ return r.concat(r.map(function(_, j){ return i === j ? 1 : 0; })); }), i, j, k;
+  for(i = 0; i < n; i++){ var pv = i; for(j = i + 1; j < n; j++) if(Math.abs(M[j][i]) > Math.abs(M[pv][i])) pv = j; if(Math.abs(M[pv][i]) < 1e-14) return null; var t = M[i]; M[i] = M[pv]; M[pv] = t;
+    var d = M[i][i]; for(k = 0; k < 2 * n; k++) M[i][k] /= d;
+    for(j = 0; j < n; j++) if(j !== i){ var f = M[j][i]; if(f) for(k = 0; k < 2 * n; k++) M[j][k] -= f * M[i][k]; } }
+  return M.map(function(r){ return r.slice(n); });
+}
+/* Ordinary least squares of y on the columns `cols` (an intercept is added first unless o.noIntercept). t-statistics use Newey-West (HAC, o.lags) errors,
+   which is what you want for strategy returns that are serially correlated; o.plain gives the textbook errors. */
+QN.ols = function(y, cols, o){
+  o = o || {}; var n = y.length, X = [], i, j, k;
+  if(!o.noIntercept) X.push(new Array(n).fill(1)); cols.forEach(function(c){ X.push(c); });
+  var p = X.length; if(n <= p + 2) return null;
+  var G = [], b = []; for(i = 0; i < p; i++){ G.push([]); var bi = 0; for(j = 0; j <= i; j++){ var g = 0; for(k = 0; k < n; k++) g += X[i][k] * X[j][k]; G[i][j] = g; if(j < i) G[j][i] = g; } for(k = 0; k < n; k++) bi += X[i][k] * y[k]; b.push(bi); }
+  var Gi = inv(G); if(!Gi) return null;
+  var beta = Gi.map(function(row){ return row.reduce(function(a, v, j){ return a + v * b[j]; }, 0); });
+  var res = new Array(n), rss = 0, my = mean(y), tss = 0;
+  for(k = 0; k < n; k++){ var f = 0; for(i = 0; i < p; i++) f += beta[i] * X[i][k]; res[k] = y[k] - f; rss += res[k] * res[k]; tss += (y[k] - my) * (y[k] - my); }
+  var cov;
+  if(o.plain){ var s2 = rss / (n - p); cov = Gi.map(function(r){ return r.map(function(v){ return v * s2; }); }); }
+  else {
+    var L = o.lags != null ? o.lags : Math.max(1, Math.round(4 * Math.pow(n / 100, 2 / 9))), S = []; for(i = 0; i < p; i++){ S.push(new Array(p).fill(0)); }
+    for(var lag = 0; lag <= L; lag++){
+      var w = lag ? 1 - lag / (L + 1) : 1;
+      for(i = 0; i < p; i++) for(j = 0; j < p; j++){ var acc = 0; for(k = lag; k < n; k++) acc += X[i][k] * res[k] * X[j][k - lag] * res[k - lag]; S[i][j] += w * acc; if(lag && i !== j) { var acc2 = 0; for(k = lag; k < n; k++) acc2 += X[j][k] * res[k] * X[i][k - lag] * res[k - lag]; S[i][j] += w * acc2; } else if(lag) S[i][j] += w * acc; }
+    }
+    var A = Gi.map(function(row){ return S[0].map(function(_, j){ return row.reduce(function(a, v, m){ return a + v * S[m][j]; }, 0); }); });
+    cov = A.map(function(row){ return Gi[0].map(function(_, j){ return row.reduce(function(a, v, m){ return a + v * Gi[m][j]; }, 0); }); });
+  }
+  var se = cov.map(function(r, i){ return Math.sqrt(Math.max(0, r[i])); });
+  return { coef:beta, se:se, t:beta.map(function(v, i){ return se[i] ? v / se[i] : 0; }), r2:tss ? 1 - rss / tss : 0, n:n, resid:res, intercept:!o.noIntercept, sigma:Math.sqrt(rss / (n - p)) };
+};
+/* Augmented Dickey-Fuller (constant, lag by AIC up to maxLag) on x: returns the tau statistic. */
+QN.adf = function(x, maxLag){
+  if(x.length < 30 || !x.every(isFinite) || sd(x) < 1e-12) return null;
+  var n = x.length, K = Math.min(maxLag == null ? 8 : maxLag, Math.floor(n / 10)), best = null, d = [], k;
+  for(k = 1; k < n; k++) d.push(x[k] - x[k - 1]);
+  for(var lag = 0; lag <= K; lag++){
+    var y = [], cols = [[]]; for(var j = 0; j < lag; j++) cols.push([]);
+    for(k = K; k < d.length; k++){ y.push(d[k]); cols[0].push(x[k]); for(var m = 1; m <= lag; m++) cols[m].push(d[k - m]); }   // same sample for every lag so the AIC compares like with like
+    var fit = QN.ols(y, cols, { plain:true }); if(!fit) continue;
+    var rss = fit.resid.reduce(function(a, v){ return a + v * v; }, 0), aic = y.length * Math.log(rss / y.length) + 2 * (lag + 2);
+    if(!best || aic < best.aic) best = { aic:aic, lag:lag, tau:fit.t[1], gamma:fit.coef[1], n:y.length };
+  }
+  return best;
+};
+/* Engle-Granger on two price series: regress ln A on ln B, test the residual for a unit root (MacKinnon critical values for two variables with a constant:
+   -3.90 / -3.34 / -3.04 at 1 / 5 / 10%), and report the mean-reversion half-life of the spread. */
+QN.coint = function(a, b){
+  var la = a.map(Math.log), lb = b.map(Math.log);
+  if(la.length < 120 || la.length !== lb.length || !la.every(isFinite) || !lb.every(isFinite) || sd(la) < 1e-9 || sd(lb) < 1e-9) return null;   // flat, non-positive or mismatched prices: nothing to test
+  var fit = QN.ols(la, [lb], { plain:true }); if(!fit) return null;
+  var e = fit.resid, adf = QN.adf(e), phi = null, ar = QN.ols(e.slice(1), [e.slice(0, -1)], { plain:true });
+  if(ar) phi = ar.coef[1];
+  var sdE = sd(e), hl = phi != null && phi > 0 && phi < 1 ? Math.log(.5) / Math.log(phi) : null;
+  return { alpha:fit.coef[0], beta:fit.coef[1], r2:fit.r2, tau:adf ? adf.tau : null, lags:adf ? adf.lag : null, crit:{ p1:-3.90, p5:-3.34, p10:-3.04 }, halfLife:hl, spreadSd:sdE, zNow:sdE ? e[e.length - 1] / sdE : 0,
+    verdict:!adf ? 'n/a' : adf.tau < -3.90 ? 'Cointegrated (1%)' : adf.tau < -3.34 ? 'Cointegrated (5%)' : adf.tau < -3.04 ? 'Weak evidence (10%)' : 'Not cointegrated' };
+};
+/* Rolling hedge ratio and z-score of the spread ln A - beta ln B - alpha, each day from the previous L days only. */
+QN.pairZ = function(ca, cb, L){
+  var la = ca.map(Math.log), lb = cb.map(Math.log), n = la.length, beta = new Array(n).fill(null), z = new Array(n).fill(null);
+  for(var i = L - 1; i < n; i++){
+    var ma = 0, mb = 0, j; for(j = i - L + 1; j <= i; j++){ ma += la[j]; mb += lb[j]; } ma /= L; mb /= L;
+    var cv = 0, vb = 0; for(j = i - L + 1; j <= i; j++){ cv += (la[j] - ma) * (lb[j] - mb); vb += (lb[j] - mb) * (lb[j] - mb); }
+    var bt = vb ? cv / vb : 0, al = ma - bt * mb, ss = 0; for(j = i - L + 1; j <= i; j++){ var r = la[j] - al - bt * lb[j]; ss += r * r; }
+    var sg = Math.sqrt(ss / (L - 2)); beta[i] = bt; z[i] = sg > 1e-9 ? (la[i] - al - bt * lb[i]) / sg : 0;   // a spread that never moves has no z-score
+  }
+  return { beta:beta, z:z };
+};
+
+/* ---- market regimes: how the strategy behaved when the benchmark was in an uptrend or downtrend, and in calm or stormy markets */
+function perf(r){ if(r.length < 5) return null; var m = mean(r), v = sd(r) * Math.sqrt(DAY), q = 1; r.forEach(function(x){ q *= 1 + x; }); return { days:r.length, ann:m * DAY * 100, vol:v * 100, sharpe:v ? m * DAY / v : 0, hit:r.filter(function(x){ return x > 0; }).length / r.length * 100, total:(q - 1) * 100 }; }
+QN.regimes = function(bt, al){
+  var bc = al.bars[bt.bsym] && al.bars[bt.bsym].c, i0 = al.dates.indexOf(bt.dates[0]); if(!bc || i0 < 1) return null;
+  var ma = sma(bc, 200), br = rets(bc), rv = stdev(br, 21).map(function(v){ return v == null ? null : v * Math.sqrt(DAY) * 100; }), n = bt.ret.length;
+  var vols = []; for(var k = 0; k < n; k++){ var x = rv[i0 + k]; if(x != null) vols.push(x); }
+  if(vols.length < 60) return null;
+  var t1 = qtile(vols, 1 / 3), t2 = qtile(vols, 2 / 3), groups = { trend:{ up:[[], []], down:[[], []] }, vol:{ calm:[[], []], normal:[[], []], stormy:[[], []] } };
+  for(k = 0; k < n; k++){   // the regime is read at the previous close: no look-ahead
+    var j = i0 + k, m = ma[j], v = rv[j]; if(m == null || v == null) continue;
+    var tr = bc[j] > m ? 'up' : 'down', vr = v < t1 ? 'calm' : v < t2 ? 'normal' : 'stormy';
+    groups.trend[tr][0].push(bt.ret[k]); groups.trend[tr][1].push(bt.bret[k]); groups.vol[vr][0].push(bt.ret[k]); groups.vol[vr][1].push(bt.bret[k]);
+  }
+  var tot = 0; Object.keys(groups.trend).forEach(function(g){ tot += groups.trend[g][0].length; });
+  var out = function(def, names){ return names.map(function(g){ var d = def[g]; return { id:g, share:tot ? d[0].length / tot * 100 : 0, s:perf(d[0]), b:perf(d[1]) }; }); };
+  return { bench:bt.bsym, trend:out(groups.trend, ['up', 'down']), vol:out(groups.vol, ['calm', 'normal', 'stormy']), volCuts:[t1, t2] };
+};
+
+/* ---- stress tests: replay famous drawdowns on the strategy's own history, plus a beta-based shock for what the history cannot cover */
+QN.SCENARIOS = [
+  { id:'dotcom', name:'Dot-com bust', from:'2000-03-24', to:'2002-10-09' }, { id:'gfc', name:'Global financial crisis', from:'2007-10-09', to:'2009-03-09' },
+  { id:'euro', name:'2011 euro-debt scare', from:'2011-07-22', to:'2011-10-03' }, { id:'china', name:'2015-16 China slowdown', from:'2015-07-20', to:'2016-02-11' },
+  { id:'q418', name:'Q4 2018 selloff', from:'2018-09-20', to:'2018-12-24' }, { id:'covid', name:'COVID crash', from:'2020-02-19', to:'2020-03-23' },
+  { id:'rates', name:'2022 rate shock', from:'2022-01-03', to:'2022-10-12' }, { id:'tariff', name:'2025 tariff shock', from:'2025-02-19', to:'2025-04-08' }
+];
+function window_(dates, q, from, to){   // equity q over [from, to] on the strategy's dates: total return and the worst peak-to-trough inside
+  var a = -1, b = -1, i; for(i = 0; i < dates.length; i++){ if(a < 0 && dates[i] >= from) a = i; if(dates[i] <= to) b = i; }
+  if(a < 0 || b <= a) return null;
+  var pk = q[a], mdd = 0; for(i = a; i <= b; i++){ if(q[i] > pk) pk = q[i]; mdd = Math.min(mdd, q[i] / pk - 1); }
+  return { ret:(q[b] / q[a] - 1) * 100, maxdd:mdd * 100, days:b - a };
+}
+QN.stress = function(bt){
+  var d = bt.dates, first = d[0], last = d[d.length - 1], day = function(s, k){ return new Date(Date.parse(s) + k * 864e5).toISOString().slice(0, 10); };
+  var rows = QN.SCENARIOS.map(function(sc){
+    var covered = first <= day(sc.from, 7) && last >= sc.to;   // a week of slack at the start
+    var s = covered ? window_(d, bt.eq, sc.from, sc.to) : null, b = covered ? window_(d, bt.bench, sc.from, sc.to) : null;
+    return { id:sc.id, name:sc.name, from:sc.from, to:sc.to, s:s, b:b, why:covered ? null : (first > day(sc.from, 7) ? 'history starts ' + first : 'ends before it') };
+  });
+  var down = [[], []]; for(var k = 0; k < bt.ret.length; k++) if(bt.bret[k] < 0){ down[0].push(bt.ret[k]); down[1].push(bt.bret[k]); }
+  var vb = sd(down[1]) * sd(down[1]), mb = mean(down[1]), ms = mean(down[0]), cv = 0; for(k = 0; k < down[0].length; k++) cv += (down[0][k] - ms) * (down[1][k] - mb);
+  var beta = down[0].length > 30 && vb ? cv / (down[0].length - 1) / vb : null;   // downside beta: only the benchmark's down days
+  var shocks = beta == null ? [] : [-10, -20, -30].map(function(x){ return { bench:x, est:beta * x }; });
+  return { rows:rows, downBeta:beta, shocks:shocks, bsym:bt.bsym, reverse:beta && beta > .05 ? -20 / beta : null };
+};
+
+/* ---- what drives it: factor exposure from ETF proxies, and returns-based style analysis */
+QN.FACTORS = [
+  { id:'MKT', name:'Market', legs:[['SPY', 1]] }, { id:'SIZE', name:'Size (small minus large)', legs:[['IWM', 1], ['SPY', -1]] }, { id:'VALUE', name:'Value (value minus growth)', legs:[['IVE', 1], ['IVW', -1]] },
+  { id:'MOM', name:'Momentum (MTUM minus market)', legs:[['MTUM', 1], ['SPY', -1]] }, { id:'LOWVOL', name:'Low volatility (USMV minus market)', legs:[['USMV', 1], ['SPY', -1]] }
+];
+QN.STYLE_ASSETS = [['SPY', 'US large stocks'], ['IWM', 'US small stocks'], ['EFA', 'Developed ex-US'], ['EEM', 'Emerging markets'], ['AGG', 'US bonds'], ['TLT', 'Long treasuries'], ['GLD', 'Gold'], ['DBC', 'Commodities'], ['VNQ', 'Real estate']];
+QN.FACTOR_SYMS = ['SPY', 'IWM', 'IVE', 'IVW', 'MTUM', 'USMV'];
+function retMap(rows){ var m = {}; for(var i = 1; i < rows.length; i++) if(rows[i].c > 0 && rows[i - 1].c > 0) m[rows[i].d] = rows[i].c / rows[i - 1].c - 1; return m; }
+/* ret: strategy daily returns, dates: the date of each return, hist: { SYM: [{d,c}] } */
+QN.factorModel = function(ret, dates, hist){
+  var maps = {}, dropped = [], used = [], j;
+  QN.FACTOR_SYMS.forEach(function(sy){ if(hist[sy]) maps[sy] = retMap(hist[sy]); });
+  var fr = {};   // factor id -> {date: return}
+  QN.FACTORS.forEach(function(f){
+    var m = {}, ok = f.legs.every(function(l){ return maps[l[0]]; }); if(!ok){ dropped.push(f.name + ': no data'); return; }
+    Object.keys(maps[f.legs[0][0]]).forEach(function(d){ var v = 0, good = true; f.legs.forEach(function(l){ var x = maps[l[0]][d]; if(x == null) good = false; else v += l[1] * x; }); if(good) m[d] = v; });
+    fr[f.id] = m;
+  });
+  var sdates = {}; dates.forEach(function(d, i){ sdates[d] = ret[i]; });
+  var ids = QN.FACTORS.map(function(f){ return f.id; }).filter(function(id){ return fr[id]; });
+  var overlap = function(list){ var c = 0; Object.keys(sdates).forEach(function(d){ if(list.every(function(id){ return fr[id][d] != null; })) c++; }); return c; };
+  // keep the market, then add factors from the longest-history down while at least 500 shared days remain
+  var order = ids.slice().sort(function(a, b){ return overlap([b]) - overlap([a]); }), keep = [];
+  order.forEach(function(id){ var t = keep.concat([id]); if(overlap(t) >= 500) keep.push(id); else dropped.push(QN.FACTORS.filter(function(f){ return f.id === id; })[0].name + ': under 2 years shared with this strategy'); });
+  if(!keep.length || keep.indexOf('MKT') < 0) return null;
+  keep = QN.FACTORS.map(function(f){ return f.id; }).filter(function(id){ return keep.indexOf(id) >= 0; });
+  var dd = Object.keys(sdates).filter(function(d){ return keep.every(function(id){ return fr[id][d] != null; }); }).sort();
+  var y = dd.map(function(d){ return sdates[d]; }), cols = keep.map(function(id){ return dd.map(function(d){ return fr[id][d]; }); });
+  var fit = QN.ols(y, cols); if(!fit) return null;
+  var fm = cols.map(mean);
+  return { n:dd.length, from:dd[0], to:dd[dd.length - 1], r2:fit.r2, alpha:fit.coef[0] * DAY * 100, alphaT:fit.t[0], resSd:fit.sigma * Math.sqrt(DAY) * 100, dropped:dropped,
+    factors:keep.map(function(id, i){ var f = QN.FACTORS.filter(function(q){ return q.id === id; })[0]; return { id:id, name:f.name, beta:fit.coef[i + 1], t:fit.t[i + 1], contrib:fit.coef[i + 1] * fm[i] * DAY * 100 }; }) };
+};
+function projSimplex(v){   // Euclidean projection onto {w >= 0, sum w = 1}
+  var u = v.slice().sort(function(a, b){ return b - a; }), css = 0, rho = 0, i; for(i = 0; i < u.length; i++){ css += u[i]; if(u[i] - (css - 1) / (i + 1) > 0) rho = i + 1; }
+  var th = (u.slice(0, rho).reduce(function(a, b){ return a + b; }, 0) - 1) / rho; return v.map(function(x){ return Math.max(0, x - th); });
+}
+/* Sharpe (1992) returns-based style analysis: the mix of asset-class ETFs (weights >= 0, summing to 1) whose returns track the strategy's best. */
+QN.style = function(ret, dates, hist){
+  var names = [], maps = [], sdates = {}; dates.forEach(function(d, i){ sdates[d] = ret[i]; });
+  QN.STYLE_ASSETS.forEach(function(a){ if(hist[a[0]]){ names.push(a); maps.push(retMap(hist[a[0]])); } });
+  if(names.length < 3) return null;
+  var dd = Object.keys(sdates).filter(function(d){ return maps.every(function(m){ return m[d] != null; }); }).sort();
+  if(dd.length < 250) return null;
+  var y = dd.map(function(d){ return sdates[d]; }), X = maps.map(function(m){ return dd.map(function(d){ return m[d]; }); }), p = X.length, n = y.length, i, j, k;
+  var G = [], b = []; for(i = 0; i < p; i++){ G.push([]); var bi = 0; for(j = 0; j < p; j++){ var g = 0; for(k = 0; k < n; k++) g += X[i][k] * X[j][k]; G[i].push(g); } for(k = 0; k < n; k++) bi += X[i][k] * y[k]; b.push(bi); }
+  var L = 2 * G.reduce(function(a, r, q){ return a + r[q]; }, 0), w = new Array(p).fill(1 / p);   // L: a safe step bound (trace)
+  for(var it = 0; it < 6000; it++){ var gr = w.map(function(_, a){ var s2 = 0; for(var c = 0; c < p; c++) s2 += G[a][c] * w[c]; return 2 * (s2 - b[a]); }); var nw = projSimplex(w.map(function(x, a){ return x - gr[a] / L; })), mv = 0; for(i = 0; i < p; i++) mv = Math.max(mv, Math.abs(nw[i] - w[i])); w = nw; if(mv < 1e-10) break; }
+  var res = y.map(function(v, t){ var f = 0; for(var a = 0; a < p; a++) f += w[a] * X[a][t]; return v - f; }), my = mean(y), ssr = res.reduce(function(a, v){ return a + v * v; }, 0), sst = y.reduce(function(a, v){ return a + (v - my) * (v - my); }, 0);
+  return { n:n, from:dd[0], to:dd[n - 1], r2:sst ? Math.max(0, 1 - ssr / sst) : 0, trackingErr:sd(res) * Math.sqrt(DAY) * 100, alpha:mean(res) * DAY * 100, weights:names.map(function(a, q){ return { sym:a[0], name:a[1], w:w[q] * 100 }; }).sort(function(u, v){ return v.w - u.w; }) };
 };
 
 /* ------------------------------------------------------------------ the projection */

@@ -350,14 +350,14 @@ function commonRets(ser){
   var dates = ser.reduce(function(acc, s){ var m = {}; (s.dates || []).forEach(function(d){ m[d] = 1; }); return acc.filter(function(d){ return m[d]; }); }, ser[0].dates || []);
   return { dates:dates, R:ser.map(function(s){ var m = {}; s.dates.forEach(function(d, i){ m[d] = s[i]; }); return rets(dates.map(function(d){ return m[d]; })); }) };
 }
-def('allocate', 'assets:[symbols or {symbol}], method? (equal | inverse_vol | risk_parity | min_variance | max_sharpe | hrp)[risk_parity], range?[5Y] (1Y, 5Y or MAX), lookback_days?[252], max_weight_pct? (cap per asset), rf_pct?[0]: long-only weights from the latest lookback window, each asset\'s share of risk, and the volatility versus equal weight', function(a, env){
-  var as = list(a.assets, 'assets', 2), q = Q(), method = q.method(a.method || 'risk_parity'); if(method === 'fixed') bad('method must be one of: equal, inverse_vol, risk_parity, min_variance, max_sharpe, hrp');
+def('allocate', 'assets:[symbols or {symbol}], method? (equal | inverse_vol | risk_parity | min_variance | max_sharpe | hrp | momentum)[risk_parity], range?[5Y] (1Y, 5Y or MAX), lookback_days?[252], max_weight_pct? (cap per asset), top_n?, skip_days?[21] (momentum only), rf_pct?[0]: long-only weights from the latest lookback window, each asset\'s share of risk, and the volatility versus equal weight', function(a, env){
+  var as = list(a.assets, 'assets', 2), q = Q(), method = q.method(a.method || 'risk_parity'); if(method === 'fixed') bad('method must be one of: equal, inverse_vol, risk_parity, min_variance, max_sharpe, hrp, momentum');
   var lb = Math.max(60, Math.round(num(a.lookback_days, 'lookback_days', 252))), rf = num(a.rf_pct, 'rf_pct', 0);
   return Promise.all(as.map(function(x){ return getHist(env, typeof x === 'string' ? x : x.symbol, a.range || '5Y'); })).then(function(ser){
     var c = commonRets(ser); if(c.R[0].length < 80) bad('not enough shared daily history (need about 4 months)');
     if(perYear(c.dates) < 150) bad('allocate works on daily prices');
-    var X = c.R.map(function(r){ return r.slice(-lb); }), w = q.weights(method, X, rf), mwp = a.max_weight_pct != null ? num(a.max_weight_pct, 'max_weight_pct') : 0;
-    if(mwp > 0 && mwp < 100) w = q.cap(w, mwp / 100);
+    var X = c.R.map(function(r){ return r.slice(-lb); }), w = q.weights(method, X, rf, { topN:a.top_n != null ? num(a.top_n, 'top_n') : 0, skip:a.skip_days != null ? num(a.skip_days, 'skip_days') : 21 }), mwp = a.max_weight_pct != null ? num(a.max_weight_pct, 'max_weight_pct') : 0;
+    if(mwp > 0 && mwp < 100 && method !== 'momentum') w = q.cap(w, mwp / 100);
     var eq = X.map(function(){ return 1 / X.length; }), rs = q.riskShare(w, X), re = q.riskShare(eq, X);
     return { method:method, windowDays:X[0].length, from:c.dates[c.dates.length - X[0].length - 1], to:c.dates[c.dates.length - 1],
       assets:as.map(function(x, i){ return { symbol:typeof x === 'string' ? x : x.symbol, weightPct:w[i] * 100, shareOfRiskPct:rs.share[i], equalWeightShareOfRiskPct:re.share[i] }; }),
@@ -375,6 +375,57 @@ def('vol_forecast', 'symbol, range?[5Y]: realized (21 and 63 day), EWMA, GARCH(1
     return { symbol:sym, bars:rows.length, from:dates[0], to:dates[dates.length - 1], realized21Pct:v.realized21, realized63Pct:v.realized63, fullPeriodPct:v.full, ewmaPct:v.ewma,
       garch:g && { reliable:g.reliable, alphaPct:g.alpha * 100, betaPct:g.beta * 100, persistence:g.persistence, halfLifeDays:g.halfLife, volNowPct:g.nowVol, longRunPct:g.longRunVol, nextYearAvgPct:g.nextYearVol },
       parkinsonPct:v.range && v.range.parkinson, garmanKlassPct:v.range && v.range.garmanKlass, yangZhangPct:v.range && v.range.yangZhang };
+  });
+});
+
+
+/* pairs, regimes, stress tests, factors and style (the Quant engine's batch-2 tools) */
+function dated(a, what){ if(!a.dates) bad(what + ' needs dated prices: pass { history:"SYMBOL", range:"5Y" } or a series that carries its dates'); return a; }
+function rowsOfSeries(a){ return a.map(function(c, i){ return { d:a.dates[i], c:c }; }); }
+function asBT(sr, bn, bsym){   // a strategy-like object from two dated price series, so the Quant engine's own analysis can run on them
+  var al2 = align(sr, bn), x = al2[0], y = al2[1]; if(x.length < 260) bad('need at least a year of shared daily history');
+  var d = x.dates, eqv = x.map(function(v){ return v / x[0]; }), bq = y.map(function(v){ return v / y[0]; });
+  return { bt:{ dates:d, eq:eqv, bench:bq, ret:rets(x), bret:rets(y), bsym:bsym }, al:{ dates:bn.dates, bars:(function(){ var o = {}; o[bsym] = { c:bn.slice() }; return o; })() } };
+}
+def('cointegration', 'a, b (prices, or { history, range }): Engle-Granger cointegration test on the log prices: hedge ratio, ADF statistic against 1/5/10% critical values, verdict, mean-reversion half-life and the spread\'s current z-score (the basis of a pairs trade)', function(a){
+  var x = dated(arr(a.a, 'a', 120), 'cointegration'), y = dated(arr(a.b, 'b', 120), 'cointegration'), al2 = align(x, y), r;
+  if(al2[0].length < 250 || perYear(al2[0].dates) < 150) bad('cointegration needs about a year or more of shared daily prices');
+  r = Q().coint(al2[0], al2[1]); if(!r) bad('could not fit the pair');
+  return { observations:al2[0].length, from:al2[0].dates[0], to:al2[0].dates[al2[0].dates.length - 1], hedgeRatio:r.beta, intercept:r.alpha, r2:r.r2, adfTau:r.tau, criticalValues:r.crit, verdict:r.verdict, halfLifeDays:r.halfLife,
+    spreadSdPct:r.spreadSd * 100, currentZ:r.zNow, note:'Hedge ratio is the slope of ln(a) on ln(b). Cointegration found in-sample can break; test it out of sample before trading it.' };
+});
+def('stress_test', 'series (daily prices), benchmark? ({ history, range }) [SPY], range?[MAX]: the series replayed through famous drawdowns it covers (2000, 2008, 2011, 2015-16, 2018, 2020, 2022, 2025) vs the benchmark, plus a downside-beta shock (-10, -20, -30% in the benchmark)', function(a, env){
+  var sr = dated(arr(a.series, 'series', 260), 'stress_test'), bs = String((a.benchmark && a.benchmark.history) || a.benchmark || 'SPY').toUpperCase();
+  return getHist(env, bs, a.range || 'MAX').then(function(bn){
+    var m = asBT(sr, bn, bs), st = Q().stress(m.bt);
+    return { benchmark:bs, from:m.bt.dates[0], to:m.bt.dates[m.bt.dates.length - 1], scenarios:st.rows.map(function(r){ return r.s ? { name:r.name, from:r.from, to:r.to, returnPct:r.s.ret, maxDrawdownPct:r.s.maxdd, benchmarkReturnPct:r.b.ret, benchmarkMaxDrawdownPct:r.b.maxdd } : { name:r.name, from:r.from, to:r.to, notCovered:r.why }; }),
+      downsideBeta:st.downBeta, benchmarkShocks:st.shocks.map(function(x){ return { benchmarkPct:x.bench, estimatedPct:x.est }; }), benchmarkFallForMinus20Pct:st.reverse };
+  });
+});
+def('regime_stats', 'series (daily prices), benchmark? ({ history, range }) [SPY], range?[MAX]: the series\' return, volatility and Sharpe when the benchmark was above/below its 200-day average and in calm/normal/stormy volatility terciles (regime read at the prior close)', function(a, env){
+  var sr = dated(arr(a.series, 'series', 260), 'regime_stats'), bs = String((a.benchmark && a.benchmark.history) || a.benchmark || 'SPY').toUpperCase();
+  return getHist(env, bs, a.range || 'MAX').then(function(bn){
+    var m = asBT(sr, bn, bs), rg = Q().regimes(m.bt, m.al); if(!rg) bad('not enough history to build regimes (needs about 200 days before the series starts)');
+    var one = function(x){ return { regime:x.id, sharePct:x.share, seriesAnnualReturnPct:x.s && x.s.ann, seriesVolPct:x.s && x.s.vol, seriesSharpe:x.s && x.s.sharpe, benchmarkAnnualReturnPct:x.b && x.b.ann, benchmarkSharpe:x.b && x.b.sharpe, days:x.s && x.s.days }; };
+    return { benchmark:bs, trend:rg.trend.map(one), volatility:rg.vol.map(one), volatilityCutoffsPct:{ calmBelow:rg.volCuts[0], stormyAbove:rg.volCuts[1] }, note:'Terciles are of the benchmark\'s own 21-day volatility over this period.' };
+  });
+});
+function fetchSet(env, syms, range){ return Promise.all(syms.map(function(sy){ return getHist(env, sy, range).then(function(h){ return [sy, rowsOfSeries(h)]; }, function(){ return [sy, null]; }); })).then(function(pairs){ var o = {}; pairs.forEach(function(p2){ if(p2[1]) o[p2[0]] = p2[1]; }); return o; }); }
+def('factor_exposure', 'series (daily prices), range?[5Y]: regression of its daily returns on ETF-proxy factors (market SPY, size IWM-SPY, value IVE-IVW, momentum MTUM-SPY, low-vol USMV-SPY) with Newey-West t-statistics: betas, annual alpha, R-squared and each factor\'s contribution. Proxies, not the academic Fama-French factors', function(a, env){
+  var sr = dated(arr(a.series, 'series', 260), 'factor_exposure'); if(perYear(sr.dates) < 150) bad('factor_exposure works on daily prices');
+  return fetchSet(env, Q().FACTOR_SYMS, a.range || '5Y').then(function(h){
+    var r = Q().factorModel(rets(sr), sr.dates.slice(1), h); if(!r) bad('not enough overlapping history with the factor ETFs (needs about 2 years and SPY)');
+    return { observations:r.n, from:r.from, to:r.to, rSquared:r.r2, alphaPctPerYear:r.alpha, alphaT:r.alphaT, residualVolPct:r.resSd, factors:r.factors.map(function(f){ return { factor:f.name, beta:f.beta, t:f.t, contributionPctPerYear:f.contrib }; }), dropped:r.dropped,
+      note:'ETF-proxy factors. |t| above about 2 is statistically meaningful; t-statistics use Newey-West errors.' };
+  });
+});
+def('style_analysis', 'series (daily prices), range?[5Y]: Sharpe returns-based style analysis: the non-negative mix of asset-class ETFs (SPY, IWM, EFA, EEM, AGG, TLT, GLD, DBC, VNQ) whose returns best track the series, with R-squared and tracking error', function(a, env){
+  var sr = dated(arr(a.series, 'series', 260), 'style_analysis'); if(perYear(sr.dates) < 150) bad('style_analysis works on daily prices');
+  var syms = Q().STYLE_ASSETS.map(function(x){ return x[0]; });
+  return fetchSet(env, syms, a.range || '5Y').then(function(h){
+    var r = Q().style(rets(sr), sr.dates.slice(1), h); if(!r) bad('not enough overlapping history with the asset-class ETFs (needs about a year)');
+    return { observations:r.n, from:r.from, to:r.to, rSquared:r.r2, trackingErrorPct:r.trackingErr, unexplainedAlphaPctPerYear:r.alpha, mix:r.weights.filter(function(x){ return x.w >= .5; }).map(function(x){ return { symbol:x.sym, assetClass:x.name, weightPct:x.w }; }),
+      note:'Weights are the closest long-only mix of these ETFs, not the actual holdings.' };
   });
 });
 
