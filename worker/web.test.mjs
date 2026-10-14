@@ -1,7 +1,7 @@
 // node --test worker/  — parsers and the public-URL guard behind /api/search and /api/read.
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { ddgParse, bingParse, htmlText, publicUrl, yahooEvents, normalizeYahoo } from './opencode-proxy.js';
+import { ddgParse, bingParse, htmlText, publicUrl, yahooEvents, normalizeYahoo, fetchFeed, bingNewsRss } from './opencode-proxy.js';
 
 test('ddgParse unwraps redirect links and skips ads', () => {
   const html = '<a class="result__a" href="https://duckduckgo.com/y.js?ad=1">Ad</a>' +
@@ -46,4 +46,20 @@ test('normalizeYahoo puts open/high/low on the same dividend-adjusted basis as t
   assert.deepEqual([b[1].o, b[1].h, b[1].l, b[1].c], [101, 103, 100, 102]);                                                          // no adjustment on the latest day
   const intra = normalizeYahoo({ chart: { result: [{ timestamp: [1700000000], indicators: { quote: [{ open: [5], high: [6], low: [4], close: [5.5], volume: [1] }] } }] } }, 'X', 'X', '1D', '5m').bars[0];
   assert.deepEqual([intra.o, intra.h, intra.l, intra.c], [5, 6, 4, 5.5]);                                                           // intraday has no adjclose: untouched
+});
+
+test('fetchFeed retries a 503 and stops at the first good answer', async () => {
+  const seq = [{ ok: false, status: 503 }, { ok: false, status: 503 }, { ok: true, status: 200 }, { ok: true, status: 200 }];
+  let n = 0;
+  const res = await fetchFeed('https://x', {}, { tries: 4, ttl: 1 }, async () => seq[n++]);
+  assert.equal(res.status, 200); assert.equal(n, 3);
+  n = 0;
+  const bad = await fetchFeed('https://x', {}, { ttl: 1 }, async () => { n++; return { ok: false, status: 503 }; });
+  assert.equal(bad.status, 503); assert.equal(n, 1);   // feeds without `tries` are fetched once
+  const gone = await fetchFeed('https://x', {}, { tries: 2, ttl: 1 }, async () => { throw new Error('timeout'); });
+  assert.equal(gone, null);
+});
+
+test('bingNewsRss renames the publisher tag so the page shows the real source', () => {
+  assert.equal(bingNewsRss('<item><title>T</title><News:Source>Reuters</News:Source></item>'), '<item><title>T</title><source>Reuters</source></item>');
 });

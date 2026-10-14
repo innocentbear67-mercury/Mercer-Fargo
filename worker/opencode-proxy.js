@@ -77,7 +77,7 @@ async function chartResponse(symbol, rng) {
 // (www.sec.gov wants a contactable User-Agent). Allow-listed by host and path,
 // GET only, cached at the edge for `ttl` seconds.
 export const FEEDS = [
-  { re: /^https:\/\/news\.google\.com\/rss\/search\?/, ttl: 600 },
+  { re: /^https:\/\/news\.google\.com\/rss\/search\?/, ttl: 600, tries: 1, news: true },   // Google blocks most of Cloudflare's egress IPs (503 "unusual traffic" or a hang): Bing News is asked at the same time and used when Google misses
   { re: /^https:\/\/feeds\.finance\.yahoo\.com\/rss\/2\.0\/headline\?s=[\w^.,=%-]+&region=US&lang=en-US$/, ttl: 600 },  // Google News blocks Cloudflare's IPs
   { re: /^https?:\/\/openinsider\.com\/screener\?/, ttl: 1800, http: true },
   { re: /^https:\/\/traderhub\.openalice\.ai\/api\/reference\/[a-z-]+$/, ttl: 300 },
@@ -89,13 +89,44 @@ export const FEEDS = [
   { re: /^https:\/\/www\.sec\.gov\/Archives\/edgar\/data\/\d+\/\d{18}\/[\w.\-]+$/, ttl: 86400 * 30, sec: true },  // accessioned: immutable
 ];
 
+// Fetch a feed, retrying a failed attempt (a fresh subrequest leaves from another egress IP, which is what gets past Google's per-IP 503).
+export async function fetchFeed(u, headers, f, doFetch = fetch) {
+  let res;
+  for (let i = 0; i < (f.tries || 1); i++) {
+    try { res = await doFetch(u, { headers, signal: f.tries ? AbortSignal.timeout(2500) : undefined, cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': f.ttl, '300-599': -1 } } }); }   // errors are never cached: cacheTtl alone kept Google's 503 page for ten minutes, which made every retry fail too
+    catch (e) { res = null; }
+    if (res && res.ok) return res;
+  }
+  return res;
+}
+// Bing News RSS in the shape the page already parses: the publisher name moves from <News:Source> to <source>, as Google News has it.
+export const bingNewsRss = (xml) => String(xml).replace(/<(\/?)News:Source>/g, '<$1source>');
+async function newsFallback(u) {
+  const q = (u.match(/[?&]q=([^&]+)/) || [])[1];
+  if (!q) return null;
+  try {
+    const r = await fetch('https://www.bing.com/news/search?format=rss&setmkt=en-US&q=' + q, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(5000), cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': 600, '300-599': -1 } } });
+    const xml = r.ok ? bingNewsRss(await r.text()) : '';
+    return /<item>/.test(xml) ? xml : null;
+  } catch (e) { return null; }
+}
 async function feedResponse(u, env) {
   const f = FEEDS.find((x) => x.re.test(u));
   if (!f) return new Response('Not allowed', { status: 403, headers: cors });
   if (f.http) u = u.replace(/^https:/, 'http:');   // openinsider's TLS port refuses connections
   const headers = { 'User-Agent': f.sec ? 'MercerFargo research ' + ((env && env.SEC_CONTACT) || 'contact@example.com') : f.ua ? 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15' : 'Mozilla/5.0' };
   if (f.ua) headers.Accept = 'application/json';   // Nasdaq hangs without a browser-like request
-  const res = await fetch(u, { headers, cf: { cacheTtl: f.ttl, cacheEverything: true } });
+  const bing = f.news ? newsFallback(u) : null;   // started now, so a Google miss costs no extra wait
+  const res = await fetchFeed(u, headers, f);
+  if (f.news && !(res && res.ok)) {
+    const xml = await bing;
+    if (xml) {
+      const out = new Headers({ 'content-type': 'application/rss+xml; charset=utf-8', 'cache-control': 'public, max-age=300', 'x-fallback': 'bing-news' });
+      for (const k in cors) out.set(k, cors[k]);
+      return new Response(xml, { status: 200, headers: out });
+    }
+  }
+  if (!res) return new Response('upstream unreachable', { status: 502, headers: cors });
   const out = new Headers({ 'content-type': res.headers.get('content-type') || 'text/plain', 'cache-control': 'public, max-age=' + (res.ok ? Math.min(f.ttl, 3600) : 0) });
   for (const k in cors) out.set(k, cors[k]);
   return new Response(res.body, { status: res.status, headers: out });   // streamed: big 10-Ks pass straight through
