@@ -9705,7 +9705,7 @@ function ocLoad(p, force){
   OC.loading[p] = true;
   var url = p === 'opencode' ? 'https://opencode.ai/zen/v1/models' : 'https://opencode.ai/zen/go/v1/models', key = (KEYS.keysBy || {})[p] || '';
   var get = function(withKey){
-    var target = canTryProxy() ? PROXY_PATH + encodeURIComponent(url) : ((CFG.ocProxy || OC_PROXY) + '?u=' + encodeURIComponent(url));
+    var target = canTryProxy() ? PROXY_PATH + encodeURIComponent(url) : (OC_PROXY + '?u=' + encodeURIComponent(url));
     var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, to = setTimeout(function(){ if(ctl) ctl.abort(); }, 15000);
     // plain fetch on purpose: the generic fetchText chain falls back to third-party relays, which must never see an API key
     return fetch(target, { headers:withKey && key ? { authorization:'Bearer ' + key } : {}, signal:ctl ? ctl.signal : undefined })
@@ -10585,7 +10585,7 @@ function aiPost(ep, key, body, maxMs){   /* maxMs: longest one call may take bef
   if(ep.zen) hdrs['x-opencode-session'] = mfSessionId();
   function attempt(b){
     var payload = JSON.stringify(b);
-    var relayUrl = (CFG.ocProxy || OC_PROXY) ? (CFG.ocProxy || OC_PROXY) + '?u=' + encodeURIComponent(url) : url;
+    var relayUrl = OC_PROXY + '?u=' + encodeURIComponent(url);
     var sent = url;
     function send(t){
       sent = t; var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, timer = ctl ? setTimeout(function(){ ctl.abort(); }, maxMs || 480000) : 0;
@@ -11954,9 +11954,7 @@ function paintKeysPage(){
   card.innerHTML = '<h3 style="margin:0 0 4px">API keys</h3><div class="mut" style="font-size:13px;margin-bottom:8px">' +
     (acct() ? 'Saved to your account on this browser — sign in and they are ready.' : 'Saved in this browser. Create an account to keep them with your profile.') +
     ' Keys are sent only to the provider they belong to.</div>' +
-    '<div class="krow"><div class="khead"><b>OpenCode proxy URL</b><span class="mut kmsg">only for OpenCode / OpenCode Go on the hosted site</span></div>' +
-    '<div class="key-row"><input class="inp" id="ocProxy" placeholder="Built-in relay (leave empty)" value="' + esc(CFG.ocProxy || '') + '">' +
-    '<button class="btn filled sm" data-act="proxy-save">Save</button></div></div>' + AI_PROVS.map(function(pv){
+    AI_PROVS.map(function(pv){
     var p = pv[0], k = (KEYS.keysBy || {})[p] || '', def = p === KEYS.provider;
     return '<div class="krow"><div class="khead"><i class="kdot' + (k ? ' on' : '') + '"></i><b>' + esc(pv[1]) + '</b>' + (def ? '<span class="ktag">default</span>' : '') + '<span class="mut kmsg" id="km-' + p + '"></span></div>' +
       '<div class="key-row"><input class="inp" id="ki-' + p + '" type="password" autocomplete="off" placeholder="paste ' + esc(pv[1]) + ' key" value="' + esc(k) + '">' +
@@ -14075,7 +14073,6 @@ function bindEvents(){
       case 'profile-save': profileSave(); break;
       case 'vault-open': case 'vault-graph': case 'vault-undo': case 'vault-new': case 'vault-edit': case 'vault-save': case 'vault-del': case 'vault-del-go': case 'vault-done': vaultAction(act, el); break;
       case 'mem-profile-save': case 'mem-rs-edit': case 'mem-rs-save': case 'mem-clear': case 'mem-export': memAction(act, el); break;
-      case 'proxy-save': CFG.ocProxy = ($('ocProxy').value || '').trim().replace(/\/+$/, ''); saveCfg(); toast(CFG.ocProxy ? 'Proxy saved' : 'Proxy cleared'); break;
       case 'keys-go': if($('drawer').classList.contains('full')) setFull(false); break;   // leave full-screen Marvell so the keys page is visible; the link itself navigates
       case 'signout': closeMenu(); acctSignOut(); toast('Signed out'); break;
       case 'signout-clear': if(confirm('Sign out and remove your portfolios, chats and research from this browser? They stay saved in your account.')){ closeMenu(); acctSignOut(true); } break;
