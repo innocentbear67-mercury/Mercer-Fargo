@@ -3007,7 +3007,7 @@ body.rs-drag iframe{pointer-events:none}
     <div class="pickmenu" id="slashMenu" role="listbox" aria-label="Skills" hidden></div>
     <div class="cmp">
       <div class="att-row" id="attRow" hidden></div>
-      <textarea id="prompt" rows="1" placeholder="Ask Marvell about a ticker, portfolio or the market — type / for skills"></textarea>
+      <textarea id="prompt" rows="1" placeholder="Ask Marvell anything"></textarea>
       <div class="cmp-row">
         <button class="icon-btn sm" id="attachBtn" data-act="attach-pick" title="Add files or images" aria-label="Add files or images">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
@@ -5014,7 +5014,7 @@ function chatNewSession(){
   chatRender();
   var p = $('prompt');
   if(p){ p.value = ''; p.focus(); }
-  toast('New session started');
+  rotatePrompt(); toast('New session started');
 }
 function chatDeleteSession(sid){
   CHAT = CHAT.filter(function(m){ return m.sid !== sid; });
@@ -14649,6 +14649,8 @@ function runBriefing(t){
 
 /* ------------------------------------------------------------ 10. bootstrap */
 
+var PROMPT_HINTS = ['Ask Marvell anything', 'Which stock should we dig into?', 'Paste a ticker, or ask a question', 'What is moving the market today?', 'How is my portfolio doing?', 'Type / for skills', 'What should I watch this week?'];
+function rotatePrompt(){ var p = $('prompt'); if(p) p.placeholder = PROMPT_HINTS[Math.floor(Math.random() * PROMPT_HINTS.length)]; }
 function boot(){
   if(boot.done) return;
   boot.done = true;
@@ -14658,7 +14660,7 @@ function boot(){
   var pane = $('rsPane');
   if(pane) pane.innerHTML = rsPanelHTML();
   rsShowTab(CFG.rtab || 'chat', false);
-  acctRefresh();
+  acctRefresh(); rotatePrompt();
   if(CLOUD.on()) CLOUD.sync().then(function(r){ if(r.changed) cloudReload(); });
   aiQuickButtons();
   bindEvents();
