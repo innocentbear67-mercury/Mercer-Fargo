@@ -95,9 +95,26 @@ function condFn(cd, ctx){
 
 /* ------------------------------------------------------------------ data alignment */
 /* data: { SYM:[{d,o,h,l,c,v}] } -> one date axis (the main symbol's, from the first day every needed symbol has a close), forward-filled. */
+/* Yahoo bars carry dividend-adjusted closes but raw open/high/low (the server now fixes that; older cached or deployed copies may not). A dividend factor k shows up as ln(close/open) = ln k and
+   ln(open/prev close) = -ln k together, in steps. Where that offset is clear (over 0.4% and cancelling close to close), open/high/low are scaled by it so ATR, high/low and open rules
+   read on the same basis as the close. A stock that merely trends intraday has no such cancelling pattern and is left alone. Returns new rows; the input is not changed. */
+QN.rebase = function(rows){
+  var n = rows.length, co = [], ov = [], i;
+  for(i = 0; i < n; i++){ var r = rows[i], pc = i ? rows[i - 1].c : null; co.push(r.o > 0 && r.c > 0 ? Math.log(r.c / r.o) : NaN); ov.push(r.o > 0 && pc > 0 ? Math.log(r.o / pc) : NaN); }
+  var med = function(x, t){ var w = x.slice(Math.max(0, t - 10), t + 11).filter(isFinite).sort(function(u, q){ return u - q; }); return w.length ? w[Math.floor((w.length - 1) / 2)] / 2 + w[Math.ceil((w.length - 1) / 2)] / 2 : 0; };
+  var out = null;
+  for(i = 0; i < n; i++){
+    var a = med(co, i), b = med(ov, i);
+    if(Math.abs(a) > .004 && Math.abs(a + b) < .5 * Math.abs(a)){
+      var f = Math.exp(a), r2 = rows[i]; out = out || rows.map(function(x){ return Object.assign({}, x); });
+      out[i].o = r2.o * f; out[i].h = r2.h * f; out[i].l = r2.l * f;
+    }
+  }
+  return out || rows;
+};
 QN.align = function(data, main, syms){
   var idx = {}, out = { dates:[], bars:{} };
-  syms.forEach(function(s){ var rows = data[s] || []; if(rows.length < 30) throw new Error('not enough price history for ' + s); var m = {}; rows.forEach(function(r){ m[r.d] = r; }); idx[s] = { m:m, first:rows[0].d }; });
+  syms.forEach(function(s){ var rows = QN.rebase(data[s] || []); if(rows.length < 30) throw new Error('not enough price history for ' + s); var m = {}; rows.forEach(function(r){ m[r.d] = r; }); idx[s] = { m:m, first:rows[0].d }; });
   var first = syms.reduce(function(a, s){ return idx[s].first > a ? idx[s].first : a; }, '');
   var days = data[main].filter(function(r){ return r.d >= first && r.c != null; });
   syms.forEach(function(s){ out.bars[s] = { c:[], o:[], h:[], l:[], v:[] }; });
@@ -142,7 +159,7 @@ QN.backtest = function(spec, al, over){
   var pnum = function(v){ var x = parseFloat(typeof v === 'string' && v.charAt(0) !== '$' ? v : val(v, P)); return isFinite(x) ? x : 0; };   // "10%" and "252 days" are read as numbers
   var rfp = val(spec.rf, P) || 0, curKey = '', memoK = null, memoW = null, aSyms = [];
   var lb = Math.max(60, Math.round(pnum(over && over.lookback != null ? over.lookback : (spec.lookback || 252)) || 252));
-  var vt = Math.max(0, pnum(over && over.vol_target != null ? over.vol_target : spec.vol_target)), maxLev = Math.min(3, Math.max(.1, pnum(spec.max_leverage) || 1));   // ponytail: leverage is capped at 3x and borrowing is not charged
+  var mw = pnum(over && over.max_weight != null ? over.max_weight : spec.max_weight) / 100, vt = Math.max(0, pnum(over && over.vol_target != null ? over.vol_target : spec.vol_target)), maxLev = Math.min(3, Math.max(.1, pnum(spec.max_leverage) || 1));   // ponytail: leverage is capped at 3x and borrowing is not charged
   if(spec.type === 'allocation') spec.assets.forEach(function(a){ var s = String(a.sym).toUpperCase(); if(aSyms.indexOf(s) < 0) aSyms.push(s); });
   var winX = function(syms, i){ var a = Math.max(1, i - lb + 1); return syms.map(function(s){ return R[s].slice(a, i + 1); }); };
   var volScale = function(t, i){
@@ -157,7 +174,7 @@ QN.backtest = function(spec, al, over){
       if(memoK !== curKey || !memoW){
         var tot = spec.assets.reduce(function(s, a){ return s + (+val(a.weight, P) || 0); }, 0) || 1;
         spec.assets.forEach(function(a){ var s = String(a.sym).toUpperCase(); t[s] = (t[s] || 0) + (+val(a.weight, P) || 0) / tot; });
-        if(method !== 'fixed' && aSyms.length > 1){ var X = winX(aSyms, i); if(X[0].length >= 60){ var wv = QN.weights(method, X, rfp); t = {}; aSyms.forEach(function(s, k){ t[s] = wv[k]; }); } }
+        if(method !== 'fixed' && aSyms.length > 1){ var X = winX(aSyms, i); if(X[0].length >= 60){ var wv = QN.weights(method, X, rfp); if(mw > 0 && mw < 1) wv = QN.cap(wv, mw); t = {}; aSyms.forEach(function(s, k){ t[s] = wv[k]; }); } }
         var sc = volScale(t, i); if(sc !== 1) Object.keys(t).forEach(function(s){ t[s] *= sc; });
         memoW = t; memoK = curKey;
       }
@@ -199,7 +216,7 @@ QN.backtest = function(spec, al, over){
   if(open) trades.push({ in:al.dates[open.i], out:al.dates[n - 1], pxIn:open.px, pxOut:mc[n - 1], ret:side * (mc[n - 1] / open.px - 1) * 100, days:n - 1 - open.i, why:'open', open:true });
   var alloc = null;
   if(spec.type === 'allocation' && memoW){ var X2 = winX(aSyms, n - 1), ws = aSyms.map(function(s){ return memoW[s] || 0; }), sw = ws.reduce(function(a, b){ return a + b; }, 0) || 1;
-    alloc = { method:method, lookback:lb, volTarget:vt, syms:aSyms, weights:ws, exposure:sw * 100, share:aSyms.length > 1 && X2[0].length > 30 ? QN.riskShare(ws.map(function(x){ return x / sw; }), X2) : null }; }
+    alloc = { method:method, lookback:lb, volTarget:vt, maxWeight:mw > 0 && mw < 1 ? mw * 100 : 0, syms:aSyms, weights:ws, exposure:sw * 100, share:aSyms.length > 1 && X2[0].length > 30 ? QN.riskShare(ws.map(function(x){ return x / sw; }), X2) : null }; }
   var dates = al.dates.slice(i0);
   return { alloc:alloc, dates:dates, eq:eq, bench:bq, ret:dr, bret:bq.map(function(v, k){ return k ? v / bq[k - 1] - 1 : 0; }).slice(1), inPos:inPos, trades:trades, metrics:QN.metrics(dates, eq, bq, trades, inPos, val(spec.rf, P) || 0), P:P, main:main, bsym:bsym };
 };
@@ -409,6 +426,16 @@ QN.weights = function(method, X, rf){
     w = longOnly(S, mu); if(!w || !mu.some(function(m){ return m > 0; })) w = longOnly(S, new Array(p).fill(1));
   }
   return w && w.every(isFinite) ? w : eq;
+};
+/* Cap every weight at `cap` (a fraction) and hand the excess to the others in proportion; the cap is never below an equal split, so it is always feasible. */
+QN.cap = function(w, cap){
+  var p = w.length; cap = Math.max(cap, 1 / p); w = w.slice();
+  for(var it = 0; it <= p; it++){
+    var over = 0, free = 0; w.forEach(function(x){ if(x > cap + 1e-12) over += x - cap; else if(x < cap - 1e-12) free += x; });   // assets already at the cap are full: they take none of the excess
+    if(over < 1e-12) break;
+    w = w.map(function(x){ return x > cap - 1e-12 ? cap : x + (free ? x / free * over : over / p); });
+  }
+  return w;
 };
 /* Risk each asset contributes to a portfolio, as % of total, from the same window. */
 QN.riskShare = function(w, X){

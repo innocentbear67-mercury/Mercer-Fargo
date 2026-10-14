@@ -1,7 +1,7 @@
 // node --test worker/  — parsers and the public-URL guard behind /api/search and /api/read.
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { ddgParse, bingParse, htmlText, publicUrl, yahooEvents } from './opencode-proxy.js';
+import { ddgParse, bingParse, htmlText, publicUrl, yahooEvents, normalizeYahoo } from './opencode-proxy.js';
 
 test('ddgParse unwraps redirect links and skips ads', () => {
   const html = '<a class="result__a" href="https://duckduckgo.com/y.js?ad=1">Ad</a>' +
@@ -37,4 +37,13 @@ test('yahooEvents keeps splits and dividends in date order', () => {
   assert.deepEqual(e.splits, [{ t: 1598832000, d: '2020-08-31', num: 4, den: 1 }]);
   assert.deepEqual(e.dividends.map((d) => d.amt), [0.2, 0.24]);
   assert.deepEqual(yahooEvents({}), { splits: [], dividends: [] });
+});
+
+test('normalizeYahoo puts open/high/low on the same dividend-adjusted basis as the close', () => {
+  const j = { chart: { result: [{ timestamp: [1700000000, 1700086400], indicators: { quote: [{ open: [100, 101], high: [102, 103], low: [99, 100], close: [101, 102], volume: [1, 2] }], adjclose: [{ adjclose: [90.9, 102] }] } }] } };
+  const b = normalizeYahoo(j, 'X', 'X', '5Y', '1d').bars;
+  assert.ok(Math.abs(b[0].o - 90) < 1e-9 && Math.abs(b[0].h - 91.8) < 1e-9 && Math.abs(b[0].l - 89.1) < 1e-9 && b[0].c === 90.9);   // factor 0.9
+  assert.deepEqual([b[1].o, b[1].h, b[1].l, b[1].c], [101, 103, 100, 102]);                                                          // no adjustment on the latest day
+  const intra = normalizeYahoo({ chart: { result: [{ timestamp: [1700000000], indicators: { quote: [{ open: [5], high: [6], low: [4], close: [5.5], volume: [1] }] } }] } }, 'X', 'X', '1D', '5m').bars[0];
+  assert.deepEqual([intra.o, intra.h, intra.l, intra.c], [5, 6, 4, 5.5]);                                                           // intraday has no adjclose: untouched
 });

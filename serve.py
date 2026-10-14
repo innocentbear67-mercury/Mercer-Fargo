@@ -617,15 +617,21 @@ class Handler(SimpleHTTPRequestHandler):
             q = ((r0.get("indicators") or {}).get("quote") or [{}])[0]
             adj = ((r0.get("indicators") or {}).get("adjclose") or [{}])[0].get("adjclose")
             bars = []
+            def _scale(x, f):
+                return None if x is None else x * f
             for n, t in enumerate(ts):
                 try:
+                    c = (adj[n] if adj and n < len(adj) and adj[n] is not None
+                         else q.get("close", [None])[n])
+                    # open/high/low are raw but adjclose is dividend-adjusted: put all four on the adjusted basis
+                    raw = q.get("close", [None])[n]
+                    f = c / raw if (raw and c and c != raw) else 1.0
                     bars.append({
                         "t": t,
                         "d": time.strftime("%Y-%m-%d", time.gmtime(t)),
-                        "o": q.get("open", [None])[n], "h": q.get("high", [None])[n],
-                        "l": q.get("low", [None])[n],
-                        "c": (adj[n] if adj and n < len(adj) and adj[n] is not None
-                              else q.get("close", [None])[n]),
+                        "o": _scale(q.get("open", [None])[n], f), "h": _scale(q.get("high", [None])[n], f),
+                        "l": _scale(q.get("low", [None])[n], f),
+                        "c": c,
                         "v": (q.get("volume", [None])[n] if n < len(q.get("volume", [])) else None),
                     })
                 except IndexError:

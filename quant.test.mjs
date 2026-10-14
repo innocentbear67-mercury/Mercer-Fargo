@@ -155,3 +155,33 @@ test('the engine reads the way a model writes the spec: method aliases, "10%", "
   assert.ok(a.alloc.volTarget === 1 && a.alloc.exposure < 100);   // the string target really bit (not silently ignored)
   assert.equal(a.alloc.method, 'risk_parity');
 });
+
+test('rebase puts raw open/high/low on the adjusted-close basis, only when the offset is clear', () => {
+  const g = gauss(rnd(41)), sub = 40; let px = 100;
+  const rows = Array.from({ length: 600 }, (_, d) => { const o = px; let hi = px, lo = px; for (let k = 0; k < sub; k++) { px *= Math.exp(.01 / Math.sqrt(sub) * g()); hi = Math.max(hi, px); lo = Math.min(lo, px); } return { d: new Date(Date.UTC(2020, 0, 1) + d * 864e5).toISOString().slice(0, 10), o, h: hi, l: lo, c: px, v: 1 }; });
+  const medCO = (r) => { const x = r.map((q) => Math.log(q.c / q.o)).sort((a, b) => a - b); return x[x.length >> 1]; };
+  // dividend-style: the adjusted close sits 10% below the raw open, then 3% below after an ex-date
+  const adj = rows.map((r, i) => ({ ...r, c: r.c * (i < 300 ? .9 : .97) })), fixed = QN.rebase(adj);
+  assert.ok(Math.abs(medCO(adj.slice(0, 280))) > .08 && Math.abs(medCO(fixed.slice(0, 280))) < .003);          // first regime repaired
+  assert.ok(Math.abs(medCO(fixed.slice(330))) < .003);                                                         // second regime repaired
+  near(fixed[100].h / fixed[100].l, rows[100].h / rows[100].l, 1e-9);                                          // a day's range keeps its shape
+  assert.equal(adj[100].o, rows[100].o);                                                                       // input not mutated
+  // already consistent data: untouched (same array back)
+  assert.equal(QN.rebase(rows), rows);
+  // a stock that just trends intraday (+0.5%/day open to close, +0.45% overnight gap down is NOT a dividend pattern) is left alone
+  const trend = rows.map((r) => ({ ...r, c: r.o * 1.006 })).map((r, i, a) => ({ ...r, o: i ? a[i - 1].c * 1.0005 : r.o }));
+  assert.equal(QN.rebase(trend), trend);
+  // and the repaired bars feed align() so ATR reads the same as on the clean data
+  const clean = { A: rows }, dirty = { A: adj };
+  const a1 = QN.align(clean, 'A', ['A']), a2 = QN.align(dirty, 'A', ['A']);
+  near(a2.bars.A.o[400] / a2.bars.A.c[400], a1.bars.A.o[400] / a1.bars.A.c[400], .004);
+});
+
+test('weight cap: nobody above the cap, still sums to 1, and a cap below equal split is raised to it', () => {
+  const w = QN.cap([.7, .2, .06, .04], .4); near(w.reduce((a, b) => a + b), 1, 1e-12); assert.ok(w.every((x) => x <= .4 + 1e-9)); assert.ok(w[0] >= w[1] - 1e-12 && w[1] > w[2] && w[2] > w[3]);
+  QN.cap([.5, .3, .2], .1).forEach((x) => near(x, 1 / 3, 1e-9));     // infeasible cap -> equal weight
+  assert.deepEqual(QN.cap([.25, .25, .5], 1), [.25, .25, .5]);        // no binding cap: unchanged
+  const al = QN.align(data, 'SPY', ['SPY', 'TLT']), spec = { type: 'allocation', assets: [{ sym: 'SPY', weight: 1 }, { sym: 'TLT', weight: 1 }], rebalance: 'monthly', benchmark: 'SPY', cost_bps: 0, start: '2016-01-01', method: 'inverse_vol' };
+  const free = QN.backtest(spec, al), capped = QN.backtest({ ...spec, max_weight: '55%' }, al);
+  assert.ok(Math.max(...capped.alloc.weights) <= .55 + 1e-9 && Math.abs(capped.alloc.maxWeight - 55) < 1e-9 && Math.max(...free.alloc.weights) > .55);
+});

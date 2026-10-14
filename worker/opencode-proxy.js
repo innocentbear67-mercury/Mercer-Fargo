@@ -24,7 +24,9 @@ export function normalizeYahoo(j, symbol, ysym, r, i) {
   for (let n = 0; n < ts.length; n++) {
     const c = (adj && n < adj.length && adj[n] != null) ? adj[n] : (q.close || [])[n];
     if (c == null) continue;
-    bars.push({ t: ts[n], d: new Date(ts[n] * 1000).toISOString().slice(0, 10), o: (q.open || [])[n], h: (q.high || [])[n], l: (q.low || [])[n], c, v: (q.volume || [])[n] ?? null });
+    // Yahoo's open/high/low are raw but adjclose is dividend-adjusted: put all four on the adjusted basis, or ln(close/open) and ATR carry a drift of the dividend factor
+    const raw = (q.close || [])[n], f = raw > 0 && c > 0 && c !== raw ? c / raw : 1, sc = (x) => (x == null ? x : x * f);
+    bars.push({ t: ts[n], d: new Date(ts[n] * 1000).toISOString().slice(0, 10), o: sc((q.open || [])[n]), h: sc((q.high || [])[n]), l: sc((q.low || [])[n]), c, v: (q.volume || [])[n] ?? null });
   }
   if (!bars.length) throw new Error('no bars');
   const meta = r0.meta || {};

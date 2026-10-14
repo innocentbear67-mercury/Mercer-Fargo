@@ -350,13 +350,15 @@ function commonRets(ser){
   var dates = ser.reduce(function(acc, s){ var m = {}; (s.dates || []).forEach(function(d){ m[d] = 1; }); return acc.filter(function(d){ return m[d]; }); }, ser[0].dates || []);
   return { dates:dates, R:ser.map(function(s){ var m = {}; s.dates.forEach(function(d, i){ m[d] = s[i]; }); return rets(dates.map(function(d){ return m[d]; })); }) };
 }
-def('allocate', 'assets:[symbols or {symbol}], method? (equal | inverse_vol | risk_parity | min_variance | max_sharpe | hrp)[risk_parity], range?[5Y] (1Y, 5Y or MAX), lookback_days?[252], rf_pct?[0]: long-only weights from the latest lookback window, each asset\'s share of risk, and the volatility versus equal weight', function(a, env){
-  var as = list(a.assets, 'assets', 2), q = Q(), method = String(a.method || 'risk_parity'); if(!q.METHODS[method] || method === 'fixed') bad('method must be one of: equal, inverse_vol, risk_parity, min_variance, max_sharpe, hrp');
+def('allocate', 'assets:[symbols or {symbol}], method? (equal | inverse_vol | risk_parity | min_variance | max_sharpe | hrp)[risk_parity], range?[5Y] (1Y, 5Y or MAX), lookback_days?[252], max_weight_pct? (cap per asset), rf_pct?[0]: long-only weights from the latest lookback window, each asset\'s share of risk, and the volatility versus equal weight', function(a, env){
+  var as = list(a.assets, 'assets', 2), q = Q(), method = q.method(a.method || 'risk_parity'); if(method === 'fixed') bad('method must be one of: equal, inverse_vol, risk_parity, min_variance, max_sharpe, hrp');
   var lb = Math.max(60, Math.round(num(a.lookback_days, 'lookback_days', 252))), rf = num(a.rf_pct, 'rf_pct', 0);
   return Promise.all(as.map(function(x){ return getHist(env, typeof x === 'string' ? x : x.symbol, a.range || '5Y'); })).then(function(ser){
     var c = commonRets(ser); if(c.R[0].length < 80) bad('not enough shared daily history (need about 4 months)');
     if(perYear(c.dates) < 150) bad('allocate works on daily prices');
-    var X = c.R.map(function(r){ return r.slice(-lb); }), w = q.weights(method, X, rf), eq = X.map(function(){ return 1 / X.length; }), rs = q.riskShare(w, X), re = q.riskShare(eq, X);
+    var X = c.R.map(function(r){ return r.slice(-lb); }), w = q.weights(method, X, rf), mwp = a.max_weight_pct != null ? num(a.max_weight_pct, 'max_weight_pct') : 0;
+    if(mwp > 0 && mwp < 100) w = q.cap(w, mwp / 100);
+    var eq = X.map(function(){ return 1 / X.length; }), rs = q.riskShare(w, X), re = q.riskShare(eq, X);
     return { method:method, windowDays:X[0].length, from:c.dates[c.dates.length - X[0].length - 1], to:c.dates[c.dates.length - 1],
       assets:as.map(function(x, i){ return { symbol:typeof x === 'string' ? x : x.symbol, weightPct:w[i] * 100, shareOfRiskPct:rs.share[i], equalWeightShareOfRiskPct:re.share[i] }; }),
       portfolioVolPct:rs.vol, equalWeightVolPct:re.vol, note:'Covariance is Ledoit-Wolf shrunk. Weights are estimated from past returns and are not a recommendation.' };

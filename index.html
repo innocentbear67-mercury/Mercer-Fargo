@@ -11741,7 +11741,7 @@ var QN_SPEC_SYS = 'You turn an investor\'s description of a trading or allocatio
   ' "side":"long"|"short", "entry":[cond...] (all must be true to enter), "exit":[cond...] (any one exits), "filter":[cond...] (allocation: invest only while all true),\n' +
   ' "stop_pct":null, "take_pct":null, "trail_pct":null, "max_hold_days":null, "alt":null or a ticker held when out of the market (e.g. "SHY"),\n' +
   ' "size":1 (share of capital when in a trade, 0-1), "benchmark":"SPY", "start":"YYYY-MM-DD", "cost_bps":5,\n' +
- ' "method":"fixed"|"equal"|"inverse_vol"|"risk_parity"|"min_variance"|"max_sharpe"|"hrp" (allocation weighting; "fixed" uses the weights above, the others re-estimate weights from the last "lookback" days at every rebalance), "lookback":252, "vol_target":null or an annual volatility % that positions are scaled down to (the rest sits in cash), "max_leverage":1,\n' +
+ ' "method":"fixed"|"equal"|"inverse_vol"|"risk_parity"|"min_variance"|"max_sharpe"|"hrp" (allocation weighting; "fixed" uses the weights above, the others re-estimate weights from the last "lookback" days at every rebalance), "lookback":252, "max_weight":null or the most any one asset may hold, in % (dynamic methods only), "vol_target":null or an annual volatility % that positions are scaled down to (the rest sits in cash), "max_leverage":1,\n' +
   ' "params":[{"id":"rsi_len","label":"RSI length","value":14,"min":2,"max":50,"step":1}],\n' +
   ' "projection":{"years":5,"drift":0,"volMult":1,"note":"why these settings"},\n' +
   ' "assumptions":["each assumption you had to make"], "unsupported":"anything you could not model, or empty"}\n\n' +
@@ -11937,6 +11937,7 @@ function qnDials(cur){
   if(cur.spec.type !== 'allocation') d.push({ id:'size', label:'Position size', min:.1, max:1, step:.05, v:cur.over.size != null ? cur.over.size : (cur.spec.size == null ? 1 : cur.spec.size), grp:'Test settings', fmt:function(v){ return Math.round(v * 100) + '%'; } });
   var meth = QN.method(cur.over.method || cur.spec.method), vtv = cur.over.vol_target != null ? cur.over.vol_target : (parseFloat(cur.spec.vol_target) || 0);
   d.push({ id:'vol_target', label:'Volatility target (0 = off)', min:0, max:40, step:1, v:vtv, grp:'Risk control', fmt:function(v){ return +v ? v + '%' : 'Off'; } });
+  if(cur.spec.type === 'allocation' && meth !== 'fixed' && meth !== 'equal') d.push({ id:'max_weight', label:'Max weight per asset (100 = no cap)', min:10, max:100, step:5, v:cur.over.max_weight != null ? cur.over.max_weight : (parseFloat(cur.spec.max_weight) || 100), grp:'Risk control', fmt:function(v){ return +v >= 100 ? 'No cap' : v + '%'; } });
   if((cur.spec.type === 'allocation' && meth !== 'fixed') || vtv) d.push({ id:'lookback', label:'Lookback (days)', min:60, max:504, step:21, v:cur.over.lookback != null ? cur.over.lookback : (+cur.spec.lookback || 252), grp:'Risk control' });
   d.push({ id:'years', label:'Projection years', min:1, max:15, step:1, v:cur.proj.years, grp:'Projection', proj:1 });
   d.push({ id:'drift', label:'Return shift (% a year)', min:-10, max:10, step:.5, v:cur.proj.drift, grp:'Projection', proj:1, fmt:function(v){ return (v > 0 ? '+' : '') + v + '%'; } });
@@ -12049,8 +12050,11 @@ function qnAllocInner(cur){
     return '<div class="qn-wr"><span>' + esc(sy) + '</span><div class="qn-bar"><i style="width:' + Math.min(100, a.weights[i] * 100).toFixed(1) + '%"></i></div><b>' + (a.weights[i] * 100).toFixed(1) + '%</b><em>' + (a.share ? a.share.share[i].toFixed(0) + '% of risk' : '') + '</em></div>';
   }).join('');
   if(a.exposure < 99.5) rows += '<div class="qn-wr"><span>Cash</span><div class="qn-bar"><i style="width:' + (100 - a.exposure).toFixed(1) + '%;opacity:.4"></i></div><b>' + (100 - a.exposure).toFixed(1) + '%</b><em></em></div>';
+  var top = Math.max.apply(null, a.weights), warn = '';
+  if(a.method === 'max_sharpe') warn = ' Max Sharpe leans on trailing average returns, which are noisy: treat the backtest as an upper bound and run the checks below.';
+  else if(a.method !== 'fixed' && a.method !== 'equal' && top > .6 && !a.maxWeight) warn = ' One holding carries ' + (top * 100).toFixed(0) + '%: these methods favour the lowest-risk asset. Use "Max weight per asset" to cap it.';
   return rows + '<div class="mut qn-fine">' + (a.method === 'fixed' ? 'Weights as written, rebalanced on schedule.' : 'Re-estimated at each rebalance from the previous ' + a.lookback + ' days (Ledoit-Wolf shrunk covariance), long only.') +
-    (a.share ? ' Portfolio volatility over that window: ' + a.share.vol.toFixed(1) + '%.' : '') + '</div>';
+    (a.maxWeight ? ' No asset above ' + a.maxWeight.toFixed(0) + '%.' : '') + (a.share ? ' Portfolio volatility over that window: ' + a.share.vol.toFixed(1) + '%.' : '') + warn + '</div>';
 }
 function qnAllocHTML(cur){
   var a = cur.bt.alloc; if(!a) return '';
@@ -12558,8 +12562,9 @@ function qnPDF(btn){
     y += 44; hr(y);
     var cx = M, cw = 170, nx = M + cw + 22, nw = CW - cw - 22, y0 = y + 16;
     txt('Contents', cx, y0, { s:9.5, b:1 });
-    ['Quant Note', 'Strategy Description', 'Strengths / Risks', 'Projection Drivers', 'Risk and Uncertainty', 'Projection', 'Risk Statistics', 'Monthly Returns', 'Trade Log', 'Appendix: Methodology'].forEach(function(c, k){ txt(c, cx, y0 + 15 + k * 13, { s:8.2 }); });
-    var yl = y0 + 15 + 10 * 13 + 4; doc.setDrawColor.apply(doc, rule); doc.line(cx, yl, cx + cw, yl);
+    var toc = ['Quant Note', 'Strategy Description', 'Strengths / Risks', 'Projection Drivers', 'Risk and Uncertainty', 'Projection', 'Risk Statistics', 'Monthly Returns', 'Trade Log', 'Appendix: Methodology'].concat(m.risk ? ['Tail Risk and Robustness'] : []);
+    toc.forEach(function(c, k){ txt(c, cx, y0 + 15 + k * 13, { s:8.2 }); });
+    var yl = y0 + 15 + toc.length * 13 + 4; doc.setDrawColor.apply(doc, rule); doc.line(cx, yl, cx + cw, yl);
     txt('About this report', cx, yl + 13, { s:7, b:1 });
     para('Rules were written by Marvell from your description and tested on daily prices. The Quant Rating compares risk-adjusted return (Sharpe) with the benchmark; Edge counts the calendar years it came out ahead; Uncertainty is the width of the one-year simulated range.', cx, yl + 23, cw, { s:6.4, c:grey, lh:8.2 });
     y = para(n.headline || cur.spec.title, nx, y0 + 4, nw, { s:15, lh:18 });
