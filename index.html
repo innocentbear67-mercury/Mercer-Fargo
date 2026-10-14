@@ -1928,10 +1928,14 @@ html{overflow-x:clip}
 .rsec-tog{flex:1;display:flex;align-items:center;gap:10px;min-width:0;padding:8px 10px 8px 6px;border:0;border-radius:12px;background:transparent;cursor:pointer;
   color:var(--fh-foreground-on-surface-emphasis);font-size:13.5px;font-weight:500;text-align:left;transition:background .15s}
 .rsec-tog:hover{background:var(--fh-states-neutral-hovered)}
-.rsec-ic{flex:0 0 auto;display:grid;place-items:center;width:28px;height:28px;border-radius:9px;color:var(--mf-gold);
-  background:linear-gradient(140deg,var(--mf-navy) 0%,var(--mf-navy-deep) 100%);box-shadow:inset 0 0 0 1px rgba(193,165,120,.35);transition:transform .25s}
-.rsec-tog:hover .rsec-ic{transform:rotate(-6deg) scale(1.06)}
-.rsec.open .rsec-ic{box-shadow:inset 0 0 0 1px var(--mf-gold)}
+.rsec-ic{flex:0 0 auto;display:grid;place-items:center;width:28px;height:28px;border-radius:22.5%;color:#fff;
+  background:linear-gradient(180deg,var(--t1) 0%,var(--t2) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.38),inset 0 -1px 0 rgba(0,0,0,.2),0 1px 2px rgba(0,0,0,.4);transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+.rsec-ic svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,.28))}
+.rsec[data-sec=pfs]{--t1:#e4c68c;--t2:#b08a4f}.rsec[data-sec=lists]{--t1:#f6ae5c;--t2:#e07a2c}.rsec[data-sec=market]{--t1:#62a9f7;--t2:#2f6fdb}
+.rsec[data-sec=insider]{--t1:#ab92fb;--t2:#7a5bd8}.rsec[data-sec=filings]{--t1:#98a2b3;--t2:#5f6a7c}.rsec[data-sec=smart]{--t1:#f8d052;--t2:#e69b1c}.rsec[data-sec=sectors]{--t1:#56d391;--t2:#2f9f66}
+.rsec-tog:hover .rsec-ic{transform:scale(1.07)}.rsec-tog:active .rsec-ic{transform:scale(.94)}
+.rsec.has-on .rsec-ic{box-shadow:inset 0 1px 0 rgba(255,255,255,.38),inset 0 -1px 0 rgba(0,0,0,.2),0 0 0 2px var(--fh-background-surface),0 0 0 3.5px var(--mf-gold)}
 .rsec-lbl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rsec-cnt{font-size:11.5px;font-weight:500;padding:1px 7px;border-radius:9px;background:var(--fh-states-neutral-hovered);color:var(--fh-foreground-on-surface-de-emphasis)}
 .rsec-tog .chev{flex:0 0 auto;color:var(--fh-foreground-on-surface-de-emphasis);transition:transform .25s}
@@ -2491,9 +2495,7 @@ html{overflow-x:clip}
   body.rail-min .rsec-tog{flex:0 0 auto;justify-content:center;padding:7px;gap:0}
   body.rail-min .rsec-lbl,body.rail-min .rsec-cnt,body.rail-min .rsec-tog .chev,body.rail-min .rsec-add,
   body.rail-min .rail-fold,body.rail-min .rail-foot{display:none}
-  body.rail-min .rsec-ic{width:34px;height:34px;border-radius:11px}
-  body.rail-min .rsec.open .rsec-ic{box-shadow:inset 0 0 0 1px rgba(193,165,120,.35)}
-  body.rail-min .rsec.has-on .rsec-ic{box-shadow:inset 0 0 0 2px var(--mf-gold),0 0 0 3px rgba(193,165,120,.18)}
+  body.rail-min .rsec-ic{width:36px;height:36px}
 }
 @media (max-width:1024px){ .rail-top{display:none} }
 
@@ -5106,6 +5108,17 @@ var SECTOR_ICON = {
   'Utilities':'M9 2v6H6v4a6 6 0 0 0 5 5.9V22h2v-4.1a6 6 0 0 0 5-5.9V8h-3V2h-2v6h-2V2H9z',
   'Real estate':'M12 3 2 12h3v8h5v-6h4v6h5v-8h3L12 3z'
 };
+/* Side-panel tile glyphs: white, 2px stroke on a 24 grid, sitting on an app-icon style tile (see .rsec-ic) */
+var RAIL_GLYPH = {
+  pfs:'<rect x="3" y="7" width="18" height="13" rx="3"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3 13h18"/>',
+  lists:'<path d="M4 6h12M4 12h8M4 18h6M17 13.5v6M14 16.5h6"/>',
+  market:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.2 3.2 3.2 14.8 0 18M12 3c-3.2 3.2-3.2 14.8 0 18"/>',
+  insider:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3" style="fill:currentColor"/>',
+  filings:'<path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM14 3v5h5M9 13h6M9 17h6"/>',
+  smart:'<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9l-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z" style="fill:currentColor"/>',
+  sectors:'<circle cx="12" cy="12" r="9"/><path d="M12 12V3a9 9 0 0 1 9 9z" style="fill:currentColor"/>'
+};
+function railGlyph(id, s){ return '<svg width="' + (s || 16) + '" height="' + (s || 16) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + RAIL_GLYPH[id] + '</svg>'; }
 function railSvg(d, s){ return '<svg width="' + (s || 18) + '" height="' + (s || 18) + '" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="' + d + '"/></svg>'; }
 /* A collapsible rail section. Open state is remembered per section; the section
    holding the current page always opens so the active item is never hidden. */
@@ -5114,7 +5127,7 @@ function railSec(id, label, count, body, opts){
   var open = opts.active || load('fh3_rail_' + id, opts.open !== false);
   return '<section class="rsec' + (open ? ' open' : '') + (opts.active ? ' has-on' : '') + '" data-sec="' + id + '"><div class="rsec-head">' +
     '<button class="rsec-tog" data-act="rail-sec" data-sec="' + id + '"' + (CFG.railMin ? '' : ' aria-expanded="' + open + '" aria-controls="rf_' + id + '"') + ' title="' + label + '">' +
-      '<span class="rsec-ic">' + railSvg(RAIL_ICON[id], 16) + '</span><span class="rsec-lbl">' + label + '</span>' +
+      '<span class="rsec-ic">' + railGlyph(id, 17) + '</span><span class="rsec-lbl">' + label + '</span>' +
       (count != null ? '<span class="rsec-cnt">' + count + '</span>' : '') +
       '<svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15.5 5 8.5 6.4 7.1 12 12.7l5.6-5.6L19 8.5z"/></svg></button>' +
     (opts.add ? '<button class="rsec-add" data-act="' + opts.add[0] + '" title="' + opts.add[1] + '" aria-label="' + opts.add[1] + '">' + railSvg('M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z', 16) + '</button>' : '') +
