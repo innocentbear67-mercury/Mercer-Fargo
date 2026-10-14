@@ -971,7 +971,7 @@ tr:hover .wl-add,.wl-add:focus-visible,.wl-add.on{opacity:1}
 @keyframes bl{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
 
 /* ---------- Menu / dialog / toast --------------------------------------- */
-.menu{position:fixed;z-index:70;min-width:240px;max-height:70vh;overflow-y:auto;background:var(--fh-background-surface-elevated);
+.menu{position:fixed;z-index:110;min-width:240px;max-height:70vh;overflow-y:auto;background:var(--fh-background-surface-elevated);
   border:1px solid var(--fh-border-stroke-default);border-radius:12px;box-shadow:var(--fh-elevation-3);padding:8px}
 .menu .mi{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;padding:11px 14px;border-radius:10px;font-size:14px;text-align:left;color:var(--fh-foreground-on-surface-default)}
 .menu a.mi{text-decoration:none;color:inherit;box-sizing:border-box}
@@ -14076,6 +14076,7 @@ function bindEvents(){
       case 'vault-open': case 'vault-graph': case 'vault-undo': case 'vault-new': case 'vault-edit': case 'vault-save': case 'vault-del': case 'vault-del-go': case 'vault-done': vaultAction(act, el); break;
       case 'mem-profile-save': case 'mem-rs-edit': case 'mem-rs-save': case 'mem-clear': case 'mem-export': memAction(act, el); break;
       case 'proxy-save': CFG.ocProxy = ($('ocProxy').value || '').trim().replace(/\/+$/, ''); saveCfg(); toast(CFG.ocProxy ? 'Proxy saved' : 'Proxy cleared'); break;
+      case 'keys-go': if($('drawer').classList.contains('full')) setFull(false); break;   // leave full-screen Marvell so the keys page is visible; the link itself navigates
       case 'signout': closeMenu(); acctSignOut(); toast('Signed out'); break;
       case 'signout-clear': if(confirm('Sign out and remove your portfolios, chats and research from this browser? They stay saved in your account.')){ closeMenu(); acctSignOut(true); } break;
       case 'cloud-sync': CLOUD.sync().then(function(r){ toast(r.changed ? 'Newer data was saved from another device. Refresh to see it.' : CLOUD.line()); }); break;
@@ -14303,7 +14304,7 @@ function bindEvents(){
   $('keysBtn').addEventListener('click', function(ev){
     ev.stopPropagation();
     var ok = aiReady() && KEY_OK !== false;
-    menu(this, '<div class="mhead">' + (ok ? 'Key Live' : 'Disconnected') + '</div><a class="mi" href="#/settings/ai">Manage keys</a>');
+    menu(this, '<div class="mhead">' + (ok ? 'Key Live' : 'Disconnected') + '</div><a class="mi" href="#/settings/ai" data-act="keys-go">Manage keys</a>');
   });
   $('moreBtn').addEventListener('click', function(ev){ ev.stopPropagation(); menu(this, moreMenuHTML()); });
   document.addEventListener('input', function(ev){ var t = ev.target;
