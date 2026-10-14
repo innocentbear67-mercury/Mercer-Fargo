@@ -202,6 +202,8 @@ frontmatter with `name` and `description`, then Markdown steps).
   the research harness can't create skills, so typing `/learn …` in Deep Research opens a new Agent
   session and drafts the skill there automatically.
 * **`/skills`** (built in): opens the manager (edit, delete, upload).
+* **Marvell also uses skills by itself.** The skill list is always visible to it; when a request clearly fits one it loads it with `skill_view`, and when a skill it followed proves wrong it patches it with `skill_manage`. After a hard multi-step task it can save a new skill. Typing `/name` still forces a skill.
+* **Self-improvement** follows Hermes Agent: two nudge counters (turns since memory was written, tool calls since a skill was) decide when a background review asks the model whether anything is worth keeping. The usual answer is nothing: lookups and number pulls are never saved.
 * Skills live in this browser's localStorage (`fh3_skills`). A skill sets the method and format
   only: it can't change app settings, and Marvell's data-only rules still apply.
 
