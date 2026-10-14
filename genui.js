@@ -436,7 +436,7 @@ function wrapN(s, n, max){
 }
 function rDiagram(b, key){
   var st = stOf(key), L = layout(b), flip = st.flip || {};
-  var outN = {}, inN = {}; b.edges.forEach(function(e){ outN[e.a] = (outN[e.a] || 0) + 1; inN[e.b] = (inN[e.b] || 0) + 1; });
+  var labels = '', outN = {}, inN = {}; b.edges.forEach(function(e){ outN[e.a] = (outN[e.a] || 0) + 1; inN[e.b] = (inN[e.b] || 0) + 1; });
   var svg = '<svg viewBox="-6 -6 ' + (L.W + 12) + ' ' + (L.H + 12) + '" class="iu-svg iu-dg" role="img" aria-label="' + esc(b.title || 'diagram') + '">' +
     '<defs><marker id="iua' + key.replace(/\W/g, '') + '" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="iu-arrow"/></marker></defs>';
   b.edges.forEach(function(e){
@@ -448,9 +448,13 @@ function rDiagram(b, key){
     /* labels of arrows that share a box sit at the spread-out end (near the target on a fan-out, near the source on a fan-in) so they do not stack */
     if(e.label){
       var t = outN[e.a] > 1 ? .8 : inN[e.b] > 1 ? .3 : .5, k = 3 * t * t - 2 * t * t * t, spread = t !== .5;
-      svg += '<text x="' + (x1 + (x2 - x1) * k + (spread ? 0 : 4)).toFixed(1) + '" y="' + (y1 + (y2 - y1) * k - 2).toFixed(1) + '" class="iu-ax"' + (spread ? ' text-anchor="middle"' : '') + '>' + esc(e.label) + '</text>';
+      var lw = e.label.length * 5.3 + 10, lx = x1 + (x2 - x1) * k + (spread ? 0 : 4 + lw / 2), ly = y1 + (y2 - y1) * k;
+      /* ponytail: label width is estimated from the character count (no text measuring in a string renderer) */
+      labels += '<rect x="' + (lx - lw / 2).toFixed(1) + '" y="' + (ly - 8).toFixed(1) + '" width="' + lw.toFixed(1) + '" height="14" rx="3" class="iu-lb"/>' +
+        '<text x="' + lx.toFixed(1) + '" y="' + (ly + 2.5).toFixed(1) + '" class="iu-ax iu-lt" text-anchor="middle">' + esc(e.label) + '</text>';
     }
   });
+  svg += labels;
   b.nodes.forEach(function(n){
     var p = L.pos[n.id], lines = wrap2(n.label, 16), cx = (p.x + p.w / 2).toFixed(1), back = n.detail ? wrapN(n.detail, 24, 5) : [];
     svg += '<g class="iu-node' + (n.detail ? ' tap' : '') + (flip[n.id] ? ' back' : '') + '" data-iu="node" data-key="' + esc(key) + '" data-id="' + esc(n.id) + '" tabindex="0" role="button" aria-label="' + esc(n.label) + (n.detail ? ' (tap to flip)' : '') + '">' +
