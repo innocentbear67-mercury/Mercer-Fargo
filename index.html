@@ -2667,6 +2667,9 @@ html{overflow-x:clip}
 .api-x{transform-box:fill-box;transform-origin:center;animation:apiX 2s ease-in-out infinite}
 @keyframes apiX{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
 /* 404 */
+.klink{margin-left:auto;font-size:12px;font-weight:600;color:var(--fh-primary,#b8903a);text-decoration:none;white-space:nowrap}.klink:hover{text-decoration:underline}
+.kg-steps{margin:0 0 10px;padding-left:20px;font-size:13px;line-height:1.55;display:flex;flex-direction:column;gap:4px}
+.kg-row{padding:8px 0;border-top:1px solid var(--fh-outline-variant,rgba(128,128,128,.2));font-size:13px;line-height:1.5}.kg-h{display:flex;align-items:center;gap:8px}
 .lk{max-width:560px;margin:40px auto;display:flex;flex-direction:column;gap:14px}.lk h2{margin:0}.lk p{margin:0;font-size:14px;line-height:1.5}
 .lk-step{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--fh-outline-variant,rgba(128,128,128,.25));border-radius:12px}
 .lk-step>b{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--fh-surface-container-high,rgba(128,128,128,.15));font-size:13px;flex:none}
@@ -11430,7 +11433,7 @@ function renderSettingsPage(sec){
   if(sec === 'profile') h = settingsProfileHTML();
   else if(sec === 'memory') h = memoryPageHTML();
   else if(sec === 'ai') h = '<div class="card"><h3 style="margin:0 0 4px">Default model</h3><div class="mut" id="keySummary" style="font-size:13px"></div><div class="eff-row"><span>Agent thinking effort</span>' + effBtnHTML('chat') + '</div><div class="pickmenu" id="pickMenuP"></div></div>' +
-    '<div class="card" id="keyCard"></div>' +
+    '<div class="card" id="keyCard"></div>' + keyGuideHTML() +
     '<div class="card"><h3 style="margin:0 0 4px">Visuals in Agent chat</h3><div class="mut" style="font-size:13px;margin-bottom:8px">Marvell can answer with charts, tables, diagrams, buttons, forms and things you can play with. It picks the format per question.</div>' +
     '<label class="field"><span>How many visuals</span><select class="inp" id="setVisuals">' +
     [['auto', 'Auto (recommended)'], ['less', 'Fewer'], ['off', 'Off, text only']].map(function(o){ return '<option value="' + o[0] + '"' + ((CFG.visuals || 'auto') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label></div>' +
@@ -12056,6 +12059,30 @@ function fbSend(kind){
 }
 
 /* ---- AI keys: one row per provider --------------------------------------- */
+/* Where each provider hands out keys: [console page, what to do there]. Mirrored in docs/api-keys.md. */
+var KEY_HELP = {
+  openrouter:['https://openrouter.ai/settings/keys', 'Sign in, press Create Key. Models marked free cost nothing; add credits at openrouter.ai/settings/credits for the rest. Best first choice.'],
+  openai:['https://platform.openai.com/api-keys', 'Create new secret key. The API is billed separately from a ChatGPT plan: add prepaid credit under Billing first.'],
+  anthropic:['https://platform.claude.com/settings/keys', 'Create Key. Billed separately from a Claude.ai plan: buy credits under Billing first.'],
+  xai:['https://console.x.ai', 'Open API Keys in the console and create one. Add credits to the team before it works.'],
+  gemini:['https://aistudio.google.com/apikey', 'Sign in with Google and press Create API key. A free tier is included, with rate limits.'],
+  deepseek:['https://platform.deepseek.com/api_keys', 'Create new API key, then top up your balance at platform.deepseek.com/top_up.'],
+  groq:['https://console.groq.com/keys', 'Create API Key. A free tier is included, with rate limits.'],
+  'opencode-go':['https://opencode.ai/auth', 'Sign in, subscribe to Go, and copy your key. A Go key only works on the OpenCode Go provider.'],
+  opencode:['https://opencode.ai/auth', 'Sign in, add balance for Zen, and copy your key. A Zen key only works on the OpenCode Zen provider.'],
+  custom:['', 'Any service that speaks the OpenAI chat-completions format, such as a local Ollama or LM Studio. Paste its full endpoint URL below the key box; local servers accept any text as the key.']
+};
+function keyLink(p){ var h = KEY_HELP[p]; return h && h[0] ? '<a class="klink" href="' + h[0] + '" target="_blank" rel="noopener noreferrer">Get a key \u2197</a>' : ''; }
+function keyGuideHTML(){
+  return '<div class="card" id="keyGuide"><h3 style="margin:0 0 4px">How to get a key</h3>' +
+    '<div class="mut" style="font-size:13px;margin-bottom:8px">An API key is a private password that lets Marvell use an AI model on your own account. You pay the provider directly, and MercerFargo never sees the key.</div>' +
+    '<ol class="kg-steps"><li><b>Pick a provider.</b> New here? Start with OpenRouter (free models) or Gemini (free tier).</li>' +
+    '<li><b>Open its key page</b> from the list below, sign in or sign up, and create a key. Most providers show it only once, so copy it straight away.</li>' +
+    '<li><b>Add credit if the provider asks.</b> Paid APIs need a balance, and a chat subscription such as ChatGPT or Claude.ai does not cover the API.</li>' +
+    '<li><b>Paste it above, then Save and Test.</b> The row shows Connected when it works. The first key you save becomes your default.</li></ol>' +
+    AI_PROVS.map(function(pv){ var h = KEY_HELP[pv[0]] || ['', '']; return '<div class="kg-row"><div class="kg-h"><b>' + esc(pv[1]) + '</b>' + keyLink(pv[0]) + '</div><div class="mut">' + h[1] + '</div></div>'; }).join('') +
+    '<div class="mut" style="font-size:12px;margin-top:10px">Never share a key or post it online. If one leaks, delete it on the provider\u2019s key page and create a new one. Provider pages and prices change, so check their own docs if a step looks different.</div></div>';
+}
 function paintKeysPage(){
   var card = $('keyCard'); if(!card) return;
   if($('keySummary')) $('keySummary').textContent = aiPickText();
@@ -12064,7 +12091,7 @@ function paintKeysPage(){
     ' Keys are sent only to the provider they belong to.</div>' +
     AI_PROVS.map(function(pv){
     var p = pv[0], k = (KEYS.keysBy || {})[p] || '', def = p === KEYS.provider;
-    return '<div class="krow"><div class="khead"><i class="kdot' + (k ? ' on' : '') + '"></i><b>' + esc(pv[1]) + '</b>' + (def ? '<span class="ktag">default</span>' : '') + '<span class="mut kmsg" id="km-' + p + '"></span></div>' +
+    return '<div class="krow"><div class="khead"><i class="kdot' + (k ? ' on' : '') + '"></i><b>' + esc(pv[1]) + '</b>' + (def ? '<span class="ktag">default</span>' : '') + '<span class="mut kmsg" id="km-' + p + '"></span>' + keyLink(p) + '</div>' +
       '<div class="key-row"><input class="inp" id="ki-' + p + '" type="password" autocomplete="off" placeholder="paste ' + esc(pv[1]) + ' key" value="' + esc(k) + '">' +
       '<button class="btn filled sm" data-act="key-save" data-p="' + p + '">Save</button>' +
       '<button class="btn sm" data-act="key-test" data-p="' + p + '"' + (k ? '' : ' disabled') + '>Test</button>' +

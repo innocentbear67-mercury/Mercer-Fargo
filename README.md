@@ -251,6 +251,7 @@ harness.js                 Marvell's agent loop: provider adapters, tools, sourc
 genui.js                   Intelligent UI: draws the charts, tables, diagrams, forms and explorers Agent chat answers with
 genui.test.mjs             node --test genui.test.mjs (parsing, formulas, escaping, limits)
 docs/marvell-guide.md      the app guide Marvell reads with its read_docs tool
+docs/api-keys.md          how to get an AI key, with each provider's console link
 serve.py                   static server, /proxy allow-list, /api/search and /api/read
 worker/                    Cloudflare worker: charts, feed relay, web search and page reading
 README.md                  this file

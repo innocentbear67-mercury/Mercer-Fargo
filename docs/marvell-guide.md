@@ -241,6 +241,7 @@ Steps: pick a provider, paste the key, **Save**, **Test** (the dot turns green w
 OpenRouter lists free models (marked *free*) — a good start for new users. *Refresh models* pulls the live catalog; *Add custom model…* stores other ids.
 Keys stay in this browser and go only to the chosen provider. OpenCode Go/Zen need `serve.py` or the relay; a Go key must use the OpenCode Go provider.
 Thinking is always on: every request asks the model to reason at the chosen effort (Minimal → Ultra). Models that cannot reason just answer.
+Where to get a key (sign in, create a key, add credit if needed): OpenRouter https://openrouter.ai/settings/keys (free models), OpenAI https://platform.openai.com/api-keys, Anthropic https://platform.claude.com/settings/keys, xAI https://console.x.ai, Gemini https://aistudio.google.com/apikey (free tier), DeepSeek https://platform.deepseek.com/api_keys, Groq https://console.groq.com/keys (free tier), OpenCode Go/Zen https://opencode.ai/auth. A ChatGPT or Claude.ai subscription does not include API access. Settings → AI & API keys has a *Get a key* link on every row and a step-by-step card.
 Errors usually mean a wrong key, a wrong model name, no credits, or a provider that blocks browser calls.
 
 ## accounts-and-profile
