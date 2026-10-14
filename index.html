@@ -11925,6 +11925,7 @@ function qnNoteCheck(cur, j, raw, again){
 
 /* ---- painting */
 function qnStars(n, size){ var s = ''; for(var i = 1; i <= 5; i++) s += '<span class="' + (i <= n ? 'on' : '') + '">★</span>'; return '<span class="qn-stars" style="font-size:' + (size || 14) + 'px" title="' + n + ' of 5">' + s + '</span>'; }
+function qnLoss(v, d){ return v == null || !isFinite(v) ? '—' : (v > 0 ? '−' : v < 0 ? '+' : '') + Math.abs(v).toFixed(d == null ? 2 : d) + '%'; }
 function qnPct(v, d){ return v == null || !isFinite(v) ? '—' : (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(d == null ? 1 : d) + '%'; }
 function qnTheme(){ return document.documentElement.getAttribute('data-theme') === 'dark' ? QN.THEMES.dark : QN.THEMES.light; }
 function qnDials(cur){
@@ -11934,7 +11935,7 @@ function qnDials(cur){
   if(y1 > y0) d.push({ id:'start', label:'Start year', min:y0, max:y1, step:1, v:Math.max(y0, Math.min(y1, sy)), grp:'Test settings', fmt:function(v){ return String(v); } });
   d.push({ id:'cost_bps', label:'Trading cost (bps per side)', min:0, max:50, step:1, v:cur.over.cost_bps != null ? cur.over.cost_bps : (cur.spec.cost_bps || 0), grp:'Test settings' });
   if(cur.spec.type !== 'allocation') d.push({ id:'size', label:'Position size', min:.1, max:1, step:.05, v:cur.over.size != null ? cur.over.size : (cur.spec.size == null ? 1 : cur.spec.size), grp:'Test settings', fmt:function(v){ return Math.round(v * 100) + '%'; } });
-  var meth = cur.over.method || cur.spec.method || 'fixed', vtv = cur.over.vol_target != null ? cur.over.vol_target : (+cur.spec.vol_target || 0);
+  var meth = QN.method(cur.over.method || cur.spec.method), vtv = cur.over.vol_target != null ? cur.over.vol_target : (parseFloat(cur.spec.vol_target) || 0);
   d.push({ id:'vol_target', label:'Volatility target (0 = off)', min:0, max:40, step:1, v:vtv, grp:'Risk control', fmt:function(v){ return +v ? v + '%' : 'Off'; } });
   if((cur.spec.type === 'allocation' && meth !== 'fixed') || vtv) d.push({ id:'lookback', label:'Lookback (days)', min:60, max:504, step:21, v:cur.over.lookback != null ? cur.over.lookback : (+cur.spec.lookback || 252), grp:'Risk control' });
   d.push({ id:'years', label:'Projection years', min:1, max:15, step:1, v:cur.proj.years, grp:'Projection', proj:1 });
@@ -11944,7 +11945,7 @@ function qnDials(cur){
 }
 function qnMethodHTML(cur){
   if(cur.spec.type !== 'allocation') return '';
-  var cm = cur.over.method || cur.spec.method || 'fixed';
+  var cm = QN.method(cur.over.method || cur.spec.method);
   return '<div class="qn-dgrp">Weighting</div><label class="qn-dial"><span>Method</span><select class="inp" data-qm="1">' + Object.keys(QN.METHODS).map(function(k){
     return '<option value="' + k + '"' + (k === cm ? ' selected' : '') + '>' + esc(QN.METHODS[k]) + '</option>'; }).join('') + '</select><span></span></label>';
 }
@@ -11963,7 +11964,7 @@ function qnStatsHTML(cur){
     t('Max drawdown', qnPct(m.s.maxdd), 'Benchmark ' + qnPct(m.b.maxdd), m.s.maxdd >= m.b.maxdd ? 'up' : 'down') +
     t('Volatility', m.s.vol.toFixed(1) + '%', 'Benchmark ' + m.b.vol.toFixed(1) + '%') +
     t('Trades', String(m.trades), m.winRate != null ? m.winRate.toFixed(0) + '% won · ' + m.exposure.toFixed(0) + '% invested' : m.exposure.toFixed(0) + '% invested') +
-    (m.risk ? t('VaR 95%', '−' + m.risk.var95.toFixed(2) + '%', 'a 1-in-20 day or worse', 'down') + t('CVaR 95%', '−' + m.risk.cvar95.toFixed(2) + '%', 'average of those worst days', 'down') +
+    (m.risk ? t('VaR 95%', qnLoss(m.risk.var95), 'a 1-in-20 day or worse', 'down') + t('CVaR 95%', qnLoss(m.risk.cvar95), 'average of those worst days', 'down') +
       t('Omega', m.risk.omega == null ? '—' : m.risk.omega.toFixed(2), 'gains ÷ losses', m.risk.omega > 1 ? 'up' : 'down') +
       t('Info ratio', m.risk.ir == null ? '—' : m.risk.ir.toFixed(2), 'tracking error ' + (m.risk.te == null ? '—' : m.risk.te.toFixed(1) + '%'), m.risk.ir > 0 ? 'up' : 'down') +
       t('Treynor', m.risk.treynor == null ? '—' : qnPct(m.risk.treynor), 'excess return per unit of beta') +
@@ -12096,11 +12097,12 @@ function qnVolHTML(cur){
   var v = cur.vol && cur.vol.key === qnKey(cur) ? cur.vol.res : null;
   if(!v) return head + (cur.vol ? '<p class="mut qn-fine">The dials changed since the last run.</p>' : '') + '<p class="qn-fine mut">Compares how volatile the strategy has been lately with models that forecast it (EWMA and GARCH), and lets the projection use the GARCH forecast instead of a fixed multiplier. High-low-open-close estimators are shown for ' + esc(cur.bt.main) + '.</p><button class="btn filled sm" data-act="qn-vol">Run the models</button>' + tail;
   var g = v.garch, f = function(x){ return x == null ? '—' : x.toFixed(1) + '%'; }, rows = [['Realized, last 21 days', f(v.realized21), ''], ['Realized, last 63 days', f(v.realized63), ''], ['Whole test period', f(v.full), 'what the projection assumes at ×1.0'], ['EWMA (λ 0.94)', f(v.ewma), 'RiskMetrics-style, reacts in weeks']];
+  if(g && !g.reliable) rows.push(['GARCH fit', 'unreliable', 'the fit sits at the edge of its search range, so the three GARCH lines below are indicative only']);
   if(g){ rows.push(['GARCH(1,1) today', f(g.nowVol), 'persistence ' + g.persistence.toFixed(3) + (g.halfLife ? ' · shocks fade by half in ~' + Math.round(g.halfLife) + ' days' : '')]); rows.push(['GARCH long-run', f(g.longRunVol), 'where it settles']); rows.push(['GARCH, next 12 months (average)', f(g.nextYearVol), 'the forecast for the projection']); }
   if(v.range){ var sy = esc(cur.bt.main); rows.push(['Parkinson · ' + sy + ', 63 days', f(v.range.parkinson), 'uses the daily high and low']); rows.push(['Garman-Klass · ' + sy, f(v.range.garmanKlass), 'adds open and close']); rows.push(['Yang-Zhang · ' + sy, f(v.range.yangZhang), 'also handles overnight gaps']); }
-  var mult = g && v.full ? Math.max(.5, Math.min(2.5, Math.round(g.nextYearVol / v.full * 10) / 10)) : null;
+  var mult = g && g.reliable && v.full ? Math.max(.5, Math.min(2.5, Math.round(g.nextYearVol / v.full * 10) / 10)) : null;
   return head + '<table class="qn-tbl">' + rows.map(function(x){ return '<tr><td>' + esc(x[0]) + (x[2] ? '<i>' + esc(x[2]) + '</i>' : '') + '</td><td>' + esc(x[1]) + '</td></tr>'; }).join('') + '</table>' +
-    (mult != null ? '<button class="btn filled sm" data-act="qn-vol-use" data-mult="' + mult + '">Use the GARCH forecast in the projection (×' + mult.toFixed(1) + ')</button>' : '<p class="mut qn-fine">Not enough history for GARCH.</p>') + tail;
+    (mult != null ? '<button class="btn filled sm" data-act="qn-vol-use" data-mult="' + mult + '">Use the GARCH forecast in the projection (×' + mult.toFixed(1) + ')</button>' : '<p class="mut qn-fine">' + (g ? 'The GARCH fit is not reliable on this history, so the projection keeps its own volatility setting.' : 'GARCH needs about two years of daily returns.') + '</p>') + tail;
 }
 function qnVolPaint(){ var cur = QS.cur, el = $('qnVol'); if(cur && el) el.outerHTML = qnVolHTML(cur); }
 function qnRunVol(){
@@ -12622,7 +12624,7 @@ function qnPDF(btn){
       doc.addPage(); head(5); y = 136;
       var rk = m.risk, rv = cur.val && cur.val.key === qnKey(cur) ? cur.val.res : null, g2 = function(v, d){ return v == null || !isFinite(v) ? '—' : v.toFixed(d); };
       y = sec('Tail Risk and Quality (daily returns)', y);
-      var L5 = [['Measure', 'Strategy'], ['VaR 95%, 1 day', '-' + g2(rk.var95, 2) + '%'], ['CVaR 95%, 1 day', '-' + g2(rk.cvar95, 2) + '%'], ['Normal-model VaR 95%', '-' + g2(rk.varNormal95, 2) + '%'], ['Worst day', g2(rk.worstDay, 2) + '%'],
+      var L5 = [['Measure', 'Strategy'], ['VaR 95%, 1 day', qnLoss(rk.var95)], ['CVaR 95%, 1 day', qnLoss(rk.cvar95)], ['Normal-model VaR 95%', qnLoss(rk.varNormal95)], ['Worst day', g2(rk.worstDay, 2) + '%'],
         ['Omega', g2(rk.omega, 2)], ['Gain-to-pain', g2(rk.gainToPain, 2)], ['Skew', g2(rk.skew, 2)], ['Kurtosis (normal = 3)', g2(rk.kurt, 1)], ['Information ratio', g2(rk.ir, 2)], ['Tracking error', g2(rk.te, 1) + '%'],
         ['Treynor (excess return per beta)', rk.treynor == null ? '—' : qnPct(rk.treynor)], ['Jensen alpha (per year)', rk.jensen == null ? '—' : qnPct(rk.jensen)]].concat(m.profitFactor != null ? [['Profit factor', g2(m.profitFactor, 2)]] : []);
       table(L5, M, y, [150, 80], { head:1 });

@@ -44,11 +44,12 @@ test('normal cdf and inverse match textbook values', () => {
 });
 
 test('tail stats: CVaR is worse than VaR, omega and gain-to-pain follow the mean', () => {
-  const r = series(2000, .0005, .01, 3), s = QN.riskStats(r, series(2000, .0003, .01, 4), 0);
+  const r = series(2000, .0005, .01, 3), bm = series(2000, .0003, .01, 4).map((x, i) => x + .6 * r[i]), s = QN.riskStats(r, bm, 0);
   assert.ok(s.cvar95 > s.var95 && s.var95 > 0);
   near(s.var95, s.varNormal95, .4);                        // near-normal data: historical and normal VaR agree
   assert.ok(s.omega > 1 && s.gainToPain > 0);
   assert.ok(QN.riskStats(series(2000, -.0005, .01, 5), null, 0).omega < 1);
+  assert.equal(QN.riskStats(r, series(2000, 0, .01, 99), 0).treynor, null);   // beta about 0: Treynor is undefined, not a huge number
   assert.ok(Number.isFinite(s.ir) && Number.isFinite(s.treynor) && s.te > 0);
 });
 
@@ -103,4 +104,54 @@ test('sensitivity grid and validate() on a rule with dials', () => {
   const al = QN.align(data, 'SPY', QN.symbols(spec)), bt = QN.backtest(spec, al), sens = QN.sensitivity(spec, al, {});
   assert.equal(sens.grid.length, sens.ys.length); assert.equal(sens.trials, sens.xs.length * sens.ys.length);
   const v = QN.validate(bt, sens, 0); assert.ok(v.psr >= 0 && v.psr <= 1 && v.dsr <= v.psr + 1e-9 && v.boot && v.hold);
+});
+
+// ---- stress-test regressions
+test('risk parity is equal-risk on CORRELATED assets and does not depend on listing order', () => {
+  const g = gauss(rnd(77)), n = 750, f1 = Array.from({ length: n }, g), f2 = Array.from({ length: n }, g);
+  const X = Array.from({ length: 6 }, (_, i) => Array.from({ length: n }, (_, k) => .0003 * (1 + i % 3) + (.007 + .003 * i) * ((i < 3 ? .7 : .2) * f1[k] + (i >= 3 ? .7 : .2) * f2[k] + .5 * g())));
+  QN.riskShare(QN.weights('risk_parity', X), X).share.forEach((v) => near(v, 100 / 6, 1.2));
+  for (const m of ['equal', 'inverse_vol', 'risk_parity', 'min_variance', 'max_sharpe', 'hrp']) {
+    const ref = QN.weights(m, X), pm = [5, 3, 0, 4, 1, 2], w = QN.weights(m, pm.map((i) => X[i]));
+    pm.forEach((i, k) => near(w[k], ref[i], 1e-6));
+  }
+});
+
+test('min-variance and max-Sharpe match a brute-force search of the simplex', () => {
+  const g = gauss(rnd(2024)), n = 750, p = 4, f = Array.from({ length: n }, g);
+  const X = [0, 1, 2, 3].map((i) => Array.from({ length: n }, (_, k) => .0003 * (i + 1) + (.008 + .004 * i) * (.6 * f[k] * (i % 2 ? 1 : .8) + .8 * g())));
+  const { S, mu } = QN.shrink(X), q = (w) => w.reduce((a, wi, i) => a + wi * w.reduce((b, wj, j) => b + wj * S[i][j], 0), 0), gm = mu.reduce((a, b) => a + b) / p, mus = mu.map((m) => .5 * m + .5 * gm);
+  let bv = Infinity, bs = -Infinity;
+  for (let a = 0; a <= 30; a++) for (let b = 0; a + b <= 30; b++) for (let c = 0; a + b + c <= 30; c++) { const w = [a, b, c, 30 - a - b - c].map((x) => x / 30); bv = Math.min(bv, q(w)); bs = Math.max(bs, w.reduce((s, wi, i) => s + wi * mus[i], 0) / Math.sqrt(q(w))); }
+  assert.ok(q(QN.weights('min_variance', X)) <= bv * 1.002);
+  const ms = QN.weights('max_sharpe', X); assert.ok(ms.reduce((s, wi, i) => s + wi * mus[i], 0) / Math.sqrt(q(ms)) >= bs * .998);
+});
+
+test('degenerate inputs: flat series, bad settings and unknown names do not break or short the book', () => {
+  assert.equal(QN.garch(new Array(500).fill(0)), null);
+  assert.equal(QN.garch(new Array(500).fill(.001)), null);
+  const spec = (x) => ({ type: 'allocation', assets: [{ sym: 'SPY', weight: 1 }, { sym: 'TLT', weight: 1 }], rebalance: 'monthly', benchmark: 'SPY', cost_bps: 0, start: '2016-01-01', ...x });
+  const al = QN.align(data, 'SPY', ['SPY', 'TLT']);
+  assert.ok(QN.backtest(spec({ vol_target: -5 }), al).alloc.exposure > 0);                       // negative target is ignored, never a short
+  assert.ok(QN.backtest(spec({ vol_target: 100, max_leverage: 50 }), al).alloc.exposure <= 300 + 1e-9);   // leverage capped at 3x
+  near(QN.backtest(spec({ method: 'nonsense' }), al).alloc.weights[0], .5, 1e-9);                // unknown method = written weights
+  assert.equal(QN.backtest(spec({ method: 'hrp', lookback: 1 }), al).alloc.lookback, 60);        // too-short window is raised, not silently ignored
+  const r = QN.riskStats(new Array(300).fill(0), new Array(300).fill(0), 0); assert.equal(r.omega, null);
+  assert.equal(QN.psr(new Array(300).fill(0), 0), null);
+});
+
+test('range volatility ignores a close/open price-basis offset (adjusted closes vs raw open/high/low)', () => {
+  const sg = .01, sub = 60, gg = gauss(rnd(22)), bars = { o: [], h: [], l: [], c: [] }; let px = 100;
+  for (let d = 0; d < 400; d++) { const o = px; let hi = px, lo = px; for (let k = 0; k < sub; k++) { px *= Math.exp(sg / Math.sqrt(sub) * gg()); hi = Math.max(hi, px); lo = Math.min(lo, px); } bars.o.push(o); bars.h.push(hi); bars.l.push(lo); bars.c.push(px); }
+  const clean = QN.rangeVol(bars, 300), off = QN.rangeVol({ ...bars, c: bars.c.map((x) => x * .97) }, 300), drift = QN.rangeVol({ ...bars, c: bars.c.map((x, i) => x * (1 - .0001 * i)) }, 300), step = QN.rangeVol({ ...bars, c: bars.c.map((x, i) => x * (i < 200 ? .90 : .97)) }, 300);
+  for (const k of ['parkinson', 'garmanKlass', 'yangZhang']) { near(off[k] / clean[k], 1, .03); near(drift[k] / clean[k], 1, .12); near(step[k] / clean[k], 1, .1); }
+});
+
+test('the engine reads the way a model writes the spec: method aliases, "10%", "252 days"', () => {
+  for (const [name, id] of [['Risk Parity', 'risk_parity'], ['ERC', 'risk_parity'], ['min-var', 'min_variance'], ['Hierarchical Risk Parity', 'hrp'], ['equal weight', 'equal'], ['Inverse Volatility', 'inverse_vol'], ['tangency', 'max_sharpe'], ['???', 'fixed'], [undefined, 'fixed']]) assert.equal(QN.method(name), id);
+  const al = QN.align(data, 'SPY', ['SPY', 'TLT']), spec = { type: 'allocation', assets: [{ sym: 'SPY', weight: 1 }, { sym: 'TLT', weight: 1 }], rebalance: 'monthly', benchmark: 'SPY', cost_bps: 0, start: '2016-01-01' };
+  const a = QN.backtest({ ...spec, method: 'Risk Parity', lookback: '252 days', vol_target: '1%' }, al), b = QN.backtest({ ...spec, method: 'risk_parity', lookback: 252, vol_target: 1 }, al);
+  assert.equal(a.eq.at(-1), b.eq.at(-1));
+  assert.ok(a.alloc.volTarget === 1 && a.alloc.exposure < 100);   // the string target really bit (not silently ignored)
+  assert.equal(a.alloc.method, 'risk_parity');
 });

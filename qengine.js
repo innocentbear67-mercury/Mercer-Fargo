@@ -138,9 +138,11 @@ QN.backtest = function(spec, al, over){
   var stop = val(spec.stop_pct, P), take = val(spec.take_pct, P), trail = val(spec.trail_pct, P), maxHold = val(spec.max_hold_days, P);
   var side = spec.side === 'short' ? -1 : 1, mc = al.bars[main].c, lastReb = '';
   /* weighting method (allocation) and volatility targeting (both types): weights come from the trailing `lookback` days and are refreshed on the rebalance dates only */
-  var method = String((over && over.method) || spec.method || 'fixed'), rfp = val(spec.rf, P) || 0, curKey = '', memoK = null, memoW = null, aSyms = [];
-  var lb = Math.max(30, Math.round(+val(over && over.lookback != null ? over.lookback : (spec.lookback || 252), P) || 252));
-  var vt = +val(over && over.vol_target != null ? over.vol_target : spec.vol_target, P) || 0, maxLev = Math.max(.1, +val(spec.max_leverage, P) || 1);
+  var method = QN.method((over && over.method) || spec.method);   // unknown names fall back to the written weights
+  var pnum = function(v){ var x = parseFloat(typeof v === 'string' && v.charAt(0) !== '$' ? v : val(v, P)); return isFinite(x) ? x : 0; };   // "10%" and "252 days" are read as numbers
+  var rfp = val(spec.rf, P) || 0, curKey = '', memoK = null, memoW = null, aSyms = [];
+  var lb = Math.max(60, Math.round(pnum(over && over.lookback != null ? over.lookback : (spec.lookback || 252)) || 252));
+  var vt = Math.max(0, pnum(over && over.vol_target != null ? over.vol_target : spec.vol_target)), maxLev = Math.min(3, Math.max(.1, pnum(spec.max_leverage) || 1));   // ponytail: leverage is capped at 3x and borrowing is not charged
   if(spec.type === 'allocation') spec.assets.forEach(function(a){ var s = String(a.sym).toUpperCase(); if(aSyms.indexOf(s) < 0) aSyms.push(s); });
   var winX = function(syms, i){ var a = Math.max(1, i - lb + 1); return syms.map(function(s){ return R[s].slice(a, i + 1); }); };
   var volScale = function(t, i){
@@ -264,7 +266,7 @@ QN.riskStats = function(r, b, rf){
     for(var i = 0; i < n; i++){ vb += (b[i] - mb) * (b[i] - mb); cv += (r[i] - ms) * (b[i] - mb); }
     var beta = vb ? cv / vb : 0;
     o.te = te * 100; o.ir = te ? mean(act) * DAY / te : null;
-    o.treynor = beta ? (ms * DAY - (rf || 0) / 100) / beta * 100 : null;   // % of excess return per unit of beta
+    o.treynor = Math.abs(beta) >= .1 ? (ms * DAY - (rf || 0) / 100) / beta * 100 : null;   // % of excess return per unit of beta; undefined when beta is about 0
     o.jensen = (ms - beta * mb) * DAY * 100;
   }
   return o;
@@ -361,12 +363,13 @@ function longOnly(S, v){
   return null;
 }
 function ercW(S){
-  var p = S.length, w = S.map(function(r, i){ return 1 / Math.sqrt(r[i]); }), tot = w.reduce(function(a, b){ return a + b; }, 0); w = w.map(function(x){ return x / tot; });
-  for(var it = 0; it < 300; it++){
-    for(var i = 0; i < p; i++){ var c = 0; for(var j = 0; j < p; j++) if(j !== i) c += w[j] * S[i][j]; w[i] = (-c + Math.sqrt(c * c + 4 * S[i][i] / p)) / (2 * S[i][i]); }   // coordinate update so every asset carries 1/p of the risk
-    tot = w.reduce(function(a, b){ return a + b; }, 0); w = w.map(function(x){ return x / tot; });
+  var p = S.length, b = S.reduce(function(a, r, i){ return a + r[i]; }, 0) / p / p, w = S.map(function(r, i){ return Math.sqrt(b / r[i]); }), i, j, it, tot;   // b: the same risk target for every asset
+  for(it = 0; it < 500; it++){
+    var move = 0;
+    for(i = 0; i < p; i++){ var c = 0; for(j = 0; j < p; j++) if(j !== i) c += w[j] * S[i][j]; var nw = (-c + Math.sqrt(c * c + 4 * S[i][i] * b)) / (2 * S[i][i]); move = Math.max(move, Math.abs(nw - w[i]) / nw); w[i] = nw; }   // solves w_i * (S w)_i = b; not normalised while iterating (the target b fixes the scale)
+    if(move < 1e-12) break;
   }
-  return w;
+  tot = w.reduce(function(a, x){ return a + x; }, 0); return w.map(function(x){ return x / tot; });
 }
 function hrpW(S){   // Hierarchical Risk Parity (Lopez de Prado 2016): cluster by correlation, then split risk down the tree
   var p = S.length; if(p === 1) return [1]; if(p === 2){ var a = 1 / S[0][0], b = 1 / S[1][1]; return [a / (a + b), b / (a + b)]; }
@@ -386,6 +389,11 @@ function hrpW(S){   // Hierarchical Risk Parity (Lopez de Prado 2016): cluster b
     l.forEach(function(x){ w[x] *= al; }); r.forEach(function(x){ w[x] *= 1 - al; }); groups.push(l, r); }
   return w;
 }
+/* The model may write "Risk Parity", "ERC" or "min-var": map the usual names onto the engine's. */
+var ALIAS = { erc:'risk_parity', equal_risk:'risk_parity', equal_risk_contribution:'risk_parity', riskparity:'risk_parity', inverse_volatility:'inverse_vol', inverse_variance:'inverse_vol', invvol:'inverse_vol', ivp:'inverse_vol',
+  minimum_variance:'min_variance', min_var:'min_variance', minvar:'min_variance', gmv:'min_variance', global_minimum_variance:'min_variance', maximum_sharpe:'max_sharpe', tangency:'max_sharpe', max_sharpe_ratio:'max_sharpe',
+  hierarchical_risk_parity:'hrp', equal_weight:'equal', equal_weighted:'equal', equally_weighted:'equal', fixed_weights:'fixed', none:'fixed', static:'fixed' };
+QN.method = function(m){ var k = String(m == null ? '' : m).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''); return QN.METHODS[k] ? k : (ALIAS[k] || 'fixed'); };
 QN.METHODS = { fixed:'Fixed weights', equal:'Equal weight', inverse_vol:'Inverse volatility', risk_parity:'Risk parity (equal risk)', min_variance:'Minimum variance', max_sharpe:'Maximum Sharpe', hrp:'Hierarchical risk parity' };
 /* Weights for `method` from X (assets x days of daily returns). Falls back to equal weight if the maths cannot be solved. */
 QN.weights = function(method, X, rf){
@@ -413,25 +421,37 @@ QN.riskShare = function(w, X){
 function annual(v){ return Math.sqrt(Math.max(0, v) * DAY) * 100; }
 /* Garch(1,1) by Gaussian likelihood with variance targeting (long-run variance = sample variance), a coarse grid then a finer one. */
 QN.garch = function(r){
-  var n = r.length; if(n < 120) return null;
+  var n = r.length; if(n < 500) return null;   // under about two years the fit hugs the edge of the search and means nothing
   var m = mean(r), e = r.map(function(x){ return x - m; }), V = e.reduce(function(s, x){ return s + x * x; }, 0) / n;
+  if(!(V > 1e-12)) return null;   // flat series (a strategy that never trades): nothing to model
   var ll = function(al, be){ var h = V, s = 0; for(var t = 0; t < n; t++){ s += Math.log(h) + e[t] * e[t] / h; h = V * (1 - al - be) + al * e[t] * e[t] + be * h; } return -s / 2; };
   var best = null;
   var scan = function(a0, a1, b0, b1, k){ for(var i = 0; i <= k; i++) for(var j = 0; j <= k; j++){ var al = a0 + (a1 - a0) * i / k, be = b0 + (b1 - b0) * j / k; if(al <= 0 || be < 0 || al + be >= .9995) continue; var l = ll(al, be); if(!best || l > best.l) best = { al:al, be:be, l:l }; } };
   scan(.01, .25, .5, .98, 24); var a = best.al, b = best.be; scan(Math.max(.002, a - .02), a + .02, Math.max(0, b - .03), Math.min(.998, b + .03), 12);
   var al = best.al, be = best.be, h = V; for(var t = 0; t < n; t++) h = V * (1 - al - be) + al * e[t] * e[t] + be * h;   // h is now tomorrow's variance
   var per = al + be, avg = 0, hh = h; for(var d = 0; d < DAY; d++){ avg += hh; hh = V + per * (hh - V); }
-  return { alpha:al, beta:be, persistence:per, halfLife:per < 1 ? Math.log(.5) / Math.log(per) : null, longRunVol:annual(V), nowVol:annual(h), nextYearVol:annual(avg / DAY) };
+  return { reliable:!(be < .52 || al > .245 || al < .012 || per > .998), alpha:al, beta:be, persistence:per, halfLife:per < 1 ? Math.log(.5) / Math.log(per) : null, longRunVol:annual(V), nowVol:annual(h), nextYearVol:annual(avg / DAY) };
 };
-/* bars: { o, h, l, c } arrays. Annualised % over the last `win` days. */
+/* bars: { o, h, l, c } arrays. Annualised % over the last `win` days.
+   Yahoo bars carry dividend-adjusted closes but raw open/high/low, so ln(close/open) has a constant offset (a fraction of a % for SPY, several % for a high yielder over a long window).
+   That offset (and its steps as dividends go ex) is taken out before the Garman-Klass and Yang-Zhang terms; Parkinson uses high/low only and needs no repair. */
 QN.rangeVol = function(bars, win){
-  var n = bars.c.length, a = Math.max(1, n - (win || 63)), ln = Math.log, ok = true, P = 0, G = 0, RS = 0, ov = [], oc = [], k = 0;
-  for(var i = a; i < n; i++){
+  var n = bars.c.length, a = Math.max(1, n - (win || 63)), ln = Math.log, ok = true, P = 0, G = 0, RS = 0, ov = [], co = [], k = 0, i;
+  for(i = a; i < n; i++){
     var o = bars.o[i], h = bars.h[i], l = bars.l[i], c = bars.c[i], pc = bars.c[i - 1]; if(!(o > 0 && h > 0 && l > 0 && c > 0 && pc > 0)){ ok = false; break; }
-    var hl = ln(h / l), co = ln(c / o); P += hl * hl; G += .5 * hl * hl - (2 * Math.LN2 - 1) * co * co; RS += ln(h / c) * ln(h / o) + ln(l / c) * ln(l / o); ov.push(ln(o / pc)); oc.push(co); k++;
+    co.push(ln(c / o)); ov.push(ln(o / pc)); k++;
   }
-  if(!ok || k < 10 || P === 0) return null;
-  var kk = .34 / (1.34 + (k + 1) / (k - 1)), vo = Math.pow(sd(ov), 2), vc = Math.pow(sd(oc), 2);
+  if(!ok || k < 10) return null;
+  var detrend = function(x){   // rolling median over +-10 days: follows the step each time a dividend goes ex, while one odd day cannot move it
+    return x.map(function(v, t){ var w = x.slice(Math.max(0, t - 10), t + 11).sort(function(u, q){ return u - q; }); return v - w[Math.floor((w.length - 1) / 2)] / 2 - w[Math.ceil((w.length - 1) / 2)] / 2; });
+  };   // offset and its steps (adjusted close vs raw open), out
+  var cd = detrend(co); ov = detrend(ov);
+  for(i = 0; i < k; i++){
+    var j = a + i, hi = bars.h[j], lo = bars.l[j], op = bars.o[j], d = cd[i], hl = ln(hi / lo), cp = op * Math.exp(d);   // cp: the close on the same price basis as the open
+    P += hl * hl; G += .5 * hl * hl - (2 * Math.LN2 - 1) * d * d; RS += ln(hi / cp) * ln(hi / op) + ln(lo / cp) * ln(lo / op);
+  }
+  if(P === 0) return null;
+  var kk = .34 / (1.34 + (k + 1) / (k - 1)), vo = Math.pow(sd(ov), 2), vc = Math.pow(sd(cd), 2);
   return { parkinson:annual(P / k / (4 * Math.LN2)), garmanKlass:annual(G / k), yangZhang:annual(vo + kk * vc + (1 - kk) * RS / k), days:k };
 };
 /* Every estimate for one return series (and the OHLC bars when there are any). */

@@ -203,7 +203,7 @@ test('Sortino: the Quant tab and the engine use the same downside deviation', as
 test('batch-1 tools: risk metrics, robustness, allocation, volatility, fractional Kelly', async () => {
   const g = (() => { const r = rng(5); return () => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r()); })();
   let a = 100, b = 100;
-  const noisy = { A: days(500, () => (a *= 1 + 0.0004 + 0.01 * g())), B: days(500, () => (b *= 1 + 0.0002 + 0.03 * g())) };
+  const noisy = { A: days(800, () => (a *= 1 + 0.0004 + 0.01 * g())), B: days(800, () => (b *= 1 + 0.0002 + 0.03 * g())) };
   const rows = (s) => noisy[s].map((x, i) => ({ ...x, o: x.c * 0.999, h: x.c * 1.01, l: x.c * 0.99 }));
   const e2 = { history: (s) => rows(s) };
   const A = noisy.A.map((x) => x.c); A.dates = noisy.A.map((x) => x.d);

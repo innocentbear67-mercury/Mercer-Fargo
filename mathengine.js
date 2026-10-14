@@ -350,10 +350,10 @@ function commonRets(ser){
   var dates = ser.reduce(function(acc, s){ var m = {}; (s.dates || []).forEach(function(d){ m[d] = 1; }); return acc.filter(function(d){ return m[d]; }); }, ser[0].dates || []);
   return { dates:dates, R:ser.map(function(s){ var m = {}; s.dates.forEach(function(d, i){ m[d] = s[i]; }); return rets(dates.map(function(d){ return m[d]; })); }) };
 }
-def('allocate', 'assets:[symbols or {symbol}], method? (equal | inverse_vol | risk_parity | min_variance | max_sharpe | hrp)[risk_parity], range?[3Y], lookback_days?[252], rf_pct?[0]: long-only weights from the latest lookback window, each asset\'s share of risk, and the volatility versus equal weight', function(a, env){
+def('allocate', 'assets:[symbols or {symbol}], method? (equal | inverse_vol | risk_parity | min_variance | max_sharpe | hrp)[risk_parity], range?[5Y] (1Y, 5Y or MAX), lookback_days?[252], rf_pct?[0]: long-only weights from the latest lookback window, each asset\'s share of risk, and the volatility versus equal weight', function(a, env){
   var as = list(a.assets, 'assets', 2), q = Q(), method = String(a.method || 'risk_parity'); if(!q.METHODS[method] || method === 'fixed') bad('method must be one of: equal, inverse_vol, risk_parity, min_variance, max_sharpe, hrp');
   var lb = Math.max(60, Math.round(num(a.lookback_days, 'lookback_days', 252))), rf = num(a.rf_pct, 'rf_pct', 0);
-  return Promise.all(as.map(function(x){ return getHist(env, typeof x === 'string' ? x : x.symbol, a.range || '3Y'); })).then(function(ser){
+  return Promise.all(as.map(function(x){ return getHist(env, typeof x === 'string' ? x : x.symbol, a.range || '5Y'); })).then(function(ser){
     var c = commonRets(ser); if(c.R[0].length < 80) bad('not enough shared daily history (need about 4 months)');
     if(perYear(c.dates) < 150) bad('allocate works on daily prices');
     var X = c.R.map(function(r){ return r.slice(-lb); }), w = q.weights(method, X, rf), eq = X.map(function(){ return 1 / X.length; }), rs = q.riskShare(w, X), re = q.riskShare(eq, X);
@@ -366,12 +366,12 @@ def('vol_forecast', 'symbol, range?[5Y]: realized (21 and 63 day), EWMA, GARCH(1
   var q = Q(), sym = String(a.symbol || '').toUpperCase(); if(!sym) bad('symbol is required');
   if(!env || !env.history) bad('price history is not available here');
   return Promise.resolve(env.history(sym, a.range || '5Y')).then(function(rows){
-    rows = (rows || []).filter(function(x){ return x && x.c != null; }); if(rows.length < 130) bad('need at least 130 daily bars for ' + sym);
+    rows = (rows || []).filter(function(x){ return x && x.c != null; }); if(rows.length < 130) bad('need at least 130 daily bars for ' + sym);   // GARCH itself needs about 500 (use range 5Y); the other estimates work from 130
     var dates = rows.map(function(x){ return x.d; }); if(perYear(dates) < 150) bad('vol_forecast works on daily bars');
     var c = rows.map(function(x){ return x.c; }), r = rets(c), bars = { o:rows.map(function(x){ return x.o; }), h:rows.map(function(x){ return x.h; }), l:rows.map(function(x){ return x.l; }), c:c };
     var v = q.volReport(r, bars), g = v.garch;
     return { symbol:sym, bars:rows.length, from:dates[0], to:dates[dates.length - 1], realized21Pct:v.realized21, realized63Pct:v.realized63, fullPeriodPct:v.full, ewmaPct:v.ewma,
-      garch:g && { alphaPct:g.alpha * 100, betaPct:g.beta * 100, persistence:g.persistence, halfLifeDays:g.halfLife, volNowPct:g.nowVol, longRunPct:g.longRunVol, nextYearAvgPct:g.nextYearVol },
+      garch:g && { reliable:g.reliable, alphaPct:g.alpha * 100, betaPct:g.beta * 100, persistence:g.persistence, halfLifeDays:g.halfLife, volNowPct:g.nowVol, longRunPct:g.longRunVol, nextYearAvgPct:g.nextYearVol },
       parkinsonPct:v.range && v.range.parkinson, garmanKlassPct:v.range && v.range.garmanKlass, yangZhangPct:v.range && v.range.yangZhang };
   });
 });
