@@ -1,0 +1,170 @@
+{
+  "files": [
+    {
+      "file": "LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yygg_vb.woff2",
+      "family": "Plus Jakarta Sans",
+      "rawFamily": "Plus Jakarta Sans",
+      "subfamily": "Regular",
+      "postscript": "PlusJakartaSans-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [
+        "wght"
+      ],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko40yygg_vbd-E.woff2",
+      "family": "Plus Jakarta Sans",
+      "rawFamily": "Plus Jakarta Sans",
+      "subfamily": "Regular",
+      "postscript": "PlusJakartaSans-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [
+        "wght"
+      ],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko50yygg_vbd-E.woff2",
+      "family": "Plus Jakarta Sans",
+      "rawFamily": "Plus Jakarta Sans",
+      "subfamily": "Regular",
+      "postscript": "PlusJakartaSans-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [
+        "wght"
+      ],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko70yygg_vbd-E.woff2",
+      "family": "Plus Jakarta Sans",
+      "rawFamily": "Plus Jakarta Sans",
+      "subfamily": "Regular",
+      "postscript": "PlusJakartaSans-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [
+        "wght"
+      ],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "rnCs-xNNww_2s0amA9uCt23MafaPWnIIMrY.woff2",
+      "family": "Spectral",
+      "rawFamily": "Spectral",
+      "subfamily": "Bold",
+      "postscript": "Spectral-Bold",
+      "weight": 700,
+      "style": "normal",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "rnCt-xNNww_2s0amA9M8on7mTNmnUHowCw.woff2",
+      "family": "Spectral",
+      "rawFamily": "Spectral",
+      "subfamily": "Italic",
+      "postscript": "Spectral-Italic",
+      "weight": 400,
+      "style": "italic",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "rnCt-xNNww_2s0amA9M8onTmTNmnUHowCw.woff2",
+      "family": "Spectral",
+      "rawFamily": "Spectral",
+      "subfamily": "Italic",
+      "postscript": "Spectral-Italic",
+      "weight": 400,
+      "style": "italic",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "rnCt-xNNww_2s0amA9M8onXmTNmnUHowCw.woff2",
+      "family": "Spectral",
+      "rawFamily": "Spectral",
+      "subfamily": "Italic",
+      "postscript": "Spectral-Italic",
+      "weight": 400,
+      "style": "italic",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "rnCt-xNNww_2s0amA9M8onfmTNmnUHowCw.woff2",
+      "family": "Spectral",
+      "rawFamily": "Spectral",
+      "subfamily": "Italic",
+      "postscript": "Spectral-Italic",
+      "weight": 400,
+      "style": "italic",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "rnCt-xNNww_2s0amA9M8onrmTNmnUHo.woff2",
+      "family": "Spectral",
+      "rawFamily": "Spectral",
+      "subfamily": "Italic",
+      "postscript": "Spectral-Italic",
+      "weight": 400,
+      "style": "italic",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    }
+  ],
+  "families": [
+    {
+      "family": "Plus Jakarta Sans",
+      "weights": [
+        400
+      ],
+      "variable": true,
+      "fileCount": 4,
+      "files": [
+        "LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yygg_vb.woff2",
+        "LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko40yygg_vbd-E.woff2",
+        "LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko50yygg_vbd-E.woff2",
+        "LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko70yygg_vbd-E.woff2"
+      ]
+    },
+    {
+      "family": "Spectral",
+      "weights": [
+        400,
+        700
+      ],
+      "variable": false,
+      "fileCount": 6,
+      "files": [
+        "rnCs-xNNww_2s0amA9uCt23MafaPWnIIMrY.woff2",
+        "rnCt-xNNww_2s0amA9M8on7mTNmnUHowCw.woff2",
+        "rnCt-xNNww_2s0amA9M8onTmTNmnUHowCw.woff2",
+        "rnCt-xNNww_2s0amA9M8onXmTNmnUHowCw.woff2",
+        "rnCt-xNNww_2s0amA9M8onfmTNmnUHowCw.woff2",
+        "rnCt-xNNww_2s0amA9M8onrmTNmnUHo.woff2"
+      ]
+    }
+  ],
+  "unidentified": [],
+  "meta": {
+    "generatedAt": "2026-10-14T09:39:25.172Z",
+    "tool": "fontkit"
+  }
+}

@@ -287,7 +287,7 @@ hosted copy and locally.
 * **Knows the app.** `read_docs` reads `docs/marvell-guide.md`.
 * **Remembers you.** Memory (Settings → Memory) holds a nickname, age, what you do, notes, your portfolios, watchlists, skills and short summaries of your Deep Research runs. It is saved with your account in this browser, goes into every chat, and both you and Marvell (`update_memory`) can edit it. `read_memory` returns the full text.
 * **Chat** (Agent tab): up to 15 rounds, 4 minutes; the thinking indicator shows the current step.
-  **Deep Research**: up to 40 rounds, 10 minutes, a live plan (`update_plan`), cited report,
+  **Deep Research**: up to 40 rounds, 15 minutes (a failing model call is retried three times, and a collapse mid-run still writes the report from what was gathered), a live plan (`update_plan`), cited report,
   then a grounding review; runs are saved in this browser (Research Log, Past runs).
 
 After changing `worker/opencode-proxy.js`, redeploy it: `cd worker && npx wrangler deploy`.

@@ -1,0 +1,513 @@
+{
+  "ok": false,
+  "strict": false,
+  "browserSkipped": true,
+  "lint": {
+    "ok": false,
+    "errorCount": 9,
+    "warningCount": 19,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "duplicate_media_discovery_risk",
+        "severity": "warning",
+        "message": "Detected 2 matching img entries with the same source/start/duration.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Avoid duplicated media nodes that can be discovered twice during compilation."
+      },
+      {
+        "code": "gsap_repeated_fromto_without_baseline",
+        "severity": "warning",
+        "message": "10 tl.fromTo() calls target \"#flash\" with no stable baseline. The last-authored fromTo \"from\" values become the element's resting state for any seek before the first tween actually runs, because GSAP applies fromTo from-values at authoring time (immediateRender), not at tween position.",
+        "selector": "#flash",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Add `immediateRender: false` to every fromTo except the earliest-positioned one (at 7s), so pre-first-tween seeks keep its \"from\" values. A hiding `tl.set(..., 0)` baseline trips gsap_timeline_set_initial_hide, and a `gsap.set` authored before the fromTo calls is overwritten by them."
+      },
+      {
+        "code": "gsap_repeated_fromto_without_baseline",
+        "severity": "warning",
+        "message": "2 tl.fromTo() calls target \"#a-t\" with no stable baseline. The last-authored fromTo \"from\" values become the element's resting state for any seek before the first tween actually runs, because GSAP applies fromTo from-values at authoring time (immediateRender), not at tween position.",
+        "selector": "#a-t",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Add `immediateRender: false` to every fromTo except the earliest-positioned one (at 19s), so pre-first-tween seeks keep its \"from\" values. A hiding `tl.set(..., 0)` baseline trips gsap_timeline_set_initial_hide, and a `gsap.set` authored before the fromTo calls is overwritten by them."
+      },
+      {
+        "code": "gsap_repeated_fromto_without_baseline",
+        "severity": "warning",
+        "message": "2 tl.fromTo() calls target \"#c-t\" with no stable baseline. The last-authored fromTo \"from\" values become the element's resting state for any seek before the first tween actually runs, because GSAP applies fromTo from-values at authoring time (immediateRender), not at tween position.",
+        "selector": "#c-t",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Add `immediateRender: false` to every fromTo except the earliest-positioned one (at 27s), so pre-first-tween seeks keep its \"from\" values. A hiding `tl.set(..., 0)` baseline trips gsap_timeline_set_initial_hide, and a `gsap.set` authored before the fromTo calls is overwritten by them."
+      },
+      {
+        "code": "gsap_repeated_fromto_without_baseline",
+        "severity": "warning",
+        "message": "2 tl.fromTo() calls target \"#e-t\" with no stable baseline. The last-authored fromTo \"from\" values become the element's resting state for any seek before the first tween actually runs, because GSAP applies fromTo from-values at authoring time (immediateRender), not at tween position.",
+        "selector": "#e-t",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Add `immediateRender: false` to every fromTo except the earliest-positioned one (at 35s), so pre-first-tween seeks keep its \"from\" values. A hiding `tl.set(..., 0)` baseline trips gsap_timeline_set_initial_hide, and a `gsap.set` authored before the fromTo calls is overwritten by them."
+      },
+      {
+        "code": "gsap_non_transform_motion",
+        "severity": "error",
+        "message": "GSAP tween on \"#s1a\" uses motion that snaps to integer device pixels: letterSpacing. Layout and text-reflow properties snap during browser layout; roundProps rounds the tween value. Slow motion or an ease-out tail then stutters under the seek-by-frame capture engine. Animate transforms (x/y/scale/opacity) instead.",
+        "selector": "#s1a",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "do not animate letterSpacing (they reflow text and snap glyph positions): for letterSpacing, split the text into per-character elements and animate each glyph's x (the spread), since uniform scale is NOT equivalent, or hold the final value statically. Transforms interpolate sub-pixel and stay smooth at any speed."
+      },
+      {
+        "code": "gsap_non_transform_motion",
+        "severity": "error",
+        "message": "GSAP tween on \"#s1b\" uses motion that snaps to integer device pixels: letterSpacing. Layout and text-reflow properties snap during browser layout; roundProps rounds the tween value. Slow motion or an ease-out tail then stutters under the seek-by-frame capture engine. Animate transforms (x/y/scale/opacity) instead.",
+        "selector": "#s1b",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "do not animate letterSpacing (they reflow text and snap glyph positions): for letterSpacing, split the text into per-character elements and animate each glyph's x (the spread), since uniform scale is NOT equivalent, or hold the final value statically. Transforms interpolate sub-pixel and stay smooth at any speed."
+      },
+      {
+        "code": "gsap_non_transform_motion",
+        "severity": "error",
+        "message": "GSAP tween on \"__unresolved__\" uses motion that snaps to integer device pixels: letterSpacing. Layout and text-reflow properties snap during browser layout; roundProps rounds the tween value. Slow motion or an ease-out tail then stutters under the seek-by-frame capture engine. Animate transforms (x/y/scale/opacity) instead.",
+        "selector": "__unresolved__",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "do not animate letterSpacing (they reflow text and snap glyph positions): for letterSpacing, split the text into per-character elements and animate each glyph's x (the spread), since uniform scale is NOT equivalent, or hold the final value statically. Transforms interpolate sub-pixel and stay smooth at any speed."
+      },
+      {
+        "code": "gsap_non_transform_motion",
+        "severity": "error",
+        "message": "GSAP tween on \"#s3t1, #s3t2\" uses motion that snaps to integer device pixels: letterSpacing. Layout and text-reflow properties snap during browser layout; roundProps rounds the tween value. Slow motion or an ease-out tail then stutters under the seek-by-frame capture engine. Animate transforms (x/y/scale/opacity) instead.",
+        "selector": "#s3t1, #s3t2",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "do not animate letterSpacing (they reflow text and snap glyph positions): for letterSpacing, split the text into per-character elements and animate each glyph's x (the spread), since uniform scale is NOT equivalent, or hold the final value statically. Transforms interpolate sub-pixel and stay smooth at any speed."
+      },
+      {
+        "code": "gsap_non_transform_motion",
+        "severity": "error",
+        "message": "GSAP tween on \"#a-t\" uses motion that snaps to integer device pixels: letterSpacing. Layout and text-reflow properties snap during browser layout; roundProps rounds the tween value. Slow motion or an ease-out tail then stutters under the seek-by-frame capture engine. Animate transforms (x/y/scale/opacity) instead.",
+        "selector": "#a-t",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "do not animate letterSpacing (they reflow text and snap glyph positions): for letterSpacing, split the text into per-character elements and animate each glyph's x (the spread), since uniform scale is NOT equivalent, or hold the final value statically. Transforms interpolate sub-pixel and stay smooth at any speed."
+      },
+      {
+        "code": "gsap_non_transform_motion",
+        "severity": "error",
+        "message": "GSAP tween on \"#c-t\" uses motion that snaps to integer device pixels: letterSpacing. Layout and text-reflow properties snap during browser layout; roundProps rounds the tween value. Slow motion or an ease-out tail then stutters under the seek-by-frame capture engine. Animate transforms (x/y/scale/opacity) instead.",
+        "selector": "#c-t",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "do not animate letterSpacing (they reflow text and snap glyph positions): for letterSpacing, split the text into per-character elements and animate each glyph's x (the spread), since uniform scale is NOT equivalent, or hold the final value statically. Transforms interpolate sub-pixel and stay smooth at any speed."
+      },
+      {
+        "code": "gsap_non_transform_motion",
+        "severity": "error",
+        "message": "GSAP tween on \"#e-t\" uses motion that snaps to integer device pixels: letterSpacing. Layout and text-reflow properties snap during browser layout; roundProps rounds the tween value. Slow motion or an ease-out tail then stutters under the seek-by-frame capture engine. Animate transforms (x/y/scale/opacity) instead.",
+        "selector": "#e-t",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "do not animate letterSpacing (they reflow text and snap glyph positions): for letterSpacing, split the text into per-character elements and animate each glyph's x (the spread), since uniform scale is NOT equivalent, or hold the final value statically. Transforms interpolate sub-pixel and stay smooth at any speed."
+      },
+      {
+        "code": "gsap_non_transform_motion",
+        "severity": "error",
+        "message": "GSAP tween on \"#g1, #g2\" uses motion that snaps to integer device pixels: letterSpacing. Layout and text-reflow properties snap during browser layout; roundProps rounds the tween value. Slow motion or an ease-out tail then stutters under the seek-by-frame capture engine. Animate transforms (x/y/scale/opacity) instead.",
+        "selector": "#g1, #g2",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "do not animate letterSpacing (they reflow text and snap glyph positions): for letterSpacing, split the text into per-character elements and animate each glyph's x (the spread), since uniform scale is NOT equivalent, or hold the final value statically. Transforms interpolate sub-pixel and stay smooth at any speed."
+      },
+      {
+        "code": "gsap_non_transform_motion",
+        "severity": "error",
+        "message": "GSAP tween on \"#h-1, #h-2\" uses motion that snaps to integer device pixels: letterSpacing. Layout and text-reflow properties snap during browser layout; roundProps rounds the tween value. Slow motion or an ease-out tail then stutters under the seek-by-frame capture engine. Animate transforms (x/y/scale/opacity) instead.",
+        "selector": "#h-1, #h-2",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "do not animate letterSpacing (they reflow text and snap glyph positions): for letterSpacing, split the text into per-character elements and animate each glyph's x (the spread), since uniform scale is NOT equivalent, or hold the final value statically. Transforms interpolate sub-pixel and stay smooth at any speed."
+      },
+      {
+        "code": "composition_file_too_large",
+        "severity": "warning",
+        "message": "This HTML composition file has 333 lines. Smaller sub-compositions are easier to read, iterate on, and diff.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Split coherent scenes or layers into separate .html files under compositions/, then mount them from the parent with data-composition-src so each file stays small enough to inspect, revise, and validate independently."
+      },
+      {
+        "code": "timeline_track_too_dense",
+        "severity": "warning",
+        "message": "Track 1 has 12 timed elements in this HTML file. Smaller sub-compositions keep timelines easier to read, iterate on, and diff.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move coherent scene groups into separate .html files under compositions/ and mount them from the parent with data-composition-src so the timeline stays easier to inspect, revise, and validate."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"s1\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s1",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"s1\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"s2\"> is a timeline element that contains nested <div id=\"s2bg\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s2",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"s2\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"s3\"> is a timeline element that contains nested <div id=\"s3glow\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s3",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"s3\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"s4a\"> is a timeline element that contains nested <div id=\"a-img\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s4a",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"s4a\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"s4b\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s4b",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"s4b\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"s4c\"> is a timeline element that contains nested <div id=\"c-img\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s4c",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"s4c\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"s4d\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s4d",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"s4d\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"s4e\"> is a timeline element that contains nested <div id=\"e-img\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s4e",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"s4e\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"s4f\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s4f",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"s4f\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"s5\"> is a timeline element that contains nested <div id=\"r-stack\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s5",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"s5\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"s6\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s6",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"s6\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"s7\"> is a timeline element that contains nested <div id=\"h-glow\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s7",
+        "dataAttributes": {},
+        "sourceFile": "/Users/wangkundi/finance-byok/videos/mercerfargo-teaser/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"s7\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      }
+    ],
+    "filesScanned": 1
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "duration": 0,
+    "samples": [],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 0,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [],
+    "checked": 0,
+    "passed": 0
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

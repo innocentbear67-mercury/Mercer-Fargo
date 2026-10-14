@@ -81,6 +81,7 @@ ALLOWED_HOSTS = {
 }
 
 MAX_BYTES = 12 * 1024 * 1024
+LLM_TIMEOUT = 900   # seconds a model POST may wait for its first byte; was the 25s page-fetch default, which cut off every long reasoning call
 
 def fetch_upstream(url, timeout=25, method="GET", payload=None, content_type=None,
                    ua=None, extra_headers=None):
@@ -346,6 +347,7 @@ class Handler(SimpleHTTPRequestHandler):
         try:
             status, ctype, body = fetch_upstream(
                 target,
+                timeout=LLM_TIMEOUT if payload is not None else 25,   # a model sends nothing while it reasons (a research round can think for minutes); page fetches stay short
                 method="POST" if payload is not None else "GET",
                 payload=payload,
                 content_type=content_type,

@@ -1,0 +1,452 @@
+[span] Finance Superhub
+[span] quotes  · full scan
+[span] Research with Marvell
+[span] Disconnected
+[b] S&P 500
+[span] 7,805.45
+[span] ▼ 1.79 (-0.02%)
+[b] Nasdaq
+[span] 27,204.38
+[span] ▼ 41.52 (-0.15%)
+[b] Dow
+[span] 51,670.10
+[span] ▼ 180.45 (-0.35%)
+[b] Russell 2000
+[span] 2,783.37
+[span] ▼ 11.11 (-0.40%)
+[b] VIX
+[span] 15.20
+[span] ▼ 0.07 (-0.46%)
+[b] NVDA
+[span] 228.52
+[span] ▲ 2.20 (+0.97%)
+[b] META
+[span] 762.50
+[span] ▲ 19.54 (+2.63%)
+[b] AAPL
+[span] 341.27
+[span] ▲ 0.30 (+0.09%)
+[b] MSFT
+[span] 543.45
+[span] ▲ 2.30 (+0.43%)
+[b] SNDK
+[span] 1,482.33
+[span] ▼ 5.00 (-0.34%)
+[b] AMD
+[span] 605.53
+[span] ▲ 11.29 (+1.90%)
+[b] SPCX
+[span] 156.54
+[span] ▼ 6.88 (-4.21%)
+[b] INTC
+[span] 102.81
+[span] ▲ 1.46 (+1.44%)
+[b] TSLA
+[span] 375.23
+[span] ▼ 2.80 (-0.74%)
+[b] AMZN
+[span] 258.58
+[span] ▼ 0.95 (-0.37%)
+[b] AVGO
+[span] 357.31
+[span] ▲ 2.58 (+0.73%)
+[b] STX
+[span] 747.20
+[span] ▼ 6.05 (-0.80%)
+[b] Gold
+[span] 4,142.20
+[span] ▼ 18.55 (-0.45%)
+[b] Silver
+[span] 58.46
+[span] ▼ 0.70 (-1.18%)
+[b] WTI Crude
+[span] 94.54
+[span] ▲ 0.40 (+0.42%)
+[b] US 10Y
+[span] 5.194%
+[span] ▼ 0.023 (-0.44%)
+[b] Dollar Index
+[span] 102.23
+[span] ▲ 0.01 (+0.01%)
+[b] EUR/USD
+[span] 1.1194
+[span] ▼ 0.0004 (-0.04%)
+[b] Bitcoin
+[span] 83,230.92
+[span] ▲ 137.35 (+0.17%)
+[b] Ether
+[span] 2,498.66
+[span] ▲ 2.85 (+0.11%)
+[b] S&P 500
+[span] 7,805.45
+[span] ▼ 1.79 (-0.02%)
+[b] Nasdaq
+[span] 27,204.38
+[span] ▼ 41.52 (-0.15%)
+[b] Dow
+[span] 51,670.10
+[span] ▼ 180.45 (-0.35%)
+[b] Russell 2000
+[span] 2,783.37
+[span] ▼ 11.11 (-0.40%)
+[b] VIX
+[span] 15.20
+[span] ▼ 0.07 (-0.46%)
+[b] NVDA
+[span] 228.52
+[span] ▲ 2.20 (+0.97%)
+[b] META
+[span] 762.50
+[span] ▲ 19.54 (+2.63%)
+[b] AAPL
+[span] 341.27
+[span] ▲ 0.30 (+0.09%)
+[b] MSFT
+[span] 543.45
+[span] ▲ 2.30 (+0.43%)
+[b] SNDK
+[span] 1,482.33
+[span] ▼ 5.00 (-0.34%)
+[b] AMD
+[span] 605.53
+[span] ▲ 11.29 (+1.90%)
+[b] SPCX
+[span] 156.54
+[span] ▼ 6.88 (-4.21%)
+[b] INTC
+[span] 102.81
+[span] ▲ 1.46 (+1.44%)
+[b] TSLA
+[span] 375.23
+[span] ▼ 2.80 (-0.74%)
+[b] AMZN
+[span] 258.58
+[span] ▼ 0.95 (-0.37%)
+[b] AVGO
+[span] 357.31
+[span] ▲ 2.58 (+0.73%)
+[b] STX
+[span] 747.20
+[span] ▼ 6.05 (-0.80%)
+[b] Gold
+[span] 4,142.20
+[span] ▼ 18.55 (-0.45%)
+[b] Silver
+[span] 58.46
+[span] ▼ 0.70 (-1.18%)
+[b] WTI Crude
+[span] 94.54
+[span] ▲ 0.40 (+0.42%)
+[b] US 10Y
+[span] 5.194%
+[span] ▼ 0.023 (-0.44%)
+[b] Dollar Index
+[span] 102.23
+[span] ▲ 0.01 (+0.01%)
+[b] EUR/USD
+[span] 1.1194
+[span] ▼ 0.0004 (-0.04%)
+[b] Bitcoin
+[span] 83,230.92
+[span] ▲ 137.35 (+0.17%)
+[b] Ether
+[span] 2,498.66
+[span] ▲ 2.85 (+0.11%)
+[button] Monitoring Terminal
+[button] Research Log
+[span] Portfolios
+[span] Main portfolio
+[span] Watchlists
+[span] My watchlist
+[span] Market
+[span] Overview
+[span] Global indices
+[span] Index futures
+[span] Commodities
+[span] Forex
+[span] Bonds
+[span] Crypto
+[span] Insider Trading
+[span] Search insiders
+[span] Filings & Reports
+[span] Search filings
+[span] Smart Money
+[span] All investors
+[span] Warren Buffett
+[span] Michael Burry
+[span] Bill Ackman
+[span] Cathie Wood
+[span] Nancy Pelosi
+[span] George Soros
+[span] Ray Dalio
+[span] Li Lu
+[span] Howard Marks
+[span] Jensen Huang
+[span] Donald Trump
+[span] Screener
+[span] All stocks
+[span] Technology
+[span] Communications
+[span] Discretionary
+[span] Staples
+[span] Financials
+[span] Health care
+[span] Industrials
+[span] Energy
+[span] Materials
+[span] Utilities
+[span] Real estate
+[div] Quotes, market caps and history: Nasdaq public endpoints via serve.py · crypto: CoinGecko · FX: ECB (Frankfurter) · news: Google News RSS · fundamentals: SEC XBRL or your own CSV/AI input. Nothing is invented. Not investment advice.
+[div] Your portfolio
+[div] Add what you own and this spot shows value, today's move and what drove it, at a glance.
+[button] Add a holding
+[button] Import CSV
+[h2] Top movers in your watchlists
+[button] Columns
+[button] View all watchlists
+[button] Symbols
+[button] Price
+[button] Change
+[button] % Change
+[button] Trend
+[button] Prev Close
+[button] Volume
+[span] AAPL
+[span] Apple Inc
+[td] $341.27
+[td] +0.30
+[td] +0.09%
+[td] 340.97
+[td] 38.98M
+[span] MSFT
+[span] Microsoft Corp
+[td] $543.45
+[td] +2.30
+[td] +0.43%
+[td] 541.15
+[td] 23.85M
+[span] NVDA
+[span] NVIDIA Corp
+[td] $228.52
+[td] +2.20
+[td] +0.97%
+[td] 226.32
+[td] 84.04M
+[span] TSLA
+[span] Tesla Inc
+[td] $375.23
+[td] -2.80
+[td] -0.74%
+[td] 378.03
+[td] 18.39M
+[span] AMZN
+[span] Amazon.com Inc
+[td] $258.58
+[td] -0.95
+[td] -0.37%
+[td] 259.53
+[td] 25.30M
+[span] META
+[span] Meta Platforms Inc
+[td] $762.50
+[td] +19.54
+[td] +2.63%
+[td] 742.96
+[td] 22.71M
+[span] GOOGL
+[span] Alphabet Inc Class A
+[td] $353.78
+[td] +1.06
+[td] +0.30%
+[td] 352.72
+[td] 23.21M
+[div] Nasdaq delayed feed. Market cap comes from the Nasdaq screener snapshot; sparklines and the trend column are computed from daily closes. Change is measured against the previous close.
+[h2] Daily gainers
+[b] PBF
+[span] PBF Energy Inc.
+[b] $91.17
+[span] +7.23%
+[b] CDW
+[span] CDW Corporation
+[b] $151.97
+[span] +5.71%
+[span] Venture Global, Inc.
+[b] $13.84
+[span] +5.41%
+[b] TTMI
+[span] TTM Technologies, Inc.
+[b] $116.10
+[span] +5.23%
+[b] VLO
+[span] Valero Energy Corporation
+[b] $456.46
+[span] +4.69%
+[h2] Daily losers
+[span] Pershing Square Inc.
+[b] $47.65
+[span] -12.12%
+[b] SMMT
+[span] Summit Therapeutics Inc.
+[b] $15.52
+[span] -9.40%
+[b] ASTS
+[span] AST SpaceMobile, Inc.
+[b] $47.07
+[span] -8.54%
+[b] AMAT
+[span] Applied Materials, Inc.
+[b] $464.24
+[span] -6.69%
+[span] Fabrinet
+[b] $427.82
+[span] -6.26%
+[h2] Most valuable companies
+[span] by market cap across US listings
+[b] NVDA
+[span] NVIDIA Corp
+[b] $228.52
+[span] +0.97%
+[b] AAPL
+[span] Apple Inc
+[b] $341.27
+[span] +0.09%
+[b] GOOGL
+[span] Alphabet Inc Class A
+[b] $353.78
+[span] +0.30%
+[b] GOOG
+[span] Alphabet Inc.
+[b] $349.52
+[span] +0.16%
+[b] MSFT
+[span] Microsoft Corp
+[b] $543.45
+[span] +0.43%
+[h2] Market-wide movers
+[span] TraderHub reference board · the same hosted layer OpenAlice uses
+[div] Gainers
+[b] RGC
+[span] Regencell Bioscience Hol
+[span] +14.87%
+[span] $8.19
+[b] EFXT
+[span] Enerflex Ltd
+[span] +14.37%
+[span] $27.54
+[b] PARR
+[span] Par Pacific Holdings, In
+[span] +8.13%
+[span] $89.88
+[b] PBF
+[span] PBF Energy Inc.
+[span] +7.23%
+[span] $91.17
+[b] CVI
+[span] CVR Energy Inc.
+[span] +7.15%
+[span] $63.12
+[div] Losers
+[b] CIFR
+[span] Cipher Digital Inc.
+[span] -12.77%
+[span] $11.34
+[span] Pershing Square Inc.
+[span] -12.12%
+[span] $47.65
+[b] PDFS
+[span] PDF Solutions, Inc.
+[span] -9.62%
+[span] $47.62
+[b] SMMT
+[span] Summit Therapeutics Inc.
+[span] -9.40%
+[span] $15.52
+[b] CHRN
+[span] ChronoScale Holdings Cor
+[span] -8.78%
+[span] $16.31
+[h2] Market news
+[button] Dive deeper with AI
+[button] Refresh
+[h3] US Stock Market today: Why are S&amp;P 500, Dow Jones, Nasdaq, Russell 2000 down? Latest updates on Wall Stree - The Economic Times
+[span] The Economic Times, Reuters, Utah State University
+[span] 15 sites
+[button] Dive deeper with AI
+[div] US Stock Market today: Why are S&amp;P 500, Dow Jones, Nasdaq, Russell 2000 down? Latest updates on Wall Stree - The Economic Times
+[div] The Economic Times
+[div] 9 hours ago
+[div] US Stock Market today: Reasons behind S&amp;P 500, Nasdaq fall in Wall Street, top, worst performing sectors, - The Economic Times
+[div] The Economic Times
+[div] yesterday
+[div] Nasdaq ends down as chipmakers fall and bank earnings roll in - Reuters
+[div] Reuters
+[div] 10 hours ago
+[div] USU Study Finds Why Some Companies Face Greater Stock Market Penalties for Missing Earnings Forecasts - Utah State University
+[div] Utah State University
+[div] 7 hours ago
+[h3] The S&amp;P 500 Just Hit a Record High. Here's Why History Says It's Still a Smart Time to Invest. - The Motley Fool
+[span] The Motley Fool, Yahoo Finance
+[span] 3 sites
+[button] Dive deeper with AI
+[div] The S&amp;P 500 Just Hit a Record High. Here's Why History Says It's Still a Smart Time to Invest. - The Motley Fool
+[div] The Motley Fool
+[div] 4 hours ago
+[div] The S&amp;P 500 Just Hit a Record High. Here's Why History Says It's Still a Smart Time to Invest. - Yahoo Finance
+[div] Yahoo Finance
+[div] 4 hours ago
+[div] The Stock Market Is Making a Move That Warren Buffett Has Warned About. Here's What History Says Comes Next. - The Motley Fool
+[div] The Motley Fool
+[div] 1 hours ago
+[h3] Oil Prices Rise as Traders Weigh Saudi Aramco Attack Report, Hormuz Shipping Risks - WSJ
+[span] WSJ
+[span] 1 site
+[button] Dive deeper with AI
+[div] Oil Prices Rise as Traders Weigh Saudi Aramco Attack Report, Hormuz Shipping Risks - WSJ
+[div] WSJ
+[div] 2 hours ago
+[h3] Markets Brief: Is the US Stock Market Starting to Broaden, or Will Big Tech Stay on Top? - Morningstar
+[span] Morningstar
+[span] 1 site
+[button] Dive deeper with AI
+[div] Markets Brief: Is the US Stock Market Starting to Broaden, or Will Big Tech Stay on Top? - Morningstar
+[div] Morningstar
+[div] 18 hours ago
+[h3] Exclusive | The Houthis Are Building an Advanced Missile With Chinese Parts - WSJ
+[span] WSJ
+[span] 1 site
+[button] Dive deeper with AI
+[div] Exclusive | The Houthis Are Building an Advanced Missile With Chinese Parts - WSJ
+[div] WSJ
+[div] 8 hours ago
+[h2] Earnings calendar
+[button] All earnings
+[b] AAPL · Apple Inc
+[span] Fiscal Q4
+[span] date not set
+[b] MSFT · Microsoft Corp
+[span] Fiscal Q1
+[span] date not set
+[b] NVDA · NVIDIA Corp
+[span] Fiscal Q3
+[span] date not set
+[b] AMZN · Amazon.com Inc
+[span] Fiscal Q3
+[span] date not set
+[b] META · Meta Platforms Inc
+[span] Fiscal Q3
+[span] date not set
+[b] TSLA · Tesla Inc
+[span] Fiscal Q3
+[span] date not set
+[div] AI content may include mistakes. Quotes, market caps and fundamentals come from TradingView’s public endpoints; price history from stockanalysis.com; crypto from CoinGecko; FX from the ECB (Frankfurter); headlines from Google News; filings from SEC XBRL. Analyst counts and estimates that are not in those feeds are yours to enter. Nothing here is investment advice.
+[a] Research Log
+[a] Screener
+[a] Compare
+[a] Earnings
+[a] Settings
+[a] Keys
+[div] Step 1 of 10
+[h3] Welcome to MercerFargo
+[p] This quick tour (about a minute) shows you around and helps you add an API key so Marvell, your AI agent, can answer. Use Next, or the ← → keys.
+[button] Skip
+[button] Next

@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Trailer Serif"; src: local("Didot"), local("Didot Bold"), local("Bodoni 72"), local("Georgia"); font-weight: 400 900; }
+      @font-face { font-family: "Trailer Sans"; src: local("Helvetica Neue"), local("HelveticaNeue"), local("Arial"); font-weight: 400 900; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #050505; font-family: "Trailer Sans", sans-serif; color: #f1ead9; }
+      :root { --gold: #c1a578; --gold-hi: #f1dfb2; --navy: #1a2e50; }
+      .scene { position: absolute; inset: 0; overflow: hidden; }
+      .abs { position: absolute; }
+      .center { position: absolute; left: 0; right: 0; text-align: center; }
+      .serif { font-family: "Trailer Serif", serif; font-weight: 700; }
+      .gold { color: #e3cb98; }
+      .gold .ch { background: linear-gradient(180deg, #fff3cf 0%, #d9bd86 50%, #9a7d4c 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .caps { text-transform: uppercase; }
+      .ch { display: inline-block; will-change: transform, opacity; }
+      .sub { font-family: "Trailer Sans", sans-serif; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5em; font-size: 26px; color: #cbbd9c; }
+      .big { font-size: 188px; line-height: 1; letter-spacing: 0.04em; white-space: nowrap; }
+      .mid { font-size: 118px; line-height: 1; letter-spacing: 0.06em; white-space: nowrap; }
+      .small { font-size: 54px; letter-spacing: 0.32em; white-space: nowrap; }
+      /* screens */
+      .win { position: absolute; border-radius: 14px; overflow: hidden; box-shadow: 0 60px 140px rgba(0,0,0,.85), 0 0 0 1px rgba(193,165,120,.35), 0 0 120px rgba(193,165,120,.18); background: #111; }
+      .win img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      .persp { position: absolute; inset: 0; perspective: 1900px; }
+      .fullshot { position: absolute; inset: -40px; }
+      .fullshot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .shade { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 55%, rgba(0,0,0,.12), rgba(0,0,0,.85) 88%); }
+      .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 40%; background: linear-gradient(0deg, rgba(0,0,0,.95), rgba(0,0,0,0)); }
+      .chip { display: inline-block; padding: 12px 26px; border: 1px solid rgba(193,165,120,.6); border-radius: 40px; font-size: 24px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold-hi); background: rgba(20,20,20,.7); }
+      /* global overlays */
+      #bars-t, #bars-b { position: absolute; left: 0; right: 0; height: 132px; background: #000; z-index: 90; }
+      #bars-t { top: 0; } #bars-b { bottom: 0; }
+      #vig { position: absolute; inset: 0; z-index: 80; background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 45%, rgba(0,0,0,.72) 100%); pointer-events: none; }
+      #grain { position: absolute; inset: -60px; z-index: 85; background-size: 960px 540px; mix-blend-mode: overlay; opacity: .22; pointer-events: none; }
+      #flash { position: absolute; inset: 0; z-index: 88; background: #fff6df; opacity: 0; pointer-events: none; }
+      #streak { position: absolute; left: -10%; width: 120%; height: 3px; z-index: 86; background: linear-gradient(90deg, transparent, rgba(255,226,160,.0) 10%, rgba(255,226,160,.95) 50%, rgba(255,226,160,0) 90%, transparent); box-shadow: 0 0 40px 10px rgba(255,200,110,.45); opacity: 0; pointer-events: none; }
+      .mote { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #e9d6a6; z-index: 70; opacity: 0; filter: blur(.6px); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="60" data-width="1920" data-height="1080">
+
+      <audio id="score" src="assets/audio/score.wav" data-start="0" data-duration="60" data-track-index="0" data-volume="1"></audio>
+
+      <!-- S1: the noise -->
+      <section id="s1" class="clip scene" data-start="0" data-duration="7" data-track-index="1">
+        <div class="center" style="top: 430px"><div id="s1a" class="small serif caps gold">The markets never sleep.</div></div>
+        <div class="center" style="top: 430px"><div id="s1b" class="small serif caps gold">The noise never stops.</div></div>
+        <div id="s1line" class="abs" style="left: 760px; top: 540px; width: 400px; height: 2px; background: var(--gold); transform-origin: center"></div>
+      </section>
+
+      <!-- S2: chaos -->
+      <section id="s2" class="clip scene" data-start="7" data-duration="6" data-track-index="1">
+        <div id="s2bg" class="abs" style="inset: 0">
+          <div class="win" style="left: 90px; top: 170px; width: 700px; height: 394px"><img src="assets/shots/quote.png" /></div>
+          <div class="win" style="left: 1010px; top: 130px; width: 760px; height: 428px"><img src="assets/shots/screener.png" /></div>
+          <div class="win" style="left: 300px; top: 560px; width: 760px; height: 428px"><img src="assets/shots/filings.png" /></div>
+          <div class="win" style="left: 1150px; top: 520px; width: 640px; height: 360px"><img src="assets/shots/earnings.png" /></div>
+          <div class="win" style="left: 640px; top: 300px; width: 700px; height: 394px"><img src="assets/shots/insiders.png" /></div>
+        </div>
+        <div class="shade" style="background: rgba(0,0,0,.42)"></div>
+        <div class="center" style="top: 440px"><div id="s2w" class="big serif caps" style="color:#f4ecd8; font-size: 138px"></div></div>
+        <div class="center" style="top: 350px"><div id="s2q1" class="mid serif caps gold">What if it all</div></div>
+        <div class="center" style="top: 500px"><div id="s2q2" class="mid serif caps gold">lived in one place?</div></div>
+      </section>
+
+      <!-- S3: logo -->
+      <section id="s3" class="clip scene" data-start="13" data-duration="6" data-track-index="1">
+        <div id="s3glow" class="abs" style="left: 460px; top: 140px; width: 1000px; height: 800px; background: radial-gradient(ellipse, rgba(193,165,120,.45), rgba(26,46,80,.35) 45%, rgba(0,0,0,0) 70%); opacity: 0"></div>
+        <div class="center" style="top: 235px"><img id="s3mark" src="assets/logo-mark.png" style="height: 150px; filter: sepia(1) saturate(2.2) brightness(1.15) hue-rotate(-8deg); opacity: 0" /></div>
+        <div class="center" style="top: 410px"><div id="s3mf" class="sub" style="font-size: 34px; letter-spacing: .9em; padding-left: .9em">Mercer Fargo presents</div></div>
+        <div class="center" style="top: 470px"><div id="s3t1" class="big serif caps gold" style="font-size: 150px">Finance</div></div>
+        <div class="center" style="top: 600px"><div id="s3t2" class="big serif caps gold" style="font-size: 210px">Superhub</div></div>
+        <div class="center" style="top: 840px"><div id="s3tag" class="sub">One terminal. Every market.</div></div>
+      </section>
+
+      <!-- S4a: tickers -->
+      <section id="s4a" class="clip scene" data-start="19" data-duration="4" data-track-index="1">
+        <div class="fullshot" id="a-img"><img src="assets/shots/screener.png" /></div>
+        <div class="shade"></div>
+        <div class="center" style="top: 330px"><div id="a-t" class="big serif caps gold">Every ticker.</div></div>
+        <div class="center" style="top: 600px"><div id="a-s" class="sub">5,123 stocks · screened live</div></div>
+      </section>
+
+      <!-- S4b: charts -->
+      <section id="s4b" class="clip scene" data-start="23" data-duration="4" data-track-index="1">
+        <div class="abs" style="inset:0; background: radial-gradient(ellipse at 70% 50%, #1a2e50 0%, #07090f 70%)"></div>
+        <div class="persp"><div id="b-win" class="win" style="left: 760px; top: 190px; width: 1200px; height: 675px"><img src="assets/shots/compare.png" /></div></div>
+        <div class="abs" style="left: 110px; top: 330px"><div id="b-t" class="mid serif caps gold" style="font-size: 150px; line-height: 1.05">Every<br>chart.</div></div>
+        <div class="abs" style="left: 116px; top: 700px"><div id="b-s" class="sub" style="letter-spacing: .3em">Overlay anything. Drag. Zoom.</div></div>
+      </section>
+
+      <!-- S4c: filings -->
+      <section id="s4c" class="clip scene" data-start="27" data-duration="4" data-track-index="1">
+        <div class="fullshot" id="c-img"><img src="assets/shots/filings.png" /></div>
+        <div class="shade"></div>
+        <div class="center" style="top: 330px"><div id="c-t" class="big serif caps gold">Every filing.</div></div>
+        <div class="center" style="top: 600px"><div id="c-s" class="sub">SEC EDGAR · one click · Marvell reads along</div></div>
+      </section>
+
+      <!-- S4d: insiders -->
+      <section id="s4d" class="clip scene" data-start="31" data-duration="4" data-track-index="1">
+        <div class="abs" style="inset:0; background: radial-gradient(ellipse at 30% 50%, #2a2113 0%, #07070a 70%)"></div>
+        <div class="persp"><div id="d-win" class="win" style="left: -40px; top: 190px; width: 1200px; height: 675px"><img src="assets/shots/insiders.png" /></div></div>
+        <div class="abs" style="right: 110px; top: 320px; text-align: right"><div id="d-t" class="mid serif caps gold" style="font-size: 150px; line-height: 1.05">Every<br>insider.</div></div>
+        <div class="abs" style="right: 116px; top: 690px; text-align: right"><div id="d-s" class="sub" style="letter-spacing: .3em">See who is buying. See who is selling.</div></div>
+      </section>
+
+      <!-- S4e: investors -->
+      <section id="s4e" class="clip scene" data-start="35" data-duration="4" data-track-index="1">
+        <div class="fullshot" id="e-img"><img src="assets/shots/investors.png" style="object-position: 50% 30%" /></div>
+        <div class="shade"></div>
+        <div class="center" style="top: 330px"><div id="e-t" class="big serif caps gold">Every legend.</div></div>
+        <div class="center" style="top: 600px"><div id="e-s" class="sub">Buffett · Burry · Wood · Pelosi · Soros</div></div>
+      </section>
+
+      <!-- S4f: Marvell -->
+      <section id="s4f" class="clip scene" data-start="39" data-duration="4" data-track-index="1">
+        <div class="abs" style="inset:0; background: radial-gradient(ellipse at 50% 45%, #1d2f52 0%, #07080d 72%)"></div>
+        <div id="f-orb" class="abs" style="left: 710px; top: 330px; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fff3cf, #c1a578 35%, rgba(193,165,120,0) 70%); filter: blur(24px); opacity: 0"></div>
+        <div class="center" style="top: 250px"><div id="f-t" class="big serif caps gold" style="font-size: 170px">Meet Marvell.</div></div>
+        <div class="center" style="top: 470px"><div id="f-q" style="display: inline-block; padding: 26px 52px; border-radius: 60px; border: 1px solid rgba(193,165,120,.55); background: rgba(10,12,20,.78); font-size: 38px; letter-spacing: .04em; color: #f1ead9; min-width: 860px; text-align: left"><span id="f-qt"></span><span id="f-cur" style="color: var(--gold)">▍</span></div></div>
+        <div class="center" style="top: 610px; display: flex; gap: 22px; justify-content: center"><span class="chip f-chip">live quotes</span><span class="chip f-chip">web search</span><span class="chip f-chip">SEC filings</span><span class="chip f-chip">deep research</span></div>
+        <div class="center" style="top: 740px"><div id="f-s" class="sub">Your AI agent. Your own key.</div></div>
+      </section>
+
+      <!-- S5: rapid -->
+      <section id="s5" class="clip scene" data-start="43" data-duration="4" data-track-index="1">
+        <div id="r-stack" class="abs" style="inset:0"></div>
+        <div class="shade" style="background: rgba(0,0,0,.45)"></div>
+        <div class="center" style="top: 400px"><div id="r-w" class="big serif caps" style="font-size: 230px; color: #fff3d6"></div></div>
+      </section>
+
+      <!-- S6: one hub -->
+      <section id="s6" class="clip scene" data-start="47" data-duration="5" data-track-index="1">
+        <div class="center" style="top: 330px"><div id="g1" class="mid serif caps gold" style="font-size: 150px">One hub.</div></div>
+        <div class="center" style="top: 500px"><div id="g2" class="mid serif caps gold" style="font-size: 150px">Every market.</div></div>
+        <div class="center" style="top: 700px"><div id="g3" class="small serif caps" style="color: #f1ead9">All of it. Yours.</div></div>
+      </section>
+
+      <!-- S7: title card -->
+      <section id="s7" class="clip scene" data-start="52" data-duration="8" data-track-index="1">
+        <div id="h-glow" class="abs" style="left: 360px; top: 120px; width: 1200px; height: 840px; background: radial-gradient(ellipse, rgba(193,165,120,.35), rgba(26,46,80,.3) 45%, rgba(0,0,0,0) 70%); opacity: 0"></div>
+        <div class="center" style="top: 205px"><img id="h-mark" src="assets/logo-mark.png" style="height: 120px; filter: sepia(1) saturate(2.2) brightness(1.15) hue-rotate(-8deg)" /></div>
+        <div class="center" style="top: 345px"><div id="h-1" class="big serif caps gold" style="font-size: 124px; letter-spacing: .1em">MercerFargo</div></div>
+        <div class="center" style="top: 485px"><div id="h-2" class="big serif caps gold" style="font-size: 196px">Superhub</div></div>
+        <div class="center" style="top: 750px"><div id="h-d" class="small serif caps" style="color: #f1ead9; font-size: 60px; letter-spacing: .4em; padding-left: .4em">January 13, 2027</div></div>
+        <div class="center" style="top: 850px"><div id="h-s" class="sub" style="font-size: 22px">Bring your own key · Free, delayed market data · Not investment advice</div></div>
+      </section>
+
+      <!-- global overlays -->
+      <div id="motes"></div>
+      <div id="streak"></div>
+      <div id="flash"></div>
+      <div id="vig"></div>
+      <div id="grain"></div>
+      <div id="bars-t"></div>
+      <div id="bars-b"></div>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const $ = (s) => document.querySelector(s);
+      const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+      // split text into letter spans
+      function split(el) {
+        const txt = el.textContent; el.textContent = "";
+        const out = [];
+        txt.split("").forEach((c) => {
+          const s = document.createElement("span"); s.className = "ch";
+          s.textContent = c === " " ? " " : c; el.appendChild(s); out.push(s);
+        });
+        return out;
+      }
+      function splitBr(el) { // keeps <br>
+        const parts = el.innerHTML.split("<br>"); el.innerHTML = ""; const out = [];
+        parts.forEach((p, i) => { const d = document.createElement("div"); d.textContent = p; el.appendChild(d); out.push(...split(d)); });
+        return out;
+      }
+      function rise(chars, at, o = {}) {
+        tl.fromTo(chars, { y: o.y ?? 70, opacity: 0, scale: o.s ?? 1.25 }, { y: 0, opacity: 1, scale: 1, duration: o.d ?? 0.7, ease: "expo.out", stagger: o.st ?? 0.04 }, at);
+      }
+      function fadeOut(el, at, d = 0.4) { tl.to(el, { opacity: 0, duration: d, ease: "power2.in" }, at); }
+      function flash(at, peak = 0.9, d = 0.5) {
+        tl.fromTo("#flash", { opacity: peak }, { opacity: 0, duration: d, ease: "power3.out", immediateRender: false }, at);
+      }
+      function streak(at, y) {
+        tl.set("#streak", { top: y }, at);
+        tl.fromTo("#streak", { opacity: 1, scaleX: 0.1 }, { opacity: 0, scaleX: 1.15, duration: 1.1, ease: "power3.out", immediateRender: false }, at);
+      }
+      function shake(sel, at, amt = 14) {
+        tl.fromTo(sel, { x: -amt, y: amt * 0.6 }, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1.2, 0.25)", immediateRender: false }, at);
+      }
+
+      // ---------- ambient layers ----------
+      // film grain jitter (stepped, deterministic)
+      const grainImgs = ["assets/grain0.png", "assets/grain1.png", "assets/grain2.png", "assets/grain3.png"];
+      for (let i = 0; i < 60 * 12; i++) {
+        const t = i / 12;
+        tl.set("#grain", { backgroundImage: `url(${grainImgs[i % 4]})`, x: ((i * 37) % 60) - 30, y: ((i * 53) % 60) - 30 }, t);
+      }
+      // dust motes
+      const motes = $("#motes");
+      for (let i = 0; i < 46; i++) {
+        const m = document.createElement("div"); m.className = "mote";
+        const r = (n) => ((Math.sin(i * 91.7 + n * 13.3) + 1) / 2);
+        m.style.left = (r(1) * 1920) + "px"; m.style.top = (140 + r(2) * 800) + "px";
+        m.style.width = m.style.height = (2 + r(3) * 4) + "px";
+        motes.appendChild(m);
+        const st = r(4) * 40;
+        tl.fromTo(m, { opacity: 0, y: 0 }, { opacity: 0.25 + r(5) * 0.5, y: -120 - r(6) * 160, duration: 10 + r(7) * 8, ease: "sine.inOut", yoyo: true, repeat: 1 }, st);
+        tl.to(m, { opacity: 0, duration: 1 }, 59);
+      }
+      // slow light-leak breathing on vignette
+      tl.fromTo("#vig", { opacity: 0.85 }, { opacity: 1, duration: 4, ease: "sine.inOut", yoyo: true, repeat: 13 }, 0);
+      // letterbox opens slightly during the climax, closes for the end
+      tl.fromTo(["#bars-t", "#bars-b"], { height: 300 }, { height: 132, duration: 1.4, ease: "power3.out" }, 0);
+      tl.to(["#bars-t", "#bars-b"], { height: 110, duration: 3, ease: "power2.inOut" }, 43);
+      tl.to(["#bars-t", "#bars-b"], { height: 150, duration: 1.0, ease: "power3.in" }, 47);
+      tl.to(["#bars-t", "#bars-b"], { height: 132, duration: 1.0, ease: "power3.out" }, 52);
+
+      // ---------- S1 ----------
+      const s1a = split($("#s1a")), s1b = split($("#s1b"));
+      tl.set(s1a, { opacity: 0 }, 0); tl.set(s1b, { opacity: 0 }, 0);
+      tl.fromTo("#s1line", { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 0.9, duration: 2.0, ease: "power2.inOut" }, 0.4);
+      tl.fromTo("#s1a", { scale: 0.96 }, { scale: 1.06, duration: 3.2, ease: "none" }, 1.0);
+      tl.to(s1a, { opacity: 1, duration: 0.8, stagger: 0.05, ease: "power2.out" }, 1.0);
+      fadeOut("#s1a", 3.3, 0.5);
+      
+      tl.to(s1b, { opacity: 1, duration: 0.8, stagger: 0.05, ease: "power2.out" }, 3.7);
+      tl.to("#s1b", { scale: 1.12, duration: 3.3, ease: "power1.in" }, 3.7);
+      fadeOut("#s1line", 5.2, 1.2);
+      tl.to("#s1b", { opacity: 0, duration: 0.3, ease: "power4.in" }, 6.7);
+
+      // ---------- S2 ----------
+      flash(7.0, 0.55, 0.4);
+      const wins = $$("#s2bg .win");
+      wins.forEach((w, i) => {
+        tl.fromTo(w, { scale: 0.9, rotation: (i - 2) * 5, x: (i % 2 ? 120 : -120), filter: "blur(10px)", opacity: 0 }, { scale: 1.08 + i * 0.03, rotation: (i - 2) * -3, x: (i % 2 ? -140 : 140), filter: "blur(2px)", opacity: 0.85, duration: 6, ease: "none" }, 7.0 + i * 0.1);
+      });
+      const words = [["TEN TABS.", 7.1], ["DELAYED QUOTES.", 8.0], ["PAYWALLS.", 8.9], ["SCATTERED FILINGS.", 9.8]];
+      const w = $("#s2w");
+      words.forEach(([txt, at], i) => {
+        tl.call(() => { w.textContent = txt; }, null, at);
+        tl.fromTo(w, { scale: 1.35, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.7, ease: "expo.out" }, at);
+        tl.to(w, { opacity: 0, duration: 0.12, ease: "none" }, at + 0.78);
+        flash(at, 0.25, 0.25);
+      });
+      tl.call(() => { w.textContent = ""; }, null, 10.8);
+      const q1 = split($("#s2q1")), q2 = split($("#s2q2"));
+      tl.set(q1, { opacity: 0 }, 0); tl.set(q2, { opacity: 0 }, 0);
+      tl.to("#s2bg", { opacity: 0.35, duration: 0.6 }, 10.9);
+      rise(q1, 11.0, { st: 0.05, y: 40, s: 1.1 }); rise(q2, 11.7, { st: 0.04, y: 40, s: 1.1 });
+      tl.to(["#s2q1", "#s2q2"], { scale: 1.08, duration: 1.4, ease: "power1.in" }, 11.6);
+      tl.to("#s2", { opacity: 0, duration: 0.18, ease: "power4.in" }, 12.82);
+
+      // ---------- S3 ----------
+      flash(13.0, 1, 0.9); shake("#s3", 13.0, 18); streak(13.0, 540);
+      tl.fromTo("#s3glow", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1.1, duration: 2.5, ease: "power2.out" }, 13.0);
+      tl.fromTo("#s3mark", { opacity: 0, scale: 1.6, filter: "blur(18px) sepia(1) saturate(2.2) brightness(1.4)" }, { opacity: 1, scale: 1, filter: "blur(0px) sepia(1) saturate(2.2) brightness(1.15)", duration: 1.2, ease: "expo.out" }, 13.1);
+      const m1 = split($("#s3mf")); tl.set(m1, { opacity: 0 }, 0);
+      tl.to(m1, { opacity: 1, duration: 0.5, stagger: 0.03 }, 13.9);
+      const t1 = split($("#s3t1")), t2 = split($("#s3t2"));
+      tl.set(t1, { opacity: 0 }, 0); tl.set(t2, { opacity: 0 }, 0);
+      rise(t1, 14.2, { st: 0.06, d: 0.9, y: 90, s: 1.4 }); rise(t2, 14.6, { st: 0.07, d: 1.1, y: 110, s: 1.5 });
+      tl.fromTo(["#s3t1", "#s3t2"], { scale: 1 }, { scale: 1.07, duration: 4.6, ease: "power1.out" }, 14.2);
+      streak(15.8, 735);
+      const tag = split($("#s3tag")); tl.set(tag, { opacity: 0 }, 0);
+      tl.to(tag, { opacity: 1, duration: 0.5, stagger: 0.03 }, 16.9);
+      tl.to("#s3", { opacity: 0, duration: 0.18, ease: "power4.in" }, 18.82);
+
+      // ---------- S4 helper ----------
+      function fullShot(sel, imgSel, start, titleSel, subSel, panY) {
+        flash(start, 0.7, 0.45); shake(titleSel, start, 12);
+        tl.fromTo(imgSel, { scale: 1.0, y: 0 }, { scale: 1.16, y: panY || 0, duration: 4, ease: "none" }, start);
+        const c = split($(titleSel)); tl.set(c, { opacity: 0 }, 0);
+        rise(c, start + 0.15, { st: 0.045, d: 0.8, y: 90, s: 1.35 });
+        tl.fromTo(titleSel, { scale: 1 }, { scale: 1.07, duration: 3.8, ease: "power1.out" }, start + 0.1);
+        tl.fromTo(subSel, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, start + 1.1);
+        streak(start + 0.2, 585);
+        tl.to(sel, { opacity: 0, duration: 0.14, ease: "power4.in" }, start + 3.86);
+      }
+      function tiltShot(sel, winSel, titleSel, subSel, start, fromRY, toRY) {
+        flash(start, 0.7, 0.45);
+        tl.fromTo(winSel, { rotationY: fromRY, rotationX: 5, scale: 0.92, x: fromRY < 0 ? 120 : -120, opacity: 0 }, { rotationY: toRY, rotationX: 2, scale: 1.05, x: 0, opacity: 1, duration: 4, ease: "power2.out" }, start);
+        const c = splitBr($(titleSel)); tl.set(c, { opacity: 0 }, 0);
+        rise(c, start + 0.2, { st: 0.05, d: 0.8, y: 80, s: 1.3 });
+        tl.fromTo(subSel, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, start + 1.2);
+        streak(start + 0.2, 560);
+        tl.to(sel, { opacity: 0, duration: 0.14, ease: "power4.in" }, start + 3.86);
+      }
+      fullShot("#s4a", "#a-img", 19, "#a-t", "#a-s", -30);
+      // count-up on the screener sub line
+      const cnt = { n: 0 };
+      tl.fromTo(cnt, { n: 0 }, { n: 5123, duration: 1.6, ease: "power3.out", onUpdate() { $("#a-s").textContent = Math.round(cnt.n).toLocaleString("en-US") + " stocks · screened live"; } }, 19.9);
+      tiltShot("#s4b", "#b-win", "#b-t", "#b-s", 23, -22, -12);
+      fullShot("#s4c", "#c-img", 27, "#c-t", "#c-s", 0);
+      tiltShot("#s4d", "#d-win", "#d-t", "#d-s", 31, 22, 12);
+      fullShot("#s4e", "#e-img", 35, "#e-t", "#e-s", -90);
+
+      // ---------- S4f Marvell ----------
+      flash(39, 0.8, 0.5);
+      tl.fromTo("#f-orb", { opacity: 0, scale: 0.4 }, { opacity: 0.5, scale: 1.1, duration: 1.6, ease: "expo.out" }, 39.0);
+      tl.to("#f-orb", { scale: 1.25, opacity: 0.3, duration: 2.4, ease: "sine.inOut" }, 40.6);
+      const ft = split($("#f-t")); tl.set(ft, { opacity: 0 }, 0);
+      rise(ft, 39.15, { st: 0.05, d: 0.8, y: 80, s: 1.3 });
+      tl.fromTo("#f-q", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 39.7);
+      const qtxt = "Why is NVDA moving today?";
+      for (let i = 1; i <= qtxt.length; i++) tl.call(() => { $("#f-qt").textContent = qtxt.slice(0, i); }, null, 39.9 + i * 0.045);
+      tl.fromTo(".f-chip", { opacity: 0, y: 24, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(2)", stagger: 0.18 }, 41.1);
+      tl.fromTo("#f-s", { opacity: 0 }, { opacity: 1, duration: 0.7 }, 41.9);
+      tl.fromTo("#f-cur", { opacity: 1 }, { opacity: 0, duration: 0.3, repeat: 9, yoyo: true, ease: "steps(1)" }, 39.9);
+      tl.to("#s4f", { opacity: 0, duration: 0.14, ease: "power4.in" }, 42.86);
+
+      // ---------- S5 rapid ----------
+      const rshots = ["home", "quote", "screener", "compare", "insiders", "investors"];
+      const rwords = ["STOCKS", "CHARTS", "FILINGS", "INSIDERS", "INVESTORS", "AI"];
+      const stack = $("#r-stack");
+      rshots.forEach((n, i) => {
+        const d = document.createElement("div"); d.className = "abs"; d.style.inset = "-30px";
+        d.innerHTML = `<img src="assets/shots/${n}.png" style="width:100%;height:100%;object-fit:cover;display:block;filter:contrast(1.1) saturate(1.1)">`;
+        d.id = "r" + i; stack.appendChild(d);
+        const at = 43 + i * (4 / 6);
+        tl.set(d, { opacity: 0 }, 0);
+        tl.set(d, { opacity: 1 }, at);
+        tl.set(d, { opacity: 0 }, at + 4 / 6);
+        tl.fromTo(d, { scale: 1.0 + (i % 2) * 0.1, x: i % 2 ? 40 : -40 }, { scale: 1.12 - (i % 2) * 0.1, x: 0, duration: 4 / 6, ease: "none" }, at);
+        flash(at, 0.55, 0.3);
+        const wd = $("#r-w");
+        tl.call(() => { wd.textContent = rwords[i]; }, null, at);
+        tl.fromTo(wd, { scale: 1.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: "expo.out" }, at);
+      });
+      tl.to("#s5", { opacity: 0, duration: 0.12, ease: "power4.in" }, 46.88);
+
+      // ---------- S6 ----------
+      flash(47, 0.6, 0.6);
+      const g1 = split($("#g1")), g2 = split($("#g2")), g3 = split($("#g3"));
+      tl.set([g1, g2, g3].flat(), { opacity: 0 }, 0);
+      rise(g1, 47.9, { st: 0.07, d: 0.9, y: 60, s: 1.2 }); rise(g2, 48.9, { st: 0.05, d: 0.9, y: 60, s: 1.2 });
+      tl.to(g3, { opacity: 1, duration: 0.7, stagger: 0.05 }, 50.0);
+      tl.fromTo(["#g1", "#g2"], { scale: 1 }, { scale: 1.07, duration: 3.6, ease: "power1.out" }, 47.9);
+      tl.to("#s6", { opacity: 0, duration: 0.25, ease: "power3.in" }, 51.7);
+
+      // ---------- S7 ----------
+      flash(52, 1, 1.3); shake("#s7", 52, 22); streak(52.0, 540);
+      tl.fromTo("#h-glow", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1.05, duration: 3, ease: "power2.out" }, 52);
+      tl.fromTo("#h-mark", { opacity: 0, scale: 1.5 }, { opacity: 1, scale: 1, duration: 1.2, ease: "expo.out" }, 52.1);
+      const h1 = split($("#h-1")), h2 = split($("#h-2"));
+      tl.set([h1, h2].flat(), { opacity: 0 }, 0);
+      rise(h1, 52.5, { st: 0.05, d: 1.0, y: 80, s: 1.4 }); rise(h2, 53.0, { st: 0.07, d: 1.2, y: 100, s: 1.5 });
+      tl.fromTo(["#h-1", "#h-2"], { scale: 1 }, { scale: 1.07, duration: 6, ease: "power1.out" }, 52.5);
+      streak(54.0, 735);
+      const hd = split($("#h-d")); tl.set(hd, { opacity: 0 }, 0);
+      tl.to(hd, { opacity: 1, duration: 0.5, stagger: 0.06, ease: "power2.out" }, 54.6);
+      tl.fromTo("#h-d", { scale: 1.06 }, { scale: 1, duration: 4, ease: "power1.out" }, 54.6);
+      tl.fromTo("#h-s", { opacity: 0 }, { opacity: 0.9, duration: 1.0 }, 56.2);
+      tl.to("#s7", { opacity: 0, duration: 1.0, ease: "power2.in" }, 59.0);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

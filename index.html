@@ -10241,7 +10241,7 @@ function aiReasonStrip(body){
   return b;
 }
 /* POST to the provider and return parsed JSON. OpenCode has no CORS: local /proxy first, then the hosted relay. */
-function aiPost(ep, key, body){
+function aiPost(ep, key, body, maxMs){   /* maxMs: longest one call may take before it is abandoned (the caller decides whether to retry) */
   var hdrs = { 'content-type':'application/json' }, url = ep.url;
   if(ep.wire === 'a'){ hdrs['x-api-key'] = key; hdrs['anthropic-version'] = '2023-06-01'; hdrs['anthropic-dangerous-direct-browser-access'] = 'true'; }
   else if(ep.wire === 'g') url += '?key=' + encodeURIComponent(key);
@@ -10251,7 +10251,11 @@ function aiPost(ep, key, body){
     var payload = JSON.stringify(b);
     var relayUrl = (CFG.ocProxy || OC_PROXY) ? (CFG.ocProxy || OC_PROXY) + '?u=' + encodeURIComponent(url) : url;
     var sent = url;
-    function send(t){ sent = t; return fetch(t, { method:'POST', headers:hdrs, body:payload }); }
+    function send(t){
+      sent = t; var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, timer = ctl ? setTimeout(function(){ ctl.abort(); }, maxMs || 480000) : 0;
+      return fetch(t, { method:'POST', headers:hdrs, body:payload, signal:ctl ? ctl.signal : undefined }).then(function(r){ clearTimeout(timer); return r; }, function(e){
+        clearTimeout(timer); if(e && e.name === 'AbortError') throw Object.assign(new Error('The model took too long to answer (over ' + Math.round((maxMs || 480000) / 60000) + ' minutes)'), { status:408, timeout:true }); throw e; });
+    }
     var ready = (ep.zen && proxyReady === null) ? probeProxy() : Promise.resolve();
     return ready.then(function(){
       if(!ep.zen) return send(url);
@@ -10265,9 +10269,10 @@ function aiPost(ep, key, body){
     }).catch(function(e){
       if(sent === url && ep.zen) throw new Error('OpenCode blocks direct browser calls (no CORS). Set an OpenCode proxy URL in Settings → AI & API keys, or run python3 serve.py locally. Your key is fine.');
       throw e;
-    }).then(readJSON).then(function(j){
-      if(j.error) throw new Error(j.error.message || JSON.stringify(j.error));
-      if(j.type === 'error' && j.error) throw new Error(j.error.message || JSON.stringify(j.error));
+    }).then(function(r){ return readJSON(r).then(function(j){ if(j && typeof j === 'object' && !r.ok) j.__http = r.status; return j; }); }).then(function(j){
+      var st = j.__http, bad = function(m){ return Object.assign(new Error(m), st ? { status:st } : {}); };   /* the status travels with the error so callers can tell "try again" from "your key is wrong" */
+      if(j.error) throw bad(j.error.message || JSON.stringify(j.error));
+      if(j.type === 'error' && j.error) throw bad(j.error.message || JSON.stringify(j.error));
       return j;
     });
   }
@@ -10323,9 +10328,9 @@ function readJSON(r){
     var parsed;
     try{ parsed = JSON.parse(t); }catch(e){
       if(/<html/i.test(t) && (r.status === 404 || r.status === 405)) throw new Error('The request reached a web page instead of the AI provider (HTTP ' + r.status + '). On the hosted site, OpenCode needs the relay: check Settings \u2192 AI & API keys \u2192 OpenCode proxy URL, or run python3 serve.py locally. Your key is fine.');
-      throw new Error('Provider returned non-JSON (' + r.status + '): ' + t.slice(0, 180));
+      throw Object.assign(new Error('Provider returned non-JSON (' + r.status + '): ' + t.slice(0, 180)), { status:r.status });
     }
-    if(!r.ok && !parsed.error) throw new Error('HTTP ' + r.status);
+    if(!r.ok && !parsed.error) throw Object.assign(new Error('HTTP ' + r.status), { status:r.status });
     return parsed;
   });
 }

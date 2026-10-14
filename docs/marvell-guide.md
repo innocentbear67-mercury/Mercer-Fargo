@@ -189,7 +189,7 @@ The **Deep Research** tab of the Marvell panel, or *Start deep research on SYM* 
 - Marvell writes a plan (shown as a checklist that ticks off), then searches the web, reads pages and filings, pulls prices,
   financials and insider data for any companies involved, computes figures, writes the report with [n] citations,
   and finally re-checks the report against its sources.
-- Runs the same on the hosted site and locally; up to 40 rounds or 10 minutes. *Stop* ends it early.
+- Runs the same on the hosted site and locally; up to 40 rounds or 15 minutes. A model call that fails for a temporary reason (a timeout, a gateway error, a rate limit) is retried up to three times, shown in the timeline as "trying again"; if the model still stops responding partway through, the report is written from what was already gathered. *Stop* ends it early.
 - The header button shows a pulsing gold dot while running and a green dot when the report is ready. Reports can be copied
   or downloaded and are saved in this browser (Research Log and *Past runs*).
 `/learn` cannot run here; it moves to Agent chat.

@@ -32,7 +32,7 @@ var MH = (function(){
   /* GET one of our own JSON routes: local serve.py first, then the hosted worker. Error bodies carry a message. */
   function apiGet(path){
     function get(url){
-      return withTimeout(fetch(url), 25000, 'request').then(function(r){
+      return withTimeout(fetch(url), 40000, 'request').then(function(r){
         return r.text().then(function(t){
           var j; try{ j = JSON.parse(t); }catch(e){ throw new Error(r.ok ? 'bad response' : 'HTTP ' + r.status); }
           if(!r.ok || j.error) throw Object.assign(new Error(j.error || 'HTTP ' + r.status), { status:r.status, json:true });
@@ -590,7 +590,7 @@ var MH = (function(){
     var sys = o.system + (mode === 'research' ? RESEARCH_PROMPT : CHAT_PROMPT.replace('%DOCS%', Object.keys(DOCS).join(', ') || 'guide unavailable') + visualsPrompt(o.visuals));
     var maxTokens = Math.max(AI_EFFORT[effortKey].mt, mode === 'research' ? 8000 : 3000);
     if(ep.wire !== 'a' && ep.wire !== 'm') maxTokens += THINK_ROOM[effortKey] || 4096;   // reasoning shares the output limit
-    var maxRounds = o.maxRounds || (mode === 'research' ? 40 : 15), deadline = Date.now() + (o.maxMs || (mode === 'research' ? 600000 : 240000));
+    var maxRounds = o.maxRounds || (mode === 'research' ? 40 : 15), deadline = Date.now() + (o.maxMs || (mode === 'research' ? 900000 : 240000));
     var hist = (o.history || []).map(function(m){ return { role:m.role, content:m.content, text:m.content, calls:[], raw:m.role === 'assistant' ? aiAssistantRaw(ep, m.content) : null }; });
     hist.push({ role:'user', content:o.user, images:o.images || [] });
     var prior = hist.length;   // earlier turns (already checked) end here; anything after is this run's own output
@@ -616,13 +616,31 @@ var MH = (function(){
       plan:function(steps){ if(o.onPlan) o.onPlan(steps); }
     };
     function step(s){ if(o.onStep) try{ o.onStep(s); }catch(e){} }
+    /* A failed call is retried when the cause is temporary (a timeout, a gateway error, a rate limit, a dropped connection); a wrong key, an unknown model or no credit is not. */
+    function transient(e){
+      var st = e && e.status, m = String((e && e.message) || '');
+      if(st) return st === 408 || st === 409 || st === 425 || st === 429 || st >= 500;
+      return !!e && (e.name === 'TypeError' || /timed out|timeout|too long|temporar|overload|try again|rate limit|too many|bad gateway|gateway|unavailable|upstream error|failed to fetch|load failed|network|connection|reset|capacity|busy/i.test(m));
+    }
+    function withRetry(make){
+      var tries = 3;
+      function go(n){
+        return make().catch(function(e){
+          if(stop.stopped || n >= tries || !transient(e)) throw e;
+          var wait = n * 3000;
+          step({ kind:'round', label:'The model call failed, trying again', detail:'attempt ' + (n + 1) + ' of ' + tries + ' · ' + String((e && e.message) || e).slice(0, 90) });
+          return new Promise(function(res){ setTimeout(res, wait); }).then(function(){ return stop.stopped ? Promise.reject(e) : go(n + 1); });
+        });
+      }
+      return go(1);
+    }
     function call(noTools, extraUser){
       var h = extraUser ? hist.concat([{ role:'user', content:extraUser, images:[] }]) : hist;
       trimHistory(hist, mode === 'research' ? 300000 : 120000);
       function send(native){
         var body = buildRequest(ep, model, sys, h, tools, { maxTokens:maxTokens, noTools:noTools, native:native });
         aiReason(ep, model, body, effortKey);
-        return aiPost(ep, o.key, body).then(function(j){ return parseReply(ep, j); });
+        return withRetry(function(){ return aiPost(ep, o.key, body, mode === 'research' ? 600000 : 300000).then(function(j){ return parseReply(ep, j); }); });
       }
       if(!nat || natOff) return send('');
       // If the provider rejects its built-in search (not enabled for the account, old model), fall back to the site's web_search tool.
@@ -638,7 +656,7 @@ var MH = (function(){
         var label = ''; try{ label = t.label(c.args || {}); }catch(e){ label = c.name; }
         var rec = { kind:'tool', name:c.name, label:label, args:c.args };
         step(rec);
-        return withTimeout(Promise.resolve().then(function(){ return t.run(c.args || {}, ctx); }), 45000, c.name).then(function(r){
+        return withTimeout(Promise.resolve().then(function(){ return t.run(c.args || {}, ctx); }), mode === 'research' ? 90000 : 45000, c.name).then(function(r){
           rec.ok = true; step(rec);
           var text = typeof r === 'string' ? r : JSON.stringify(r);
           return { id:c.id, name:c.name, content:clip(text, c.name === 'read_webpage' || c.name === 'read_filing' ? 21000 : 12000) };
@@ -701,7 +719,14 @@ var MH = (function(){
       step({ kind:'round', label:'Double-checking the numbers' });
       return loop().then(function(t){ return t || text; });
     }
-    return loop().then(checkNumbers).then(function(text){
+    /* If a call still fails after its retries partway through a long run, write the answer from what was already gathered instead of throwing all of it away. */
+    function salvage(e){
+      var worked = hist.filter(function(m){ return m.role === 'tool' && !m.err; }).length;
+      if(stop.stopped || rounds < 2 || worked < 2) throw e;
+      step({ kind:'round', label:'Writing the answer from what was gathered', detail:'the model stopped responding: ' + String((e && e.message) || e).slice(0, 90) });
+      return call(true, 'Your research was interrupted by a connection problem. Answer now with what you have gathered, and say plainly what you could not check.').then(function(r){ if(!r.text) throw e; return r.text; }, function(){ throw e; });
+    }
+    return loop().catch(salvage).then(checkNumbers).then(function(text){
       if(stop.stopped || mode !== 'research' || !text) return text;
       hist.push({ role:'assistant', text:text, calls:[], raw:aiAssistantRaw(ep, text) });
       step({ kind:'round', label:'Checking the report against its sources' });
