@@ -4,7 +4,7 @@ compatibility_date = "2026-01-01"
 
 # Google sign-in + cloud sync (sync.js). SESSION_SECRET is a wrangler secret, never in this file.
 [vars]
-GOOGLE_CLIENT_ID = ""   # public OAuth Web client id, same value as GOOGLE_CLIENT_ID in index.html
+GOOGLE_CLIENT_ID = "7025289485-oojedrkvqdqudopelmcnqlhf39cs3tuh.apps.googleusercontent.com"   # public OAuth Web client id, same value as GOOGLE_CLIENT_ID in index.html
 
 [[kv_namespaces]]
 binding = "USERS"
