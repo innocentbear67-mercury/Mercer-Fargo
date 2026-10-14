@@ -1,3 +1,11 @@
 name = "mercer-fargo-opencode-proxy"
 main = "opencode-proxy.js"
 compatibility_date = "2026-01-01"
+
+# Google sign-in + cloud sync (sync.js). SESSION_SECRET is a wrangler secret, never in this file.
+[vars]
+GOOGLE_CLIENT_ID = ""   # public OAuth Web client id, same value as GOOGLE_CLIENT_ID in index.html
+
+[[kv_namespaces]]
+binding = "USERS"
+id = "179e2a53d21d486c977b227b5d9de52b"

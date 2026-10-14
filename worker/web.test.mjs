@@ -63,3 +63,55 @@ test('fetchFeed retries a 503 and stops at the first good answer', async () => {
 test('bingNewsRss renames the publisher tag so the page shows the real source', () => {
   assert.equal(bingNewsRss('<item><title>T</title><News:Source>Reuters</News:Source></item>'), '<item><title>T</title><source>Reuters</source></item>');
 });
+
+// ---- Google sign-in + cloud sync (sync.js) ----
+import { verifyGoogle, signSession, readSession, syncResponse } from './sync.js';
+
+const b64u = (b) => Buffer.from(b).toString('base64url');
+async function googleFixture(claims = {}) {
+  const { publicKey, privateKey } = await crypto.subtle.generateKey({ name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' }, true, ['sign', 'verify']);
+  const jwk = { ...(await crypto.subtle.exportKey('jwk', publicKey)), kid: 'k' + Math.random() };
+  const h = b64u(JSON.stringify({ alg: 'RS256', kid: jwk.kid }));
+  const p = b64u(JSON.stringify({ iss: 'https://accounts.google.com', aud: 'cid', sub: '123', email: 'A@x.com', email_verified: true, name: 'A', exp: Date.now() / 1000 + 600, ...claims }));
+  const sig = b64u(await crypto.subtle.sign('RSASSA-PKCS1-v1_5', privateKey, new TextEncoder().encode(h + '.' + p)));
+  return { token: h + '.' + p + '.' + sig, fetchFn: async () => new Response(JSON.stringify({ keys: [jwk] })) };
+}
+
+test('verifyGoogle accepts a good token and rejects wrong audience, expiry, bad signature', async () => {
+  const g = await googleFixture();
+  assert.deepEqual(await verifyGoogle(g.token, 'cid', g.fetchFn), { sub: '123', email: 'a@x.com', name: 'A', picture: '' });
+  await assert.rejects(verifyGoogle(g.token, 'other', g.fetchFn), /audience/);
+  const old = await googleFixture({ exp: 1 });
+  await assert.rejects(verifyGoogle(old.token, 'cid', old.fetchFn), /expired/);
+  const [h, p] = g.token.split('.');
+  await assert.rejects(verifyGoogle(h + '.' + p + '.' + b64u('x'.repeat(256)), 'cid', g.fetchFn), /signature/);
+  const unv = await googleFixture({ email_verified: false });
+  await assert.rejects(verifyGoogle(unv.token, 'cid', unv.fetchFn), /unverified/);
+});
+
+test('session tokens round-trip, expire and cannot be forged', async () => {
+  const t = await signSession({ sub: '1', email: 'a@x.com' }, 'secret', 1000);
+  assert.equal((await readSession(t, 'secret', 2000)).sub, '1');
+  assert.equal(await readSession(t, 'other', 2000), null);
+  assert.equal(await readSession(t, 'secret', 1000 + 31 * 864e5), null);
+  const [b, s] = t.split('.');
+  assert.equal(await readSession(b64u(JSON.stringify({ sub: '2', exp: 9e15 })) + '.' + s, 'secret'), null);
+});
+
+test('sync: sign in, store per account, optimistic revisions, isolation, delete', async () => {
+  const kv = new Map(), env = { SESSION_SECRET: 's', GOOGLE_CLIENT_ID: 'cid', USERS: { get: async (k) => (kv.has(k) ? JSON.parse(kv.get(k)) : null), put: async (k, v) => kv.set(k, v), delete: async (k) => kv.delete(k) } };
+  const call = async (path, method, token, body, fetchFn) => { const r = await syncResponse(new Request('https://w' + path, { method, headers: token ? { authorization: 'Bearer ' + token } : {}, body: body && JSON.stringify(body) }), new URL('https://w' + path), env, fetchFn); return [r.status, await r.json()]; };
+  const g = await googleFixture(), g2 = await googleFixture({ sub: '999', email: 'b@x.com' });
+  const [s1, a] = await call('/api/auth/google', 'POST', '', { credential: g.token }, g.fetchFn);
+  const [, b] = await call('/api/auth/google', 'POST', '', { credential: g2.token }, g2.fetchFn);
+  assert.equal(s1, 200);
+  assert.equal((await call('/api/sync', 'GET', ''))[0], 401);
+  assert.deepEqual((await call('/api/sync', 'GET', a.token))[1], { rev: 0, data: {} });
+  assert.equal((await call('/api/sync', 'PUT', a.token, { baseRev: 0, data: { fh3_pf: { v: [1], t: 5 } } }))[1].rev, 1);
+  const [c, conflict] = await call('/api/sync', 'PUT', a.token, { baseRev: 0, data: {} });   // stale writer
+  assert.equal(c, 409); assert.deepEqual(conflict.data.fh3_pf, { v: [1], t: 5 });
+  assert.deepEqual((await call('/api/sync', 'GET', b.token))[1].data, {});                     // another account sees nothing
+  assert.equal((await call('/api/sync', 'PUT', a.token, { baseRev: 1, data: [] }))[0], 400);
+  await call('/api/sync', 'DELETE', a.token);
+  assert.equal((await call('/api/sync', 'GET', a.token))[1].rev, 0);
+});

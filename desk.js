@@ -215,7 +215,7 @@ document.addEventListener('click', function(ev){
   else if(act === 'dk-mv'){ var s = deskState(), vis = s.order.filter(function(i){ return s.off.indexOf(i) < 0; }), at = vis.indexOf(id), to = vis[at + (+el.getAttribute('data-d'))]; if(to) deskMove(id, s.order.indexOf(to)); }
   else if(act === 'dk-hide'){ var s2 = deskState(); if(s2.off.indexOf(id) < 0) s2.off.push(id); deskSave(s2); deskRender(); }
   else if(act === 'dk-show'){ var s3 = deskState(); s3.off = s3.off.filter(function(i){ return i !== id; }); deskSave(s3); deskRender(); if(id === 'calls') deskLoad(); }
-  else if(act === 'dk-reset'){ try{ localStorage.removeItem('fh3_desk'); }catch(e){} deskRender(); }
+  else if(act === 'dk-reset'){ try{ localStorage.removeItem('fh3_desk'); CLOUD.del('fh3_desk'); }catch(e){} deskRender(); }
   else if(act === 'ck-new'){ ev.preventDefault(); deskNewCall(); }
   else if(act === 'ck-cancel'){ DESK.form = null; deskRepaint('calls'); }
   else if(act === 'ck-side'){ DESK.form.side = el.getAttribute('data-v'); deskRepaint('calls'); }

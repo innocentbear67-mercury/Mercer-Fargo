@@ -2,9 +2,10 @@
 // (2) edge market-data chart endpoint so the static site gets fast, cached
 // bars on any device without serve.py. Yahoo v8 is the upstream (sub-100ms
 // server-side); only slim OHLCV bars travel to the browser.
+import { syncResponse } from './sync.js';
 const ALLOW = /^https:\/\/opencode\.ai\/zen\//;
 const PASS = ['authorization', 'content-type', 'x-api-key', 'anthropic-version', 'x-opencode-session'];
-const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': PASS.join(','), 'access-control-allow-methods': 'GET,POST,OPTIONS', 'access-control-max-age': '86400' };
+const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': PASS.join(','), 'access-control-allow-methods': 'GET,POST,PUT,DELETE,OPTIONS', 'access-control-max-age': '86400' };
 
 // Mirrors serve.py OA_YMAP / OA_RANGE. Third RANGE element = edge cache seconds.
 const YMAP = { '^SPX': '^GSPC', '^IQX': '^IXIC', '^DJI': '^DJI', '^RUT': '^RUT', '^UKX': '^FTSE', '^DAX': '^GDAXI', '^CAC': '^FCHI', '^NKX': '^N225', '^HSI': '^HSI', '^SHC': '000001.SS', '^NDQ': '^NDX', '^VIX': '^VIX', 'ES.F': 'ES=F', 'NQ.F': 'NQ=F', 'YM.F': 'YM=F', 'GC.F': 'GC=F', 'CL.F': 'CL=F' };
@@ -242,10 +243,12 @@ async function readResponse(raw, env) {
   const max = 20000;
   return json({ url: cur.href, title: page.title, text: page.text.slice(0, max), truncated: page.text.length > max }, 200, 900);
 }
+const withCors = (r) => { const h = new Headers(r.headers); for (const k in cors) h.set(k, cors[k]); return new Response(r.body, { status: r.status, headers: h }); };
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+    if (url.pathname === '/api/sync' || url.pathname === '/api/auth/google') return withCors(await syncResponse(req, url, env));
     if (url.pathname === '/api/chart' && req.method === 'GET') {
       return chartResponse(url.searchParams.get('symbol'), url.searchParams.get('range'));
     }

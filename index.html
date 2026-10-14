@@ -2885,6 +2885,7 @@ body.rs-drag iframe{pointer-events:none}
 <script src="genui.js"></script>
 <script src="desk.js"></script>
 <script src="memo-pdf.js"></script>
+<script src="cloud.js"></script>
 <script>try{var c=JSON.parse(localStorage.getItem('fh3_cfg')||'{}'),t=c.theme||'dark';if(t==='auto')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 <div class="sys" id="bootScreen" role="status" aria-live="polite" aria-label="Loading MercerFargo">
   <div class="sys-in">
@@ -3253,7 +3254,7 @@ function load(key, fallback){
   }catch(e){ return fallback; }
 }
 function save(key, val){
-  try{ localStorage.setItem(key, JSON.stringify(val)); }
+  try{ localStorage.setItem(key, JSON.stringify(val)); if(window.CLOUD) CLOUD.touch(key); }
   catch(e){   // usually "quota exceeded": say so once instead of silently losing the change
     if(!save.warned){ save.warned = true; try{ toast('Browser storage is full \u2014 changes may not be saved. Delete old chats or Research Log runs.', 6000); }catch(x){} }
   }
@@ -5049,7 +5050,8 @@ function acctRefresh(){
 function acctSignIn(email){
   ACCT_CUR = email; save('fh3_acct', ACCT_CUR); acctLoad(ACCTS[email]); acctRefresh();
 }
-function acctSignOut(){
+function acctSignOut(clear){
+  if(window.CLOUD) CLOUD.signOut(clear).then(function(){ if(clear) location.reload(); });
   ACCT_CUR = ''; save('fh3_acct', ACCT_CUR);
   try{ if(window.google && google.accounts) google.accounts.id.disableAutoSelect(); }catch(e){}
   KEYS.keysBy = {}; KEYS.key = ''; KEY_OK = null; saveKeys();     // keys stay with the account, not the device
@@ -5093,7 +5095,20 @@ function gisCb(resp){
   if(fresh) ACCTS[email] = { email:email, name:c.name || c.given_name || email.split('@')[0], age:null, roles:[], since:null, created:Date.now(), google:true, ai:acctAI() };
   ACCTS[email].picture = c.picture || ACCTS[email].picture || ''; ACCTS[email].google = true;
   save('fh3_accts', ACCTS); acctSignIn(email); closeDialog(); toast('Signed in as ' + ACCTS[email].name);
-  if(fresh) setTimeout(openFinishProfile, 250); else if(CUR.view === 'settings') route();
+  CLOUD.signIn(resp.credential).then(function(r){
+    if(r.changed){ toast('Restoring your saved data…'); setTimeout(function(){ cloudReload(); }, 600); return; }
+    var a = ACCTS[email];
+    if(fresh && !a.age && !(a.roles || []).length) setTimeout(openFinishProfile, 250); else if(CUR.view === 'settings') route();
+  }, function(e){ toast('Signed in, but cloud sync is unavailable: ' + e.message, 6000); if(fresh) setTimeout(openFinishProfile, 250); });
+}
+/* cloud.js mirrors the signed-in Google account's data; the profile lives on the local account record */
+CLOUD.init({
+  getProfile:function(){ var a = acct(); return a && a.google ? { name:a.name, age:a.age, roles:a.roles, since:a.since } : null; },
+  setProfile:function(p){ var u = CLOUD.user(), a = u && ACCTS[u.email]; if(!a) return; ['name', 'age', 'roles', 'since'].forEach(function(k){ if(p[k] != null && p[k] !== '') a[k] = p[k]; }); save('fh3_accts', ACCTS); }
+});
+function cloudReload(){   // at most one automatic reload per 30s, so a bad round can never loop
+  try{ if(Date.now() - (+sessionStorage.getItem('fh3_cr') || 0) < 30000) return; sessionStorage.setItem('fh3_cr', String(Date.now())); }catch(e){}
+  location.reload();
 }
 function openFinishProfile(){
   var year = new Date().getFullYear(), a = acct(); if(!a) return;
@@ -5110,7 +5125,7 @@ function authFinish(){
   if($('auAge').value && !(age >= 13 && age <= 120)) return err('Enter an age between 13 and 120.');
   if($('auSince').value && !(since >= 1950 && since <= yr)) return err('Start year must be between 1950 and ' + yr + '.');
   if($('auAge').value) a.age = age; if(roles.length) a.roles = roles; a.since = $('auSince').value ? since : a.since;
-  save('fh3_accts', ACCTS); closeDialog(); toast('Profile saved');
+  save('fh3_accts', ACCTS); CLOUD.touch('_profile'); closeDialog(); toast('Profile saved');
 }
 function openAuth(mode){
   mode = mode || 'register';
@@ -5124,8 +5139,8 @@ function openAuth(mode){
       '<div class="field"><span>What do you do? (pick any)</span><div class="pills" id="auRoles">' +
       ACCT_ROLES.map(function(r){ return '<label class="pill chk"><input type="checkbox" value="' + r + '"><span>' + r + '</span></label>'; }).join('') + '</div></div>' +
       field('Started investing (optional)', 'auSince', '', 'Year, e.g. ' + (year - 5), 'number') : '') +
-    '<div class="mut" style="font-size:12px;line-height:18px;margin-top:8px">Accounts live in this browser only — there is no server or password. ' +
-    'Your profile and API keys are saved to the account, so after signing in the AI works straight away.</div><div class="mut" id="auErr" style="color:var(--fh-error,#d93025);font-size:13px;margin-top:6px"></div>';
+    '<div class="mut" style="font-size:12px;line-height:18px;margin-top:8px">' + (GOOGLE_CLIENT_ID ? 'Google sign-in saves your portfolios, watchlists, chats, research and settings to your account, so they follow you to any device. API keys stay on this device. ' : '') +
+    'Email accounts live in this browser only — there is no server or password, and no sync.</div><div class="mut" id="auErr" style="color:var(--fh-error,#d93025);font-size:13px;margin-top:6px"></div>';
   setTimeout(gisLoad, 0);
   dialog(reg ? 'Create your account' : 'Sign in', body, '<button class="btn text" data-act="dlg-close">Cancel</button><button class="btn filled" data-act="auth-go" data-m="' + mode + '">' + (reg ? 'Create account' : 'Sign in') + '</button>');
 }
@@ -11347,7 +11362,15 @@ function settingsProfileHTML(){
     '<div class="field"><span>What do you do?</span><div class="pills" id="pfRoles">' + ACCT_ROLES.map(function(r){
       return '<label class="pill chk"><input type="checkbox" value="' + r + '"' + (a.roles.indexOf(r) >= 0 ? ' checked' : '') + '><span>' + r + '</span></label>'; }).join('') + '</div></div>' +
     field('Started investing (year, optional)', 'pfSince', a.since || '', '', 'number') +
-    '<div class="key-row"><button class="btn filled sm" data-act="profile-save">Save profile</button><button class="btn text sm" data-act="signout">Sign out</button><span class="mut" id="pfMsg" style="font-size:12.5px"></span></div></div>';
+    '<div class="key-row"><button class="btn filled sm" data-act="profile-save">Save profile</button><button class="btn text sm" data-act="signout">Sign out</button><span class="mut" id="pfMsg" style="font-size:12.5px"></span></div></div>' +
+    cloudCardHTML(a);
+}
+function cloudCardHTML(a){
+  if(!a.google) return '';
+  if(!CLOUD.on()) return '<div class="card"><h3>Cloud sync</h3><div class="mut" style="font-size:13.5px;line-height:20px;margin-bottom:12px">Sync is paused on this device. Sign in with Google again to resume.</div><button class="btn filled sm" data-act="auth-open" data-m="signin">Sign in with Google</button></div>';
+  return '<div class="card"><h3>Cloud sync</h3><div class="mut" style="font-size:13.5px;line-height:20px;margin-bottom:12px">Your portfolios, watchlists, chats, research, call book and settings are saved to your Google account (' + esc(a.email) + ') and follow you to any device. API keys never leave this device.</div>' +
+    '<div class="key-row"><span id="cloudLine" style="font-size:13px">' + esc(CLOUD.line()) + '</span></div>' +
+    '<div class="key-row"><button class="btn filled sm" data-act="cloud-sync">Sync now</button><button class="btn text sm" data-act="signout-clear">Sign out and clear this device</button><button class="btn text sm" data-act="cloud-wipe">Delete my cloud data</button></div></div>';
 }
 function profileSave(){
   var a = acct(); if(!a) return;
@@ -11357,7 +11380,7 @@ function profileSave(){
   if(!name || !(age >= 13 && age <= 120) || !roles.length) { m.textContent = 'Name, an age of 13–120 and at least one activity are required.'; return; }
   if($('pfSince').value && !(since >= 1950 && since <= yr)){ m.textContent = 'Start year must be between 1950 and ' + yr + '.'; return; }
   a.name = name; a.age = age; a.roles = roles; a.since = $('pfSince').value ? since : null;
-  save('fh3_accts', ACCTS); acctRefresh(); m.textContent = 'Saved.';
+  save('fh3_accts', ACCTS); CLOUD.touch('_profile'); acctRefresh(); m.textContent = 'Saved.';
 }
 
 /* ---- Memory: what Marvell knows about you ---------------------------------------
@@ -14041,6 +14064,9 @@ function bindEvents(){
       case 'mem-profile-save': case 'mem-rs-edit': case 'mem-rs-save': case 'mem-clear': case 'mem-export': memAction(act, el); break;
       case 'proxy-save': CFG.ocProxy = ($('ocProxy').value || '').trim().replace(/\/+$/, ''); saveCfg(); toast(CFG.ocProxy ? 'Proxy saved' : 'Proxy cleared'); break;
       case 'signout': closeMenu(); acctSignOut(); toast('Signed out'); break;
+      case 'signout-clear': if(confirm('Sign out and remove your portfolios, chats and research from this browser? They stay saved in your account.')){ closeMenu(); acctSignOut(true); } break;
+      case 'cloud-sync': CLOUD.sync().then(function(r){ toast(r.changed ? 'Newer data was saved from another device. Refresh to see it.' : CLOUD.line()); }); break;
+      case 'cloud-wipe': if(confirm('Delete everything saved to your account in the cloud? Data on this device is kept.')) CLOUD.wipeCloud().then(function(){ toast('Cloud data deleted'); }, function(e){ toast(e.message); }); break;
       case 'theme': toggleTheme(); break;
       case 'menu-more': ev.stopPropagation(); menu(el, moreMenuHTML()); break;
       case 'signin': openAuth('register'); break;
@@ -14622,6 +14648,7 @@ function boot(){
   if(pane) pane.innerHTML = rsPanelHTML();
   rsShowTab(CFG.rtab || 'chat', false);
   acctRefresh();
+  if(CLOUD.on()) CLOUD.sync().then(function(r){ if(r.changed) cloudReload(); });
   aiQuickButtons();
   bindEvents();
   if(!KEYS.provider) KEYS.provider = 'openrouter';
