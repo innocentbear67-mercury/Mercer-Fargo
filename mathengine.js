@@ -450,6 +450,119 @@ def('dcf_sensitivity', 'same as dcf plus growth_step_pct?[2], discount_step_pct?
   });
   return { unit:d.sh ? 'per share' : 'equity value', grid:rows };
 });
+/* ---- Stock Research Pro valuation: ports of the skill's valuation.py (FCFF / EV throughout, fade or constant growth, both terminal methods) ---- */
+function proPath(base, n, g1, gt, path){
+  var out = [], f = base;
+  for(var t = 1; t <= n; t++){ var g = path === 'constant' ? g1 : g1 + (gt - g1) * (t - 1) / Math.max(n - 1, 1); f *= 1 + g; out.push(f); }
+  return out;
+}
+function proFwd(base, n, g1, gt, w, netCash, sh, path, exitMx){
+  var spread = w - gt;
+  if(spread < 0.015) bad('WACC minus terminal growth is ' + rd(spread * 100) + ' points: below 1.5 the Gordon terminal value is unstable. Lower the terminal growth or say the model cannot be defended');
+  var f = proPath(base, n, g1, gt, path), pvx = 0, last = f[f.length - 1];
+  f.forEach(function(x, i){ pvx += x / Math.pow(1 + w, i + 1); });
+  var tv = function(v){ var pv = v / Math.pow(1 + w, n), ev = pvx + pv; return { terminalValue:v, pvOfTerminal:pv, enterpriseValue:ev, equityValue:ev + netCash, perShare:(ev + netCash) / sh, terminalPctOfEv:pv / ev * 100 }; };
+  var o = { fcfs:f, pvExplicit:pvx, gordon:tv(last * (1 + gt) / spread) };
+  if(exitMx != null){ o.exitMultiple = tv(last * exitMx); var a = o.gordon.perShare, b = o.exitMultiple.perShare; o.methodDivergencePct = Math.abs(a - b) / ((a + b) / 2) * 100; }
+  return o;
+}
+def('forward_dcf', 'base_fcf, g1_pct (year-1 growth), wacc_pct, net_cash (NEGATIVE if net debt), shares (fully diluted; ADR ratios checked), years?[5], terminal_growth_pct?[2.5], path?[fade] (fade | constant), exit_multiple? (FCF multiple of MATURE peers, never the stock\'s own), price?: FCFF DCF under the Gordon and exit-multiple terminal values, terminal share of EV, divergence, the WACC x terminal-growth grid and the discount-rate band, margin of safety; refuses a WACC minus terminal growth under 1.5 points', function(a){
+  var base = num(a.base_fcf, 'base_fcf'), n = Math.round(num(a.years, 'years', 5)), g1 = num(a.g1_pct, 'g1_pct') / 100, gt = num(a.terminal_growth_pct, 'terminal_growth_pct', 2.5) / 100,
+      w = num(a.wacc_pct, 'wacc_pct') / 100, nc = num(a.net_cash, 'net_cash', 0), sh = num(a.shares, 'shares'), path = a.path === 'constant' ? 'constant' : 'fade',
+      mx = a.exit_multiple != null ? num(a.exit_multiple, 'exit_multiple') : null, price = a.price != null ? num(a.price, 'price') : null;
+  if(n < 1 || n > 20) bad('years must be between 1 and 20');
+  if(base <= 0) bad('base_fcf must be positive: a free-cash-flow DCF is the wrong tool for a company without positive free cash flow');
+  var r = proFwd(base, n, g1, gt, w, nc, sh, path, mx), warn = [];
+  if(gt > 0.03) warn.push('terminal growth above 3% is above long-run nominal GDP');
+  if(r.gordon.terminalPctOfEv > 75) warn.push('the terminal value is ' + rd(r.gordon.terminalPctOfEv) + '% of EV: the model is mostly a terminal assumption');
+  if(r.methodDivergencePct > 25) warn.push('the two terminal methods differ by ' + rd(r.methodDivergencePct) + '%: the assumptions are fighting, investigate before quoting either');
+  var grid = [], lo = Infinity, hi = -Infinity;
+  [-2, -1, 0, 1, 2].forEach(function(i){
+    var wv = w + i * 0.005, row = { waccPct:wv * 100 };
+    [-2, -1, 0, 1, 2].forEach(function(j){
+      var gv = gt + j * 0.005, v = null;
+      try{ v = proFwd(base, n, g1, gv, wv, nc, sh, path, null).gordon.perShare; }catch(e){}
+      row['g ' + rd(gv * 100) + '%'] = v;
+      if(j === 0 && v != null){ lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    });
+    grid.push(row);
+  });
+  var out = { conventions:{ years:n, path:path, waccPct:w * 100, terminalGrowthPct:gt * 100, baseFcf:base }, gordon:r.gordon, exitMultiple:r.exitMultiple, methodDivergencePct:r.methodDivergencePct,
+    discountRateBandPerShare:{ low:lo, high:hi, note:'Gordon value across WACC +/-1 point at the chosen terminal growth: quote this band, not one number' }, sensitivityGrid:grid, warnings:warn };
+  if(price != null) out.marginOfSafetyPct = { gordon:(r.gordon.perShare - price) / r.gordon.perShare * 100, exitMultiple:r.exitMultiple ? (r.exitMultiple.perShare - price) / r.exitMultiple.perShare * 100 : undefined };
+  return out;
+});
+def('dcf_scenarios', 'scenarios:[{name, prob (0-1 or percent; must total 1), per_share}], price?: probability-weighted value per share and margin of safety. Say in one line what each scenario assumes', function(a){
+  var sc = list(a.scenarios, 'scenarios', 2).map(function(x, i){ var p = num(x.prob, 'scenarios[' + i + '].prob'); return { name:String(x.name || 'case ' + (i + 1)), prob:p > 1 ? p / 100 : p, perShare:num(x.per_share, 'scenarios[' + i + '].per_share') }; });
+  var tot = sum(sc.map(function(x){ return x.prob; }));
+  if(Math.abs(tot - 1) > 1e-6) bad('probabilities sum to ' + rd(tot) + ', not 1');
+  var wv = sum(sc.map(function(x){ return x.prob * x.perShare; })), out = { weightedPerShare:wv, scenarios:sc };
+  if(a.price != null) out.marginOfSafetyPct = (wv - num(a.price, 'price')) / wv * 100;
+  return out;
+});
+function proPv(f0, g, w, tg, n, fade){
+  if(w <= tg) bad('WACC must exceed terminal growth');
+  var pv = 0, f = f0;
+  for(var t = 1; t <= n; t++){ f *= 1 + (fade && n > 1 ? g + (tg - g) * (t - 1) / (n - 1) : g); pv += f / Math.pow(1 + w, t); }
+  return pv + f * (1 + tg) / (w - tg) / Math.pow(1 + w, n);
+}
+function proImplied(f0, ev, w, tg, n, fade){
+  var lo = -0.5, hi = 1, flo = proPv(f0, lo, w, tg, n, fade) - ev, fhi = proPv(f0, hi, w, tg, n, fade) - ev;
+  if(flo * fhi > 0) bad('no growth rate between -50% and +100% reproduces this price: check the free cash flow, the price and the share count');
+  for(var i = 0; i < 300; i++){
+    var mid = (lo + hi) / 2, fm = proPv(f0, mid, w, tg, n, fade) - ev;
+    if(Math.abs(fm) < 1e-9 || hi - lo < 1e-10) return mid;
+    if((fm > 0) === (flo > 0)){ lo = mid; flo = fm; } else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+def('reverse_dcf_full', 'fcf (base free cash flow), wacc_pct, price + shares + net_cash (NEGATIVE if net debt) | ev, years?[10], terminal_growth_pct?[2.5], normalized_fcf? (a mid-cycle base to run alongside), growth_scenarios_pct?[5,10,15,20,25]: the year-1 growth the market price needs under BOTH conventions (fade to terminal, constant), the WACC sensitivity (+/-1.5 points), and the reductio table (fair value per share at each growth). Fix WACC first; always state the convention with the number', function(a){
+  var fcf = num(a.fcf, 'fcf'), w = num(a.wacc_pct, 'wacc_pct') / 100, tg = num(a.terminal_growth_pct, 'terminal_growth_pct', 2.5) / 100, n = Math.round(num(a.years, 'years', 10)),
+      nc = num(a.net_cash, 'net_cash', 0), sh = a.shares != null ? num(a.shares, 'shares') : null, price = a.price != null ? num(a.price, 'price') : null;
+  var ev = a.ev != null ? num(a.ev, 'ev') : (price != null && sh != null ? price * sh - nc : bad('give ev, or price + shares (+ net_cash)'));
+  if(fcf <= 0) bad('reverse DCF needs positive free cash flow: it is the wrong tool for banks, insurers, REITs, pre-profit and restructuring companies');
+  if(n < 1 || n > 25) bad('years must be between 1 and 25');
+  var scen = (Array.isArray(a.growth_scenarios_pct) && a.growth_scenarios_pct.length ? arr(a.growth_scenarios_pct, 'growth_scenarios_pct') : [5, 10, 15, 20, 25]);
+  function block(f0){
+    var res = { baseFcf:f0, fcfYieldOnEvPct:f0 / ev * 100, impliedYear1GrowthPct:{}, waccSensitivity:{}, reductio:[] };
+    [['fade', true], ['constant', false]].forEach(function(c){
+      res.impliedYear1GrowthPct[c[0]] = proImplied(f0, ev, w, tg, n, c[1]) * 100;
+      res.waccSensitivity[c[0]] = [-0.015, -0.0075, 0, 0.0075, 0.015].map(function(d){ return { waccPct:(w + d) * 100, impliedGrowthPct:proImplied(f0, ev, w + d, tg, n, c[1]) * 100 }; });
+    });
+    if(sh != null) res.reductio = scen.map(function(g){ return { growthPct:g, fairValuePerShareFade:(proPv(f0, g / 100, w, tg, n, true) + nc) / sh, fairValuePerShareConstant:(proPv(f0, g / 100, w, tg, n, false) + nc) / sh }; });
+    return res;
+  }
+  var out = { conventions:{ years:n, waccPct:w * 100, terminalGrowthPct:tg * 100 }, enterpriseValue:ev, raw:block(fcf) };
+  if(price != null && sh != null) out.marketCap = price * sh;
+  if(a.normalized_fcf != null) out.normalized = block(num(a.normalized_fcf, 'normalized_fcf'));
+  out.note = 'Pass this to the plausibility judgment: compare the implied growth with realised 5-10 year FCF/revenue growth, consensus and sector base rates. The number is an input, not a verdict.';
+  return out;
+});
+def('quality_gate', 'years? (labels, oldest first), operating_income, revenue, net_income, fcf, equity, debt, cash, shares (fully diluted) (each a list, oldest first), tax_rate_pct?[21], gross_profit?, ebitda?, wacc_pct?: ROIC by year (NOPAT over equity + debt - cash), FCF conversion, margin trend, share-count trend vs revenue growth, net debt / EBITDA, and the kill-gate flags it can evidence (ROIC below WACC 3+ years, dilution above revenue growth, FCF conversion under 70%)', function(a){
+  var oi = arr(a.operating_income, 'operating_income', 2), n = oi.length, rev = arr(a.revenue, 'revenue', n), ni = arr(a.net_income, 'net_income', n), f = arr(a.fcf, 'fcf', n), eq = arr(a.equity, 'equity', n),
+      dt = arr(a.debt, 'debt', n), cs = arr(a.cash, 'cash', n), shr = arr(a.shares, 'shares', n), tax = num(a.tax_rate_pct, 'tax_rate_pct', 21) / 100,
+      yr = Array.isArray(a.years) && a.years.length === n ? a.years.map(String) : oi.map(function(_, i){ return 'Y' + (i + 1); });
+  [rev, ni, f, eq, dt, cs, shr].forEach(function(x){ if(x.length !== n) bad('every list needs the same number of years (' + n + ')'); });
+  var roic = oi.map(function(v, i){ var ic = eq[i] + dt[i] - cs[i]; return ic > 0 ? v * (1 - tax) / ic * 100 : null; });
+  var conv = f.map(function(v, i){ return ni[i] > 0 ? v / ni[i] * 100 : null; });
+  var om = oi.map(function(v, i){ return rev[i] ? v / rev[i] * 100 : null; });
+  var gm = Array.isArray(a.gross_profit) ? arr(a.gross_profit, 'gross_profit', n).map(function(v, i){ return rev[i] ? v / rev[i] * 100 : null; }) : null;
+  var yrs = n - 1, cg = function(x){ return x[0] > 0 && x[n - 1] > 0 ? (Math.pow(x[n - 1] / x[0], 1 / yrs) - 1) * 100 : null; };
+  var shareG = cg(shr), revG = cg(rev), flags = [];
+  var okc = conv.filter(function(x){ return x != null; }), avgConv = okc.length ? mean(okc) : null;
+  if(avgConv != null && avgConv < 70) flags.push('FCF conversion averages ' + rd(avgConv) + '%, below 70%: reported profit is not turning into cash, find out why');
+  if(shareG != null && revG != null && shareG > 0 && shareG > revG) flags.push('share count grows ' + rd(shareG) + '% a year, faster than revenue (' + rd(revG) + '%): HARD FAIL on dilution unless there is an acquisition rationale');
+  var wc = a.wacc_pct != null ? num(a.wacc_pct, 'wacc_pct') : null, below = null;
+  if(wc != null){
+    var run = 0; roic.forEach(function(v){ run = v != null && v < wc ? run + 1 : 0; }); below = run;
+    if(run >= 3) flags.push('ROIC has been below WACC (' + rd(wc) + '%) for the last ' + run + ' years: HARD FAIL unless a specific, evidenced inflection exists');
+  }
+  var out = { years:yr, roicPct:roic, fcfConversionPct:conv, fcfConversionAvgPct:avgConv, operatingMarginPct:om, grossMarginPct:gm, operatingMarginChangePts:om[n - 1] != null && om[0] != null ? om[n - 1] - om[0] : null,
+    shareCountCagrPct:shareG, revenueCagrPct:revG, roicBelowWaccYears:below, flags:flags,
+    note:'ROIC uses year-end invested capital and a flat tax rate. The debt maturity ladder is not computable here: read it from the 10-K debt note. If any figure here contradicts the narrative, the numbers win.' };
+  if(Array.isArray(a.ebitda)){ var e = arr(a.ebitda, 'ebitda', n); out.netDebtToEbitda = e[n - 1] > 0 ? (dt[n - 1] - cs[n - 1]) / e[n - 1] : null; }
+  return out;
+});
 def('wacc', 'equity_value, debt_value, cost_debt_pct, tax_pct?[21], cost_equity_pct | beta+rf_pct+mrp_pct?[5.5]', function(a){
   var E = num(a.equity_value, 'equity_value'), D = num(a.debt_value, 'debt_value', 0), V = E + D;
   var ke = a.cost_equity_pct != null ? num(a.cost_equity_pct, 'cost_equity_pct') : num(a.rf_pct, 'rf_pct') + num(a.beta, 'beta') * num(a.mrp_pct, 'mrp_pct', 5.5);

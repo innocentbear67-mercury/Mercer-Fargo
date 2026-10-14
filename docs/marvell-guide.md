@@ -41,17 +41,19 @@ Everything (watchlists, portfolios, chats, keys) is stored in the user's browser
   Clicking the empty box shows the 5 most recent searches (*Clear* empties them). Arrow keys + Enter open a result; a question that matches no company goes to Marvell as a Deep Search.
 - **Ticker tape**: the thin dark strip under the header loops major indices (S&P 500, Nasdaq, Dow, Russell 2000, VIX), the 12 most-traded large caps,
   gold, silver, WTI crude, the US 10-year yield, the dollar index, EUR/USD, Bitcoin and Ether. Hover pauses it; click an item to open it. Refreshes every minute.
-- **Sub-nav tabs**: *Monitoring Terminal* (home) and *Research Log*.
+- **Sub-nav tabs**: *Terminal* (home) and *Research Log*.
 - **Left rail** (collapsible; ☰ on phones): Market, Watchlists, Portfolios, Smart Money, Insider Trading, Filings & Reports, Screener (All stocks + 11 sectors).
 - **⋯ menu**: Home, Portfolio, Screener, Compare, Earnings calendar, Research Log, Market, AI keys & defaults, Settings, Take the tour, Give feedback, Get help.
 - Routes (URL hash): `#/`, `#/quote/SYM/tab`, `#/list/ID`, `#/portfolio/ID`, `#/market/SECTION`, `#/screener`, `#/compare`, `#/earnings`, `#/research`, `#/investors/ID`, `#/insiders/SYM`, `#/filings/SYM`, `#/settings/SECTION`, `#/help`, `#/feedback`.
 
 ## home
-Route `#/` (tab *Monitoring Terminal*). Shows, top to bottom:
-- **Your portfolio** at a glance: value, today's move and what drove it, with ranges (all time, year to date, 3 months…) and whether the user is beating the S&P 500. Empty state offers *Add a holding* / *Import CSV*.
-- **Top movers in your watchlists**: sortable table with a *Columns* picker and trend sparklines.
-- Daily gainers, daily losers, most valuable companies, market-wide movers.
-- **Market news** with *Dive deeper with AI* and *Refresh*.
+Route `#/` (tab *Terminal*). A desk the user arranges: **Arrange** turns on edit mode (drag or use Up/Down, *Hide*, and add hidden modules back from the tray; the layout is saved in this browser). **Ctrl/Cmd+K** (or `/`) opens a command palette: open any ticker, make a call, set an alert, arrange the desk, mute alerts, jump to a page, or send a question to the header search. Default modules, top to bottom:
+- **Since you were last here**: portfolio change since the last visit, alerts fired, the next earnings date, and the user's best open call. Each tile opens the thing behind it.
+- **Portfolio at a glance**: value, today's move and what drove it, with ranges and whether the user is beating the S&P 500. Empty state offers *Add a holding* / *Import CSV*.
+- **Call book**: the user's own track record. *+ New call* records a ticker, a stance (long, short, watch), a one-line thesis and an optional target, with the price and the S&P 500 (SPY) captured on that day. Each call shows its return in the direction of the call, points over the S&P 500, entry to current price and age; *Close* locks the result, *Delete* needs a second click. The header sentence gives calls made, share that went the user's way, average return and how often they beat the S&P 500. Stored in this browser only (`fh3_calls`).
+- **Watchlist movers**: sortable table with a *Columns* picker and trend sparklines.
+- **Market movers**: Gainers, Losers, Most valuable (tabs).
+- **Market news** with *Dive deeper with AI* and *Refresh*; **Earnings calendar**. *Market-wide movers* (TraderHub board) is available from the tray, off by default.
 
 ## market
 Route `#/market/SECTION` (indices, futures, commodities, forex, bonds, crypto), or the **Market** section in the left rail.
@@ -158,6 +160,7 @@ The **Agent** tab of the Marvell panel. Open it with *Research with Marvell*; �
 - Type a question. Marvell receives your saved portfolios and watchlists and the last few turns of the session. It does not see the page you have open: it fetches every price, number, headline and insider trade fresh with its tools.
 - While it works, the thinking indicator shows the current step (e.g. "🔎 Searching…", "📄 Reading…"). Answers that use fetched data end with a numbered Sources list.
 - Every calculation runs in the built-in math engine (step "🧮 Running the numbers"), not in the AI model, so figures are exact. Before an answer is shown, figures that no tool produced get one automatic re-check ("Double-checking the numbers"), and any stated arithmetic that is wrong is corrected.
+- **Mode suggestions**: when a question clearly belongs in another mode (a full company analysis or valuation, a strategy backtest or projection, a Kronos price forecast), Marvell does not start it in chat. It shows a card saying why and asks: *Switch to Deep Research / Quant / Predict* opens that tab with your question already in its box (press Run when ready), and *Stay in Agent* answers it right here as normal. It never switches by itself. A quick keyword check catches the obvious cases before anything runs, and Marvell can raise the same card itself with the `suggest_mode` tool when its own judgment says another mode fits better. *Do not suggest this again* (or Settings, AI and API keys, Mode suggestions: Off) turns it off.
 - **Attach** (paperclip): images, PDF, CSV, TXT, MD, JSON and more. Images need a vision-capable model.
 - **Quick analyses** (lightning button): Summary, Bull vs bear, Earnings, Valuation, Risk scan, Sentiment, My watchlist, Portfolio, Deep Search.
 - **Deep Search**: fetches fresh headlines for the question first, then answers.
@@ -185,15 +188,15 @@ Marvell always writes the main point in plain text too. Charts and tables use nu
 Settings → AI & API keys → **Visuals in Agent chat**: *Auto* (default), *Fewer* or *Off, text only*. Copy on an answer copies its text, not the visuals. If a visual cannot be drawn, you see "This visual could not be drawn" and the text still stands.
 
 ## deep-research
-The **Deep Research** tab of the Marvell panel, or *Start deep research on SYM* on a quote's Research tab. Produces a structured, cited report.
-- Pick focus areas (Auto, Macro, Competitors, Fundamentals, Earnings, Insiders, News & Politics) and a model under *Setup*.
-- Marvell writes a plan (shown as a checklist that ticks off), then searches the web, reads pages and filings, pulls prices,
-  financials and insider data for any companies involved, computes figures, writes the report with [n] citations,
-  and finally re-checks the report against its sources.
-- Runs the same on the hosted site and locally; up to 40 rounds or 15 minutes. A model call that fails for a temporary reason (a timeout, a gateway error, a rate limit) is retried up to three times, shown in the timeline as "trying again"; if the model still stops responding partway through, the report is written from what was already gathered. *Stop* ends it early.
-- The header button shows a pulsing gold dot while running and a green dot when the report is ready. Reports can be copied
-  or downloaded and are saved in this browser (Research Log and *Past runs*).
-`/learn` cannot run here; it moves to Agent chat.
+The **Deep Research** tab of the Marvell panel, or *Start deep research on SYM* on a quote's Research tab. It follows the user's Stock Research Pro method and ends in a PDF.
+- Pick focus areas (Auto, Macro, Competitors, Fundamentals, Earnings, Insiders, News & Politics) and a model under *Setup*. A narrowed focus runs only the phases that touch it, but never skips the bear case or the assumption audit.
+- **Standing rules**: live data only (every figure pulled this run and dated); falsification first (the bear case comes from actual bears, in their words); loud about gaps (inputs are labelled SOURCED, ESTIMATED or GUESSED, and more than 3 GUESSED core inputs means no verdict); plain language.
+- **Company questions run the pipeline, in order**: *Phase 0 intake* (Marvell stops and asks in a form: first whether the question is position-related or a pure company analysis, then, if position-related, the six position items; *Skip and use defaults* runs a value-lens, mid-horizon, analysis-only pass and flags the assumptions); *Phase 1 research* (macro read, sector stage, the seven company checks, competitive stress test, the steelmanned bear case); *Phase 2 quant* (quality gate: ROIC vs WACC, FCF conversion, margins, share count; reverse DCF first, then forward DCF with both terminal methods and bull/base/bear scenarios, then relative valuation, then the assumption audit); *Phase 3 flow* (Form 4 insiders with the filtered rules, politician trades, 13F holders, kept as three separate sections, corroboration only); *Phase 4 synthesis* (verdict is exactly Strong Buy, Buy, Hold or Sell, with the highest price it would pay, what would change the judgment, the thesis, a tiered entry band, sizing, add/trim/exit triggers, 3-4 kill criteria, confidence, what it could not verify, a review date); and the *kill gate* last (scope fit, ROIC vs WACC, share count, balance-sheet survival; a hard fail caps the verdict at Hold or Sell).
+- Other questions: "DCF" or "fair value" runs the horizon, quality gate and forward DCF; "reverse DCF" runs the quality gate and the reverse DCF; Fed, rates, recession or sector questions run the macro regime scan and sector scorecard (a one-line regime tag, then the numbers behind it); anything else gets the standing rules and a plan. Banks, insurers, REITs, pre-revenue and restructuring companies are not valued on free cash flow.
+- **The deliverable is a PDF.** A company verdict is saved as a memo in the Stock Research Pro layout (verdict, boxed Thesis Risk, valuation snapshot, intake and assumptions, financial snapshot, bull vs bear, independent fair value and scenarios, niche dominance and chain effects, verdict rationale, entry and triggers, kill criteria, the flow sections, kill gate, closing block, key risks, sources), set on carbon black in the MercerFargo style with the logo as a faint watermark on every page. The chat shows the three-line summary (verdict, entry band, size); *Download the PDF memo* saves `TICKER_stock-research-pro_memo_DATE.pdf`. Every other report is turned into a PDF in the same design. There is no .md download any more; *Copy report* still copies the text.
+- Marvell computes with `calculate`: `quality_gate`, `reverse_dcf_full`, `forward_dcf`, `dcf_scenarios` (these match the skill's own `valuation.py` to the last digit; the forward DCF refuses a WACC minus terminal growth under 1.5 points). `get_insider_trades` now returns the Form 4 rules applied in code: clusters of 3+ insiders buying inside 90 days, and sales only when they pass the $15M / 5 insiders / 30 days test (the 10b5-1 flag is not in the feed, so the Form 4 footnote is checked before any sale is reported).
+- Runs the same on the hosted site and locally; up to 60 rounds or 20 minutes (the time you spend answering the intake form is not counted). A model call that fails for a temporary reason (a timeout, a gateway error, a rate limit) is retried up to three times, shown in the timeline as "trying again"; if the model still stops responding partway through, the report is written from what was already gathered. *Stop* ends it early.
+- The header button shows a pulsing gold dot while running and a green dot when the report is ready. Reports are saved in this browser (Research Log and *Past runs*), including the memo, so the PDF can be downloaded again.
 
 ## quant-mode
 The Marvell panel has four modes: **Agent**, **Deep Research**, **Quant** (red, with a wave animation) and **Predict** (see `predict-mode`). Quant backtests a strategy the user describes in words and projects it forward.

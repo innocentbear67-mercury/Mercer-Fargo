@@ -267,3 +267,39 @@ test('batch-2 tools: cointegration, stress, regimes, factors and style on plante
   const al = await run('allocate', { assets: ['SPY', 'IWM', 'EFA', 'EEM'], method: 'momentum', top_n: 2, skip_days: 21 }, env3);
   near(al.assets.filter((x) => x.weightPct > 0).length, 2, 0); near(al.assets.reduce((s, x) => s + x.weightPct, 0), 100, 1e-6);
 });
+
+// Stock Research Pro valuation: the expected numbers come from running the skill's own valuation.py on the same inputs.
+test('research valuation matches the skill\'s valuation.py: forward, reverse, grid, reductio', async () => {
+  const f = await run('forward_dcf', { base_fcf: 10000, g1_pct: 12, wacc_pct: 9, net_cash: 5000, shares: 1000, years: 5, terminal_growth_pct: 3, path: 'fade', exit_multiple: 18, price: 150 });
+  near(f.gordon.perShare, 214.8120808, 1e-4); near(f.exitMultiple.perShare, 222.5705601, 1e-4);
+  near(f.gordon.terminalPctOfEv, 76.1751536, 1e-4); near(f.methodDivergencePct, 3.5476851, 1e-4);
+  near(f.sensitivityGrid[0]['g 2%'], 217.7320689, 1e-4); near(f.sensitivityGrid[4]['g 4%'], 211.9685950, 1e-4);
+  assert.ok(f.warnings.some((w) => /terminal value is 76/.test(w)));
+  const r = await run('reverse_dcf_full', { fcf: 42.3e9, wacc_pct: 10.25, ev: 2.10e12, shares: 5.186e9, net_cash: 75.5e9, terminal_growth_pct: 3, years: 10 });
+  near(r.raw.impliedYear1GrowthPct.fade, 35.4443709, 1e-4); near(r.raw.impliedYear1GrowthPct.constant, 20.0217670, 1e-4);
+  near(r.raw.waccSensitivity.constant[0].impliedGrowthPct, 16.2631590, 1e-4); near(r.raw.waccSensitivity.constant[4].impliedGrowthPct, 23.3860002, 1e-4);
+  near(r.raw.reductio[1].fairValuePerShareFade, 168.3421412, 1e-3); near(r.raw.reductio[4].fairValuePerShareFade, 289.8180064, 1e-3);
+  // price + shares + net cash gives the same EV as passing it directly
+  const r2 = await run('reverse_dcf_full', { fcf: 42.3e9, wacc_pct: 10.25, price: (2.10e12 + 75.5e9) / 5.186e9, shares: 5.186e9, net_cash: 75.5e9, terminal_growth_pct: 3 });
+  near(r2.raw.impliedYear1GrowthPct.fade, r.raw.impliedYear1GrowthPct.fade, 1e-6);
+});
+
+test('research valuation refuses what the skill refuses', async () => {
+  await assert.rejects(run('forward_dcf', { base_fcf: 100, g1_pct: 10, wacc_pct: 4, terminal_growth_pct: 3, net_cash: 0, shares: 10 }), /below 1\.5/);
+  await assert.rejects(run('forward_dcf', { base_fcf: -5, g1_pct: 10, wacc_pct: 9, net_cash: 0, shares: 10 }), /positive/);
+  await assert.rejects(run('reverse_dcf_full', { fcf: 0, wacc_pct: 9, ev: 1000 }), /positive free cash flow/);
+  await assert.rejects(run('reverse_dcf_full', { fcf: 10, wacc_pct: 9, ev: 1e9 }), /no growth rate/);
+  await assert.rejects(run('dcf_scenarios', { scenarios: [{ name: 'a', prob: 0.5, per_share: 100 }, { name: 'b', prob: 0.4, per_share: 200 }] }), /not 1/);
+  const w = await run('dcf_scenarios', { scenarios: [{ name: 'bear', prob: 25, per_share: 120 }, { name: 'base', prob: 50, per_share: 180 }, { name: 'bull', prob: 25, per_share: 240 }], price: 150 });
+  near(w.weightedPerShare, 180); near(w.marginOfSafetyPct, 16.6666667, 1e-4);
+});
+
+test('quality_gate evidences the kill-gate flags', async () => {
+  const q = await run('quality_gate', { years: ['2022', '2023', '2024', '2025'], operating_income: [100, 90, 80, 70], revenue: [1000, 1000, 1000, 1000], net_income: [100, 90, 80, 70], fcf: [50, 50, 40, 40],
+    equity: [900, 900, 900, 900], debt: [300, 300, 300, 300], cash: [200, 200, 200, 200], shares: [100, 110, 121, 133.1], wacc_pct: 9, ebitda: [150, 140, 130, 120] });
+  near(q.roicPct[0], 100 * 0.79 / 1000 * 100, 1e-6);   // NOPAT 79 over invested capital 1000
+  near(q.shareCountCagrPct, 10, 1e-4); near(q.revenueCagrPct, 0, 1e-9);
+  assert.equal(q.roicBelowWaccYears, 4);
+  assert.ok(q.flags.some((x) => /HARD FAIL on dilution/.test(x)) && q.flags.some((x) => /ROIC has been below WACC/.test(x)) && q.flags.some((x) => /FCF conversion/.test(x)));
+  near(q.netDebtToEbitda, 100 / 120, 1e-6);
+});

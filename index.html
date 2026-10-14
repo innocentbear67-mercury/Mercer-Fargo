@@ -8,7 +8,7 @@
 <meta name="description" content="MercerFargo Finance Superhub — a charcoal-and-gold market dashboard with your own AI keys and free delayed market data.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><!-- Predict (Kronos style) -->
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700&text=POWEREDBYKronosAI%20&display=swap" rel="stylesheet"><!-- only the glyphs of the Predict badge -->
 <style>
@@ -137,8 +137,8 @@ html,body{margin:0;padding:0}
 body{
   background:var(--fh-background-canvas);
   color:var(--fh-foreground-on-surface-default);
-  font:400 14px/20px var(--mf-serif);
-  -webkit-font-smoothing:antialiased;
+  font:500 14px/20px var(--mf-serif);
+  -webkit-font-smoothing:auto;
   text-rendering:optimizeLegibility;
 }
 h1,h2,h3,h4{margin:0;font-weight:400;color:var(--fh-foreground-on-surface-emphasis);letter-spacing:0}
@@ -1105,6 +1105,45 @@ body.chart-fs{overflow:hidden}
 .bar-row .val{text-align:right;color:var(--fh-foreground-on-surface-de-emphasis)}
 .analyst-bar{display:flex;height:34px;border-radius:8px;overflow:hidden;margin:12px 0 8px}
 .analyst-bar i{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500}
+.tm{position:relative;width:100%;container-type:inline-size}
+.gl-mini{margin:4px -2px 0}
+.tm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.tm-seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--fh-background-surface-container)}
+.tm-seg button{border:0;background:none;color:var(--fh-foreground-on-surface-de-emphasis);font:inherit;font-size:12.5px;padding:5px 12px;border-radius:999px;cursor:pointer}
+.tm-seg button.on{background:var(--fh-background-surface-container-high);color:var(--fh-foreground-on-surface-emphasis)}
+.tm-seg button:hover:not(.on){color:var(--fh-foreground-on-surface-emphasis)}
+.tm-t{position:absolute;padding:2px;box-sizing:border-box;container-type:size;color:var(--fh-foreground-on-surface-emphasis);text-decoration:none;outline:none;transition:opacity .18s}
+.tm-in{position:relative;display:block;height:100%;border-radius:8px;padding:clamp(7px,6cqmin,14px) clamp(8px,6cqmin,14px);box-sizing:border-box;overflow:hidden;
+  background:color-mix(in srgb,var(--tm-c,var(--fh-foreground-on-surface-de-emphasis)) calc(24% + var(--k) * 56%),var(--fh-background-surface-container));transition:transform .15s,background .25s,filter .15s}
+.tm-t.up{--tm-c:var(--fh-positive)} .tm-t.dn{--tm-c:var(--fh-negative)}
+.tm.hv .tm-t:not(:hover):not(:focus-visible){opacity:.45}
+.tm-t:hover,.tm-t:focus-visible{z-index:2;text-decoration:none}
+.tm-t:hover *{text-decoration:none}
+.tm-t:hover .tm-in,.tm-t:focus-visible .tm-in{transform:scale(1.02);filter:brightness(1.18) saturate(1.1)}
+.tm-t:focus-visible .tm-in{outline:2px solid var(--mf-gold);outline-offset:-2px}
+.tm-t:active .tm-in{transform:scale(.99)}
+.tm-s{display:block;font-family:var(--mf-serif);font-weight:500;font-size:clamp(13px,17cqmin,36px);line-height:1.1;letter-spacing:-.01em}
+.tm-n{display:block;font-size:clamp(10.5px,7cqmin,14px);opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.tm-p{display:flex;align-items:center;gap:6px;font-size:clamp(11px,10cqmin,18px);font-variant-numeric:tabular-nums;margin-top:4px;white-space:nowrap}
+.tm-g{font-style:normal;font-size:.7em;color:var(--tm-c)}
+.tm-w{position:absolute;top:clamp(7px,6cqmin,14px);right:clamp(8px,6cqmin,14px);font-size:clamp(10px,6.5cqmin,12px);opacity:.8;font-variant-numeric:tabular-nums}
+@container (max-height:104px){.tm-n{display:none}}
+@container (max-width:84px){.tm-n,.tm-w{display:none}}
+@container (max-height:58px){.tm-p{display:none}}
+.tm-tip{position:fixed;z-index:9999;width:250px;padding:14px 16px;border-radius:14px;background:var(--fh-background-surface-container-high);color:var(--fh-foreground-on-surface-default);box-shadow:0 14px 40px rgba(0,0,0,.4);pointer-events:none;font-size:12.5px}
+.tm-tip[hidden]{display:none}
+.tt-h{display:flex;flex-direction:column}
+.tt-h b{font-family:var(--mf-serif);font-weight:500;font-size:22px;color:var(--fh-foreground-on-surface-emphasis)}
+.tt-h span{color:var(--fh-foreground-on-surface-de-emphasis)}
+.tt-sec{font-size:12.5px;color:var(--mf-gold);margin-top:4px}
+.tt-big{font-size:24px;margin-top:10px}
+.tt-big small{font-size:11.5px;margin-left:8px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.tt-bar{height:4px;border-radius:2px;background:var(--fh-background-surface-container);margin:10px 0}
+.tt-bar i{display:block;height:100%;border-radius:2px;background:var(--mf-gold)}
+.tt-g{display:grid;gap:5px}
+.tt-g div{display:flex;justify-content:space-between;gap:12px}
+.tt-g span{color:var(--fh-foreground-on-surface-de-emphasis)}
+.tt-g b{font-weight:500;text-align:right}
 .heat{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
 .heat .h{
   border-radius:10px;padding:12px 10px;color:#fff;font-size:12px;line-height:16px;display:flex;flex-direction:column;justify-content:space-between;min-height:74px
@@ -1335,6 +1374,114 @@ body.chart-fs{overflow:hidden}
 .rs-run .q{color:var(--fh-foreground-on-surface-default)}
 .rs-run .m{color:var(--fh-foreground-on-surface-de-emphasis);font-size:11.5px}
 /* Portfolio at a glance */
+.perf{background:var(--fh-background-surface-container);border-radius:20px;padding:clamp(18px,3vw,32px)}
+.pf-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.pf-big{font-family:var(--mf-serif);font-weight:400;font-size:clamp(36px,5.6vw,60px);line-height:1;letter-spacing:-.03em;color:var(--fh-foreground-on-surface-emphasis)}
+.pf-sub{font-size:clamp(15px,2vw,19px);margin-top:10px;min-height:1.4em}
+.pf-rng{margin:4px 0 0}
+.pf-chart{margin:22px 0 6px}
+.pf-ch{position:relative;height:clamp(160px,26vw,260px);cursor:crosshair;touch-action:pan-y;outline:none;animation:pfReveal .9s cubic-bezier(.3,.7,.2,1) both}
+.pf-ch:focus-visible{outline:2px solid var(--mf-gold);outline-offset:4px;border-radius:8px}
+.pf-ch svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.pf-band{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--fh-foreground-on-surface-de-emphasis);opacity:.35;pointer-events:none}
+.pf-dot{position:absolute;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;pointer-events:none;box-shadow:0 0 0 4px var(--fh-background-surface-container)}
+.pf-dot.s{width:9px;height:9px;margin:-4.5px 0 0 -4.5px;background:var(--fh-foreground-on-surface-de-emphasis)}
+.pf-dot[hidden],.pf-band[hidden]{display:none}
+.pf-wait{height:160px;display:flex;align-items:center}
+.pf-leg{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;margin-top:10px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.pf-leg i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.pf-leg i.s{background:var(--fh-foreground-on-surface-de-emphasis)}
+.pf-fig{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:26px}
+.pf-fig>div{display:flex;flex-direction:column;gap:3px;padding:16px 18px;border-radius:14px;background:var(--fh-background-surface)}
+.pf-fig span{font-size:13px}
+.pf-fig b{font-family:var(--mf-serif);font-weight:400;font-size:clamp(24px,3.2vw,34px);line-height:1.15;letter-spacing:-.01em}
+.pf-fig small{font-size:12.5px}
+.pf-mv{margin-top:30px}
+.pf-mv h3{font-family:var(--mf-serif);font-weight:400;font-size:20px;margin:0 0 10px}
+.pf-r{display:grid;grid-template-columns:72px minmax(0,1fr) 108px;gap:12px;align-items:center;padding:7px 8px;margin:0 -8px;border-radius:10px;color:inherit;text-decoration:none;font-size:14px}
+.pf-r:hover{background:var(--fh-background-surface)}
+.pf-r b{font-weight:500}
+.pf-r>span:last-child{text-align:right}
+.pf-tr{position:relative;height:10px;border-radius:5px;background:var(--fh-background-surface)}
+.pf-r:hover .pf-tr{background:var(--fh-background-surface-container-high)}
+.pf-tr i{position:absolute;top:0;bottom:0;border-radius:5px;transform-origin:var(--o,left);animation:pfGrow .7s cubic-bezier(.3,.7,.2,1) both}
+.pf-tr i.up{background:var(--fh-positive);--o:left}.pf-tr i.dn{background:var(--fh-negative);--o:right}
+@keyframes pfReveal{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes pfGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){.pf-ch,.pf-tr i{animation:none}}
+/* Terminal desk, call book, command palette (desk.js) */
+.route-card{margin-top:12px;padding:14px 16px;border-radius:14px;background:var(--fh-background-surface-container)}
+.route-card p{margin:0 0 12px;font-size:13.5px;line-height:1.5;color:var(--fh-foreground-on-surface-default)}
+.route-card.done{font-size:13px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.rc-b{display:flex;gap:8px;flex-wrap:wrap}
+.rc-never{margin-top:6px;padding-left:0}
+.rs-q{margin:14px 0;padding:20px 22px;border-radius:18px;background:var(--fh-background-surface-container);display:grid;gap:14px}
+.rs-q h3{margin:0;font-family:var(--mf-serif);font-weight:400;font-size:20px}
+.rs-q p{margin:-8px 0 0;font-size:13px}
+.rs-qf{display:grid;gap:8px}
+.rs-qf label{font-size:14px;line-height:1.4;color:var(--fh-foreground-on-surface-emphasis)}
+.rs-qopts{flex-wrap:wrap;justify-self:start;background:var(--fh-background-surface)}
+.rs-qb{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.dk{margin-bottom:52px}
+.dk-tools{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin:-6px 0 20px}
+.dk-k{border:0;background:var(--fh-background-surface-container);color:var(--fh-foreground-on-surface-de-emphasis);font:inherit;font-size:12.5px;padding:7px 8px 7px 14px;border-radius:999px;cursor:pointer;transition:color .15s,background .15s}
+.dk-k:hover{color:var(--fh-foreground-on-surface-emphasis);background:var(--fh-background-surface-container-high)}
+.dk-k kbd{font:inherit;font-size:11.5px;margin-left:8px;padding:2px 8px;border-radius:999px;background:var(--fh-background-surface-container-high)}
+.dk.edit{padding:16px 18px 18px;border-radius:20px;background:var(--fh-background-surface-container);cursor:grab;margin-bottom:14px;transition:opacity .15s,transform .15s}
+.dk.edit .dk-body{pointer-events:none;opacity:.5;max-height:190px;overflow:hidden}
+.dk.edit .section-head{display:none}
+.dk.drag{opacity:.35}.dk.over{outline:2px solid var(--mf-gold);outline-offset:3px}
+.dk-bar{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.dk-bar b{font-family:var(--mf-serif);font-weight:400;font-size:19px;flex:1}
+.dk-grip{color:var(--fh-foreground-on-surface-de-emphasis);font-size:20px;line-height:1}
+.dk-bs{display:flex;gap:4px}
+.dk-bs button,.ck-act button{border:0;background:var(--fh-background-surface-container-high);color:var(--fh-foreground-on-surface-default);font:inherit;font-size:12px;padding:5px 11px;border-radius:999px;cursor:pointer}
+.dk-bs button:hover,.ck-act button:hover{color:var(--mf-gold)}
+.dk-tray{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:16px 18px;margin-bottom:18px;border-radius:20px;background:var(--fh-background-surface-container)}
+.dk-tray b{font-family:var(--mf-serif);font-weight:400;font-size:19px;margin-right:8px}
+.dk-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.dk-tile{display:flex;flex-direction:column;gap:4px;text-align:left;border:0;font:inherit;color:inherit;padding:18px 20px;border-radius:16px;background:var(--fh-background-surface-container);cursor:pointer;transition:background .15s,transform .15s}
+.dk-tile:hover{background:var(--fh-background-surface-container-high);transform:translateY(-2px)}
+.dk-tile:active{transform:scale(.985)}
+.dk-tile b{font-family:var(--mf-serif);font-weight:400;font-size:clamp(22px,2.6vw,30px);line-height:1.15;letter-spacing:-.01em}
+.dk-tile span{font-size:13px}
+.ck-score{margin:0 0 14px;font-size:15px;color:var(--fh-foreground-on-surface-default)}
+.ck-form{display:grid;gap:10px;padding:16px;margin:0 0 14px;border-radius:16px;background:var(--fh-background-surface-container)}
+.ck-f1{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.ck-f1 .inp{flex:1;min-width:130px}
+.ck-form textarea{resize:vertical;min-height:56px}
+.ck-f2{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px}
+.ck-list{display:grid;gap:8px}
+.ck-row{position:relative;display:grid;grid-template-columns:128px minmax(0,1fr) 140px;grid-template-areas:'s n r' 's m r';column-gap:18px;row-gap:4px;align-items:center;padding:16px 18px;border-radius:16px;background:var(--fh-background-surface-container);transition:background .15s,transform .15s}
+.ck-row:hover{background:var(--fh-background-surface-container-high)}
+.ck-row.done{opacity:.72}
+.ck-s{grid-area:s;display:flex;flex-direction:column;gap:5px;align-items:flex-start;color:inherit;text-decoration:none}
+.ck-s b{font-family:var(--mf-serif);font-weight:500;font-size:22px;line-height:1.1}
+.ck-side{font-size:12px;padding:2px 10px;border-radius:999px;background:var(--fh-background-surface);color:var(--fh-foreground-on-surface-de-emphasis);text-transform:capitalize}
+.ck-side.long{color:var(--fh-positive)}.ck-side.short{color:var(--fh-negative)}
+.ck-note{grid-area:n;margin:0;font-size:14.5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ck-meta{grid-area:m;font-size:12.5px}
+.ck-r{grid-area:r;text-align:right;display:flex;flex-direction:column;gap:2px}
+.ck-r b{font-family:var(--mf-serif);font-weight:400;font-size:28px;line-height:1.1}
+.ck-r small{font-size:12px}
+.ck-act{position:absolute;right:14px;bottom:12px;display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.ck-row:hover .ck-act,.ck-row:focus-within .ck-act{opacity:1}
+.ck-row:hover .ck-r small{opacity:0}
+@media (max-width:640px){.ck-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'s r' 'n n' 'm m'}.ck-act{position:static;opacity:1;grid-column:1/-1}.ck-row:hover .ck-r small{opacity:1}}
+.cmdk{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);padding:14vh 4vw 0}
+.cmdk[hidden]{display:none}
+.cmdk-box{width:min(640px,100%);margin:0 auto;padding:10px;border-radius:22px;background:var(--fh-background-surface-container-high);box-shadow:0 24px 70px rgba(0,0,0,.5);animation:cmdkIn .18s cubic-bezier(.3,.7,.2,1) both}
+@keyframes cmdkIn{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.cmdk-box{animation:none}}
+.cmdk-in{width:100%;box-sizing:border-box;border:0;outline:0;background:none;color:var(--fh-foreground-on-surface-emphasis);font-family:var(--mf-serif);font-size:22px;padding:14px 14px 12px}
+.cmdk-in::placeholder{color:var(--fh-foreground-on-surface-de-emphasis)}
+.cmdk-list{max-height:52vh;overflow-y:auto;display:grid;gap:2px;padding-top:4px}
+.cmdk-it{display:flex;justify-content:space-between;align-items:baseline;gap:16px;width:100%;text-align:left;border:0;background:none;color:var(--fh-foreground-on-surface-default);font:inherit;padding:11px 14px;border-radius:12px;cursor:pointer}
+.cmdk-it b{font-weight:500;font-size:14.5px}.cmdk-it span{font-size:12.5px;color:var(--fh-foreground-on-surface-de-emphasis);text-align:right}
+.cmdk-it.on{background:var(--fh-background-surface-container)}
+.cmdk-it.on b{color:var(--mf-gold)}
+.cmdk-none{padding:16px 14px;font-size:13px}
+.dk .card.glance{border:0;border-radius:20px;background:var(--fh-background-surface-container);box-shadow:none;padding:24px 26px}
 .glance{padding:20px 22px}
 .gl-top{display:flex;gap:28px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
 .gl-lab{font-size:12px;letter-spacing:.3px}
@@ -1402,11 +1549,11 @@ body.chart-fs{overflow:hidden}
   --fh-border-stroke-default:#2e2e2e;
   --fh-border-stroke-emphasis:#3f3f3f;
   --fh-stroke-emphasis:#3a3a3a;
-  --fh-foreground-on-surface-emphasis:#f5f1e8;
-  --fh-foreground-on-surface-default:#d9d5cc;
-  --fh-foreground-on-surface-de-emphasis:#a6a29a;
+  --fh-foreground-on-surface-emphasis:#ffffff;
+  --fh-foreground-on-surface-default:#f3f0e9;
+  --fh-foreground-on-surface-de-emphasis:#d2cec5;
   --fh-foreground-icon-primary:#c1a578;
-  --fh-foreground-icon-secondary:#b3aea5;
+  --fh-foreground-icon-secondary:#d2cec5;
   --fh-foreground-on-surface-inverted:#1c1c1c;
   --fh-foreground-on-primary:#241a05;
   --fh-foreground-on-highlight:#f2e9d8;
@@ -2593,6 +2740,14 @@ body.rs-drag iframe{pointer-events:none}
 .inbox-btn{position:relative}
 .ib-badge{position:absolute;top:3px;right:2px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--fh-negative);color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;box-shadow:0 0 0 2px var(--fh-background-surface)}
 .ib-badge[hidden]{display:none}
+.inbox-btn.muted .ib-badge{background:var(--fh-foreground-on-surface-de-emphasis)}
+.inbox-btn.muted>svg{opacity:.55}
+.inbox-btn.muted::after{content:'';position:absolute;width:22px;height:2px;border-radius:2px;background:currentColor;transform:rotate(45deg);box-shadow:0 0 0 1.5px var(--fh-background-surface)}
+.ib-hr{display:flex;align-items:center;gap:6px}
+.ib-mute{position:relative;width:32px;height:32px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.ib-mute.on{color:var(--mf-gold);background:var(--fh-background-surface-container)}
+.ib-mute .ib-slash{position:absolute;inset:0;margin:auto}
+.ib-muted{margin:0 16px 8px;padding:8px 10px;border-radius:10px;background:var(--fh-background-surface-container);color:var(--fh-foreground-on-surface-de-emphasis);font-size:12px;line-height:1.4}
 .inbox-panel{position:fixed;z-index:80;width:min(380px,calc(100vw - 16px));max-height:min(560px,calc(100vh - 90px));display:flex;flex-direction:column;overflow:hidden;
   background:var(--fh-background-surface-elevated);border:1px solid var(--fh-border-stroke-default);border-radius:16px;box-shadow:var(--fh-elevation-3)}
 .inbox-panel[hidden]{display:none}
@@ -2728,6 +2883,8 @@ body.rs-drag iframe{pointer-events:none}
 <script src="qengine.js"></script>
 <script src="mathengine.js"></script>
 <script src="genui.js"></script>
+<script src="desk.js"></script>
+<script src="memo-pdf.js"></script>
 <script>try{var c=JSON.parse(localStorage.getItem('fh3_cfg')||'{}'),t=c.theme||'dark';if(t==='auto')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 <div class="sys" id="bootScreen" role="status" aria-live="polite" aria-label="Loading MercerFargo">
   <div class="sys-in">
@@ -5087,7 +5244,7 @@ function renameWatchlist(id){
   });
 }
 function renderSubnav(){
-  var sec = [['home', 'Monitoring Terminal', '#/'], ['research', 'Research Log', '#/research']];
+  var sec = [['home', 'Terminal', '#/'], ['research', 'Research Log', '#/research']];
   $('secTabs').innerHTML = sec.map(function(s){
     var on = (CUR.view === s[0]) || (s[0] === 'home' && (CUR.view === 'list' || CUR.view === 'portfolio' || CUR.view === 'quote'));
     return '<button class="sec-tab' + (on ? ' on' : '') + '" data-act="nav" data-href="' + s[2] + '">' + s[1] + '</button>';
@@ -5391,6 +5548,8 @@ function glKick(pf, r){
 function repaintGlance(){
   var el = document.querySelector('.glance');
   if(el && CUR.view === 'home') el.outerHTML = glanceHTML();
+  var pe = document.querySelector('.perf');
+  if(pe && CUR.view === 'portfolio' && PERF.st && !PERF.scrub){ var big = $('perfBig'); pe.outerHTML = perfHTML(PERF.st, PERF.pf); }
 }
 /* Portfolio value vs SPY for one window: { ser:[{d,v}], spx:[v]|null }, or { pending:true } while loading. */
 function glSeries(pf, r, st){
@@ -5501,14 +5660,6 @@ function glanceHTML(){
     var w = st.total ? r.bv / st.total * 100 : 0;
     return '<i style="width:' + w.toFixed(2) + '%;background:hsl(' + ((i * 47 + 38) % 360) + ' 28% ' + (62 - Math.min(i, 5) * 4) + '%)" title="' + esc(r.s) + ' ' + num(w, 1) + '%"></i>';
   }).join('');
-  var tiles = sorted.slice(0, 8).map(function(r){
-    var p = r.dayPct, cls = p == null ? 'mut' : (p >= 0 ? 'up' : 'down');
-    var a = p == null ? 0.08 : clamp(0.1 + Math.abs(p) / 6, 0.1, 0.5);
-    var bg = p == null ? 'var(--fh-background-surface-container)' : (p >= 0 ? 'rgba(77,184,72,' + a + ')' : 'rgba(255,92,103,' + a + ')');
-    return '<a class="gl-tile" href="#/quote/' + encodeURIComponent(r.s) + '" data-act="quote" data-sym="' + esc(r.s) + '" style="background:' + bg + '">' +
-      '<b>' + esc(r.s) + '</b><span class="' + cls + ' num">' + (p == null ? '—' : pct(p, 1)) + '</span>' +
-      '<small class="num">' + (st.total ? num(r.bv / st.total * 100, 0) : 0) + '%</small></a>';
-  }).join('');
   return '<div class="card glance' + (loading ? ' loading' : '') + '">' +
     '<div class="gl-top"><div><div class="mut gl-lab">' + esc(pf.name) + '</div>' +
     '<div class="gl-big num">' + money(st.total, cur) + '</div>' +
@@ -5519,7 +5670,7 @@ function glanceHTML(){
     verdict +
     '<div class="gl-line">' + line + '</div>' +
     '<div class="gl-bar" aria-label="Allocation">' + bar + '</div>' +
-    '<div class="gl-tiles">' + tiles + '</div>' +
+    '<div class="gl-mini">' + glTreemapHTML(st, sorted.slice(0, 8)) + '</div>' +
     '<div class="gl-foot"><button type="button" class="gl-more" data-act="gl-toggle" aria-expanded="' + !!CFG.glopen + '">' + (CFG.glopen ? 'Hide portfolio ⌃' : 'Full portfolio ⌄') + '</button>' +
     '<span class="mut">Delayed quotes · S&amp;P 500 shown via SPY · stored in this browser</span></div>' +
     glFullHTML(st, sorted, cur) + '</div>';
@@ -5551,39 +5702,12 @@ function paintHome(){
   var pf = PFS[CUR.pf] || PFS[Object.keys(PFS)[0]];
   var html = '';
 
-  html += '<div class="section">' + glanceHTML() + '</div>';
-
-  html += '<div class="section"><div class="section-head"><h2>Top movers in your watchlists</h2>' +
-    '<button class="btn text sm" data-act="menu-cols">Columns</button>' +
-    '<button class="btn text sm" data-act="nav" data-href="#/list/' + esc(listId) + '">View all watchlists</button></div>' +
-    moversTableHTML(listSyms.length ? listSyms : UNIVERSE.slice(0, 10).map(function(u){ return u[0]; })) +
-    '<div class="movers-note">Nasdaq delayed feed. Market cap comes from the Nasdaq screener snapshot; sparklines and the trend column are computed from daily closes. ' +
-    'Change is measured against the previous close.</div></div>';
-
-  html += '<div class="section"><div class="grid-2">' +
-    '<div class="card plain"><div class="section-head"><h2>Daily gainers</h2></div>' + rowListHTML(gainers) + '</div>' +
-    '<div class="card plain"><div class="section-head"><h2>Daily losers</h2></div>' + rowListHTML(losers) + '</div>' +
-    '</div>' +
-    '<div class="card plain" style="margin-top:20px"><div class="section-head"><h2>Most valuable companies</h2>' +
-    '<span class="mut" style="font-size:12px">by market cap across US listings</span></div>' + rowListHTML(active) + '</div>' +
-    '</div>';
-
-  html += '<div class="section"><div class="card plain"><div class="section-head"><h2>Market-wide movers</h2>' +
-    '<span class="mut" style="font-size:12px">TraderHub reference board · the same hosted layer OpenAlice uses</span></div>' +
-    '<div id="trh-movers"><div class="kv-inline">Loading…</div></div></div></div>';
-
-  html += '<div class="section"><div class="section-head"><h2>Market news</h2>' +
-    '<button class="btn text sm" data-act="ai" data-kind="news">Dive deeper with AI</button>' +
-    '<button class="btn text sm" data-act="refresh-news">Refresh</button></div>' +
-    newsClusterHTML() + '</div>';
-
-  html += '<div class="section"><div class="section-head"><h2>Earnings calendar</h2>' +
-    '<button class="btn text sm" data-act="nav" data-href="#/earnings">All earnings</button></div>' +
-    earningsListHTML(6) + '</div>';
+  html += deskHTML();
 
   html += footerHTML();
   $('main').innerHTML = html;
   fillTRHMovers();
+  deskSnap(); deskLoad();
 
   /* Trend sparklines for the visible rows: one extra round of history calls,
      then a single repaint. Guarded so it happens once per home visit. */
@@ -5890,7 +6014,11 @@ function alSave(){ save('fh3_alerts', ALERTS); INBOX = INBOX.slice(0, 200); save
 function alBadge(){
   var n = INBOX.filter(function(m){ return !m.read; }).length, b = $('inboxBadge');
   if(b){ b.hidden = !n; b.textContent = n > 99 ? '99+' : n; }
-  var btn = $('inboxBtn'); if(btn) btn.title = n ? n + ' unread alert' + (n === 1 ? '' : 's') : 'Alerts inbox';
+  var btn = $('inboxBtn');
+  if(btn){
+    btn.classList.toggle('muted', !!CFG.mute);
+    btn.title = (CFG.mute ? 'Muted. ' : '') + (n ? n + ' unread alert' + (n === 1 ? '' : 's') : 'Alerts inbox');
+  }
 }
 function alAgo(ts){
   var s = (Date.now() - ts) / 1000;
@@ -5974,9 +6102,11 @@ function alNews(a){   // new SEC filing since the alert was set (checked every 5
 function alFire(a, detail){
   var m = { id:'m' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), aid:a.id, sym:a.sym, title:a.sym + ' · ' + alText(a),
     body:detail + (a.note ? ' — ' + a.note : ''), ts:Date.now(), read:false };
-  INBOX.unshift(m); alSave(); alChime();
-  toast('🔔 ' + m.title);
-  try{ if('Notification' in window && Notification.permission === 'granted') new Notification(m.title, { body:m.body, icon:'assets/favicon.png', tag:m.id }); }catch(e){}
+  INBOX.unshift(m); alSave();
+  if(!CFG.mute){   // muted: the message still lands in the inbox, just silently
+    alChime(); toast('🔔 ' + m.title);
+    try{ if('Notification' in window && Notification.permission === 'granted') new Notification(m.title, { body:m.body, icon:'assets/favicon.png', tag:m.id }); }catch(e){}
+  }
   if($('inboxPanel') && !$('inboxPanel').hidden) alPanelPaint();
 }
 
@@ -6017,8 +6147,11 @@ function npTick(){
       INBOX.unshift({ id:'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), sym:f.sym, title:f.sym + ' · ' + f.it.title, body:f.it.src || 'News', ts:Date.now(), read:false, news:1 });
     });
     if(!fresh.length) return;
-    alSave(); alChime(); toast('📰 ' + fresh[0].sym + ' · ' + fresh[0].it.title);
-    try{ if('Notification' in window && Notification.permission === 'granted') new Notification(fresh[0].sym + ' news' + (fresh.length > 1 ? ' (+' + (Math.min(fresh.length, 5) - 1) + ' more)' : ''), { body:fresh[0].it.title, icon:'assets/favicon.png', tag:'news' }); }catch(e){}
+    alSave();
+    if(!CFG.mute){
+      alChime(); toast('📰 ' + fresh[0].sym + ' · ' + fresh[0].it.title);
+      try{ if('Notification' in window && Notification.permission === 'granted') new Notification(fresh[0].sym + ' news' + (fresh.length > 1 ? ' (+' + (Math.min(fresh.length, 5) - 1) + ' more)' : ''), { body:fresh[0].it.title, icon:'assets/favicon.png', tag:'news' }); }catch(e){}
+    }
     if($('inboxPanel') && !$('inboxPanel').hidden) alPanelPaint();
   });
 }
@@ -6098,7 +6231,8 @@ function alPanelToggle(force){
 function alPanelPaint(){
   var p = $('inboxPanel'); if(!p) return;
   var unread = INBOX.filter(function(m){ return !m.read; }).length, live = ALERTS.filter(function(a){ return a.on; }).length;
-  var head = '<div class="ib-head"><b>Inbox</b><button class="btn tonal sm" data-act="al-new">+ New alert</button></div>' +
+  var head = '<div class="ib-head"><b>Inbox</b><span class="ib-hr"><button class="icon-btn ib-mute' + (CFG.mute ? ' on' : '') + '" data-act="ib-mute" role="switch" aria-checked="' + !!CFG.mute + '" title="' + (CFG.mute ? 'Unmute alerts' : 'Mute all alerts') + '" aria-label="' + (CFG.mute ? 'Unmute alerts' : 'Mute all alerts') + '">' + railSvg('M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V11a6 6 0 0 0-5-5.9V4a1 1 0 0 0-2 0v1.1A6 6 0 0 0 6 11v5l-2 2v1h16v-1l-2-2z', 18) + (CFG.mute ? '<svg class="ib-slash" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l16 16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>' : '') + '</button><button class="btn tonal sm" data-act="al-new">+ New alert</button></span></div>' +
+    (CFG.mute ? '<div class="ib-muted">Muted. Alerts still collect here, with no pop-ups, sound or desktop notifications.</div>' : '') +
     '<div class="ib-tabs" role="tablist"><button role="tab" class="' + (AL.tab === 'inbox' ? 'on' : '') + '" data-act="ib-tab" data-t="inbox">Notifications' + (unread ? ' <i>' + unread + '</i>' : '') + '</button>' +
     '<button role="tab" class="' + (AL.tab === 'alerts' ? 'on' : '') + '" data-act="ib-tab" data-t="alerts">My alerts' + (ALERTS.length ? ' <i class="n">' + live + '/' + ALERTS.length + '</i>' : '') + '</button></div>';
   var body;
@@ -6710,11 +6844,12 @@ function renderPortfolio(){
       '<button class="btn text sm" data-act="nlportfolio">Create with AI</button>' +
       '<button class="btn text sm" data-act="pf-rename" data-id="' + esc(CUR.pf) + '">Rename</button>' +
       '<button class="btn text sm vt-del" data-act="pf-del" data-id="' + esc(CUR.pf) + '">Delete</button></div>';
-    html += '<div class="grid-3">' +
-      statCard('Total value', money(st.total, cur), 'Cost basis ' + money(st.cost, cur)) +
-      statCard('Day change', (st.day >= 0 ? '+' : '') + money(st.day, cur), st.total ? pct(st.day / (st.total - st.day) * 100) : '—', st.day >= 0 ? 'up' : 'down') +
-      statCard('Total return', (st.ret >= 0 ? '+' : '') + money(st.ret, cur), pct(st.retPct), st.ret >= 0 ? 'up' : 'down') +
-      '</div>';
+    var seenAll = load('fh3_pfseen', {}), ps = seenAll[CUR.pf];
+    var hk = pf.holdings.map(function(h){ return h.s + ':' + h.q; }).join();   // a different set of holdings is not a like-for-like comparison
+    PERF.seen = ps && ps.t && ps.hk === hk ? ps : null; PERF.anim = false;
+    if(!ps || ps.hk !== hk || Date.now() - ps.t > 3600e3){ seenAll[CUR.pf] = { t:Date.now(), ret:st.ret, hk:hk }; save('fh3_pfseen', seenAll); }
+    html += perfHTML(st, pf);
+    html += '<div style="margin-top:12px">' + treemapHTML(st) + '</div>';
     var th = '<tr><th>Symbols</th><th>Shares</th><th>Avg cost</th><th>Price</th><th>Day</th><th>Value</th><th>Return</th><th>Weight</th><th></th></tr>';
     var body = st.rows.map(function(r){
       return '<tr><td class="sym"><span class="s">' + esc(r.s) + '</span><span class="n">' + esc(r.name) + '</span></td>' +
@@ -6748,7 +6883,187 @@ function renderPortfolio(){
       '</div></div>';
     html += footerHTML();
     $('main').innerHTML = html;
+    perfCount();
   });
+}
+
+/* Portfolio treemap: tile area = weight, colour = today's move (squarified layout, positions in % of the box). */
+function squarify(items, W, H){
+  var tot = items.reduce(function(a, i){ return a + i.v; }, 0), out = [], x = 0, y = 0, w = W, h = H;
+  if(!(tot > 0)) return out;
+  var q = items.map(function(i){ return { it:i, a:i.v / tot * W * H }; }), row = [];
+  function worst(r, side){
+    var sum = r.reduce(function(a, e){ return a + e.a; }, 0), mx = Math.max.apply(null, r.map(function(e){ return e.a; })), mn = Math.min.apply(null, r.map(function(e){ return e.a; }));
+    return Math.max(side * side * mx / (sum * sum), sum * sum / (side * side * mn));
+  }
+  function flush(){
+    var sum = row.reduce(function(a, e){ return a + e.a; }, 0), side = Math.min(w, h), horiz = w >= h, t = sum / side, o = 0;
+    row.forEach(function(e){
+      var l = e.a / t;
+      out.push(horiz ? { it:e.it, x:x, y:y + o, w:t, h:l } : { it:e.it, x:x + o, y:y, w:l, h:t });
+      o += l;
+    });
+    if(horiz){ x += t; w -= t; } else { y += t; h -= t; }
+    row = [];
+  }
+  q.forEach(function(e){
+    var side = Math.min(w, h);
+    if(row.length && worst(row.concat(e), side) > worst(row, side)) flush();
+    row.push(e);
+  });
+  if(row.length) flush();
+  return out;
+}
+var TM = { st:null, mode:'day' };
+function tmVal(r){ return TM.mode === 'day' ? r.dayPct : r.retPct; }
+function tmTile(t, st, W, H){
+  var r = t.it.r, p = tmVal(r), k = p == null ? 0 : clamp(Math.abs(p) / (TM.mode === 'day' ? 4 : 30), 0, 1);
+  return '<a class="tm-t ' + (p == null ? 'na' : p >= 0 ? 'up' : 'dn') + '" href="#/quote/' + encodeURIComponent(r.s) + '" data-s="' + esc(r.s) + '" style="--k:' + k.toFixed(3) + ';left:' + (t.x / W * 100).toFixed(3) + '%;top:' + (t.y / H * 100).toFixed(3) + '%;width:' + (t.w / W * 100).toFixed(3) + '%;height:' + (t.h / H * 100).toFixed(3) + '%">' +
+    '<span class="tm-in"><span class="tm-w">' + num(r.bv / st.total * 100, 1) + '%</span>' +
+    '<b class="tm-s">' + esc(r.s) + '</b><span class="tm-n">' + esc(r.name) + '</span>' +
+    '<span class="tm-p">' + (p == null ? '—' : '<i class="tm-g">' + (p >= 0 ? '▲' : '▼') + '</i>' + pct(p).replace(/^[+-]/, '')) + '</span></span></a>';
+}
+function glTreemapHTML(st, rows){   // the same boxes as the portfolio page, as a wide strip of the biggest holdings
+  rows = rows.filter(function(r){ return r.bv > 0; }); if(!rows.length) return '';
+  TM.st = st; TM.mode = 'day';
+  var W = 100, H = innerWidth < 640 ? 50 : 21;
+  return '<div class="tm tm-mini" style="aspect-ratio:' + W + '/' + H + '">' + squarify(rows.map(function(r){ return { r:r, v:r.bv }; }), W, H).map(function(t){ return tmTile(t, st, W, H); }).join('') + '</div>';
+}
+function treemapHTML(st){
+  TM.st = st;
+  var rows = st.rows.filter(function(r){ return r.bv > 0; }).sort(function(a, b){ return b.bv - a.bv; });
+  if(!rows.length) return '';
+  var W = 100, H = innerWidth < 640 ? 125 : 62;
+  var tiles = squarify(rows.map(function(r){ return { r:r, v:r.bv }; }), W, H).map(function(t){ return tmTile(t, st, W, H); }).join('');
+  var seg = [['day', 'Today'], ['ret', 'Since purchase']].map(function(m){
+    return '<button class="' + (TM.mode === m[0] ? 'on' : '') + '" data-act="tm-mode" data-m="' + m[0] + '">' + m[1] + '</button>';
+  }).join('');
+  return '<div class="card tm-card"><div class="tm-head"><div><h3>Your investments visualized</h3><div class="mut" style="font-size:13px;margin-top:2px">Box size is the holding\'s weight in your portfolio. Colour is the move ' +
+    (TM.mode === 'day' ? 'today' : 'since you bought it') + '. Hover for the detail, click to open.</div></div><div class="tm-seg" role="group" aria-label="Colour by">' + seg + '</div></div>' +
+    '<div class="tm" style="aspect-ratio:' + W + '/' + H + '">' + tiles + '</div>' + '</div>';
+}
+function tmTipHTML(r, st){
+  var d = tmVal(r), cls = function(v){ return v == null ? 'mut' : v >= 0 ? 'up' : 'down'; };
+  var row = function(k, v, c){ return '<div><span>' + k + '</span><b class="num ' + (c || '') + '">' + v + '</b></div>'; };
+  var w = st.total ? r.bv / st.total * 100 : 0;
+  return '<div class="tt-h"><b>' + esc(r.s) + '</b><span>' + esc(r.name) + '</span></div><div class="tt-sec">' + esc(r.sector) + '</div>' +
+    '<div class="tt-big num ' + cls(d) + '">' + (d == null ? '—' : pct(d)) + '<small>' + (TM.mode === 'day' ? 'today' : 'since purchase') + '</small></div>' +
+    '<div class="tt-bar"><i style="width:' + clamp(w, 1, 100).toFixed(1) + '%"></i></div>' +
+    '<div class="tt-g">' + row('Weight', num(w, 1) + '%') + row('Value', money(r.bv, st.base)) +
+    row('Shares', num(r.q, r.q % 1 ? 2 : 0)) + row('Price', money(r.price, r.cur)) +
+    row('Avg cost', money(r.costPx, r.cur)) +
+    row('Day', r.bd == null ? '—' : (r.bd >= 0 ? '+' : '') + money(r.bd, st.base), cls(r.bd)) +
+    row('Total return', (r.bv - r.bc >= 0 ? '+' : '') + money(r.bv - r.bc, st.base) + ' (' + pct(r.retPct) + ')', cls(r.retPct)) + '</div>';
+}
+function tmTip(ev){
+  var t = ev.target.closest && ev.target.closest('.tm-t'), tip = $('tmTip');
+  if(!t || !TM.st){ if(tip) tip.hidden = true; var tm = document.querySelector('.tm.hv'); if(tm) tm.classList.remove('hv'); return; }
+  var r = TM.st.rows.filter(function(x){ return x.s === t.getAttribute('data-s'); })[0]; if(!r) return;
+  if(!tip){ tip = document.createElement('div'); tip.id = 'tmTip'; tip.className = 'tm-tip'; tip.setAttribute('role', 'tooltip'); document.body.appendChild(tip); }
+  if(tip.getAttribute('data-s') !== r.s || tip.hidden){ tip.innerHTML = tmTipHTML(r, TM.st); tip.setAttribute('data-s', r.s); }
+  tip.hidden = false;
+  t.parentNode.classList.add('hv');
+  var x = ev.clientX != null && ev.type !== 'focusin' ? ev.clientX : t.getBoundingClientRect().right, y = ev.clientY != null && ev.type !== 'focusin' ? ev.clientY : t.getBoundingClientRect().top;
+  var w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = clamp(x + 16 + w > innerWidth - 8 ? x - 16 - w : x + 16, 8, innerWidth - w - 8) + 'px';
+  tip.style.top = clamp(y + 16 + h > innerHeight - 8 ? y - 16 - h : y + 16, 8, innerHeight - h - 8) + 'px';
+}
+
+/* Portfolio performance hero: the value in large type, a scrubbable chart against the S&P 500, and what moved today. */
+var PERF = { st:null, pf:null, G:null, seen:null, anim:false, scrub:false };
+function pfSg(v, cur){ return (v >= 0 ? '+' : '−') + money(Math.abs(v), cur); }
+function pfWhen(d){
+  if(d === 'prev') return 'Previous close'; if(d === 'now') return 'Now';
+  if(/^\d{9,}$/.test(String(d))) return new Date(+d * (String(d).length < 12 ? 1000 : 1)).toLocaleTimeString([], { hour:'numeric', minute:'2-digit' });
+  var t = new Date(d + 'T12:00:00'); return isNaN(t) ? String(d) : t.toLocaleDateString([], { month:'short', day:'numeric', year:'numeric' });
+}
+function perfDaySub(st){
+  var prev = st.total - st.day, p = prev ? st.day / prev * 100 : null;
+  return p == null ? '<span class="mut">No day change yet</span>' : '<span class="' + (st.day >= 0 ? 'up' : 'down') + '">' + (st.day >= 0 ? '▲' : '▼') + ' ' + pfSg(st.day, st.base) + ' (' + pct(p) + ')</span> <span class="mut">today</span>';
+}
+function perfChartHTML(G, R){
+  var a = (G.ser || []).map(function(x){ return x.v; });
+  if(G.pending) return '<div class="pf-wait mut">Loading ' + esc(GL_TXT[R]) + '…</div>';
+  if(a.length < 2) return '<div class="pf-wait mut">No history for this range yet.</div>';
+  var b = G.spx && G.spx.length === a.length ? G.spx : null, W = 1000, H = 240;
+  var pa = a.map(function(v){ return (v / a[0] - 1) * 100; }), pb = b ? b.map(function(v){ return (v / b[0] - 1) * 100; }) : [];
+  var all = pa.concat(pb, [0]), mn = Math.min.apply(null, all), mx = Math.max.apply(null, all), sp = (mx - mn) || 1, pad = sp * .08; mn -= pad; mx += pad; sp = mx - mn;
+  var st = W / (a.length - 1), y = function(v){ return (H - (v - mn) / sp * H); };
+  var path = function(p){ return p.map(function(v, i){ return (i ? 'L' : 'M') + (i * st).toFixed(1) + ' ' + y(v).toFixed(1); }).join(' '); };
+  var up = pa[pa.length - 1] >= 0, col = up ? 'var(--fh-positive)' : 'var(--fh-negative)';
+  PERF.G = { ser:G.ser, a:a, b:b, pa:pa, pb:pb, mn:mn, sp:sp, R:R };
+  return '<div class="pf-ch" tabindex="0" aria-label="Portfolio value chart. Move across it to read any day.">' +
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">' +
+    '<path d="' + path(pa) + ' L' + W + ' ' + H + ' L0 ' + H + ' Z" fill="' + col + '" opacity=".1"/>' +
+    '<line x1="0" x2="' + W + '" y1="' + y(0).toFixed(1) + '" y2="' + y(0).toFixed(1) + '" stroke="var(--fh-foreground-on-surface-de-emphasis)" stroke-width="1" stroke-dasharray="2 6" opacity=".5" vector-effect="non-scaling-stroke"/>' +
+    (b ? '<path d="' + path(pb) + '" fill="none" stroke="var(--fh-foreground-on-surface-de-emphasis)" stroke-width="1.8" stroke-linejoin="round" opacity=".7" vector-effect="non-scaling-stroke"/>' : '') +
+    '<path d="' + path(pa) + '" fill="none" stroke="' + col + '" stroke-width="2.6" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>' +
+    '<i class="pf-band" hidden></i><i class="pf-dot" hidden style="background:' + col + '"></i>' + (b ? '<i class="pf-dot s" hidden></i>' : '') + '</div>' +
+    '<div class="pf-leg"><span><i style="background:' + col + '"></i>You <b class="num ' + (up ? 'up' : 'down') + '">' + pct(pa[pa.length - 1], 1) + '</b></span>' +
+    (b ? '<span><i class="s"></i>S&amp;P 500 <b class="num ' + (pb[pb.length - 1] >= 0 ? 'up' : 'down') + '">' + pct(pb[pb.length - 1], 1) + '</b></span>' : '') + '<span class="mut">' + esc(GL_TXT[R]) + '</span></div>';
+}
+function perfMoveHTML(st){
+  var rows = st.rows.filter(function(r){ return r.bd != null && r.bd !== 0; }).sort(function(a, b){ return b.bd - a.bd; });
+  if(!rows.length) return '';
+  var pick = rows.slice(0, 4).concat(rows.slice(-4).filter(function(r){ return rows.indexOf(r) >= 4; }));
+  var mx = Math.max.apply(null, pick.map(function(r){ return Math.abs(r.bd); }));
+  return '<div class="pf-mv"><h3>What moved your money today</h3>' + pick.map(function(r){
+    var w = Math.abs(r.bd) / mx * 50, up = r.bd >= 0;
+    return '<a class="pf-r" href="#/quote/' + encodeURIComponent(r.s) + '" data-s="' + esc(r.s) + '"><b>' + esc(r.s) + '</b>' +
+      '<span class="pf-tr"><i class="' + (up ? 'up' : 'dn') + '" style="width:' + w.toFixed(1) + '%;' + (up ? 'left:50%' : 'right:50%') + '"></i></span>' +
+      '<span class="num ' + (up ? 'up' : 'down') + '">' + pfSg(r.bd, st.base) + '</span></a>';
+  }).join('') + '</div>';
+}
+function perfHTML(st, pf){
+  PERF.st = st; PERF.pf = pf;
+  var cur = st.base, R = glRange(), G = glSeries(pf, R, st);
+  if(G.pending) glKick(pf, R);
+  var mult = st.cost > 0 ? st.total / st.cost : null, rup = st.ret >= 0, seen = PERF.seen;
+  var third = seen ? ['Since your last visit', pfSg(st.ret - seen.ret, cur), st.ret - seen.ret >= 0, alAgo(seen.t).replace('just now', 'moments ago')]
+    : (function(){ var m = st.rows.filter(function(r){ return r.bd != null; }).sort(function(a, b){ return b.bd - a.bd; })[0]; return m ? ['Best today', m.s, m.bd >= 0, pfSg(m.bd, cur)] : ['Best today', '—', true, '']; })();
+  var rng = '<div class="gl-rng pf-rng" role="tablist" aria-label="Time range">' + GL_R.map(function(x){
+    return '<button type="button" role="tab" aria-selected="' + (x[0] === R) + '" class="' + (x[0] === R ? 'on' : '') + '" data-act="pf-range" data-r="' + x[0] + '">' + x[1] + '</button>';
+  }).join('') + '</div>';
+  return '<div class="perf">' +
+    '<div class="pf-top"><div><div class="pf-big num" id="perfBig" data-v="' + st.total + '">' + money(st.total, cur) + '</div>' +
+    '<div class="pf-sub num" id="perfSub">' + perfDaySub(st) + '</div></div>' + rng + '</div>' +
+    '<div class="pf-chart">' + perfChartHTML(G, R) + '</div>' +
+    '<div class="pf-fig">' +
+      '<div><span class="mut">Invested</span><b class="num">' + money(st.cost, cur) + '</b><small class="mut">' + (mult ? 'Now worth ' + money(mult, cur) + ' for every ' + money(1, cur) : '') + '</small></div>' +
+      '<div><span class="mut">Total return</span><b class="num ' + (rup ? 'up' : 'down') + '">' + pfSg(st.ret, cur) + '</b><small class="num ' + (rup ? 'up' : 'down') + '">' + pct(st.retPct) + '</small></div>' +
+      '<div><span class="mut">' + third[0] + '</span><b class="num ' + (third[2] ? 'up' : 'down') + '">' + esc(third[1]) + '</b><small class="mut">' + esc(third[3]) + '</small></div>' +
+    '</div>' + perfMoveHTML(st) + '</div>';
+}
+function perfCount(){
+  var el = $('perfBig'); if(!el || PERF.anim) return; PERF.anim = true;
+  if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var v = +el.getAttribute('data-v'), cur = PERF.st.base, t0 = performance.now();
+  (function f(now){
+    if(!document.body.contains(el) || PERF.scrub) return;
+    var k = Math.min(1, (now - t0) / 900), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = money(v * e, cur);
+    if(k < 1) requestAnimationFrame(f); else el.textContent = money(v, cur);
+  })(t0);
+}
+function perfScrub(ev){
+  var ch = ev.target.closest && ev.target.closest('.pf-ch'), P = PERF.G;
+  if(!ch || !P){ if(PERF.scrub) perfScrubEnd(); return; }
+  var r = ch.getBoundingClientRect(), x = ev.clientX == null ? r.left + r.width : ev.clientX;
+  var i = Math.round(clamp((x - r.left) / r.width, 0, 1) * (P.a.length - 1)), n = P.a.length - 1, cur = PERF.st.base;
+  PERF.scrub = true;
+  var band = ch.querySelector('.pf-band'), dots = ch.querySelectorAll('.pf-dot');
+  band.hidden = false; band.style.left = (i / n * 100) + '%';
+  dots[0].hidden = false; dots[0].style.left = (i / n * 100) + '%'; dots[0].style.top = ((1 - (P.pa[i] - P.mn) / P.sp) * 100) + '%';
+  if(dots[1]){ dots[1].hidden = false; dots[1].style.left = (i / n * 100) + '%'; dots[1].style.top = ((1 - (P.pb[i] - P.mn) / P.sp) * 100) + '%'; }
+  $('perfBig').textContent = money(P.a[i], cur);
+  var d = P.a[i] - P.a[0];
+  $('perfSub').innerHTML = '<span class="mut">' + esc(pfWhen(P.ser[i].d)) + '</span> <span class="' + (d >= 0 ? 'up' : 'down') + '">' + pfSg(d, cur) + ' (' + pct(P.pa[i]) + ')</span>' +
+    (P.b ? ' <span class="mut">· S&amp;P ' + pct(P.pb[i]) + '</span>' : '');
+}
+function perfScrubEnd(){
+  PERF.scrub = false; var big = $('perfBig'), sub = $('perfSub'); if(!big || !PERF.st) return;
+  big.textContent = money(PERF.st.total, PERF.st.base); sub.innerHTML = perfDaySub(PERF.st);
+  document.querySelectorAll('.pf-band,.pf-dot').forEach(function(e){ e.hidden = true; });
 }
 
 function statCard(label, value, sub, cls){
@@ -6762,17 +7077,10 @@ function concentrationHTML(st){
   var sorted = st.rows.slice().sort(function(a, b){ return b.bv - a.bv; });
   var top = sorted[0], top3 = sorted.slice(0, 3).reduce(function(a, r){ return a + r.bv; }, 0);
   var hhi = sorted.reduce(function(a, r){ var w = r.bv / (st.total || 1); return a + w * w; }, 0);
-  var heat = sorted.slice(0, 12).map(function(r){
-    var p = r.retPct;
-    var bg = p >= 0 ? 'rgba(31,139,26,' + clamp(0.15 + Math.abs(p) / 40, 0.15, 0.9) + ')' : 'rgba(227,41,53,' + clamp(0.15 + Math.abs(p) / 40, 0.15, 0.9) + ')';
-    return '<div class="h" style="background:' + bg + '"><b>' + esc(r.s) + '</b><span class="p">' + pct(p) + '</span></div>';
-  }).join('');
-  return '<div class="heat">' + heat + '</div>' +
-    '<div class="kv-inline" style="margin-top:14px">' +
+  return '<div class="kv-inline">' +
     '<span>Largest: <b>' + esc(top.s) + '</b> ' + num(top.bv / (st.total || 1) * 100, 1) + '%</span>' +
     '<span>Top 3: <b>' + num(top3 / (st.total || 1) * 100, 1) + '%</b></span>' +
-    '<span>HHI: <b>' + num(hhi, 3) + '</b></span></div>' +
-    '<div class="mut" style="font-size:12px;margin-top:8px">Tile colour shows total return per position.</div>';
+    '<span>HHI: <b>' + num(hhi, 3) + '</b></span></div>';
 }
 
 /* -------------------------------------------------------- famous investors */
@@ -10436,6 +10744,57 @@ function modeHero(k, extra){
   return '<div class="mh"><div class="mh-top"><span class="mh-ic">' + railSvg(m.i, 22) + '</span><h2>' + m.t + '</h2>' + (extra || '') + '</div><p>' + m.p + '</p>' +
     '<div class="mh-feats">' + m.f.map(function(x){ return '<span>' + railSvg('M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z', 13) + x + '</span>'; }).join('') + '</div></div>';
 }
+/* ---- Mode routing: Marvell works out which mode fits a question and asks before switching; it never switches by itself ---- */
+var ROUTE = {
+  research:{ name:'Deep Research', why:'This reads like a full company analysis. Deep Research works in stages (intake, research, valuation, insider flow, verdict, kill gate) and ends in a PDF memo, which a chat answer cannot.' },
+  quant:{ name:'Quant', why:'Quant backtests a strategy or portfolio on daily prices, projects it forward and checks whether the result is real. A chat answer can only sketch it.' },
+  predict:{ name:'Predict', why:'Predict runs the Kronos model on your own computer and shows sampled price paths, a target and a confidence rating for the ticker.' }
+};
+/* A quick read of the wording: only strong, unambiguous signals ask; Marvell's own judgment (the suggest_mode tool) covers the rest. */
+function routeGuess(q){
+  q = String(q || '').trim(); var t = q.toLowerCase();
+  if(q.length < 14 || q.charAt(0) === '/') return null;
+  if(/\b(back-?test\w*|pairs? trad\w*|risk parity|minimum[- ]variance|max(imum)? sharpe|hierarchical risk parity|rebalanc\w+ (strategy|rule)|trading (rule|strategy|system)|monte carlo)\b/.test(t) || /\bbuy\b.{3,60}\bwhen\b.{3,80}\bsell\b/.test(t) || /\bwhat would (i|\$?[\d,.]+[kmb]?)\b.{0,50}\b(be worth|have)\b/.test(t) || /\bif i had (invested|bought|put)\b/.test(t)) return { to:'quant' };
+  if(/\b(deep research|deep dive|in-?depth (analysis|research|look)|thorough(ly)? (analy|research)\w*|full (research|analysis|report|pipeline)|research report|investment memo|due diligence|stock research|reverse dcf|dcf\b|intrinsic value|fair value|what is [\w.\- ]{1,30} worth|priced in|is [\w.\- ]{1,30} (over|under)valued)\b/.test(t)) return { to:'research' };
+  var tick = routeSym(q);
+  if(tick && /\b(forecast|predict(ion)?|price paths?|next (few )?(days?|weeks?|candles?|sessions?)|where (will|is) [\w.\- ]{1,20} (go|headed))\b/.test(t)) return { to:'predict', sym:tick };
+  return null;
+}
+function routeSym(q){
+  var m = /\$([A-Za-z]{1,5})\b/.exec(q); if(m) return m[1].toUpperCase();
+  var words = q.match(/\b[A-Z]{1,5}\b/g) || [], skip = { I:1, A:1, AI:1, US:1, ETF:1, DCF:1, CEO:1, IPO:1, EPS:1, PE:1, FX:1 };
+  for(var i = 0; i < words.length; i++){ if(!skip[words[i]] && (INSTRUMENTS[words[i]] || UNIVERSE.some(function(u){ return u[0] === words[i]; }))) return words[i]; }
+  return CUR.view === 'quote' ? dispSym(CUR.sym) : '';
+}
+function routeAsk(kind, q, r){   // the question stays in the chat; the card asks, nothing runs yet
+  chatPush('user', q, { ak:kind, q:q });
+  chatPush('assistant', 'This looks like a job for **' + ROUTE[r.to].name + '**.', { route:{ to:r.to, why:r.why || ROUTE[r.to].why, q:q, k:kind, sym:r.sym || '', st:'ask', pre:1 } });
+}
+function routeCard(m){
+  var r = m.route; if(!r) return '';
+  var nm = ROUTE[r.to] ? ROUTE[r.to].name : r.to;
+  if(r.st === 'switched') return '<div class="route-card done">Switched to ' + esc(nm) + '. Your question is waiting there.</div>';
+  if(r.st === 'stay') return '<div class="route-card done">Staying in Agent.</div>';
+  return '<div class="route-card"><p>' + esc(r.why) + '</p><div class="rc-b"><button class="btn filled sm" data-act="route-go" data-ts="' + m.ts + '">Switch to ' + esc(nm) + '</button>' +
+    '<button class="btn tonal sm" data-act="route-stay" data-ts="' + m.ts + '">Stay in Agent</button></div>' +
+    '<button class="btn text sm rc-never" data-act="route-never" data-ts="' + m.ts + '">Do not suggest this again</button></div>';
+}
+function routeGo(m){
+  var r = m.route; if(!r) return;
+  r.st = 'switched'; save(LS.chat, CHAT); chatRender();
+  if(r.to === 'research'){ RS.question = r.q; rsSaveCfg(); rsOpenPanel('research'); setTimeout(function(){ var e = $('rsQ'); if(e){ e.value = r.q; e.focus(); } rsPaint(); }, 140); }
+  else if(r.to === 'quant'){ QS.draft = r.q; rsOpenPanel('quant'); setTimeout(function(){ var e = $('qnQ'); if(e){ e.value = r.q; e.focus(); } }, 160); }
+  else { if(r.sym){ PD.form.sym = r.sym; save('fh3_pd', PD.form); } rsOpenPanel('predict'); }
+  toast('Switched to ' + ROUTE[r.to].name + '. Press Run when you are ready.');
+}
+function routeStay(m){   // the card and the question it was about go, then the question is asked here as normal
+  var r = m.route; if(!r) return;
+  if(r.pre){
+    var i = CHAT.indexOf(m), u = null; for(var j = i - 1; j >= 0 && !u; j--){ if(CHAT[j].role === 'user') u = CHAT[j]; }
+    CHAT = CHAT.filter(function(x){ return x !== m && x !== u; }); save(LS.chat, CHAT); chatRender();
+    aiRun(r.k || 'custom', r.q, { route:false });
+  } else { r.st = 'stay'; save(LS.chat, CHAT); chatRender(); }   // a card the model raised after answering: nothing to rerun
+}
 function chatRender(){
   var el = $('chat');
   if(!el) return;
@@ -10452,10 +10811,10 @@ function chatRender(){
   }
   el.innerHTML = msgs.map(function(m, i){
     return '<div class="msg ' + (m.role === 'user' ? 'me' : (m.err ? 'err' : '')) + '">' +
-      (m.role === 'user' ? esc(m.text) : GENUI.renderAnswer(m.text, 'm' + m.ts, mdToHTML) + srcHTML(m) + actCards(m) + skillCard(m) +
+      (m.role === 'user' ? esc(m.text) : GENUI.renderAnswer(m.text, 'm' + m.ts, mdToHTML) + srcHTML(m) + actCards(m) + skillCard(m) + routeCard(m) +
         (m.keyCta ? '<div class="act-b" style="margin-top:10px"><button class="btn filled sm" data-act="keys">Add API key</button><button class="btn text sm" data-act="tour-start">Show me how</button></div>' : '')) + '</div>' +
       (m.role === 'user' ? userToolsHTML(m) : '') +
-      (m.role !== 'user' && !m.err && !m.keyCta && m.text && !(AI_BUSY && i === msgs.length - 1) ? msgToolsHTML(m) + learnHTML(m) : '');
+      (m.role !== 'user' && !m.err && !m.keyCta && !(m.route && m.route.pre) && m.text && !(AI_BUSY && i === msgs.length - 1) ? msgToolsHTML(m) + learnHTML(m) : '');
   }).join('') + (AI_BUSY && msgs[msgs.length - 1].role === 'user' ? thinkHTML() : '');
   el.scrollTop = el.scrollHeight;
 }
@@ -10568,7 +10927,7 @@ var THINK_VERBS = ['Analyzing', 'Quantizing', 'Forecasting Trends', 'Building Va
   'Backtesting', 'Bootstrapping', 'Tranching', 'Rehypothecating', 'Delta-hedging', 'Winsorizing', 'Securitizing', 'Amortizing', 'Annualizing'];
 var AI_BUSY = false, THINK = { users:{}, timer:null, ctimer:null, order:[], i:0 };
 /* Taps on Marvell's visuals (buttons, forms, explorer answers) are sent to the agent as the user's next message. */
-GENUI.attach(document, function(text){ if(AI_BUSY){ toast('Marvell is still answering. Try again in a moment.'); return; } openDrawer(); aiRun('custom', text); });
+GENUI.attach(document, function(text){ if(AI_BUSY){ toast('Marvell is still answering. Try again in a moment.'); return; } openDrawer(); aiRun('custom', text, { route:false }); });
 function thinkVerb(){ if(THINK.step) return THINK.step; return THINK.order.length ? THINK.order[THINK.i % THINK.order.length] : THINK_VERBS[0]; }
 function thinkHTML(){
   return '<div class="think" role="status" aria-live="polite"><svg class="tk-candles" viewBox="0 0 42 28" width="58" height="39" aria-hidden="true"></svg>' +
@@ -10634,7 +10993,7 @@ function aiPending(on){
 /* Earlier turns of this chat session, so follow-ups ("dig deeper on that") have context. */
 function chatHistory(){
   var sid = chatCurrentSession(), msgs = sid ? chatMessages(sid) : [];
-  return msgs.slice(0, -1).filter(function(m){ return !m.err && m.text; }).slice(-8).map(function(m){ return { role:m.role === 'user' ? 'user' : 'assistant', content:(m.role === 'user' ? String(m.text) : GENUI.forHistory(m.text)).slice(0, 4000) }; });
+  return msgs.slice(0, -1).filter(function(m){ return !m.err && m.text && !m.route; }).slice(-8).map(function(m){ return { role:m.role === 'user' ? 'user' : 'assistant', content:(m.role === 'user' ? String(m.text) : GENUI.forHistory(m.text)).slice(0, 4000) }; });
 }
 /* The harness's current step replaces the rotating verb in the thinking indicator. */
 function thinkStep(st){
@@ -10649,6 +11008,10 @@ function aiRun(kind, question, opts){
     openDrawer();
     chatPush('assistant', 'I need an API key before I can answer. Press **Add API key** below, paste a key for your provider and Save. Keys are stored only in this browser.', { err:true, keyCta:true });
     return Promise.resolve(null);
+  }
+  if((kind === 'custom' || kind === 'deep') && opts.route !== false && !opts.silent && !opts.skill && !opts.shown && !EDIT_TS && !CFG.noRoute){
+    var rg = routeGuess(question);
+    if(rg){ openDrawer(); routeAsk(kind, question, rg); return Promise.resolve(null); }
   }
   openDrawer();
   var label = opts.silent ? '' : ('**' + spec.label + (CUR.view === 'quote' ? ' · ' + dispSym(CUR.sym) : '') + '**');
@@ -10720,6 +11083,7 @@ function aiRun(kind, question, opts){
       var extra = {};
       if(agentRes && agentRes.acts.length) extra.acts = agentRes.acts;
       if(agentRes && agentRes.sources.length) extra.sources = agentRes.sources;
+      if(agentRes && agentRes.route && !CFG.noRoute && ROUTE[agentRes.route.to]) extra.route = { to:agentRes.route.to, why:agentRes.route.why || ROUTE[agentRes.route.to].why, q:question || opts.shown || '', k:kind, sym:agentRes.route.sym || '', st:'ask' };
       var am = chatPush('assistant', body, extra);
       if(agentRes && !agentRes.stopped) vaultMaybeReview(am, question || opts.shown || '', agentRes);   // the self-improvement pass (Memory vault)
       if(kind === 'summary'){ Q.ai.summary = text; }
@@ -10757,7 +11121,7 @@ var RLOG = load('fh3_rruns', []).filter(function(r){ return r && typeof r === 'o
 function rsLogSave(){
   var body = RS.report || RS.tokens || ''; if(!body.trim()) return;
   var id = RS.meta.runId || ('r' + (RS.t0 || Date.now()).toString(36));
-  var rec = { id:id, ts:Date.now(), question:RS.question || '', focus:RS.focus.slice(), report:body, citations:RS.citations || [],
+  var rec = { id:id, ts:Date.now(), question:RS.question || '', focus:RS.focus.slice(), report:body, memo:RS.memo || null, citations:RS.citations || [],
     rounds:RS.meta.rounds || 0, secs:RS.meta.elapsedSeconds != null ? RS.meta.elapsedSeconds : Math.round((Date.now() - (RS.t0 || Date.now())) / 1000), status:(RS.report && !RS.error) ? 'done' : 'partial' };
   RLOG = RLOG.filter(function(x){ return x.id !== id; }); RLOG.unshift(rec); RLOG = RLOG.slice(0, 40);
   while(RLOG.length > 1 && JSON.stringify(RLOG).length > 3e6) RLOG.pop();   // stay inside localStorage limits
@@ -10765,7 +11129,7 @@ function rsLogSave(){
 }
 function rsLogOpen(id){
   var r = RLOG.filter(function(x){ return x.id === id; })[0]; if(!r) return;
-  RS.report = r.report; RS.tokens = ''; RS.citations = r.citations || []; RS.question = r.question; RS.focus = (r.focus && r.focus.length) ? r.focus : ['auto'];
+  RS.report = r.report; RS.memo = r.memo || null; RS.tokens = ''; RS.citations = r.citations || []; RS.question = r.question; RS.focus = (r.focus && r.focus.length) ? r.focus : ['auto'];
   RS.meta = { rounds:r.rounds, elapsedSeconds:r.secs, runId:r.id }; RS.error = null; RS.tasks = null; RS.steps = []; rsSaveCfg();
   rsOpenPanel('research'); var pane = $('rsPane'); if(pane) pane.innerHTML = rsPanelHTML(); rsPaint();
   setTimeout(function(){ var c = $('rsResult'); if(c) c.scrollIntoView({ block:'start' }); }, 80);
@@ -10933,7 +11297,9 @@ function renderSettingsPage(sec){
     '<div class="card" id="keyCard"></div>' +
     '<div class="card"><h3 style="margin:0 0 4px">Visuals in Agent chat</h3><div class="mut" style="font-size:13px;margin-bottom:8px">Marvell can answer with charts, tables, diagrams, buttons, forms and things you can play with. It picks the format per question.</div>' +
     '<label class="field"><span>How many visuals</span><select class="inp" id="setVisuals">' +
-    [['auto', 'Auto (recommended)'], ['less', 'Fewer'], ['off', 'Off, text only']].map(function(o){ return '<option value="' + o[0] + '"' + ((CFG.visuals || 'auto') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label></div>';
+    [['auto', 'Auto (recommended)'], ['less', 'Fewer'], ['off', 'Off, text only']].map(function(o){ return '<option value="' + o[0] + '"' + ((CFG.visuals || 'auto') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label></div>' +
+    '<div class="card"><h3 style="margin:0 0 4px">Suggest the best mode</h3><div class="mut" style="font-size:13px;margin-bottom:8px">When a question would be done better in Deep Research, Quant or Predict, Marvell asks whether to switch or stay in Agent. It never switches on its own.</div>' +
+    '<label class="field"><span>Mode suggestions</span><select class="inp" id="setRoute"><option value="1"' + (CFG.noRoute ? '' : ' selected') + '>On</option><option value="0"' + (CFG.noRoute ? ' selected' : '') + '>Off</option></select></label></div>';
   else if(sec === 'appearance') h = settingsAppearanceHTML();
   else if(sec === 'data') h = '<div class="card"><h3>Data sources</h3><div class="kv-inline" style="flex-direction:column;gap:6px">' +
     '<span>Quotes: TradingView delayed feed ' + (DATA.lastUpdate ? '· updated ' + new Date(DATA.lastUpdate).toLocaleTimeString() : '· not loaded yet') + '</span>' +
@@ -13050,7 +13416,7 @@ function rsDoneHTML(){
   var h = '<div class="rs-done" id="rsResult"><div class="rd-head"><span class="rd-ok"></span>Research complete' +
     '<span class="rd-meta">' + (RS.meta.elapsedSeconds != null ? RS.meta.elapsedSeconds + 's' : '') + (RS.citations && RS.citations.length ? ' · ' + RS.citations.length + ' sources' : '') + '</span></div>' +
     '<div class="rd-sum">' + esc(rsSummary(RS.report)).replace(/\n/g, '<br>') + '</div>' +
-    '<button class="rd-dl" data-act="rs-download"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg><span><b>Download report</b><small>Saves a .md file to your Downloads folder</small></span></button>' +
+    '<button class="rd-dl" data-act="rs-download"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg><span><b>' + (RS.memo ? 'Download the PDF memo' : 'Download the PDF report') + '</b><small>Saves a PDF to your Downloads folder</small></span></button>' +
     '<div class="rd-row"><button class="btn text sm" data-act="rs-copy">Copy report</button></div></div>';
   return h;
 }
@@ -13108,7 +13474,7 @@ function rsPanelHTML(){
     '<div class="rs-opts"><label>Effort</label>' + effBtnHTML('rs') + '</div>' +
     '</div><div class="pickmenu" id="pickMenuR" hidden></div></div></div>';
   h += '</div></div>';
-  h += rsLiveHTML() + '<details class="rs-details" id="rsDetails"' + (RS.steps.length ? '' : ' hidden') + '><summary>Activity</summary><div id="rsLog">' + rsStepsHTML() + '</div></details><div id="rsReport">' + rsReportHTML() + '</div>' +
+  h += '<div id="rsInput">' + rsQHTML() + '</div>' + rsLiveHTML() + '<details class="rs-details" id="rsDetails"' + (RS.steps.length ? '' : ' hidden') + '><summary>Activity</summary><div id="rsLog">' + rsStepsHTML() + '</div></details><div id="rsReport">' + rsReportHTML() + '</div>' +
     '</div></div>';
   return h;
 }
@@ -13237,6 +13603,38 @@ function rsStep(kind, label, detail, ok){
   if(RS.steps.length > 200) RS.steps.shift();
 }
 
+/* ---- Questions from the agent (ask_user): the run waits here until the user answers or skips ---- */
+var RS_SKIP = 'The user skipped the questions. Proceed as a value-lens, mid-horizon, analysis-only run and flag every assumption you made in the report.';
+function rsQHTML(){
+  var A = RS.ask; if(!A) return '';
+  return '<div class="rs-q" role="group" aria-label="Questions before the research"><h3>Before Marvell researches</h3>' +
+    '<p class="mut">Your answers change the valuation and the verdict, so it asks first.</p>' +
+    A.qs.map(function(q){
+      var f = q.kind === 'choice' && q.options.length
+        ? '<div class="tm-seg rs-qopts" role="group">' + q.options.map(function(o){ return '<button type="button" class="' + (A.ans[q.id] === o ? 'on' : '') + '" data-act="rs-ans" data-q="' + esc(q.id) + '" data-v="' + esc(o) + '">' + esc(o) + '</button>'; }).join('') + '</div>'
+        : '<input class="inp" data-rq="' + esc(q.id) + '" placeholder="' + esc(q.hint || '') + '" value="' + esc(A.ans[q.id] || '') + '" autocomplete="off">';
+      return '<div class="rs-qf"><label>' + esc(q.label) + '</label>' + f + '</div>';
+    }).join('') +
+    '<div class="rs-qb"><button class="btn text" data-act="rs-ask-skip">Skip and use defaults</button><button class="btn filled" data-act="rs-ask-go">Continue</button></div></div>';
+}
+function rsQPaint(){ var h = $('rsInput'); if(h) h.innerHTML = rsQHTML(); }
+function rsQOpen(qs){
+  return new Promise(function(res){
+    RS.ask = { res:res, ans:{}, qs:(qs || []).map(function(q, i){ return { id:String(q.id || 'q' + i), label:String(q.label || '').slice(0, 400), kind:q.kind === 'choice' ? 'choice' : 'text', options:(q.options || []).map(String).slice(0, 8), hint:String(q.hint || '').slice(0, 120) }; }) };
+    if(!$('rsInput')) rsOpenPanel('research');
+    setTimeout(function(){ rsQPaint(); var h = $('rsInput'); if(h && h.scrollIntoView) h.scrollIntoView({ behavior:'smooth', block:'center' }); }, 120);
+    toast('Marvell has a question before it researches');
+  });
+}
+function rsQDone(text){ var A = RS.ask; if(!A) return; RS.ask = null; rsQPaint(); A.res(text); }
+function rsQAnswer(){
+  var A = RS.ask; if(!A) return;
+  var ans = {}, un = [];
+  A.qs.forEach(function(q){ var v = String(A.ans[q.id] || '').trim(); if(v) ans[q.id] = v; else un.push(q.id); });
+  if(!Object.keys(ans).length){ toast('Answer at least one question, or skip'); return; }
+  rsQDone(JSON.stringify({ answers:ans, unanswered:un, note:un.length ? 'Unanswered items are assumptions: state your default for each and flag it in the report.' : undefined }));
+}
+
 function rsRun(){
   var qEl = $('rsQ');
   RS.question = qEl ? qEl.value.trim() : (RS.question || '');
@@ -13250,14 +13648,14 @@ function rsRun(){
   if(!RS.model) RS.model = RS_DEFAULT_MODEL[prov] || AI_DEFAULT_MODEL[prov] || '';
   rsSaveCfg();
   RS.running = true; RS.steps = []; RS.report = ''; RS.tokens = ''; RS.error = null; RS.tEnd = 0;
-  RS.citations = []; RS.meta = { runId:'h' + Date.now().toString(36) };
+  RS.citations = []; RS.memo = null; RS.meta = { runId:'h' + Date.now().toString(36) };
   rsPlan(); thinkStart('rs');
   clearInterval(RS.clock); RS.clock = setInterval(function(){ if(RS.running) rsLiveSync(); else clearInterval(RS.clock); }, 1000);
   rsStep('round', 'Marvell harness', aiProvLabel(prov) + ' · ' + (RS.model || 'default model') + ' · ' + RS_EFFORT[rsEffortKey()].label + ' effort');
   rsPaint();
   var stop = { stopped:false };
   RS.ctl = { abort:function(){ stop.stopped = true; } };
-  MH.run({ mode:'research', provider:prov, model:RS.model, key:key, effort:rsEffortKey(), system:aiSystem(true), stop:stop,
+  MH.run({ mode:'research', provider:prov, model:RS.model, key:key, effort:rsEffortKey(), system:aiSystem(true), stop:stop, onAsk:rsQOpen,
     user:'Research question: ' + sk.question + rsFocusBrief() + '\n\nToday is ' + new Date().toISOString().slice(0, 10) + '.',
     onStep:function(st){
       if(st.kind === 'round'){ rsStep('round', st.label, st.detail); if(st.round) rsTaskEvent({ kind:'round_start', round:st.round }); }
@@ -13273,7 +13671,7 @@ function rsRun(){
     }
   }).then(function(r){
     if(r.stopped){ rsStep('log', 'Stopped by you'); return; }
-    RS.report = r.text; RS.citations = r.sources; RS.meta.rounds = r.rounds;
+    RS.report = r.text; RS.citations = r.sources; RS.memo = r.memo || null; RS.meta.rounds = r.rounds;
     if(!r.text) RS.error = 'the model returned an empty report';
     setTimeout(function(){ var el = $('rsResult'); if(el) el.scrollIntoView({ behavior:'smooth', block:'start' }); }, 350);
   }).catch(function(e){
@@ -13286,6 +13684,7 @@ function rsRun(){
 }
 
 function rsCancel(){
+  rsQDone(RS_SKIP);
   RS.running = false;
   rsStep('log', 'Stopping…');
   rsPaint();
@@ -13329,19 +13728,13 @@ function rsCopy(){
 }
 function rsDownload(){
   var text = RS.report || RS.tokens || '';
-  if(!text){ toast('Nothing to download yet'); return; }
-  var day = new Date().toISOString().slice(0, 10);
-  var slug = (RS.question || 'research').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 6).join('-') || 'research';
-  var head = '# ' + (RS.question || 'Research') + '\n\n_MercerFargo Deep Research · ' + day + ' · focus: ' + rsFocusLabels().join(', ') + '_\n\n';
-  var cites = (RS.citations && RS.citations.length) ? '\n\n## Sources\n' + RS.citations.map(function(c){ return c.index + '. ' + (c.title || c.url) + ' — ' + c.url; }).join('\n') : '';
-  var foot = '\n\n---\nFor informational purposes only — not financial advice. Do your own research. AI can make mistakes.\n';
-  var blob = new Blob([head + text + cites + foot], { type:'text/markdown;charset=utf-8' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'MercerFargo-Research_' + slug + '_' + day + '.md';
-  document.body.appendChild(a); a.click();
-  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-  toast('Report saved to your Downloads folder');
+  if(!text && !RS.memo){ toast('Nothing to download yet'); return; }
+  var day = new Date().toISOString().slice(0, 10), src = RS.citations || [];
+  var sub = 'Deep Research  \u00b7  ' + day + '  \u00b7  focus: ' + rsFocusLabels().join(', ');
+  toast('Building the PDF…');
+  (RS.memo ? MEMO.memoPdf(RS.memo, src) : MEMO.mdPdf(text, { title:RS.question || 'Research', sub:sub, sources:src })).then(function(r){
+    r.doc.save(r.name); toast('Saved ' + r.name + ' to your Downloads folder');
+  }, function(e){ toast('Could not build the PDF: ' + String((e && e.message) || e)); });
 }
 
 function rsSetMode(mode){
@@ -13385,6 +13778,7 @@ document.addEventListener('input', function(ev){
     return;
   }
   if(el && el.id === 'prompt'){ el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 180) + 'px'; SLASH.i = 0; skillMenuPaint('chat'); }
+  if(el && el.getAttribute && el.getAttribute('data-rq') != null && RS.ask){ RS.ask.ans[el.getAttribute('data-rq')] = el.value; return; }
   if(el && el.id === 'rsQ'){
     RS.question = el.value; SLASH.i = 0; skillMenuPaint('rs');
     if(RS.saveTimer) clearTimeout(RS.saveTimer);
@@ -13393,6 +13787,11 @@ document.addEventListener('input', function(ev){
 });
 
 function bindEvents(){
+  ['mouseover', 'mousemove', 'focusin'].forEach(function(n){ document.addEventListener(n, tmTip); });
+  document.addEventListener('pointermove', perfScrub);
+  document.addEventListener('keydown', function(ev){ if(ev.target.classList && ev.target.classList.contains('pf-ch') && (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') && PERF.G){ var n = PERF.G.a.length - 1, i = PERF.kb == null ? n : PERF.kb; i = clamp(i + (ev.key === 'ArrowRight' ? 1 : -1), 0, n); PERF.kb = i; var r = ev.target.getBoundingClientRect(); perfScrub({ target:ev.target, clientX:r.left + r.width * i / n }); ev.preventDefault(); } });
+  document.addEventListener('focusout', function(){ var tip = $('tmTip'); if(tip) tip.hidden = true; });
+  document.addEventListener('mouseleave', function(){ var tip = $('tmTip'); if(tip) tip.hidden = true; });
   document.addEventListener('mouseover', function(ev){
     var m = ev.target.closest && ev.target.closest('.pm-m');
     if(!m || !PICK.ctx) return;
@@ -13424,6 +13823,8 @@ function bindEvents(){
       case 'ib-tab': AL.tab = el.getAttribute('data-t'); alPanelPaint(); break;
       case 'ib-read': INBOX.forEach(function(m){ m.read = true; }); alSave(); alPanelPaint(); break;
       case 'ib-clear': INBOX = []; alSave(); alPanelPaint(); break;
+      case 'tm-mode': TM.mode = el.getAttribute('data-m'); { var tc = document.querySelector('.tm-card'); if(tc && TM.st){ tc.outerHTML = treemapHTML(TM.st); } } break;
+      case 'ib-mute': CFG.mute = !CFG.mute; saveCfg(); alBadge(); alPanelPaint(); toast(CFG.mute ? 'Alerts muted' : 'Alerts unmuted'); break;
       case 'ib-perm': Notification.requestPermission().then(alPanelPaint); break;
       case 'ib-open': { var im = INBOX.filter(function(m){ return m.id === el.getAttribute('data-id'); })[0]; if(im){ im.read = true; alSave(); alPanelToggle(false); go('#/quote/' + encodeURIComponent(im.sym)); } break; }
       case 'al-new': ev.preventDefault(); alPanelToggle(false); alNew(el.getAttribute('data-sym') || (CUR.view === 'quote' ? CUR.sym : '')); break;
@@ -13443,6 +13844,9 @@ function bindEvents(){
       case 'mk-refresh': mkLoad(); toast('Refreshing markets…'); break;
       case 'rs-run': rsRun(); break;
       case 'rs-cancel': rsCancel(); break;
+      case 'rs-ans': if(RS.ask){ RS.ask.ans[el.getAttribute('data-q')] = el.getAttribute('data-v'); rsQPaint(); } break;
+      case 'rs-ask-go': rsQAnswer(); break;
+      case 'rs-ask-skip': rsQDone(RS_SKIP); break;
       case 'rs-runs': rsToggleRuns(); break;
       case 'rs-copy': rsCopy(); break;
       case 'rs-download': rsDownload(); break;
@@ -13606,6 +14010,9 @@ function bindEvents(){
         if($('pagePrompt')) $('pagePrompt').value = '';
         break;
       }
+      case 'route-go': { var rm = msgByTs(el.getAttribute('data-ts')); if(rm) routeGo(rm); break; }
+      case 'route-stay': { var rs2 = msgByTs(el.getAttribute('data-ts')); if(rs2) routeStay(rs2); break; }
+      case 'route-never': { CFG.noRoute = true; saveCfg(); var rn = msgByTs(el.getAttribute('data-ts')); toast('Mode suggestions are off. Turn them back on in Settings, AI and API keys.'); if(rn) routeStay(rn); break; }
       case 'keys': openKeys(); break;
       case 'gl-toggle': {
         CFG.glopen = !CFG.glopen; saveCfg();
@@ -13615,6 +14022,7 @@ function bindEvents(){
         break;
       }
       case 'tour-start': ev.preventDefault(); closeMenu(); tourStart(); break;
+      case 'pf-range': CFG.glr = el.getAttribute('data-r'); saveCfg(); repaintGlance(); break;
       case 'gl-range': CFG.glr = el.getAttribute('data-r'); saveCfg(); repaintGlance(); break;
       case 'key-save': keySave(el.getAttribute('data-p'), false); break;
       case 'key-clear': keySave(el.getAttribute('data-p'), true); break;
@@ -13713,7 +14121,7 @@ function bindEvents(){
         else {   // regenerate: back to the prompt that led to this answer, then ask again
           var ui = CHAT.indexOf(mm), u = null;
           for(var j = ui - 1; j >= 0 && !u; j--){ if(CHAT[j].role === 'user') u = CHAT[j]; }
-          if(u && u.q){ chatCut(u); aiRun(u.ak, u.q); }
+          if(u && u.q){ chatCut(u); aiRun(u.ak, u.q, { route:false }); }
         }
         break;
       }
@@ -13866,6 +14274,7 @@ function bindEvents(){
     if(t.id === 'setNews'){ CFG.newsPush = t.value === '1'; saveCfg(); npStart(); }
     if(t.id === 'setSound'){ CFG.sound = t.value === '1'; saveCfg(); alChime(); }
     if(t.id === 'setMh'){ CFG.mHours = t.value === '1'; saveCfg(); mhPaint(); }
+    if(t.id === 'setRoute'){ CFG.noRoute = t.value === '0'; saveCfg(); toast(CFG.noRoute ? 'Mode suggestions off' : 'Mode suggestions on'); }
     if(t.id === 'setVisuals'){ CFG.visuals = ['less', 'off'].indexOf(t.value) >= 0 ? t.value : 'auto'; saveCfg(); toast('Saved. Applies to your next question.'); }
     if(t.id === 'setTape'){ CFG.tape = t.value === '1'; saveCfg(); applyTheme(); }
     if(t.id === 'setCcPreset'){ var p = CC_PRESETS[t.value]; if(p){ CFG.up = p[1]; CFG.dn = p[2]; delete CFG.cust; } else if(t.value === 'c'){ CFG.cust = true; CFG.up = CFG.up || '#4db848'; CFG.dn = CFG.dn || '#ff5c67'; } else { delete CFG.up; delete CFG.dn; delete CFG.cust; } saveCfg(); applyChartColors(); route(); }
@@ -14192,9 +14601,9 @@ function scheduleBriefings(){
 function runBriefing(t){
   if(!aiReady()) return;
   if(t.sym) CUR.sym = t.sym;
-  aiRun('custom', (t.instruction || 'Give me a short briefing.') + ' (briefing: ' + t.name + ')').then(function(text){
+  aiRun('custom', (t.instruction || 'Give me a short briefing.') + ' (briefing: ' + t.name + ')', { route:false }).then(function(text){
     if(!text) return;
-    if('Notification' in window && Notification.permission === 'granted'){
+    if(!CFG.mute && 'Notification' in window && Notification.permission === 'granted'){
       try{ new Notification(t.name, { body:String(text).slice(0, 180) }); }catch(e){}
     }
     toast(t.name + ': briefing ready');

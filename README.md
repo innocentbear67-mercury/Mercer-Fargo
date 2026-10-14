@@ -156,7 +156,7 @@ symbol count, footer with source disclosure.
 **Home** — quote cards for the selected market group with live sparklines, the
 portfolio card, "Top movers in your watchlists" with sortable columns, column picker
 and per-row trend sparklines, gainers/losers and "most valuable companies" lists, and
-a market news feed. The home tab is labelled **Monitoring Terminal**.
+a market news feed. The home tab is labelled **Terminal**.
 
 **Quote page** — breadcrumb, AI insight bar, ticker line, price block with session
 change, pre/post-market line, area/line/candlestick chart with range pills, compare
@@ -288,8 +288,10 @@ hosted copy and locally.
   portfolios and watchlists) only shows an Apply card; nothing changes until the user clicks.
 * **Knows the app.** `read_docs` reads `docs/marvell-guide.md`.
 * **Remembers you.** Memory (Settings → Memory) holds a nickname, age, what you do, notes, your portfolios, watchlists, skills and short summaries of your Deep Research runs. It is saved with your account in this browser, goes into every chat, and both you and Marvell (`update_memory`) can edit it. `read_memory` returns the full text.
+* **Picks the right mode, and asks first.** In Agent chat, a question that clearly belongs in Deep Research, Quant or Predict gets a card (why, then *Switch to …* or *Stay in Agent*) instead of a half-answer; switching opens that tab with the question filled in. A keyword check catches obvious cases before any model call, and Marvell can raise the card itself (`suggest_mode`). It never switches on its own, and Settings → AI & API keys → *Mode suggestions* turns it off.
 * **Chat** (Agent tab): up to 15 rounds, 4 minutes; the thinking indicator shows the current step.
-  **Deep Research**: up to 40 rounds, 15 minutes (a failing model call is retried three times, and a collapse mid-run still writes the report from what was gathered), a live plan (`update_plan`), cited report,
+  **Deep Research**: up to 60 rounds, 20 minutes (answering its intake questions does not use the clock) (a failing model call is retried three times, and a collapse mid-run still writes the report from what was gathered), a live plan (`update_plan`), cited report,
+  Deep Research follows the Stock Research Pro method (standing rules, a blocking intake, macro-sector-company research, reverse DCF before forward DCF, an assumption audit, filtered insider flow, a four-way verdict, kill criteria and a kill gate) and delivers a **PDF** (carbon black, MercerFargo style, logo watermark) instead of a .md file: the company memo in the skill's layout, or the report itself laid out the same way. The valuation functions are checked against the skill's `valuation.py` in `math.test.mjs`.
   then a grounding review; runs are saved in this browser (Research Log, Past runs).
 
 After changing `worker/opencode-proxy.js`, redeploy it: `cd worker && npx wrangler deploy`.
