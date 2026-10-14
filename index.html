@@ -2667,6 +2667,10 @@ html{overflow-x:clip}
 .api-x{transform-box:fill-box;transform-origin:center;animation:apiX 2s ease-in-out infinite}
 @keyframes apiX{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
 /* 404 */
+.lk{max-width:560px;margin:40px auto;display:flex;flex-direction:column;gap:14px}.lk h2{margin:0}.lk p{margin:0;font-size:14px;line-height:1.5}
+.lk-step{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--fh-outline-variant,rgba(128,128,128,.25));border-radius:12px}
+.lk-step>b{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--fh-surface-container-high,rgba(128,128,128,.15));font-size:13px;flex:none}
+.lk-step.done>b{background:var(--fh-positive);color:#fff}.lk-tx{flex:1;min-width:0}.lk-t{font-weight:600}
 .nf4{display:flex;flex-direction:column;align-items:center;text-align:center;padding:40px 16px 24px;gap:12px}
 .nf4-art{width:min(520px,100%);height:auto;overflow:visible}
 .nf4-art .line{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:900;stroke-dashoffset:900;animation:nf4Draw 1.6s ease-out forwards}
@@ -5103,7 +5107,7 @@ var QPROFILE = null, QFIN = { kind:'income', period:'annual', data:null, status:
 function saveCfg(){ save(LS.cfg, CFG); }
 function saveLists(){ save(LS.lists, LISTS); }
 function savePfs(){ save(LS.pf, PFS); }
-function saveKeys(){ save(LS.keys, KEYS); acctSync(); }
+function saveKeys(){ save(LS.keys, KEYS); acctSync(); if(window.proSync) proSync(); }
 
 /* ---- Accounts (this browser only: no server, no password) ---------------- */
 var ACCTS = load('fh3_accts', {});
@@ -5130,7 +5134,7 @@ function acctRefresh(){
   if(b){ b.textContent = a && !a.picture ? (a.name || a.email).charAt(0).toUpperCase() : ''; b.title = a ? a.name + ' · ' + a.email : 'Sign in';
     b.style.backgroundImage = a && a.picture ? 'url("' + a.picture.replace(/"/g, '') + '")' : ''; b.style.backgroundSize = 'cover';
     b.classList.toggle('anon', !a); }
-  updateAiChip(); paintKeyBtn(); if($('pickMenuA')) paintAiPick();
+  updateAiChip(); paintKeyBtn(); if($('pickMenuA')) paintAiPick(); proSync();
 }
 function acctSignIn(email){
   ACCT_CUR = email; save('fh3_acct', ACCT_CUR); acctLoad(ACCTS[email]); acctRefresh();
@@ -5307,7 +5311,8 @@ function route(){
   document.body.classList.remove('fil-reading');
   window.scrollTo({ top:0 });
   var p;
-  if(r.name === 'home') p = renderHome();
+  if(PRO_VIEWS[r.name] && !proReady()) p = renderLocked();
+  else if(r.name === 'home') p = renderHome();
   else if(r.name === 'quote') p = renderQuote();
   else if(r.name === 'list') p = renderList();
   else if(r.name === 'portfolio') p = renderPortfolio();
@@ -9968,6 +9973,23 @@ function aiPickSet(open){
 }
 function closeAiPickers(){ aiPickSet(false); if(typeof rsOptsSet === 'function') rsOptsSet(false); closePicker(); }
 function aiReady(){ return !!(KEYS.key && KEYS.provider); }
+/* Basics (Terminal, quotes and charts, watchlists, the main portfolio, Market, Settings) are open to everyone.
+   Everything else needs an account and an AI key. Add a route name here to lock it. */
+var PRO_VIEWS = { research:1, screener:1, compare:1, earnings:1, investors:1, insiders:1, filings:1, xpf:1 };
+var PRO_WAS = null;
+function proReady(){ return !!(acct() && aiReady()); }
+function proSync(){ var r = proReady(); if(r === PRO_WAS) return; var first = PRO_WAS === null; PRO_WAS = r; if(!first && PRO_VIEWS[CUR.view]) route(); }
+function renderLocked(){
+  var a = !!acct(), k = aiReady();
+  function step(done, n, t, d, act, lbl){
+    return '<div class="lk-step' + (done ? ' done' : '') + '"><b>' + (done ? '\u2713' : n) + '</b><div class="lk-tx"><div class="lk-t">' + t + '</div><div class="mut">' + d + '</div></div>' +
+      (done ? '' : '<button class="btn filled sm" data-act="' + act + '">' + lbl + '</button>') + '</div>';
+  }
+  $('main').innerHTML = '<div class="section"><div class="card lk"><h2>Finish setup to unlock this</h2>' +
+    '<p class="mut">The Terminal, quotes, charts, watchlists, your main portfolio and Market work without setup. Research, Screener, Compare, Earnings, Investors, Insiders, Filings, Experiments and the Marvell agent need an account and your own AI key.</p>' +
+    step(a, 1, 'Create an account', 'Sign in with Google. Your portfolios and chats are saved to it.', 'signin', 'Sign in') +
+    step(k, 2, 'Add your AI key', 'Paste a key for your provider. It stays on this device.', 'keys', 'Add key') + '</div></div>';
+}
 function paintKeyBtn(){
   var b = $('keysBtn'), l = $('keyLabel'); if(!b || !l) return;
   var ok = aiReady() && KEY_OK !== false;
@@ -10912,7 +10934,7 @@ function chatRender(){
   if(!msgs.length){
     var sym = dispSym(CUR.sym), sug = [['market', 'What\u2019s moving the markets today?'], ['portfolio', 'How is my portfolio positioned?'], ['summary', 'Give me a quick read on ' + sym]];
     el.innerHTML = '<div class="empty">' + modeHero('chat') +
-      (aiReady() ? '' : '<div class="tr-row"><button type="button" class="tr-note" data-act="keys">Add an API key to start \u2192</button><button type="button" class="tr-note" data-act="tour-start">Take a quick tour</button></div>') +
+      (proReady() ? '' : '<div class="tr-row">' + (acct() ? '<button type="button" class="tr-note" data-act="keys">Add an API key to start \u2192</button>' : '<button type="button" class="tr-note" data-act="signin">Sign in to start \u2192</button>') + '<button type="button" class="tr-note" data-act="tour-start">Take a quick tour</button></div>') +
       '<div class="ex">Try asking</div><div class="sug">' + sug.map(function(x){ return '<button type="button" data-act="ai" data-kind="' + x[0] + '"><span>' + esc(x[1]) + '</span>' +
         '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>'; }).join('') + '</div>' +
       '<div class="ex">Explore</div><div class="chips">' + aiQuickHTML() + '</div></div>';
@@ -10921,9 +10943,9 @@ function chatRender(){
   el.innerHTML = msgs.map(function(m, i){
     return '<div class="msg ' + (m.role === 'user' ? 'me' : (m.err ? 'err' : '')) + '">' +
       (m.role === 'user' ? esc(m.text) : GENUI.renderAnswer(m.text, 'm' + m.ts, mdToHTML) + srcHTML(m) + actCards(m) + skillCard(m) + routeCard(m) +
-        (m.keyCta ? '<div class="act-b" style="margin-top:10px"><button class="btn filled sm" data-act="keys">Add API key</button><button class="btn text sm" data-act="tour-start">Show me how</button></div>' : '')) + '</div>' +
+        (m.signCta ? '<div class="act-b" style="margin-top:10px"><button class="btn filled sm" data-act="signin">Sign in</button></div>' : '') + (m.keyCta ? '<div class="act-b" style="margin-top:10px"><button class="btn filled sm" data-act="keys">Add API key</button><button class="btn text sm" data-act="tour-start">Show me how</button></div>' : '')) + '</div>' +
       (m.role === 'user' ? userToolsHTML(m) : '') +
-      (m.role !== 'user' && !m.err && !m.keyCta && !(m.route && m.route.pre) && m.text && !(AI_BUSY && i === msgs.length - 1) ? msgToolsHTML(m) + learnHTML(m) : '');
+      (m.role !== 'user' && !m.err && !m.keyCta && !m.signCta && !(m.route && m.route.pre) && m.text && !(AI_BUSY && i === msgs.length - 1) ? msgToolsHTML(m) + learnHTML(m) : '');
   }).join('') + (AI_BUSY && msgs[msgs.length - 1].role === 'user' ? thinkHTML() : '');
   el.scrollTop = el.scrollHeight;
 }
@@ -11113,6 +11135,11 @@ function aiRun(kind, question, opts){
   opts = opts || {};
   var agentRes = null;
   var spec = AI_KINDS[kind] || AI_KINDS.custom;
+  if(!acct()){
+    openDrawer();
+    chatPush('assistant', 'Sign in first. The Marvell agent needs an account and your own API key. Press **Sign in** below, then add a key.', { err:true, signCta:true });
+    return Promise.resolve(null);
+  }
   if(!aiReady()){
     openDrawer();
     chatPush('assistant', 'I need an API key before I can answer. Press **Add API key** below, paste a key for your provider and Save. Keys are stored only in this browser.', { err:true, keyCta:true });

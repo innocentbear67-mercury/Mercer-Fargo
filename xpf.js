@@ -34,6 +34,7 @@ function xpfAll(){
 function xpfSave(){ save('fh3_xpf', xpfAll()); }
 function xpfIds(){ return Object.keys(xpfAll()); }
 function xpfNew(){
+  if(!proReady()){ go('#/xpf'); return; }
   if(xpfIds().length >= XPF_MAX){ toast('You can keep up to ' + XPF_MAX + ' experimental portfolios. Delete one first.'); return; }
   var id = 'x' + Date.now().toString(36), n = xpfIds().length + 1;
   xpfAll()[id] = { name:'Experiment ' + n, size:10000, whole:false, rebalance:'quarterly', contrib:{ amount:0, freq:'none' }, positions:[], created:Date.now() };
