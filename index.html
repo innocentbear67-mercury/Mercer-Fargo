@@ -5057,7 +5057,7 @@ function acctSignOut(){
 }
 /* ---- Sign in with Google (Google Identity Services, no server needed) -------
    Paste your OAuth "Web application" Client ID below (Google Cloud Console -> APIs & Services -> Credentials).
-   Authorised JavaScript origins must include the site address, e.g. https://innocentbear67-mercury.github.io and http://localhost:8000.
+   Authorised JavaScript origins must include the site address, e.g. https://mercerfargo.trade and http://localhost:8000.
    The Client ID is public by design. While it is empty the Google button simply doesn't appear. */
 var GOOGLE_CLIENT_ID = '';
 var GIS = { loaded:false, loading:false };
@@ -12714,7 +12714,7 @@ document.addEventListener('keydown', function(e){
    (kronos/kronos_server.py on 127.0.0.1:8793). The site fetches the bars, the local model samples forecast paths. */
 var PD = { url:'http://127.0.0.1:8793', tape:[], health:null, checked:false, busy:false, err:'', res:null, poll:0, os:'',
   form:load('fh3_pd', { sym:'', tf:'1D', h:20, n:8 }) };
-var PD_SITE = 'https://innocentbear67-mercury.github.io/Mercer-Fargo';
+var PD_SITE = 'https://mercerfargo.trade';
 function pdBase(){ return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(location.origin) ? location.origin : PD_SITE; }
 function pdOS(){ return PD.os || (/Win/i.test(navigator.platform || navigator.userAgent) ? 'win' : /Mac/i.test(navigator.platform || navigator.userAgent) ? 'mac' : 'linux'); }
 function pdCheck(){

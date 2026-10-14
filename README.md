@@ -17,7 +17,7 @@ MercerFargo brand layer — see `.work/reference/brand.md`.
 
 ## Use it online
 
-**Live site:** https://innocentbear67-mercury.github.io/Mercer-Fargo/
+**Live site:** https://mercerfargo.trade/
 
 Open it, press the key button in the header, paste your own model key and pick a default
 provider, model and effort. Your key stays in your browser's localStorage and is sent only

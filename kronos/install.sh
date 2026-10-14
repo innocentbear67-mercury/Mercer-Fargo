@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Marvell Predict installer (macOS / Linux): sets up Kronos locally and starts it.
-#   curl -fsSL https://innocentbear67-mercury.github.io/Mercer-Fargo/kronos/install.sh | bash
+#   curl -fsSL https://mercerfargo.trade/kronos/install.sh | bash
 # Everything lands in ~/.marvell-kronos; delete that folder to uninstall.
 set -euo pipefail
 
-BASE="${MARVELL_BASE:-https://innocentbear67-mercury.github.io/Mercer-Fargo}"
+BASE="${MARVELL_BASE:-https://mercerfargo.trade}"
 DIR="$HOME/.marvell-kronos"
 KRONOS_SHA="67b630e67f6a18c9e9be918d9b4337c960db1e9a"   # pinned shiyu-coder/Kronos commit
 say(){ printf '\n\033[1;33m==>\033[0m %s\n' "$1"; }

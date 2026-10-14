@@ -26,7 +26,7 @@ PORT = int(os.environ.get("KRONOS_PORT", "8793"))
 MODEL_ID = os.environ.get("KRONOS_MODEL", "NeoQuasar/Kronos-base")
 TOKENIZER_ID = os.environ.get("KRONOS_TOKENIZER", "NeoQuasar/Kronos-Tokenizer-base")
 VERSION = "4"
-ORIGINS = ["https://innocentbear67-mercury.github.io"] + [
+ORIGINS = ["https://mercerfargo.trade", "https://www.mercerfargo.trade"] + [
     o.strip() for o in os.environ.get("MARVELL_ORIGINS", "").split(",") if o.strip()]
 LOCAL_ORIGIN = re.compile(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$")
 
@@ -255,7 +255,7 @@ def ensure_waker():
     Idempotent; runs on every launch so installs made before this existed pick it up the first time they start."""
     import subprocess
     home = os.path.dirname(os.path.abspath(__file__))
-    base = os.environ.get("MARVELL_BASE", "https://innocentbear67-mercury.github.io/Mercer-Fargo")
+    base = os.environ.get("MARVELL_BASE", "https://mercerfargo.trade")
     def put(path, text, mode=0o755):
         if os.path.exists(path) and open(path).read() == text:
             return False

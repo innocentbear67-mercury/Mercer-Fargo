@@ -279,7 +279,7 @@ All free and delayed (typically ~15 minutes for US stocks). Nothing is fabricate
 - Not available: real-time ticks, transcripts, fund holdings, full analyst estimates (user-entered or AI-drafted, always labelled).
 
 ## hosted-vs-local
-- **Hosted** (https://innocentbear67-mercury.github.io/Mercer-Fargo/): static site plus a Cloudflare worker for charts, news, movers, insiders, SEC data, web search and page reading. Works with OpenRouter, OpenAI, Anthropic, xAI, Gemini, DeepSeek and Groq keys.
+- **Hosted** (https://mercerfargo.trade/): static site plus a Cloudflare worker for charts, news, movers, insiders, SEC data, web search and page reading. Works with OpenRouter, OpenAI, Anthropic, xAI, Gemini, DeepSeek and Groq keys.
 - **Local** (`python3 serve.py`, then http://127.0.0.1:8000): adds Google News, stockanalysis.com company profiles and OpenCode Go/Zen models; web search and page reading run through serve.py.
 - The screener, search suggestions and ticker tape call TradingView directly, so they work in both. Opening `index.html` straight from disk: quotes, history, crypto, FX and SEC data work; news doesn't.
 

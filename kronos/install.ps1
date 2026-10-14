@@ -1,10 +1,10 @@
 # Marvell Predict installer (Windows): sets up Kronos locally and starts it.
-#   powershell -ExecutionPolicy Bypass -c "irm https://innocentbear67-mercury.github.io/Mercer-Fargo/kronos/install.ps1 | iex"
+#   powershell -ExecutionPolicy Bypass -c "irm https://mercerfargo.trade/kronos/install.ps1 | iex"
 # Everything lands in %USERPROFILE%\.marvell-kronos; delete that folder to uninstall.
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'   # Invoke-WebRequest is 10x slower with the progress bar
 
-$Base = if ($env:MARVELL_BASE) { $env:MARVELL_BASE } else { 'https://innocentbear67-mercury.github.io/Mercer-Fargo' }
+$Base = if ($env:MARVELL_BASE) { $env:MARVELL_BASE } else { 'https://mercerfargo.trade' }
 $Dir = Join-Path $env:USERPROFILE '.marvell-kronos'
 $Sha = '67b630e67f6a18c9e9be918d9b4337c960db1e9a'   # pinned shiyu-coder/Kronos commit
 function Say($m) { Write-Host "`n==> $m" -ForegroundColor Yellow }

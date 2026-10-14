@@ -1,0 +1,11 @@
+# Static site on Cloudflare (Workers assets) at mercerfargo.trade. Deploy with scripts/deploy-site.sh.
+name = "mercer-fargo"
+compatibility_date = "2026-01-01"
+routes = [
+  { pattern = "mercerfargo.trade", custom_domain = true },
+  { pattern = "www.mercerfargo.trade", custom_domain = true },
+]
+
+[assets]
+directory = ".work/site"
+not_found_handling = "404-page"
