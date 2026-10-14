@@ -46,6 +46,7 @@ function fin(v, d){
 }
 function arr(v, n){ return Array.isArray(v) ? v.slice(0, n) : []; }
 function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
+function short(t, n){ return t.length <= n ? t : t.slice(0, n - 1).replace(/\s+\S*$/, '') + '…'; }
 function ident(v){ var s = String(v == null ? '' : v); return /^[A-Za-z_][A-Za-z0-9_]{0,23}$/.test(s) && s.indexOf('__') < 0 ? s : ''; }
 
 /* ---- split an answer into markdown pieces and ui blocks ------------------------------------------------------------ */
@@ -236,7 +237,7 @@ function clean(b, nested){
       return o.items.length >= 2 ? o : null;
     }
     case 'diagram': {
-      o.nodes = arr(b.nodes, MAX_NODES).map(function(nd){ nd = isObj(nd) ? nd : {}; return { id:ident(nd.id), label:str(nd.label, 48), detail:str(nd.detail, 130), tone:TONES[nd.tone] ? nd.tone : 'accent' }; })
+      o.nodes = arr(b.nodes, MAX_NODES).map(function(nd){ nd = isObj(nd) ? nd : {}; return { id:ident(nd.id), label:str(nd.label, 48), detail:short(str(nd.detail, 400), 130), tone:TONES[nd.tone] ? nd.tone : 'accent' }; })
         .filter(function(nd, i, all){ return nd.id && nd.label && all.findIndex(function(z){ return z.id === nd.id; }) === i; });
       var ids = o.nodes.map(function(nd){ return nd.id; });
       o.edges = arr(b.edges, 24).map(function(e){ e = Array.isArray(e) ? e : []; return { a:ident(e[0]), b:ident(e[1]), label:str(e[2], 24) }; })
@@ -429,10 +430,22 @@ function wrap2(s, n){
 }
 function wrapN(s, n, max){
   var out = [], cur = '';
-  s.split(/\s+/).forEach(function(w){ if(cur && (cur + ' ' + w).length > n){ out.push(cur); cur = w; } else cur = cur ? cur + ' ' + w : w; });
+  s.split(/\s+/).forEach(function(w){ while(w.length > n){ if(cur){ out.push(cur); cur = ''; } out.push(w.slice(0, n - 1) + '-'); w = w.slice(n - 1); }
+    if(cur && (cur + ' ' + w).length > n){ out.push(cur); cur = w; } else cur = cur ? cur + ' ' + w : w; });
   if(cur) out.push(cur);
   if(out.length > max){ out = out.slice(0, max); out[max - 1] = out[max - 1].slice(0, n - 1) + '…'; }
   return out;
+}
+/* biggest font (9 down to 6.5px) at which the whole note fits inside the box; at the smallest size it is cut with an ellipsis */
+function fitBack(text, w, h){
+  var size = 9, r;
+  for(; size >= 6.5; size -= .5){
+    var n = Math.floor((w - 14) / (size * .56)), max = Math.floor((h - 10) / (size * 1.25));
+    r = wrapN(text, n, 99);
+    if(r.length <= max) return { lines:r, size:size, lh:size * 1.25 };
+  }
+  size += .5;
+  return { lines:wrapN(text, Math.floor((w - 14) / (size * .56)), Math.floor((h - 10) / (size * 1.25))), size:size, lh:size * 1.25 };
 }
 function rDiagram(b, key){
   var st = stOf(key), L = layout(b), flip = st.flip || {};
@@ -456,11 +469,11 @@ function rDiagram(b, key){
   });
   svg += labels;
   b.nodes.forEach(function(n){
-    var p = L.pos[n.id], lines = wrap2(n.label, 16), cx = (p.x + p.w / 2).toFixed(1), back = n.detail ? wrapN(n.detail, 24, 5) : [];
+    var p = L.pos[n.id], lines = wrap2(n.label, 16), cx = (p.x + p.w / 2).toFixed(1), fit = n.detail ? fitBack(n.detail, p.w, p.h) : { lines:[], size:9, lh:11 }, back = fit.lines;
     svg += '<g class="iu-node' + (n.detail ? ' tap' : '') + (flip[n.id] ? ' back' : '') + '" data-iu="node" data-key="' + esc(key) + '" data-id="' + esc(n.id) + '" tabindex="0" role="button" aria-label="' + esc(n.label) + (n.detail ? ' (tap to flip)' : '') + '">' +
       '<rect x="' + p.x.toFixed(1) + '" y="' + p.y.toFixed(1) + '" width="' + p.w + '" height="' + p.h + '" rx="9" style="stroke:' + TONES[n.tone] + '"/>' +
       lines.map(function(t, i){ return '<text class="ft" x="' + cx + '" y="' + (p.y + p.h / 2 + (lines.length === 1 ? 4 : (i ? 13 : -3))).toFixed(1) + '" text-anchor="middle">' + esc(t) + '</text>'; }).join('') +
-      back.map(function(t, i){ return '<text class="bk" x="' + cx + '" y="' + (p.y + p.h / 2 + (i - (back.length - 1) / 2) * 10.5 + 3).toFixed(1) + '" text-anchor="middle">' + esc(t) + '</text>'; }).join('') + '</g>';
+      back.map(function(t, i){ return '<text class="bk" x="' + cx + '" y="' + (p.y + p.h / 2 + (i - (back.length - 1) / 2) * fit.lh + fit.size * .35).toFixed(1) + '" text-anchor="middle" style="font-size:' + fit.size + 'px">' + esc(t) + '</text>'; }).join('') + '</g>';
   });
   svg += '</svg>';
   return head(b) + svg + '<div class="iu-detail"><span class="iu-hint">' + (b.nodes.some(function(n){ return n.detail; }) ? 'Tap a box to flip it.' : '') + '</span></div>' + foot(b);
