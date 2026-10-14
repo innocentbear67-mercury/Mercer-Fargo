@@ -8,3 +8,6 @@ index-v*-backup.html
 # Cloudflare wrangler cache (holds account id and email)
 worker/.wrangler/
 scripts/.figi-cache.json
+
+# Cloudflare wrangler cache at repo root (site deploy)
+.wrangler/
