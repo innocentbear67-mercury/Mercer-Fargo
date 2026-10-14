@@ -1734,6 +1734,9 @@ body.chart-fs{overflow:hidden}
 @media (max-width:860px){.xpf-grid{grid-template-columns:1fr}}
 .xpf-setup h3,.xpf-pos h3{margin:0 0 12px}
 .xpf-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tk{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:4px;font:700 10px/1 var(--mf-serif);font-style:normal;color:#fff;margin-right:4px;vertical-align:1px}
+.tk-S{background:var(--fh-negative)}.tk-T{background:#a56cf2}
+td.nw{white-space:nowrap}
 .xpf-note{font-size:12.5px;line-height:18px;margin:-2px 0 12px}
 .xpf-chk{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;cursor:pointer;margin-top:4px}
 .xpf-chk input{margin-top:3px;accent-color:var(--mf-gold)}
@@ -2774,9 +2777,16 @@ body.rs-drag iframe{pointer-events:none}
 .ch-host .ch-mk.buy circle{fill:var(--fh-positive)}
 .ch-host .ch-mk.buy text{fill:#fff}
 .ch-host .ch-mk text{font-size:10.5px;font-weight:700;fill:#1b1508;pointer-events:none}
+.ch-host .ch-mk.tr rect,.ch-host .ch-mk.tr path{stroke:none}
+.ch-host .ch-mk.tr circle{stroke:#fff;stroke-width:1.4}
+.ch-host .ch-mk.tr text{fill:#fff;font-size:12px}
+.ch-host .ch-mk.tr.buy rect,.ch-host .ch-mk.tr.buy path,.ch-host .ch-mk.tr.buy circle{fill:var(--fh-positive)}
+.ch-host .ch-mk.tr.sell rect,.ch-host .ch-mk.tr.sell path,.ch-host .ch-mk.tr.sell circle{fill:var(--fh-negative)}
+.ch-host .ch-mk.tr.trd rect,.ch-host .ch-mk.tr.trd path,.ch-host .ch-mk.tr.trd circle{fill:#a56cf2}
+.ch-host .ch-mk.tr:hover rect,.ch-host .ch-mk.tr:hover path{filter:brightness(1.12)}
 .ch-host .ch-mk.future circle{fill:var(--fh-background-surface);stroke:var(--mf-gold);stroke-width:1.6;stroke-dasharray:2.5 2}
 .ch-host .ch-mk.future text{fill:var(--mf-gold)}
-.ch-host .ch-mk:hover circle{r:10}
+.ch-host .ch-mk:not(.tr):hover circle{r:10}
 /* ---------- Alerts: header bell, inbox panel, New Alert dialog ---------- */
 .inbox-btn{position:relative}
 .ib-badge{position:absolute;top:3px;right:2px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--fh-negative);color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;box-shadow:0 0 0 2px var(--fh-background-surface)}
@@ -4264,12 +4274,30 @@ function pfCost(sym){   // average cost of the shares held in all portfolios, or
   Object.keys(PFS).forEach(function(id){ PFS[id].holdings.forEach(function(h){ if(dispSym(h.s) === s && h.q > 0 && h.px > 0){ q += h.q; cost += h.q * h.px; } }); });
   return q ? cost / q : null;
 }
-function pfTrades(sym){   // green "B" markers on the day a held position was bought (holdings that have a buy date)
+var TRADE_SHORT_DAYS = 7;   // bought and sold within this many days = one "T" (traded) marker instead of a B and an S
+function tradeDays(a, b){ return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 864e5); }
+function tradeMoney(v){ return (v < 0 ? '\u2212$' : '+$') + num(Math.abs(v), 2); }
+/* Chart pins for this symbol: B on the day it was bought, S on the day it was sold, T when both happened within a week. Each sits at the trade price. */
+function pfTrades(sym){
   var s = dispSym(sym), out = [], today = ymd(new Date());
-  Object.keys(PFS).forEach(function(id){ PFS[id].holdings.forEach(function(h){
-    if(dispSym(h.s) !== s || !h.d || h.d > today) return;
-    out.push({ t:Date.parse(h.d + 'T00:00:00Z') / 1000, k:'B', cls:'buy', html:'<b>Bought · ' + esc(h.d) + '</b><br>' + num(h.q, h.q % 1 ? 4 : 0) + ' shares' + (h.px ? ' @ $' + num(h.px, 2) : '') + '<br><span class="mut">' + esc(PFS[id].name) + '</span>' });
-  }); });
+  var t = function(d){ return Date.parse(d + 'T00:00:00Z') / 1000; }, sh = function(q){ return num(q, q % 1 ? 4 : 0) + ' shares'; };
+  Object.keys(PFS).forEach(function(id){
+    var pf = PFS[id], nm = '<br><span class="mut">' + esc(pf.name) + '</span>';
+    pf.holdings.forEach(function(h){
+      if(dispSym(h.s) !== s || !h.d || h.d > today) return;
+      out.push({ t:t(h.d), k:'B', tr:1, cls:'buy', px:h.px, html:'<b>Bought \u00b7 ' + esc(h.d) + '</b><br>' + sh(h.q) + (h.px ? ' @ $' + num(h.px, 2) : '') + nm });
+    });
+    (pf.sold || []).forEach(function(l){
+      if(dispSym(l.s) !== s || l.sd > today) return;
+      var pl = l.px ? (l.sp - l.px) * l.q : null, plTxt = pl == null ? '' : '<br>Realized <b class="' + (pl >= 0 ? 'up' : 'down') + '">' + tradeMoney(pl) + '</b> (' + pct((l.sp / l.px - 1) * 100) + ')';
+      if(l.d && tradeDays(l.d, l.sd) <= TRADE_SHORT_DAYS){
+        out.push({ t:t(l.sd), k:'T', tr:1, cls:'trd', px:l.sp, html:'<b>Traded \u00b7 ' + esc(l.d === l.sd ? l.sd : l.d + ' \u2192 ' + l.sd) + '</b><br>' + sh(l.q) + (l.px ? ' bought @ $' + num(l.px, 2) : '') + ' \u00b7 sold @ $' + num(l.sp, 2) + plTxt + nm });
+      } else {
+        if(l.d) out.push({ t:t(l.d), k:'B', tr:1, cls:'buy', px:l.px, html:'<b>Bought \u00b7 ' + esc(l.d) + '</b><br>' + sh(l.q) + (l.px ? ' @ $' + num(l.px, 2) : '') + '<br><span class="mut">later sold ' + esc(l.sd) + '</span>' + nm });
+        out.push({ t:t(l.sd), k:'S', tr:1, cls:'sell', px:l.sp, html:'<b>Sold \u00b7 ' + esc(l.sd) + '</b><br>' + sh(l.q) + ' @ $' + num(l.sp, 2) + plTxt + nm });
+      }
+    });
+  });
   return out;
 }
 function chsMenu(ev){
@@ -4554,13 +4582,19 @@ function chartView(host, o){
     if(o.markers && !pctMode){
       var stack = {};
       (o.markers(c) || []).forEach(function(mk){
-        if(!chsOn({ D:'div', S:'split', E:'earn', B:'trades' }[mk.k] || 'earn')) return;
+        if(!chsOn(mk.tr ? 'trades' : ({ D:'div', S:'split', E:'earn' }[mk.k] || 'earn'))) return;
         var fi = chI(r, mk.t), bi = mk.t > r[n - 1].t ? fi : (chAsOf(r, mk.t) ? r.indexOf(chAsOf(r, mk.t)) : -1);
         if(bi < 0 || bi < i0 - 1 || bi > i1 + 1) return;
         var key2 = Math.round(bi), lvl = stack[key2] = (stack[key2] || 0) + 1, bx = bars[Math.min(n - 1, Math.round(bi))];
         var top = Y(val(barMode && bi <= n - 1 ? bx.h : (bi <= n - 1 ? r[Math.round(bi)].c : r[n - 1].c)));
         var cx2 = X(bi), cy = Math.max(padT + 9, top - 12 - (lvl - 1) * 19);
         c.mk.push(mk);
+        if(mk.tr){   // a pin: square tag with the letter, pointer, and a dot on the trade price
+          var ay = clamp(mk.px > 0 ? Y(val(mk.px)) : top, padT + 34, padT + plotH) - (lvl - 1) * 27, bx0 = cx2 - 10;
+          plot.push('<g class="ch-mk tr ' + mk.cls + '" data-mk="' + (c.mk.length - 1) + '"><rect x="' + bx0.toFixed(1) + '" y="' + (ay - 33).toFixed(1) + '" width="20" height="22" rx="4"/><path d="M' + (cx2 - 5).toFixed(1) + ' ' + (ay - 12).toFixed(1) + 'L' + (cx2 + 5).toFixed(1) + ' ' + (ay - 12).toFixed(1) + 'L' + cx2.toFixed(1) + ' ' + (ay - 5).toFixed(1) + 'Z"/>' +
+            '<circle cx="' + cx2.toFixed(1) + '" cy="' + ay.toFixed(1) + '" r="3.6"/><text x="' + cx2.toFixed(1) + '" y="' + (ay - 17.5).toFixed(1) + '" text-anchor="middle">' + mk.k + '</text></g>');
+          return;
+        }
         plot.push('<g class="ch-mk' + (mk.future ? ' future' : '') + (mk.cls ? ' ' + mk.cls : '') + '" data-mk="' + (c.mk.length - 1) + '"><circle cx="' + cx2.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="8"/>' +
           '<text x="' + cx2.toFixed(1) + '" y="' + (cy + 3.6).toFixed(1) + '" text-anchor="middle">' + mk.k + '</text></g>');
       });
@@ -4966,7 +5000,8 @@ Object.keys(LISTS).forEach(function(k){ var l = LISTS[k]; if(!l || typeof l !== 
 if(!Object.keys(LISTS).length) LISTS.main = { name:'My watchlist', syms:['AAPL','MSFT','NVDA','TSLA','AMZN','META','GOOGL'] };
 Object.keys(PFS).forEach(function(k){ var p = PFS[k]; if(!p || typeof p !== 'object' || !Array.isArray(p.holdings)) delete PFS[k]; else {
   p.name = String(p.name || k);
-  p.holdings = p.holdings.filter(function(h){ return h && typeof h.s === 'string' && h.s && isFinite(h.q); }).map(function(h){ var o = { s:h.s, q:+h.q, px:isFinite(h.px) ? +h.px : 0 }; if(/^\d{4}-\d\d-\d\d$/.test(h.d || '')) o.d = h.d; return o; }); } });
+  p.holdings = p.holdings.filter(function(h){ return h && typeof h.s === 'string' && h.s && isFinite(h.q); }).map(function(h){ var o = { s:h.s, q:+h.q, px:isFinite(h.px) ? +h.px : 0 }; if(/^\d{4}-\d\d-\d\d$/.test(h.d || '')) o.d = h.d; return o; });
+  p.sold = (Array.isArray(p.sold) ? p.sold : []).filter(function(l){ return l && typeof l.s === 'string' && l.s && l.q > 0 && l.sp > 0 && /^\d{4}-\d\d-\d\d$/.test(l.sd || ''); }).map(function(l){ var o = { s:l.s, q:+l.q, px:isFinite(l.px) ? +l.px : 0, sd:l.sd, sp:+l.sp }; if(/^\d{4}-\d\d-\d\d$/.test(l.d || '')) o.d = l.d; return o; }); } });
 if(!Object.keys(PFS).length) PFS.main = { name:'Main portfolio', holdings:[] };
 pfNormMain();   // exactly one main portfolio
 var TASKS = load(LS.tasks, []).filter(function(t){ return t && typeof t === 'object'; });
@@ -6864,7 +6899,7 @@ function loadNewsData(){
 
 function pfStats(pf){
   var base = CFG.currency || 'USD', fxMissing = [];
-  var rows = pf.holdings.map(function(h){
+  var rows = pf.holdings.map(function(h, hi){
     var s = dispSym(h.s);
     var q = DATA.quotes[s] || {};
     var price = q.c != null ? q.c : h.px;
@@ -6872,7 +6907,7 @@ function pfStats(pf){
     var value = price * h.q;
     var cost = h.px * h.q;
     return {
-      s:s, name:labelOf(s), q:h.q, costPx:h.px, price:price, value:value, cost:cost,
+      i:hi, s:s, name:labelOf(s), q:h.q, costPx:h.px, price:price, value:value, cost:cost,
       day:ch.abs != null ? ch.abs * h.q : null, dayPct:ch.pct,
       ret:cost ? (value - cost) : 0, retPct:cost ? (value / cost - 1) * 100 : 0,
       sector:sectorOf(s) || 'Other', cur:currencyOf(s)
@@ -6923,13 +6958,14 @@ function renderPortfolio(){
         '<td class="num">' + money(r.value, r.cur) + '</td>' +
         '<td class="num ' + (r.retPct >= 0 ? 'up' : 'down') + '">' + pct(r.retPct) + '</td>' +
         '<td class="num">' + (st.total ? num(r.bv / st.total * 100, 1) + '%' : '—') + '</td>' +
-        '<td><button class="icon-btn" data-act="delholding" data-sym="' + esc(r.s) + '" title="Remove"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></td></tr>';
+        '<td class="nw"><button class="btn text sm" data-act="h-sell" data-i="' + r.i + '" title="Record a sale">Sell</button><button class="icon-btn" data-act="delholding" data-sym="' + esc(r.s) + '" title="Remove"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></td></tr>';
     }).join('');
     html += '<div class="tbl-wrap" style="margin-top:8px"><table class="fh"><thead>' + th + '</thead><tbody>' +
       (body || '<tr><td colspan="9" class="empty">No holdings yet. Add one, import a CSV, or let AI draft a portfolio.</td></tr>') + '</tbody></table></div>';
     html += '<div class="movers-note">Positions live in this browser only. Quotes delayed; cost basis is whatever you enter, in each holding\'s own currency.' +
       (st.rows.some(function(r){ return r.cur !== st.base; }) ? ' Totals in ' + esc(st.base) + ' at ' + esc(FX.src || 'ECB') + ' rates' + (FX.date ? ' (' + esc(FX.date) + ')' : '') + '.' : '') +
       (st.fxMissing.length ? ' <b class="down">No ' + esc(st.fxMissing.join(', ')) + ' rate yet: those holdings are left out of the totals.</b>' : '') + '</div></div>';
+    html += closedTradesHTML(pf);
 
     var bySector = {};
     st.rows.forEach(function(r){ bySector[r.sector] = (bySector[r.sector] || 0) + r.bv; });
@@ -12149,11 +12185,44 @@ function pfAskDo(w){
   else if(w === 'import'){ go('#/portfolio/' + CUR.pf); pfImport(); }
   else if(w === 'manual'){ go('#/portfolio/' + CUR.pf); setTimeout(function(){ openAddHolding(CUR.pf); }, 350); }
 }
+function closedTradesHTML(pf){
+  var L = (pf.sold || []).map(function(l, i){ return { l:l, i:i }; }).sort(function(a, b){ return b.l.sd < a.l.sd ? -1 : 1; });
+  if(!L.length) return '';
+  var tot = 0, rows = L.map(function(o){
+    var l = o.l, pl = l.px ? (l.sp - l.px) * l.q : null, kind = l.d && tradeDays(l.d, l.sd) <= TRADE_SHORT_DAYS ? 'T' : 'S'; if(pl != null) tot += pl;
+    return '<tr><td class="sym"><span class="s">' + esc(dispSym(l.s)) + '</span><span class="n"><i class="tk tk-' + kind + '">' + kind + '</i> ' + (kind === 'T' ? 'Traded' : 'Sold') + '</span></td><td class="num">' + num(l.q, l.q % 1 ? 4 : 0) + '</td>' +
+      '<td class="num">' + (l.d ? esc(l.d) : '—') + '<br><span class="mut">' + (l.px ? '$' + num(l.px, 2) : '—') + '</span></td><td class="num">' + esc(l.sd) + '<br><span class="mut">$' + num(l.sp, 2) + '</span></td>' +
+      '<td class="num ' + (pl == null ? 'mut' : pl >= 0 ? 'up' : 'down') + '">' + (pl == null ? '—' : tradeMoney(pl) + '<br>' + pct((l.sp / l.px - 1) * 100)) + '</td>' +
+      '<td><button class="icon-btn" data-act="h-unsell" data-i="' + o.i + '" title="Remove this closed trade" aria-label="Remove closed trade">\u2715</button></td></tr>';
+  }).join('');
+  return '<div class="section"><div class="section-head"><h2>Closed trades</h2><span class="mut num">Realized <b class="' + (tot >= 0 ? 'up' : 'down') + '">' + tradeMoney(tot) + '</b></span></div>' +
+    '<div class="tbl-wrap"><table class="fh"><thead><tr><th>Symbol</th><th>Shares</th><th>Bought</th><th>Sold</th><th>Realized</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+}
+function openSell(i){
+  var pf = PFS[CUR.pf], h = pf && pf.holdings[i]; if(!h) return;
+  var q = DATA.quotes[dispSym(h.s)], px = q && q.c > 0 ? q.c : '';
+  dialog('Sell ' + dispSym(h.s), '<div class="mut" style="font-size:13.5px;margin-bottom:10px">Records a sale of shares you hold in ' + esc(pf.name) + '. It leaves your holdings and goes to Closed trades, and the chart gets an S (or a T if you sell within a week of buying).</div>' +
+    field('Shares to sell (you hold ' + num(h.q, h.q % 1 ? 4 : 0) + ')', 'sQty', h.q, '') + field('Sell date', 'sDate', ymd(new Date()), 'YYYY-MM-DD', 'date') + field('Sell price', 'sPx', px === '' ? '' : (+px).toFixed(2), '195.00'),
+    '<button class="btn text" data-act="dlg-close">Cancel</button><button class="btn filled" data-act="h-sell-go" data-i="' + i + '">Record sale</button>');
+}
+function sellGo(i){
+  var pf = PFS[CUR.pf], h = pf && pf.holdings[i]; if(!h) return;
+  var q = parseFloat($('sQty').value) || 0, d = $('sDate').value, p = parseFloat($('sPx').value) || 0;
+  if(!(q > 0) || q > h.q + 1e-9){ toast('Enter a share count between 0 and ' + h.q + '.'); return; }
+  if(!/^\d{4}-\d\d-\d\d$/.test(d) || d > ymd(new Date())){ toast('Pick a sell date that is not in the future.'); return; }
+  if(h.d && d < h.d){ toast('The sell date is before the buy date (' + h.d + ').'); return; }
+  if(!(p > 0)){ toast('Enter the sell price.'); return; }
+  pf.sold = pf.sold || []; var lot = { s:h.s, q:q, px:h.px, sd:d, sp:p }; if(h.d) lot.d = h.d; pf.sold.push(lot);
+  if(q >= h.q - 1e-9) pf.holdings.splice(i, 1); else h.q = +(h.q - q).toFixed(8);
+  savePfs(); closeDialog(); renderPortfolio(); renderRail(); toast('Sale recorded');
+}
 function openAddHolding(pfId){
   var pf = PFS[pfId];
   var body = '<div class="mut" style="font-size:13.5px;margin-bottom:10px">Holdings stay in this browser. Cost basis is whatever you type.</div>' +
     field('Symbol', 'hSym', dispSym(CUR.sym), 'AAPL') + field('Shares', 'hQty', '10', '10') +
-    field('Average cost per share', 'hPx', '', '180.00') + field('Buy date (optional, marks the chart)', 'hDate', '', 'YYYY-MM-DD', 'date');
+    field('Average cost per share', 'hPx', '', '180.00') + field('Buy date (optional, marks the chart with a B)', 'hDate', '', 'YYYY-MM-DD', 'date') +
+    '<div class="mut" style="font-size:13px;margin:8px 0 2px">Already sold it? Add the sale and it is kept as a closed trade (S on the chart, or T if sold within a week).</div>' +
+    '<div class="xpf-two">' + field('Sell date', 'hSd', '', 'YYYY-MM-DD', 'date') + field('Sell price', 'hSp', '', '195.00') + '</div>';
   dialog('Add holding to ' + pf.name, body, '<button class="btn text" data-act="dlg-close">Cancel</button><button class="btn filled" data-act="h-save" data-pf="' + esc(pfId) + '">Add</button>');
 }
 
@@ -14181,10 +14250,21 @@ function bindEvents(){
         var hQ = parseFloat($('hQty').value) || 0, hPx = parseFloat($('hPx').value) || 0;
         if(!hSym || !hQ){ toast('Symbol and share count are required.'); break; }
         var hRow = { s:hSym, q:hQ, px:hPx }, hD = $('hDate').value; if(/^\d{4}-\d\d-\d\d$/.test(hD)) hRow.d = hD;
-        PFS[el.getAttribute('data-pf')].holdings.push(hRow);
+        var hSd = $('hSd').value, hSp = parseFloat($('hSp').value) || 0, hpf = PFS[el.getAttribute('data-pf')];
+        if(hSd || hSp){   // a position that is already closed
+          if(!/^\d{4}-\d\d-\d\d$/.test(hSd) || !(hSp > 0)){ toast('A sale needs both a sell date and a sell price.'); break; }
+          if(hSd > ymd(new Date())){ toast('The sell date cannot be in the future.'); break; }
+          if(hRow.d && hSd < hRow.d){ toast('The sell date is before the buy date.'); break; }
+          hpf.sold = hpf.sold || []; hpf.sold.push({ s:hSym, q:hQ, px:hPx, d:hRow.d, sd:hSd, sp:hSp });
+          savePfs(); closeDialog(); renderPortfolio(); toast('Closed trade added'); break;
+        }
+        hpf.holdings.push(hRow);
         savePfs(); closeDialog(); renderPortfolio(); renderRail(); toast('Holding added');
         break;
       }
+      case 'h-sell': openSell(+el.getAttribute('data-i')); break;
+      case 'h-sell-go': sellGo(+el.getAttribute('data-i')); break;
+      case 'h-unsell': { var upf = PFS[CUR.pf]; if(upf && upf.sold){ upf.sold.splice(+el.getAttribute('data-i'), 1); savePfs(); renderPortfolio(); toast('Closed trade removed'); } break; }
       case 'delholding': {
         var pf2 = PFS[CUR.pf];
         pf2.holdings = pf2.holdings.filter(function(h){ return dispSym(h.s) !== dispSym(sym); });
