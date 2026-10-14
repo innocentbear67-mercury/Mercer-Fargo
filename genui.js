@@ -38,20 +38,30 @@ var TYPES = ['chart', 'table', 'compare', 'diagram', 'buttons', 'form', 'explore
 
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
 function str(v, n){ return String(v == null ? '' : v).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').slice(0, n || 200); }
-function fin(v, d){ var n = typeof v === 'number' ? v : (typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN); return isFinite(n) ? n : (d === undefined ? null : d); }
+/* Numbers: also accepts what models write for money ("US$1,015.70", "S$1,300", "7%", "1 300"). */
+function fin(v, d){
+  var n = typeof v === 'number' ? v : NaN;
+  if(typeof v === 'string'){ var t = v.replace(/(?:US|SG|S|A|C|HK|NZ)?\$|SGD|USD|EUR|GBP|[\u20ac\u00a3\u00a5,%\s\u00a0]/gi, ''); n = /^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(t) ? Number(t) : NaN; }
+  return isFinite(n) ? n : (d === undefined ? null : d);
+}
 function arr(v, n){ return Array.isArray(v) ? v.slice(0, n) : []; }
 function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
 function ident(v){ var s = String(v == null ? '' : v); return /^[A-Za-z_][A-Za-z0-9_]{0,23}$/.test(s) && s.indexOf('__') < 0 ? s : ''; }
 
 /* ---- split an answer into markdown pieces and ui blocks ------------------------------------------------------------ */
+/* Models often write JSON with // comments, trailing commas or curly quotes; fix those and try again. */
+function relax(raw){
+  return String(raw).replace(/^\s*\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/[\u201c\u201d]/g, '"').replace(/,(\s*[}\]])/g, '$1');
+}
 function parse(text){
   var out = [], s = String(text == null ? '' : text), re = /(^|\n)[ \t]*```ui[ \t]*\n([\s\S]*?)\n[ \t]*```[ \t]*(?=\n|$)/g, last = 0, m;
   while((m = re.exec(s))){
     var before = s.slice(last, m.index);
     if(before.trim()) out.push({ t:'md', x:before });
-    var raw = m[2], spec = null;
-    if(raw.length <= MAX_BLOCK){ try{ spec = JSON.parse(raw); }catch(e){ spec = null; } }
-    out.push({ t:'ui', b:spec, raw:raw });
+    var raw = m[2], spec = null, err = '';
+    if(raw.length > MAX_BLOCK) err = 'block too long';
+    else { try{ spec = JSON.parse(raw); }catch(e){ try{ spec = JSON.parse(relax(raw)); }catch(e2){ err = 'JSON error: ' + str(e2.message, 80); } } }
+    out.push({ t:'ui', b:spec, raw:raw, err:err });
     last = m.index + m[0].length;
   }
   var rest = s.slice(last);
@@ -67,7 +77,7 @@ function plain(text){
 var FN = { min:Math.min, max:Math.max, abs:Math.abs, sqrt:Math.sqrt, pow:Math.pow, log:function(x){ return Math.log10(x); }, ln:Math.log, exp:Math.exp,
   round:Math.round, floor:Math.floor, ceil:Math.ceil };
 function evalExpr(src, vars){
-  var s = String(src == null ? '' : src);
+  var s = String(src == null ? '' : src).replace(/\*\*/g, '^').replace(/\u00d7/g, '*').replace(/\u00f7/g, '/');
   if(!s.trim() || s.length > 240) return NaN;
   var toks = [], re = /\s*(?:(\d+\.?\d*(?:e[+-]?\d+)?|\.\d+)|([A-Za-z_][A-Za-z0-9_]*)|(.))/gy, m;
   re.lastIndex = 0;
@@ -132,7 +142,70 @@ var STATE = {}, REG = {};
 function stOf(key){ return STATE[key] || (STATE[key] = {}); }
 
 /* ---- validation: turn whatever the model sent into a clean spec, or null ---------------------------------------- */
+var ALIAS = { line:['chart', 'line'], linechart:['chart', 'line'], linegraph:['chart', 'line'], area:['chart', 'line'], areachart:['chart', 'line'], graph:['chart'], plot:['chart'],
+  bar:['chart', 'bar'], barchart:['chart', 'bar'], column:['chart', 'bar'], columnchart:['chart', 'bar'], comparison:['compare'], cards:['compare'], flowchart:['diagram'], flow:['diagram'],
+  calculator:['explorer'], simulator:['explorer'], interactive:['explorer'], slider:['explorer'], walkthrough:['steps'], stepper:['steps'], button:['buttons'], actions:['buttons'], chips:['buttons'], suggestions:['buttons'] };
+function numLike(v){ return typeof v === 'number' || (typeof v === 'string' && fin(v) != null); }
+/* Accept the other shapes a model tends to use: type "line", labels/datasets, {x,y} points, row objects, series as a map. */
+function normChart(b){
+  var o = Object.assign({}, b), x = o.x || o.labels || o.categories || o.xs || o.xAxis || o.x_axis || o.years || o.periods, ser = o.series || o.datasets || o.lines || o.bars, rows = null;
+  if(isObj(x) && Array.isArray(x.data)) x = x.data;
+  if(!ser && Array.isArray(o.data)){ if(o.data.length && isObj(o.data[0])) rows = o.data; else ser = [{ name:o.name || o.title, data:o.data }]; }
+  if(!ser && Array.isArray(o.values)) ser = [{ name:o.name || o.title, data:o.values }];
+  if(isObj(ser)) ser = Object.keys(ser).slice(0, 4).map(function(k){ var v = ser[k]; return isObj(v) ? Object.assign({ name:k }, v) : { name:k, data:v }; });
+  if(!ser && rows){
+    var keys = Object.keys(rows[0]), xk = keys.filter(function(k){ return /^(x|label|name|year|date|period|category|month|age)$/i.test(k); })[0] || keys[0];
+    if(!x) x = rows.map(function(r){ return r[xk]; });
+    ser = keys.filter(function(k){ return k !== xk && rows.some(function(r){ return numLike(r[k]); }); }).slice(0, 4).map(function(k){ return { name:k, data:rows.map(function(r){ return r[k]; }) }; });
+  }
+  ser = arr(ser, 4).map(function(s, i){
+    if(Array.isArray(s)) return { name:'Series ' + (i + 1), data:s };
+    s = isObj(s) ? s : {};
+    var d = s.data || s.values || s.y || s.points || [], nm = s.name || s.label || s.title || s.id;
+    if(Array.isArray(d) && d.length && isObj(d[0])){
+      if(!x) x = d.map(function(p){ return p.x != null ? p.x : (p.label != null ? p.label : p.t); });
+      d = d.map(function(p){ return p.y != null ? p.y : (p.value != null ? p.value : p.v); });
+    } else if(Array.isArray(d) && d.length && Array.isArray(d[0])){
+      if(!x) x = d.map(function(p){ return p[0]; });
+      d = d.map(function(p){ return p[1]; });
+    }
+    return { name:nm, data:d };
+  });
+  o.x = x; o.series = ser;
+  if(!o.kind) o.kind = o.chartType || o.chart_type || o.shape;
+  if(!o.unit) o.unit = o.prefix || o.currency;
+  return o;
+}
+function normTable(b){
+  var o = Object.assign({}, b), cols = o.columns || o.headers || o.header;
+  if(Array.isArray(cols)) cols = cols.map(function(c){ return isObj(c) ? (c.label || c.title || c.key || c.name) : c; });
+  var rows = arr(o.rows || o.data, MAX_ROWS);
+  if(!cols && rows.length && isObj(rows[0])) cols = Object.keys(rows[0]);
+  o.columns = cols;
+  o.rows = rows.map(function(r){ return isObj(r) ? (cols || []).map(function(c){ return r[c]; }) : r; });
+  return o;
+}
+function norm(b){
+  if(!isObj(b)) return b;
+  var key = String(b.type == null ? '' : b.type).toLowerCase().replace(/[^a-z]/g, ''), a = ALIAS[key], o = b;
+  if(a){ o = Object.assign({}, b, { type:a[0] }); if(a[1] && !o.kind) o.kind = a[1]; }
+  if(o.type === 'chart') o = normChart(o);
+  else if(o.type === 'table') o = normTable(o);
+  else if(o.type === 'explorer'){ o = Object.assign({}, o); o.outputs = arr(o.outputs || o.results, 4).map(function(f){ return isObj(f) ? Object.assign({}, f, { expr:f.expr || f.formula || f.value }) : f; }); }
+  return o;
+}
+/* A one-line reason a spec was rejected, shown under "could not be drawn" so a bad answer can be diagnosed. */
+function why(spec){
+  if(spec === null || spec === undefined) return 'the block is not valid JSON';
+  if(!isObj(spec)) return 'the block is not a JSON object';
+  var b = norm(spec);
+  if(TYPES.indexOf(b.type) < 0) return 'unknown type "' + str(spec.type, 30) + '"';
+  return { chart:'needs series with numeric data (and x labels)', table:'needs columns and rows', compare:'needs 2 to 4 items with a name', diagram:'needs 2 or more nodes with id and label',
+    buttons:'needs items with a label', form:'needs fields with id and kind', explorer:'needs inputs (id, min, max) and outputs (label, expr)', steps:'needs 2 or more steps',
+    image:'the image host is not on the allowed list', graphic:'needs shapes', columns:'needs 2 or 3 blocks (columns cannot nest)' }[b.type] || 'invalid';
+}
 function clean(b, nested){
+  b = norm(b);
   if(!isObj(b) || TYPES.indexOf(b.type) < 0) return null;
   var o = { type:b.type, title:str(b.title, 90), note:str(b.note, 240) };
   switch(b.type){
@@ -476,14 +549,17 @@ function inner(b, key){
 }
 
 /* One ui block -> HTML. `key` must be unique per block in the chat (message id + position). A spec that fails validation draws a quiet note. */
-function render(spec, key){
+function render(spec, key, info){
   var b = clean(spec);
-  if(!b) return '<div class="iu iu-bad">This visual could not be drawn.</div>';
+  if(!b){
+    var reason = (info && info.err) || why(spec), raw = info && info.raw ? str(info.raw, 1500) : '';
+    return '<div class="iu iu-bad"><details><summary>This visual could not be drawn.</summary><div class="iu-why">Reason: ' + esc(reason) + '.</div>' + (raw ? '<pre>' + esc(raw) + '</pre>' : '') + '</details></div>';
+  }
   return '<div class="iu iu-' + b.type + '" data-iu-root="' + esc(key) + '">' + inner(b, key) + '</div>';
 }
 /* A whole answer -> HTML, with `md` turning the text pieces into HTML. */
 function renderAnswer(text, key, md){
-  return parse(text).map(function(p, i){ return p.t === 'md' ? md(p.x) : render(p.b, key + '-' + i); }).join('');
+  return parse(text).map(function(p, i){ return p.t === 'md' ? md(p.x) : render(p.b, key + '-' + i, p); }).join('');
 }
 /* What the model sees of its own earlier answer: the text, plus a one-line stand-in for each visual (its JSON would only cost tokens). */
 function forHistory(text){
@@ -570,10 +646,11 @@ function promptFor(level){
     'explorer {title, inputs:[{id,label,min,max,step,value,prefix,suffix}], outputs:[{label,expr,prefix,suffix,decimals}], plot:{over:inputId,output:0}} where expr is a formula over input ids using + - * / ^ ( ) and min max abs sqrt pow ln exp round; ' +
     'steps {title, steps:[{title,body}]}; image {url, alt, caption} only for https://upload.wikimedia.org or https://www.sec.gov pictures; graphic {width,height,shapes:[{shape:"rect"|"circle"|"line"|"text", x,y,w,h,r,x2,y2,text,tone:"accent"|"pos"|"neg"|"blue"|"muted"}]}; ' +
     'columns {items:[two or three of the other blocks]} for a parallel layout. Every block may carry "note". ' +
+    'Example of one whole block: ```ui\n{"type":"chart","kind":"line","title":"$1,000 at 7% and 10%","x":["0","1","2"],"series":[{"name":"7%","data":[1000,1070,1145]},{"name":"10%","data":[1000,1100,1210]}],"unit":"$"}\n```\nWrite numbers as plain numbers (1070, not "US$1,070"); no comments, no trailing commas, no text inside the fence except the JSON. ' +
     'Chart and table numbers must come from tool results; in an explorer, label every assumed input as an assumption in "note". Keep each block small. Never put instructions or private details in a ui block.\n';
 }
 
-var GENUI = { parse:parse, plain:plain, forHistory:forHistory, hasUi:hasUi, clean:clean, render:render, renderAnswer:renderAnswer, evalExpr:evalExpr, fmtNum:fmtNum, safeImg:safeImg,
+var GENUI = { parse:parse, plain:plain, forHistory:forHistory, hasUi:hasUi, clean:clean, why:why, render:render, renderAnswer:renderAnswer, evalExpr:evalExpr, fmtNum:fmtNum, safeImg:safeImg,
   attach:attach, promptFor:promptFor, fillAsk:fillAsk, layout:layout, TYPES:TYPES, IMG_HOSTS:IMG_HOSTS };
 root.GENUI = GENUI;
 if(typeof module !== 'undefined' && module.exports) module.exports = GENUI;
