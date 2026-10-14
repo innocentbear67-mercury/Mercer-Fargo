@@ -129,3 +129,51 @@ test('prompt: off forbids blocks, less limits them, auto lists every type', () =
   const auto = G.promptFor('auto');
   G.TYPES.forEach((t) => assert.ok(auto.includes(t), t));
 });
+
+test('messy but common model output still draws', () => {
+  const years = Array.from({ length: 11 }, (_, i) => i);
+  const grow = (r) => years.map((y) => 'US$' + (1015.7 * (1 + r) ** y).toLocaleString('en-US', { maximumFractionDigits: 2 }));
+  const html = (spec) => G.render(spec, 'k');
+  // money strings in data
+  assert.match(html({ type: 'chart', kind: 'line', x: years, series: [{ name: '7%', data: grow(0.07) }, { name: '10%', data: grow(0.1) }] }), /<path/);
+  // type "line", labels + datasets (Chart.js style)
+  assert.match(html({ type: 'line', title: 't', labels: ['a', 'b'], datasets: [{ label: 's', data: [1, 2] }] }), /<path/);
+  // bar via type alias, series as a map
+  assert.match(html({ type: 'bar', x: ['a', 'b'], series: { A: [1, 2], B: [2, 3] } }), /<rect/);
+  // rows of objects, and {x,y} points
+  assert.match(html({ type: 'chart', data: [{ year: 1, low: 1, high: 2 }, { year: 2, low: 2, high: 4 }] }), /<path/);
+  assert.match(html({ type: 'chart', series: [{ name: 's', data: [{ x: 'a', y: 1 }, { x: 'b', y: 2 }] }] }), /<path/);
+  // table rows as objects
+  assert.match(html({ type: 'table', rows: [{ a: 1, b: 2 }] }), /<td>1<\/td>/);
+  // formula with ** and a "formula" key
+  assert.equal(G.evalExpr('2 ** 3'), 8);
+  assert.match(html({ type: 'explorer', inputs: [{ id: 'a', min: 0, max: 10, value: 2 }], outputs: [{ label: 'Out', formula: 'a ** 2' }] }), /<b>4\.00<\/b>/);
+});
+
+test('JSON with comments, trailing commas and curly quotes is repaired', () => {
+  const raw = '{\n // growth\n "type": "chart",\n "x": ["a","b",],\n "series": [{"name": “s”, "data": [1,2,]},],\n}';
+  const p = G.parse(fence(raw)).find((x) => x.t === 'ui');
+  assert.equal(p.b.type, 'chart');
+  assert.match(G.render(p.b, 'k', p), /<path/);
+});
+
+test('a rejected block says why, and shows the raw spec', () => {
+  const bad = G.parse(fence('{"type":"chart","series":[{"data":["n/a"]}]}')).find((x) => x.t === 'ui');
+  const html = G.render(bad.b, 'k', bad);
+  assert.match(html, /could not be drawn/);
+  assert.match(html, /Reason: needs series with numeric data/);
+  assert.match(html, /<pre>/);
+  const broken = G.parse(fence('{oops')).find((x) => x.t === 'ui');
+  assert.match(G.render(broken.b, 'k', broken), /JSON error/);
+  assert.match(G.render({ type: 'pie' }, 'k'), /unknown type &quot;pie&quot;/);
+});
+
+test('money strings parse, junk does not', () => {
+  const f = (v) => G.clean({ type: 'chart', x: ['a'], series: [{ data: [v] }] });
+  assert.equal(f('US$1,015.70').series[0].data[0], 1015.7);
+  assert.equal(f('S$1,300').series[0].data[0], 1300);
+  assert.equal(f('7%').series[0].data[0], 7);
+  assert.equal(f('-2.5').series[0].data[0], -2.5);
+  assert.equal(f('12 abc'), null);
+  assert.equal(f('alert(1)'), null);
+});
