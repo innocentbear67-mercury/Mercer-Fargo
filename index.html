@@ -1734,6 +1734,7 @@ body.chart-fs{overflow:hidden}
 @media (max-width:860px){.xpf-grid{grid-template-columns:1fr}}
 .xpf-setup h3,.xpf-pos h3{margin:0 0 12px}
 .xpf-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.trd-sum p{margin:0 0 10px;font-size:14px;line-height:21px}
 .tk{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:4px;font:700 10px/1 var(--mf-serif);font-style:normal;color:#fff;margin-right:4px;vertical-align:1px}
 .tk-S{background:var(--fh-negative)}.tk-T{background:#a56cf2}
 td.nw{white-space:nowrap}
@@ -2938,6 +2939,7 @@ body.rs-drag iframe{pointer-events:none}
 <script src="memo-pdf.js"></script>
 <script src="cloud.js"></script>
 <script src="xpf.js"></script>
+<script src="trades.js"></script>
 <script>try{var c=JSON.parse(localStorage.getItem('fh3_cfg')||'{}'),t=c.theme||'dark';if(t==='auto')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 <div class="sys" id="bootScreen" role="status" aria-live="polite" aria-label="Loading MercerFargo">
   <div class="sys-in">
@@ -3463,6 +3465,7 @@ function currencyOf(sym){
   if(s.indexOf('/') > 0) return s.split('/')[1];   /* the pair is priced in the quote currency */
   if(DATA.quotes[s] && DATA.quotes[s].cur) return DATA.quotes[s].cur;   /* the exchange's own currency, from the quote feed */
   if(/^\d/.test(s) || /\.SI$/.test(s) || /^SGX:/.test(s)) return 'SGD';
+  if(/\.T$/.test(s)) return 'JPY'; if(/\.HK$/.test(s)) return 'HKD'; if(/\.L$/.test(s)) return 'GBP';
   return 'USD';
 }
 function isCrypto(s){ return !!CG[dispSym(s)]; }
@@ -4284,8 +4287,11 @@ function pfTrades(sym){
   Object.keys(PFS).forEach(function(id){
     var pf = PFS[id], nm = '<br><span class="mut">' + esc(pf.name) + '</span>';
     pf.holdings.forEach(function(h){
-      if(dispSym(h.s) !== s || !h.d || h.d > today) return;
-      out.push({ t:t(h.d), k:'B', tr:1, cls:'buy', px:h.px, html:'<b>Bought \u00b7 ' + esc(h.d) + '</b><br>' + sh(h.q) + (h.px ? ' @ $' + num(h.px, 2) : '') + nm });
+      if(dispSym(h.s) !== s) return;
+      (h.lots && h.lots.length ? h.lots : [h]).forEach(function(l){   // an imported position keeps every purchase as its own lot
+        if(!l.d || l.d > today) return;
+        out.push({ t:t(l.d), k:'B', tr:1, cls:'buy', px:l.px, html:'<b>Bought \u00b7 ' + esc(l.d) + '</b><br>' + sh(l.q) + (l.px ? ' @ $' + num(l.px, 2) : '') + nm });
+      });
     });
     (pf.sold || []).forEach(function(l){
       if(dispSym(l.s) !== s || l.sd > today) return;
@@ -5000,8 +5006,9 @@ Object.keys(LISTS).forEach(function(k){ var l = LISTS[k]; if(!l || typeof l !== 
 if(!Object.keys(LISTS).length) LISTS.main = { name:'My watchlist', syms:['AAPL','MSFT','NVDA','TSLA','AMZN','META','GOOGL'] };
 Object.keys(PFS).forEach(function(k){ var p = PFS[k]; if(!p || typeof p !== 'object' || !Array.isArray(p.holdings)) delete PFS[k]; else {
   p.name = String(p.name || k);
-  p.holdings = p.holdings.filter(function(h){ return h && typeof h.s === 'string' && h.s && isFinite(h.q); }).map(function(h){ var o = { s:h.s, q:+h.q, px:isFinite(h.px) ? +h.px : 0 }; if(/^\d{4}-\d\d-\d\d$/.test(h.d || '')) o.d = h.d; return o; });
-  p.sold = (Array.isArray(p.sold) ? p.sold : []).filter(function(l){ return l && typeof l.s === 'string' && l.s && l.q > 0 && l.sp > 0 && /^\d{4}-\d\d-\d\d$/.test(l.sd || ''); }).map(function(l){ var o = { s:l.s, q:+l.q, px:isFinite(l.px) ? +l.px : 0, sd:l.sd, sp:+l.sp }; if(/^\d{4}-\d\d-\d\d$/.test(l.d || '')) o.d = l.d; return o; }); } });
+  p.holdings = p.holdings.filter(function(h){ return h && typeof h.s === 'string' && h.s && isFinite(h.q); }).map(function(h){ var o = { s:h.s, q:+h.q, px:isFinite(h.px) ? +h.px : 0 }; if(/^\d{4}-\d\d-\d\d$/.test(h.d || '')) o.d = h.d; if(h.src === 'csv') o.src = 'csv';
+    if(Array.isArray(h.lots)) o.lots = h.lots.filter(function(l){ return l && l.q > 0 && isFinite(l.px); }).map(function(l){ var x = { q:+l.q, px:+l.px }; if(/^\d{4}-\d\d-\d\d$/.test(l.d || '')) x.d = l.d; return x; }); return o; });
+  p.sold = (Array.isArray(p.sold) ? p.sold : []).filter(function(l){ return l && typeof l.s === 'string' && l.s && l.q > 0 && l.sp > 0 && /^\d{4}-\d\d-\d\d$/.test(l.sd || ''); }).map(function(l){ var o = { s:l.s, q:+l.q, px:isFinite(l.px) ? +l.px : 0, sd:l.sd, sp:+l.sp }; if(/^\d{4}-\d\d-\d\d$/.test(l.d || '')) o.d = l.d; if(l.src === 'csv') o.src = 'csv'; return o; }); } });
 if(!Object.keys(PFS).length) PFS.main = { name:'Main portfolio', holdings:[] };
 pfNormMain();   // exactly one main portfolio
 var TASKS = load(LS.tasks, []).filter(function(t){ return t && typeof t === 'object'; });
@@ -5721,7 +5728,7 @@ function glanceHTML(){
     return '<div class="card glance"><div class="gl-empty"><div><div class="gl-big">Your portfolio</div>' +
       '<div class="mut">Add what you own and this spot shows value, today\'s move and what drove it, at a glance.</div></div>' +
       '<div class="gl-cta"><button class="btn filled" data-act="addholding">Add a holding</button>' +
-      '<button class="btn text" data-act="importpf">Import CSV</button></div></div></div>';
+      '<button class="btn text" data-act="importpf">Import CSV</button><button class="btn text" data-act="pf-trades">Import trade history</button></div></div></div>';
   }
   var st = pfStats(pf), cur = st.base;
   var priced = st.rows.filter(function(r){ return DATA.quotes[r.s] && DATA.quotes[r.s].c != null; }).length;
@@ -6938,6 +6945,7 @@ function renderPortfolio(){
     html += '<div class="section"><div class="section-head"><h2>' + esc(pf.name) + '</h2>' +
       '<button class="btn text sm" data-act="addholding">Add holding</button>' +
       '<button class="btn text sm" data-act="importpf">Import CSV</button>' +
+      '<button class="btn text sm" data-act="pf-trades" title="Import your brokerage\'s transaction history: buys, sells, dates and prices">Import trades</button>' +
       '<button class="btn text sm" data-act="exportpf">Export CSV</button>' +
       '<button class="btn text sm" data-act="ai" data-kind="portfolio">AI insights</button>' +
       '<button class="btn text sm" data-act="nlportfolio">Create with AI</button>' +
@@ -12185,6 +12193,52 @@ function pfAskDo(w){
   else if(w === 'import'){ go('#/portfolio/' + CUR.pf); pfImport(); }
   else if(w === 'manual'){ go('#/portfolio/' + CUR.pf); setTimeout(function(){ openAddHolding(CUR.pf); }, 350); }
 }
+/* ---- trade-history import: trades.js reads the CSV; a model is only asked to name the columns when the headers are not recognised ---- */
+var TRD_PEND = null;
+function trdPick(){ pickFile('.csv,text/csv', function(text, name){ trdRead(text, name); }); }
+function trdRead(text, name){
+  var p = TRD.parse(text);
+  if(p.error && p.missing && aiReady()){
+    toast('Unfamiliar layout \u2014 asking your AI model to identify the columns\u2026', 4000);
+    var grid = TRD.csv(text).slice(0, 7);
+    var ask = 'This is the start of a brokerage trade-history CSV. Return JSON only: {"side":col,"symbol":col,"qty":col,"price":col,"date":col,"status":col|null,"name":col|null,"currency":col|null,"market":col|null} where each col is the EXACT header text of the column. ' +
+      'Use the executed/filled quantity, price and time (not the order quantity, limit price or order time) when both exist. If buys and sells are shown by the sign of the quantity and there is no side column, use null for side.\n\n' + grid.map(function(r){ return r.join(' | '); }).join('\n');
+    return aiCall([{ role:'user', content:ask }], 'You map spreadsheet columns. Reply with JSON only.', 'low').then(function(t){
+      var m = jsonFrom(t); var q = m ? TRD.parse(text, m) : null; if(q && !q.error) trdShow(q, name, true); else trdFail(p);
+    }, function(){ trdFail(p); });
+  }
+  if(p.error) return trdFail(p);
+  trdShow(p, name, false);
+}
+function trdFail(p){
+  dialog('Could not read this file', '<div class="mut" style="font-size:13.5px;line-height:21px">' + esc(p.error || '') + (p.headers && p.headers.length ? '<br><br>Columns found: <b>' + esc(p.headers.slice(0, 24).join(', ')) + '</b>' : '') +
+    '<br><br>The importer needs a symbol, quantity, price and date for each trade, and a buy/sell column (or negative quantities for sells).' + (aiReady() ? '' : ' With an AI key added, Marvell can work out unfamiliar layouts for you.') + '</div>', '<button class="btn filled" data-act="dlg-close">Close</button>');
+}
+function trdShow(p, name, viaAI){
+  var b = TRD.build(p.fills), st = b.stats; TRD_PEND = { p:p, name:name };
+  var real = Object.keys(st.realized).map(function(c){ var v = st.realized[c]; return (c === '?' ? '' : c + ' ') + (v < 0 ? '\u2212' : '+') + num(Math.abs(v), 2); }).join(' \u00b7 ');
+  var sk = p.skipped, skipTxt = [sk.cancelled && sk.cancelled + ' cancelled', sk.failed && sk.failed + ' failed', sk.nonTrade && sk.nonTrade + ' cash or other', sk.option && sk.option + ' option', sk.incomplete && sk.incomplete + ' incomplete'].filter(Boolean).join(', ');
+  var opts = Object.keys(PFS).map(function(k){ return '<option value="' + esc(k) + '"' + (k === (CUR.view === 'portfolio' ? CUR.pf : mainPfId()) ? ' selected' : '') + '>' + esc(PFS[k].name) + '</option>'; }).join('');
+  dialog('Import trade history', '<div class="trd-sum"><p><b>' + p.fills.length + ' trades</b> in ' + st.symbols + ' symbols, ' + esc(p.from) + ' \u2192 ' + esc(p.to) + ' (' + st.buys + ' buys, ' + st.sells + ' sells).</p>' +
+    '<p>This will create <b>' + st.open + ' open position' + (st.open === 1 ? '' : 's') + '</b> and <b>' + st.closed + ' closed trade' + (st.closed === 1 ? '' : 's') + '</b>' + (real ? ', realized ' + esc(real) : '') + '. Every buy and sell gets a B, S or T on the chart.</p>' +
+    (skipTxt ? '<p class="mut">Skipped: ' + esc(skipTxt) + '.</p>' : '') +
+    (st.unmatched ? '<p class="mut">' + st.unmatched + ' sale' + (st.unmatched === 1 ? ' has' : 's have') + ' no earlier buy in this file (you held them before it starts). They are kept as closed trades with unknown cost.</p>' : '') +
+    (viaAI ? '<p class="mut">Columns were identified by your AI model from the header and a few sample rows.</p>' : '') + '</div>' +
+    '<label class="field"><span>Import into</span><select class="inp" id="trdPf">' + opts + '</select></label>' +
+    '<div class="mut" style="font-size:12.5px;line-height:19px">Importing again later replaces what an earlier import added to that portfolio. Holdings you typed in yourself are left alone. Open positions use first-in, first-out and show your average cost.</div>',
+    '<button class="btn text" data-act="dlg-close">Cancel</button><button class="btn filled" data-act="trd-go">Import</button>');
+}
+function trdApply(){
+  var P = TRD_PEND, pf = P && PFS[$('trdPf').value]; if(!pf) return closeDialog();
+  var b = TRD.build(P.p.fills);
+  pf.holdings = pf.holdings.filter(function(h){ return h.src !== 'csv'; }); pf.sold = (pf.sold || []).filter(function(l){ return l.src !== 'csv'; });
+  b.holdings.forEach(function(h){ var o = { s:dispSym(h.s), q:h.q, px:h.px, lots:h.lots, src:'csv' }; if(h.d) o.d = h.d; pf.holdings.push(o); });
+  b.sold.forEach(function(l){ var o = { s:dispSym(l.s), q:l.q, px:l.px, sd:l.sd, sp:l.sp, src:'csv' }; if(l.d) o.d = l.d; pf.sold.push(o); });
+  TRD_PEND = null; savePfs(); closeDialog();
+  var id = Object.keys(PFS).filter(function(k){ return PFS[k] === pf; })[0]; CUR.pf = id;
+  renderRail(); if(CUR.view === 'portfolio') renderPortfolio(); else go('#/portfolio/' + id);
+  toast('Imported ' + b.stats.open + ' positions and ' + b.stats.closed + ' closed trades into ' + pf.name, 5000);
+}
 function closedTradesHTML(pf){
   var L = (pf.sold || []).map(function(l, i){ return { l:l, i:i }; }).sort(function(a, b){ return b.l.sd < a.l.sd ? -1 : 1; });
   if(!L.length) return '';
@@ -12212,8 +12266,17 @@ function sellGo(i){
   if(!/^\d{4}-\d\d-\d\d$/.test(d) || d > ymd(new Date())){ toast('Pick a sell date that is not in the future.'); return; }
   if(h.d && d < h.d){ toast('The sell date is before the buy date (' + h.d + ').'); return; }
   if(!(p > 0)){ toast('Enter the sell price.'); return; }
-  pf.sold = pf.sold || []; var lot = { s:h.s, q:q, px:h.px, sd:d, sp:p }; if(h.d) lot.d = h.d; pf.sold.push(lot);
-  if(q >= h.q - 1e-9) pf.holdings.splice(i, 1); else h.q = +(h.q - q).toFixed(8);
+  pf.sold = pf.sold || [];
+  if(h.lots && h.lots.length){   // first in, first out across the purchases
+    var left = q;
+    while(left > 1e-9 && h.lots.length){ var lt = h.lots[0], take = Math.min(lt.q, left), cl = { s:h.s, q:+take.toFixed(8), px:lt.px, sd:d, sp:p }; if(lt.d) cl.d = lt.d; pf.sold.push(cl);
+      lt.q = +(lt.q - take).toFixed(8); left = +(left - take).toFixed(8); if(lt.q <= 1e-9) h.lots.shift(); }
+    var nq = 0, nc = 0; h.lots.forEach(function(x){ nq += x.q; nc += x.q * x.px; });
+    if(!h.lots.length) pf.holdings.splice(i, 1); else { h.q = +nq.toFixed(8); h.px = nc / nq; h.d = h.lots[0].d; }
+  } else {
+    var lot = { s:h.s, q:q, px:h.px, sd:d, sp:p }; if(h.d) lot.d = h.d; pf.sold.push(lot);
+    if(q >= h.q - 1e-9) pf.holdings.splice(i, 1); else h.q = +(h.q - q).toFixed(8);
+  }
   savePfs(); closeDialog(); renderPortfolio(); renderRail(); toast('Sale recorded');
 }
 function openAddHolding(pfId){
@@ -14262,6 +14325,8 @@ function bindEvents(){
         savePfs(); closeDialog(); renderPortfolio(); renderRail(); toast('Holding added');
         break;
       }
+      case 'pf-trades': trdPick(); break;
+      case 'trd-go': trdApply(); break;
       case 'h-sell': openSell(+el.getAttribute('data-i')); break;
       case 'h-sell-go': sellGo(+el.getAttribute('data-i')); break;
       case 'h-unsell': { var upf = PFS[CUR.pf]; if(upf && upf.sold){ upf.sold.splice(+el.getAttribute('data-i'), 1); savePfs(); renderPortfolio(); toast('Closed trade removed'); } break; }
