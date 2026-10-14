@@ -11,7 +11,7 @@
      chart      line or bar, up to 4 series
      table      columns + rows
      compare    side-by-side cards (name, tag, stats, points)
-     diagram    boxes and arrows; tap a box to read its detail
+     diagram    boxes and arrows; tap a box to flip it and read its detail on the back
      buttons    tappable follow-up questions (a tap sends the question as the user)
      form       inputs (number, text, select, slider) that send an answer when submitted
      explorer   inputs + live outputs from formulas, optionally plotted: change a number, see the outcome
@@ -236,7 +236,7 @@ function clean(b, nested){
       return o.items.length >= 2 ? o : null;
     }
     case 'diagram': {
-      o.nodes = arr(b.nodes, MAX_NODES).map(function(nd){ nd = isObj(nd) ? nd : {}; return { id:ident(nd.id), label:str(nd.label, 48), detail:str(nd.detail, 400), tone:TONES[nd.tone] ? nd.tone : 'accent' }; })
+      o.nodes = arr(b.nodes, MAX_NODES).map(function(nd){ nd = isObj(nd) ? nd : {}; return { id:ident(nd.id), label:str(nd.label, 48), detail:str(nd.detail, 130), tone:TONES[nd.tone] ? nd.tone : 'accent' }; })
         .filter(function(nd, i, all){ return nd.id && nd.label && all.findIndex(function(z){ return z.id === nd.id; }) === i; });
       var ids = o.nodes.map(function(nd){ return nd.id; });
       o.edges = arr(b.edges, 24).map(function(e){ e = Array.isArray(e) ? e : []; return { a:ident(e[0]), b:ident(e[1]), label:str(e[2], 24) }; })
@@ -413,7 +413,7 @@ function layout(b){
   var layers = [];
   b.nodes.forEach(function(n){ (layers[depth[n.id]] = layers[depth[n.id]] || []).push(n); });
   layers = layers.filter(Boolean);
-  var NW = 112, NH = 40, GX = 14, GY = 38, cols = Math.max.apply(null, layers.map(function(l){ return l.length; }));
+  var NW = 112, NH = b.nodes.some(function(n){ return n.detail; }) ? 60 : 40, GX = 14, GY = 46, cols = Math.max.apply(null, layers.map(function(l){ return l.length; }));
   var W = Math.max(NW, cols * NW + (cols - 1) * GX), H = layers.length * NH + (layers.length - 1) * GY, pos = {};
   layers.forEach(function(l, li){
     var rowW = l.length * NW + (l.length - 1) * GX, x0 = (W - rowW) / 2;
@@ -427,8 +427,16 @@ function wrap2(s, n){
   var a = s.slice(0, cut).trim(), c = s.slice(cut).trim();
   return [a, c.length > n ? c.slice(0, n - 1) + '…' : c];
 }
+function wrapN(s, n, max){
+  var out = [], cur = '';
+  s.split(/\s+/).forEach(function(w){ if(cur && (cur + ' ' + w).length > n){ out.push(cur); cur = w; } else cur = cur ? cur + ' ' + w : w; });
+  if(cur) out.push(cur);
+  if(out.length > max){ out = out.slice(0, max); out[max - 1] = out[max - 1].slice(0, n - 1) + '…'; }
+  return out;
+}
 function rDiagram(b, key){
-  var st = stOf(key), L = layout(b), sel = st.node;
+  var st = stOf(key), L = layout(b), flip = st.flip || {};
+  var outN = {}, inN = {}; b.edges.forEach(function(e){ outN[e.a] = (outN[e.a] || 0) + 1; inN[e.b] = (inN[e.b] || 0) + 1; });
   var svg = '<svg viewBox="-6 -6 ' + (L.W + 12) + ' ' + (L.H + 12) + '" class="iu-svg iu-dg" role="img" aria-label="' + esc(b.title || 'diagram') + '">' +
     '<defs><marker id="iua' + key.replace(/\W/g, '') + '" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="iu-arrow"/></marker></defs>';
   b.edges.forEach(function(e){
@@ -437,17 +445,21 @@ function rDiagram(b, key){
     var my = (y1 + y2) / 2;
     svg += '<path d="M' + x1.toFixed(1) + ' ' + y1.toFixed(1) + 'C' + x1.toFixed(1) + ' ' + my.toFixed(1) + ' ' + x2.toFixed(1) + ' ' + my.toFixed(1) + ' ' + x2.toFixed(1) + ' ' + y2.toFixed(1) +
       '" class="iu-edge" marker-end="url(#iua' + key.replace(/\W/g, '') + ')"/>';
-    if(e.label) svg += '<text x="' + ((x1 + x2) / 2 + 4).toFixed(1) + '" y="' + (my - 2).toFixed(1) + '" class="iu-ax">' + esc(e.label) + '</text>';
+    /* labels of arrows that share a box sit at the spread-out end (near the target on a fan-out, near the source on a fan-in) so they do not stack */
+    if(e.label){
+      var t = outN[e.a] > 1 ? .8 : inN[e.b] > 1 ? .3 : .5, k = 3 * t * t - 2 * t * t * t, spread = t !== .5;
+      svg += '<text x="' + (x1 + (x2 - x1) * k + (spread ? 0 : 4)).toFixed(1) + '" y="' + (y1 + (y2 - y1) * k - 2).toFixed(1) + '" class="iu-ax"' + (spread ? ' text-anchor="middle"' : '') + '>' + esc(e.label) + '</text>';
+    }
   });
   b.nodes.forEach(function(n){
-    var p = L.pos[n.id], lines = wrap2(n.label, 16);
-    svg += '<g class="iu-node' + (sel === n.id ? ' on' : '') + (n.detail ? ' tap' : '') + '" data-iu="node" data-key="' + esc(key) + '" data-id="' + esc(n.id) + '" tabindex="0" role="button" aria-label="' + esc(n.label) + '">' +
+    var p = L.pos[n.id], lines = wrap2(n.label, 16), cx = (p.x + p.w / 2).toFixed(1), back = n.detail ? wrapN(n.detail, 24, 5) : [];
+    svg += '<g class="iu-node' + (n.detail ? ' tap' : '') + (flip[n.id] ? ' back' : '') + '" data-iu="node" data-key="' + esc(key) + '" data-id="' + esc(n.id) + '" tabindex="0" role="button" aria-label="' + esc(n.label) + (n.detail ? ' (tap to flip)' : '') + '">' +
       '<rect x="' + p.x.toFixed(1) + '" y="' + p.y.toFixed(1) + '" width="' + p.w + '" height="' + p.h + '" rx="9" style="stroke:' + TONES[n.tone] + '"/>' +
-      lines.map(function(t, i){ return '<text x="' + (p.x + p.w / 2).toFixed(1) + '" y="' + (p.y + p.h / 2 + (lines.length === 1 ? 4 : (i ? 13 : -3))).toFixed(1) + '" text-anchor="middle">' + esc(t) + '</text>'; }).join('') + '</g>';
+      lines.map(function(t, i){ return '<text class="ft" x="' + cx + '" y="' + (p.y + p.h / 2 + (lines.length === 1 ? 4 : (i ? 13 : -3))).toFixed(1) + '" text-anchor="middle">' + esc(t) + '</text>'; }).join('') +
+      back.map(function(t, i){ return '<text class="bk" x="' + cx + '" y="' + (p.y + p.h / 2 + (i - (back.length - 1) / 2) * 10.5 + 3).toFixed(1) + '" text-anchor="middle">' + esc(t) + '</text>'; }).join('') + '</g>';
   });
   svg += '</svg>';
-  var sn = b.nodes.filter(function(n){ return n.id === sel; })[0];
-  return head(b) + svg + '<div class="iu-detail" data-iu-detail="1">' + (sn ? '<b>' + esc(sn.label) + '</b> ' + esc(sn.detail || '') : '<span class="iu-hint">Tap a box to read more.</span>') + '</div>' + foot(b);
+  return head(b) + svg + '<div class="iu-detail"><span class="iu-hint">' + (b.nodes.some(function(n){ return n.detail; }) ? 'Tap a box to flip it.' : '') + '</span></div>' + foot(b);
 }
 
 function rButtons(b, key){
@@ -592,7 +604,12 @@ function onClick(ev){
   var act = t.getAttribute('data-iu'), key = t.getAttribute('data-key'), b = key ? REG[key] : null;
   if(act === 'ask' && b){ var it = b.items[+t.getAttribute('data-i')]; if(it){ stOf(key).used = +t.getAttribute('data-i'); redraw(key); ask(it.ask); } }
   else if(act === 'step' && b){ var st = stOf(key); st.i = Math.min(b.steps.length - 1, Math.max(0, (st.i || 0) + (+t.getAttribute('data-d') || 0))); redraw(key); }
-  else if(act === 'node' && b){ stOf(key).node = t.getAttribute('data-id'); redraw(key); }
+  else if(act === 'node' && b){
+    var id = t.getAttribute('data-id'), nd = b.nodes.filter(function(n){ return n.id === id; })[0], fs = stOf(key);
+    if(!nd || !nd.detail) return;
+    fs.flip = fs.flip || {}; fs.flip[id] = !fs.flip[id];
+    t.classList.add('flipping'); setTimeout(function(){ t.classList.toggle('back', !!fs.flip[id]); }, 150); setTimeout(function(){ t.classList.remove('flipping'); }, 320);
+  }
 }
 function onKey(ev){
   if((ev.key === 'Enter' || ev.key === ' ') && ev.target && ev.target.getAttribute && ev.target.getAttribute('data-iu') === 'node'){ ev.preventDefault(); onClick(ev); }
@@ -641,7 +658,7 @@ function promptFor(level){
     (level === 'less' ? 'The user asked for fewer visuals: use one only when text would clearly be worse, at most one per answer. ' : 'At most two visuals per answer, and none when text is enough. ') +
     'Write a visual as a fenced block labelled ui holding ONE JSON object, nothing else inside. Types and fields: ' +
     'chart {kind:"line"|"bar", title, x:[labels], series:[{name,data:[numbers]}], unit:"$", suffix:"%"}; table {title, columns:[..], rows:[[..]]}; ' +
-    'compare {title, items:[{name, tag, stats:{label:value}, points:[..]}]}; diagram {title, nodes:[{id,label,detail}], edges:[[fromId,toId,label?]]}; ' +
+    'compare {title, items:[{name, tag, stats:{label:value}, points:[..]}]}; diagram {title, nodes:[{id,label,detail}] (a flow chart whose boxes flip on tap: detail is the short back-of-box note, under 120 characters), edges:[[fromId,toId,label?]]}; ' +
     'buttons {items:[{label, ask}]} where ask is the follow-up question sent when tapped; form {title, fields:[{id,label,kind:"number"|"text"|"select"|"slider",default,min,max,step,options}], submit, ask:"text using {id}"}; ' +
     'explorer {title, inputs:[{id,label,min,max,step,value,prefix,suffix}], outputs:[{label,expr,prefix,suffix,decimals}], plot:{over:inputId,output:0}} where expr is a formula over input ids using + - * / ^ ( ) and min max abs sqrt pow ln exp round; ' +
     'steps {title, steps:[{title,body}]}; image {url, alt, caption} only for https://upload.wikimedia.org or https://www.sec.gov pictures; graphic {width,height,shapes:[{shape:"rect"|"circle"|"line"|"text", x,y,w,h,r,x2,y2,text,tone:"accent"|"pos"|"neg"|"blue"|"muted"}]}; ' +
