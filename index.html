@@ -696,6 +696,13 @@ tr:hover .wl-add,.wl-add:focus-visible,.wl-add.on{opacity:1}
 .qn-dial{display:grid;grid-template-columns:minmax(110px,1fr) minmax(90px,1.4fr) 52px;align-items:center;gap:8px;font-size:12.5px}
 .qn-dial input{width:100%;accent-color:var(--qr)}
 .qn-dial b{text-align:right;font-variant-numeric:tabular-nums}
+.qn-wr{display:grid;grid-template-columns:54px 1fr 52px 78px;gap:8px;align-items:center;font-size:12.5px;margin:5px 0}
+.qn-wr b{text-align:right;font-variant-numeric:tabular-nums}.qn-wr em{font-style:normal;color:var(--fh-foreground-on-surface-de-emphasis);font-size:11.5px}
+.qn-bar{height:8px;border-radius:4px;background:var(--fh-border-stroke-default);overflow:hidden}.qn-bar i{display:block;height:100%;background:var(--qr);border-radius:4px}
+.qn-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0 8px}.qn-tbl td{padding:6px 4px;border-bottom:1px solid var(--fh-border-stroke-default);vertical-align:top}
+.qn-tbl td:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:12px}.qn-tbl td i{display:block;font-style:normal;font-weight:400;font-size:11px;color:var(--fh-foreground-on-surface-de-emphasis)}
+.qn-vb{margin-top:6px}.qn-verdict{margin:0 0 4px;font-size:13.5px}
+.qn-dial select.inp{width:100%;height:30px;font-size:12.5px}
 .qn-ch{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;margin-bottom:4px}
 .qn-ch b{font-size:13.5px}
 .qn-leg{display:inline-flex;align-items:center;gap:5px;color:var(--fh-foreground-on-surface-de-emphasis)}
@@ -11725,6 +11732,7 @@ var QS = { busy:false, steps:[], err:'', cur:null, log:true, hist:{}, geo:{} };
 var QN_EXAMPLES = ['Buy SPY when RSI(14) drops below 30, sell when it goes above 70, since 2010',
   '60% SPY / 40% TLT rebalanced monthly vs holding SPY alone',
   'Hold QQQ only while it is above its 200-day average, otherwise hold short-term treasuries (SHY)',
+  'Risk parity across SPY, TLT, GLD and DBC, rebalanced monthly, targeting 8% volatility, vs a 60/40',
   'NVDA 50/200-day golden cross with a 10% trailing stop'];
 var QN_SPEC_SYS = 'You turn an investor\'s description of a trading or allocation strategy into a JSON backtest spec for MercerFargo\'s quant engine. Reply with JSON only, no prose.\n\n' +
   'SPEC\n{"title":"short name","summary":"1-2 plain-English sentences of the rules","type":"signal"|"allocation",\n' +
@@ -11733,6 +11741,7 @@ var QN_SPEC_SYS = 'You turn an investor\'s description of a trading or allocatio
   ' "side":"long"|"short", "entry":[cond...] (all must be true to enter), "exit":[cond...] (any one exits), "filter":[cond...] (allocation: invest only while all true),\n' +
   ' "stop_pct":null, "take_pct":null, "trail_pct":null, "max_hold_days":null, "alt":null or a ticker held when out of the market (e.g. "SHY"),\n' +
   ' "size":1 (share of capital when in a trade, 0-1), "benchmark":"SPY", "start":"YYYY-MM-DD", "cost_bps":5,\n' +
+ ' "method":"fixed"|"equal"|"inverse_vol"|"risk_parity"|"min_variance"|"max_sharpe"|"hrp" (allocation weighting; "fixed" uses the weights above, the others re-estimate weights from the last "lookback" days at every rebalance), "lookback":252, "vol_target":null or an annual volatility % that positions are scaled down to (the rest sits in cash), "max_leverage":1,\n' +
   ' "params":[{"id":"rsi_len","label":"RSI length","value":14,"min":2,"max":50,"step":1}],\n' +
   ' "projection":{"years":5,"drift":0,"volMult":1,"note":"why these settings"},\n' +
   ' "assumptions":["each assumption you had to make"], "unsupported":"anything you could not model, or empty"}\n\n' +
@@ -11745,6 +11754,7 @@ var QN_SPEC_SYS = 'You turn an investor\'s description of a trading or allocatio
   '- "Under specific conditions" become conditions: e.g. "only when VIX is above 25" -> {"a":{"ind":"close","sym":"^VIX"},"op":">","b":"$vix"}; "in downtrends" -> close below sma 200.\n' +
   '- Default start: 15 years ago, or the date range the user names. Default benchmark: SPY (or the traded symbol for single-stock timing). Default cost 5 bps.\n' +
   '- projection: years 5 unless asked; drift/volMult 0 and 1 unless the user describes a scenario (e.g. "if returns are 3% lower" -> drift -3; "in a high-volatility regime" -> volMult 1.5).\n' +
+  '- Weighting words: "equal risk" or "risk parity" -> risk_parity; "minimum variance" -> min_variance; "inverse volatility" -> inverse_vol; "max Sharpe" -> max_sharpe; "hierarchical risk parity" or "HRP" -> hrp; "equal weight" -> equal; "target 10% volatility" -> vol_target 10. Dynamic methods still need the assets list (the weights are ignored). Only allocation uses method; vol_target works for both types.\n' +
   '- Signals act at the close and earn from the next day. Prices are daily adjusted closes. If something cannot be modelled (intraday, options, fundamentals), approximate it and say so in unsupported.\n\n' +
   'EXAMPLE: "buy SPY when RSI(14) < 30, sell above 70" -> {"title":"SPY RSI mean reversion","summary":"Buys SPY when the 14-day RSI falls below 30 and sells when it rises above 70.","type":"signal","symbol":"SPY","side":"long",' +
   '"entry":[{"a":{"ind":"rsi","len":"$len"},"op":"<","b":"$buy"}],"exit":[{"a":{"ind":"rsi","len":"$len"},"op":">","b":"$sell"}],"benchmark":"SPY","start":"2011-01-01","cost_bps":5,' +
@@ -11879,6 +11889,7 @@ function qnFacts(cur){
   return 'Strategy: ' + cur.spec.title + ' — ' + cur.spec.summary + '\nUser asked: ' + cur.q + '\nPeriod: ' + m.from + ' to ' + m.to + ' (' + m.nYears + ' calendar years). Benchmark: ' + cur.bt.bsym +
     '\nStrategy: CAGR ' + f(m.s.cagr) + '%, total ' + f(m.s.total, 0) + '%, volatility ' + f(m.s.vol) + '%, Sharpe ' + f(m.s.sharpe, 2) + ', Sortino ' + f(m.s.sortino, 2) + ', max drawdown ' + f(m.s.maxdd) + '%, best year ' + f(m.s.best) + '%, worst year ' + f(m.s.worst) + '%' +
     '\nBenchmark: CAGR ' + f(m.b.cagr) + '%, volatility ' + f(m.b.vol) + '%, Sharpe ' + f(m.b.sharpe, 2) + ', max drawdown ' + f(m.b.maxdd) + '%' +
+    (m.risk ? '\nTail risk (1 day, 95%): VaR ' + f(m.risk.var95, 2) + '%, CVaR ' + f(m.risk.cvar95, 2) + '%, Omega ' + f(m.risk.omega, 2) + (m.risk.ir != null ? ', information ratio ' + f(m.risk.ir, 2) : '') + (m.profitFactor != null ? ', profit factor ' + f(m.profitFactor, 2) : '') : '') +
     '\nBeta ' + f(m.beta, 2) + ', alpha ' + f(m.alpha) + '%/yr, correlation ' + f(m.corr, 2) + ', time invested ' + f(m.exposure, 0) + '%, trades ' + m.trades + (m.winRate != null ? ', win rate ' + f(m.winRate, 0) + '%, average trade ' + f(m.avgTrade) + '% over ' + f(m.avgDays, 0) + ' days' : '') +
     ', beat the benchmark in ' + m.beatYears + ' of ' + m.nYears + ' years.\nRating ' + cur.rating + '/5 stars, edge ' + cur.edge + ', uncertainty ' + cur.unc +
     '\nProjection (' + p.years + ' years from $10,000, return shift ' + cur.proj.drift + '%/yr, volatility x' + cur.proj.volMult + '): 5th pct ' + QN.money(p.end[0]) + ', median ' + QN.money(p.end[2]) + ', 95th ' + QN.money(p.end[4]) + ', chance of losing money ' + f(p.lossProb, 0) + '%.' +
@@ -11923,14 +11934,23 @@ function qnDials(cur){
   if(y1 > y0) d.push({ id:'start', label:'Start year', min:y0, max:y1, step:1, v:Math.max(y0, Math.min(y1, sy)), grp:'Test settings', fmt:function(v){ return String(v); } });
   d.push({ id:'cost_bps', label:'Trading cost (bps per side)', min:0, max:50, step:1, v:cur.over.cost_bps != null ? cur.over.cost_bps : (cur.spec.cost_bps || 0), grp:'Test settings' });
   if(cur.spec.type !== 'allocation') d.push({ id:'size', label:'Position size', min:.1, max:1, step:.05, v:cur.over.size != null ? cur.over.size : (cur.spec.size == null ? 1 : cur.spec.size), grp:'Test settings', fmt:function(v){ return Math.round(v * 100) + '%'; } });
+  var meth = cur.over.method || cur.spec.method || 'fixed', vtv = cur.over.vol_target != null ? cur.over.vol_target : (+cur.spec.vol_target || 0);
+  d.push({ id:'vol_target', label:'Volatility target (0 = off)', min:0, max:40, step:1, v:vtv, grp:'Risk control', fmt:function(v){ return +v ? v + '%' : 'Off'; } });
+  if((cur.spec.type === 'allocation' && meth !== 'fixed') || vtv) d.push({ id:'lookback', label:'Lookback (days)', min:60, max:504, step:21, v:cur.over.lookback != null ? cur.over.lookback : (+cur.spec.lookback || 252), grp:'Risk control' });
   d.push({ id:'years', label:'Projection years', min:1, max:15, step:1, v:cur.proj.years, grp:'Projection', proj:1 });
   d.push({ id:'drift', label:'Return shift (% a year)', min:-10, max:10, step:.5, v:cur.proj.drift, grp:'Projection', proj:1, fmt:function(v){ return (v > 0 ? '+' : '') + v + '%'; } });
   d.push({ id:'volMult', label:'Volatility ×', min:.5, max:2.5, step:.1, v:cur.proj.volMult, grp:'Projection', proj:1, fmt:function(v){ return '×' + (+v).toFixed(1); } });
   return d;
 }
+function qnMethodHTML(cur){
+  if(cur.spec.type !== 'allocation') return '';
+  var cm = cur.over.method || cur.spec.method || 'fixed';
+  return '<div class="qn-dgrp">Weighting</div><label class="qn-dial"><span>Method</span><select class="inp" data-qm="1">' + Object.keys(QN.METHODS).map(function(k){
+    return '<option value="' + k + '"' + (k === cm ? ' selected' : '') + '>' + esc(QN.METHODS[k]) + '</option>'; }).join('') + '</select><span></span></label>';
+}
 function qnDialsHTML(cur){
   var grp = '';
-  return qnDials(cur).map(function(x){
+  return qnMethodHTML(cur) + qnDials(cur).map(function(x){
     var head = x.grp !== grp ? '<div class="qn-dgrp">' + esc(x.grp) + '</div>' : ''; grp = x.grp;
     return head + '<label class="qn-dial"><span>' + esc(x.label) + '</span><input type="range" data-qd="' + esc(x.id) + '"' + (x.proj ? ' data-proj="1"' : '') + ' min="' + x.min + '" max="' + x.max + '" step="' + x.step + '" value="' + x.v + '"><b id="qdv-' + esc(x.id) + '">' + esc(x.fmt ? x.fmt(x.v) : String(+(+x.v).toFixed(4))) + '</b></label>';
   }).join('') + '<button class="btn text sm" data-act="qn-reset">Reset dials</button>';
@@ -11942,7 +11962,12 @@ function qnStatsHTML(cur){
     t('Sharpe', m.s.sharpe.toFixed(2), 'Benchmark ' + m.b.sharpe.toFixed(2), m.s.sharpe >= m.b.sharpe ? 'up' : 'down') +
     t('Max drawdown', qnPct(m.s.maxdd), 'Benchmark ' + qnPct(m.b.maxdd), m.s.maxdd >= m.b.maxdd ? 'up' : 'down') +
     t('Volatility', m.s.vol.toFixed(1) + '%', 'Benchmark ' + m.b.vol.toFixed(1) + '%') +
-    t('Trades', String(m.trades), m.winRate != null ? m.winRate.toFixed(0) + '% won · ' + m.exposure.toFixed(0) + '% invested' : m.exposure.toFixed(0) + '% invested');
+    t('Trades', String(m.trades), m.winRate != null ? m.winRate.toFixed(0) + '% won · ' + m.exposure.toFixed(0) + '% invested' : m.exposure.toFixed(0) + '% invested') +
+    (m.risk ? t('VaR 95%', '−' + m.risk.var95.toFixed(2) + '%', 'a 1-in-20 day or worse', 'down') + t('CVaR 95%', '−' + m.risk.cvar95.toFixed(2) + '%', 'average of those worst days', 'down') +
+      t('Omega', m.risk.omega == null ? '—' : m.risk.omega.toFixed(2), 'gains ÷ losses', m.risk.omega > 1 ? 'up' : 'down') +
+      t('Info ratio', m.risk.ir == null ? '—' : m.risk.ir.toFixed(2), 'tracking error ' + (m.risk.te == null ? '—' : m.risk.te.toFixed(1) + '%'), m.risk.ir > 0 ? 'up' : 'down') +
+      t('Treynor', m.risk.treynor == null ? '—' : qnPct(m.risk.treynor), 'excess return per unit of beta') +
+      (m.profitFactor != null ? t('Profit factor', m.profitFactor.toFixed(2), 'trade wins ÷ trade losses', m.profitFactor > 1 ? 'up' : 'down') : t('Gain-to-pain', m.risk.gainToPain == null ? '—' : m.risk.gainToPain.toFixed(2), 'net return ÷ total losses')) : '');
 }
 function qnChartsPaint(){
   var cur = QS.cur; if(!cur || !$('qnEq')) return;
@@ -11999,12 +12024,13 @@ function qnPaint(focus){
     (n ? '<div class="qn-note"><h3>' + esc(n.headline) + '</h3><p>' + esc(n.note) + '</p><p><b>Why it matters:</b> ' + esc(n.why || '') + '</p><p><b>The bottom line:</b> ' + esc(n.bottom_line || '') + '</p>' +
       (changed ? '<div class="qn-fine mut">The note describes the original settings; the numbers and charts follow your dials.</div>' : '') + '</div>'
       : '<div class="qn-note"><p>' + esc(cur.spec.summary || '') + '</p></div>') +
-    qnSessionHTML(cur) +
+    qnSessionHTML(cur) + qnAllocHTML(cur) +
     '<details class="qn-box" open><summary>Tweak the factors</summary><div class="qn-dials" id="qnDials">' + qnDialsHTML(cur) + '</div></details>' +
     '<div class="qn-box qn-chart" id="qnEq"><div class="qn-ch"><b>Growth of $10,000</b><span class="qn-leg"><i style="background:' + qnTheme().s + '"></i>Strategy<i style="background:' + qnTheme().b + '"></i>' + esc(cur.bt.bsym) + '</span><span class="grow"></span><button class="btn text sm" data-act="qn-log">' + (QS.log ? 'Log scale' : 'Linear scale') + '</button></div><div class="qn-svg"></div><div class="qn-tip"></div></div>' +
     '<div class="qn-box qn-chart" id="qnProj"><div class="qn-ch"><b>Projection</b><span class="mut">5th–95th and 25th–75th percentile bands, median line</span></div><div class="qn-svg"></div><div class="qn-tip"></div><div id="qnProjTbl"></div></div>' +
     '<div class="qn-box qn-chart" id="qnDD"><div class="qn-ch"><b>Drawdown</b><span class="mut">% below the previous high</span></div><div class="qn-svg"></div><div class="qn-tip"></div></div>' +
     '<div class="qn-box qn-chart" id="qnYears"><div class="qn-ch"><b>Calendar-year returns</b><span class="qn-leg"><i style="background:' + qnTheme().s + '"></i>Strategy<i style="background:' + qnTheme().b + '"></i>' + esc(cur.bt.bsym) + '</span></div><div class="qn-svg"></div></div>' +
+    qnValHTML(cur) + qnVolHTML(cur) +
     '<details class="qn-box"><summary>Monthly returns</summary><div id="qnMonths" class="qn-scroll"></div></details>' +
     '<details class="qn-box"><summary>Rules, assumptions and trades</summary><div class="qn-rules"><p>' + esc(cur.spec.summary || '') + '</p>' +
       ((cur.spec.assumptions || []).length ? '<ul>' + cur.spec.assumptions.map(function(a){ return '<li>' + esc(a) + '</li>'; }).join('') + '</ul>' : '') +
@@ -12012,6 +12038,78 @@ function qnPaint(focus){
     '<div class="qn-refine"><input class="inp" id="qnRefine" placeholder="Change something: add a 10% stop loss, test on QQQ, start in 2008…">' + effBtnHTML('qn') + '<button class="btn filled sm qn-run" data-act="qn-refine">Update</button></div>' +
     '<div class="qn-fine mut">Backtests and simulations describe the past and a range of possibilities, not a forecast. Not investment advice.</div></div>';
   qnChartsPaint();
+}
+
+/* ---- batch 1 panels: allocation weights, overfitting checks, volatility models */
+function qnKey(cur){ return JSON.stringify(cur.over); }
+function qnAllocInner(cur){
+  var a = cur.bt.alloc; if(!a) return '';
+  var rows = a.syms.map(function(sy, i){
+    return '<div class="qn-wr"><span>' + esc(sy) + '</span><div class="qn-bar"><i style="width:' + Math.min(100, a.weights[i] * 100).toFixed(1) + '%"></i></div><b>' + (a.weights[i] * 100).toFixed(1) + '%</b><em>' + (a.share ? a.share.share[i].toFixed(0) + '% of risk' : '') + '</em></div>';
+  }).join('');
+  if(a.exposure < 99.5) rows += '<div class="qn-wr"><span>Cash</span><div class="qn-bar"><i style="width:' + (100 - a.exposure).toFixed(1) + '%;opacity:.4"></i></div><b>' + (100 - a.exposure).toFixed(1) + '%</b><em></em></div>';
+  return rows + '<div class="mut qn-fine">' + (a.method === 'fixed' ? 'Weights as written, rebalanced on schedule.' : 'Re-estimated at each rebalance from the previous ' + a.lookback + ' days (Ledoit-Wolf shrunk covariance), long only.') +
+    (a.share ? ' Portfolio volatility over that window: ' + a.share.vol.toFixed(1) + '%.' : '') + '</div>';
+}
+function qnAllocHTML(cur){
+  var a = cur.bt.alloc; if(!a) return '';
+  return '<details class="qn-box" id="qnAlloc" open><summary>Weights now · ' + esc(QN.METHODS[a.method] || a.method) + (a.volTarget ? ' · ' + a.volTarget + '% volatility target' : '') + '</summary>' + qnAllocInner(cur) + '</details>';
+}
+function qnValHTML(cur){
+  var open = cur.valOpen ? ' open' : '', head = '<details class="qn-box" id="qnVal"' + open + '><summary>Is this result real? Overfitting checks</summary><div class="qn-vb">', tail = '</div></details>';
+  if(cur.valBusy) return head + '<p class="mut">Splitting the history, resampling 500 paths and re-running the rules across their dials…</p>' + tail;
+  var v = cur.val && cur.val.key === qnKey(cur) ? cur.val : null;
+  if(!v) return head + (cur.val ? '<p class="mut qn-fine">The dials changed since the last run.</p>' : '') +
+    '<p class="qn-fine mut">A good-looking backtest can be luck or over-tuning. This re-tests the same rules four ways: a first-part vs last-part split, 500 resampled histories, a grid of the rule\'s own dials, and a Sharpe ratio deflated for the number of variants tried.</p>' +
+    (cur.valErr ? '<div class="qn-err">' + esc(cur.valErr) + '</div>' : '') + '<button class="btn filled sm" data-act="qn-val">Run the checks</button>' + tail;
+  var r = v.res, f = function(x, d){ return x == null || !isFinite(x) ? '—' : (+x).toFixed(d == null ? 2 : d); }, pc = function(x){ return x == null ? '—' : (x * 100).toFixed(0) + '%'; }, ok = 0, tot = 0;
+  var chk = function(pass){ if(pass == null) return; tot++; if(pass) ok++; };
+  chk(r.psr != null ? r.psr >= .9 : null); chk(r.dsr != null ? r.dsr >= .9 : null); chk(r.hold ? r.hold.verdict === 'Holds up' : null); chk(r.sens ? /^Stable/.test(r.sens.verdict) : null); chk(r.boot ? r.boot.probSharpePositive >= 90 : null);
+  var line = !tot ? '' : ok === tot ? 'Holds up on all ' + tot + ' checks.' : ok >= tot - 1 ? 'Passes ' + ok + ' of ' + tot + ' checks: reasonable, with one weak spot.' : ok >= tot / 2 ? 'Passes ' + ok + ' of ' + tot + ' checks: treat the headline numbers with caution.' : 'Passes only ' + ok + ' of ' + tot + ' checks: likely overfit or lucky.';
+  var rows = [['Probabilistic Sharpe', r.psr == null ? '—' : pc(r.psr), 'chance the true Sharpe is above 0'],
+    r.dsr != null ? ['Deflated Sharpe', pc(r.dsr), 'after ' + r.sens.trials + ' variants tried (the dial grid)'] : null,
+    r.boot ? ['Sharpe range (resampled)', f(r.boot.sharpe[0]) + ' to ' + f(r.boot.sharpe[2]), '5th to 95th percentile, median ' + f(r.boot.sharpe[1])] : null,
+    r.boot ? ['CAGR range (resampled)', qnPct(r.boot.cagr[0]) + ' to ' + qnPct(r.boot.cagr[2]), 'median ' + qnPct(r.boot.cagr[1]) + ' · Sharpe above 0 in ' + r.boot.probSharpePositive.toFixed(0) + '% of paths'] : null,
+    r.hold ? ['First 70% vs last 30%', f(r.hold.inSample.sharpe) + ' vs ' + f(r.hold.outSample.sharpe), 'Sharpe, same rules · ' + r.hold.verdict] : null,
+    r.sens ? ['Across its dials', r.sens.verdict, 'Sharpe ' + f(r.sens.min) + ' to ' + f(r.sens.max) + ' · positive in ' + r.sens.positivePct.toFixed(0) + '% of ' + r.sens.trials + ' settings'] : null].filter(Boolean);
+  var h = '';
+  if(r.sens){
+    var S = r.sens, cell = function(x){ if(x == null) return '<td></td>'; var a = Math.min(1, Math.abs(x) / 2); return '<td style="background:' + (x >= 0 ? 'rgba(31,157,85,' : 'rgba(224,53,59,') + (.12 + a * .6).toFixed(2) + ')">' + x.toFixed(2) + '</td>'; };
+    h = '<div class="qn-fine mut" style="margin-top:8px">Sharpe by dial setting' + (S.ids.length > 1 ? ' (across: ' + esc(S.labels[0]) + ', down: ' + esc(S.labels[1]) + ')' : ' (' + esc(S.labels[0]) + ')') + ', your setting scores ' + f(S.base) + '</div><div class="qn-scroll"><table class="qn-heat"><tr><th></th>' +
+      S.xs.map(function(x){ return '<th>' + x + '</th>'; }).join('') + '</tr>' + S.grid.map(function(row, i){ return '<tr><th>' + (S.ys[i] == null ? '' : S.ys[i]) + '</th>' + row.map(cell).join('') + '</tr>'; }).join('') + '</table></div>';
+  }
+  return head + (line ? '<p class="qn-verdict"><b>' + esc(line) + '</b></p>' : '') + '<table class="qn-tbl">' + rows.map(function(x){ return '<tr><td>' + esc(x[0]) + '<i>' + esc(x[2]) + '</i></td><td>' + esc(x[1]) + '</td></tr>'; }).join('') + '</table>' + h +
+    '<div class="qn-fine mut">Resampling uses 21-day blocks of the strategy\'s own daily returns. The split re-uses fixed rules, so it shows stability over time rather than re-tuning. A passing grade lowers the odds of a lucky result; it does not prove an edge.</div>' + tail;
+}
+function qnValPaint(){ var cur = QS.cur, el = $('qnVal'); if(cur && el) el.outerHTML = qnValHTML(cur); }
+function qnRunVal(){
+  var cur = QS.cur; if(!cur || cur.valBusy) return;
+  cur.valBusy = true; cur.valOpen = true; cur.valErr = ''; qnValPaint();
+  setTimeout(function(){
+    try{ var rf = +cur.spec.rf || 0, sens = QN.sensitivity(cur.spec, cur.al, cur.over); cur.val = { key:qnKey(cur), res:QN.validate(cur.bt, sens, rf) }; }
+    catch(e){ cur.valErr = String((e && e.message) || e); }
+    cur.valBusy = false; qnValPaint();
+  }, 50);
+}
+function qnVolHTML(cur){
+  var head = '<details class="qn-box" id="qnVol"' + (cur.volOpen ? ' open' : '') + '><summary>Volatility models</summary><div class="qn-vb">', tail = '</div></details>';
+  var v = cur.vol && cur.vol.key === qnKey(cur) ? cur.vol.res : null;
+  if(!v) return head + (cur.vol ? '<p class="mut qn-fine">The dials changed since the last run.</p>' : '') + '<p class="qn-fine mut">Compares how volatile the strategy has been lately with models that forecast it (EWMA and GARCH), and lets the projection use the GARCH forecast instead of a fixed multiplier. High-low-open-close estimators are shown for ' + esc(cur.bt.main) + '.</p><button class="btn filled sm" data-act="qn-vol">Run the models</button>' + tail;
+  var g = v.garch, f = function(x){ return x == null ? '—' : x.toFixed(1) + '%'; }, rows = [['Realized, last 21 days', f(v.realized21), ''], ['Realized, last 63 days', f(v.realized63), ''], ['Whole test period', f(v.full), 'what the projection assumes at ×1.0'], ['EWMA (λ 0.94)', f(v.ewma), 'RiskMetrics-style, reacts in weeks']];
+  if(g){ rows.push(['GARCH(1,1) today', f(g.nowVol), 'persistence ' + g.persistence.toFixed(3) + (g.halfLife ? ' · shocks fade by half in ~' + Math.round(g.halfLife) + ' days' : '')]); rows.push(['GARCH long-run', f(g.longRunVol), 'where it settles']); rows.push(['GARCH, next 12 months (average)', f(g.nextYearVol), 'the forecast for the projection']); }
+  if(v.range){ var sy = esc(cur.bt.main); rows.push(['Parkinson · ' + sy + ', 63 days', f(v.range.parkinson), 'uses the daily high and low']); rows.push(['Garman-Klass · ' + sy, f(v.range.garmanKlass), 'adds open and close']); rows.push(['Yang-Zhang · ' + sy, f(v.range.yangZhang), 'also handles overnight gaps']); }
+  var mult = g && v.full ? Math.max(.5, Math.min(2.5, Math.round(g.nextYearVol / v.full * 10) / 10)) : null;
+  return head + '<table class="qn-tbl">' + rows.map(function(x){ return '<tr><td>' + esc(x[0]) + (x[2] ? '<i>' + esc(x[2]) + '</i>' : '') + '</td><td>' + esc(x[1]) + '</td></tr>'; }).join('') + '</table>' +
+    (mult != null ? '<button class="btn filled sm" data-act="qn-vol-use" data-mult="' + mult + '">Use the GARCH forecast in the projection (×' + mult.toFixed(1) + ')</button>' : '<p class="mut qn-fine">Not enough history for GARCH.</p>') + tail;
+}
+function qnVolPaint(){ var cur = QS.cur, el = $('qnVol'); if(cur && el) el.outerHTML = qnVolHTML(cur); }
+function qnRunVol(){
+  var cur = QS.cur; if(!cur) return; cur.volOpen = true;
+  var B = cur.al.bars[cur.bt.main]; cur.vol = { key:qnKey(cur), res:QN.volReport(cur.bt.ret, B) }; qnVolPaint();
+}
+function qnVolUse(el){
+  var cur = QS.cur; if(!cur) return; var m = +el.getAttribute('data-mult'); if(!isFinite(m)) return;
+  cur.proj.volMult = m; cur.volOpen = true; qnCompute(cur); qnPaint();
 }
 function qnSessionHTML(cur){
   var t = cur.turns || [], pd = cur.pdfs || [];
@@ -12039,6 +12137,8 @@ function qnDial(inp){
     var st = $('qnStats'); if(st) st.innerHTML = qnStatsHTML(cur);
     var meta = document.querySelector('.qn-meta'); if(meta) meta.firstChild.outerHTML = qnStars(cur.rating, 15);
     if(meta){ var bs = meta.querySelectorAll('b'); bs[0].textContent = cur.edge; bs[1].textContent = cur.unc; }
+    var al = $('qnAlloc'); if(al) al.outerHTML = qnAllocHTML(cur);
+    if(!inp.getAttribute('data-proj')){ qnValPaint(); qnVolPaint(); }
     qnChartsPaint();
   });
 }
@@ -12071,6 +12171,9 @@ function qnAction(act, el){
   else if(act === 'qn-log'){ QS.log = !QS.log; el.textContent = QS.log ? 'Log scale' : 'Linear scale'; qnChartsPaint(); }
   else if(act === 'qn-reset'){ var c = QS.cur; if(!c) return; var pj = c.spec.projection || {}; c.over = {}; c.proj = { years:pj.years || 5, drift:pj.drift || 0, volMult:pj.volMult || 1 }; qnCompute(c); qnPaint(); }
   else if(act === 'qn-refine'){ var r = $('qnRefine'); if(r && r.value.trim()) qnRun(r.value, true); }
+  else if(act === 'qn-val') qnRunVal();
+  else if(act === 'qn-vol') qnRunVol();
+  else if(act === 'qn-vol-use') qnVolUse(el);
   else if(act === 'qn-pdf') qnPDF(el);
   else if(act === 'qn-pdf-dl') qnPdfGet(el.getAttribute('data-id'), el.getAttribute('data-name'));
   else if(act === 'qn-log-open'){ rsOpenPanel('quant'); qnOpen(el.getAttribute('data-id')); }
@@ -12082,6 +12185,12 @@ function qnAction(act, el){
   }
 }
 document.addEventListener('input', function(e){ if(e.target && e.target.getAttribute && e.target.getAttribute('data-qd')) qnDial(e.target); });
+document.addEventListener('change', function(e){
+  if(!(e.target && e.target.getAttribute && e.target.getAttribute('data-qm')) || !QS.cur) return;
+  var c = QS.cur; c.over.method = e.target.value;
+  try{ qnCompute(c); QS.err = ''; }catch(er){ QS.err = String(er.message || er); }
+  qnPaint();
+});
 document.addEventListener('keydown', function(e){
   if(!e.target) return;
   if(e.target.id === 'qnQ' && e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); qnAction('qn-run'); }
@@ -12404,7 +12513,7 @@ function qnPDF(btn){
   ];
   load.then(function(){ return Promise.all(charts.map(function(c){ return QN.png(c[0], c[1], c[2], 2); })); }).then(function(img){
     var doc = new window.jspdf.jsPDF({ unit:'pt', format:'letter', compress:true }), PW = 612, PH = 792, M = 40, CW = PW - 2 * M, now = new Date();
-    var dstr = now.toISOString().slice(0, 10), pages = 4, n = cur.note || {};
+    var dstr = now.toISOString().slice(0, 10), pages = m.risk ? 5 : 4, n = cur.note || {};
     var ink = [29, 29, 31], grey = [107, 114, 128], red = [200, 30, 42], rule = [210, 210, 214];
     var col = function(c){ doc.setTextColor(c[0], c[1], c[2]); };
     var ascii = function(s){ return String(s == null ? '' : s).replace(/\u2212/g, '-').replace(/[\u2018\u2019]/g, "'").replace(/[\u201c\u201d]/g, '"').replace(/\u2026/g, '...').replace(/\u2192/g, '->').replace(/[\u2013\u2014]/g, '-'); };   // the PDF's built-in font has no minus sign
@@ -12509,6 +12618,38 @@ function qnPDF(btn){
       'Quant Rating: 5 stars when the Sharpe ratio beats the benchmark\'s by more than 0.4, 4 by 0.15, 3 within ±0.15, 2 behind by up to 0.4, 1 below that. Edge: Wide when ahead of the benchmark in at least 70% of calendar years, Narrow at 55%, otherwise None. ' +
       'Uncertainty: Low, Medium, High or Very High as the simulated one-year 5th-95th percentile range is under 30%, 50%, 80% of capital, or above. Projection: 400 paths of 21-day blocks drawn from the strategy\'s own history, with optional return shift and volatility scaling.', M, y, CW, { s:7.6, lh:10.4 });
     foot();
+    if(m.risk){   /* page 5: tail risk, robustness, allocation */
+      doc.addPage(); head(5); y = 136;
+      var rk = m.risk, rv = cur.val && cur.val.key === qnKey(cur) ? cur.val.res : null, g2 = function(v, d){ return v == null || !isFinite(v) ? '—' : v.toFixed(d); };
+      y = sec('Tail Risk and Quality (daily returns)', y);
+      var L5 = [['Measure', 'Strategy'], ['VaR 95%, 1 day', '-' + g2(rk.var95, 2) + '%'], ['CVaR 95%, 1 day', '-' + g2(rk.cvar95, 2) + '%'], ['Normal-model VaR 95%', '-' + g2(rk.varNormal95, 2) + '%'], ['Worst day', g2(rk.worstDay, 2) + '%'],
+        ['Omega', g2(rk.omega, 2)], ['Gain-to-pain', g2(rk.gainToPain, 2)], ['Skew', g2(rk.skew, 2)], ['Kurtosis (normal = 3)', g2(rk.kurt, 1)], ['Information ratio', g2(rk.ir, 2)], ['Tracking error', g2(rk.te, 1) + '%'],
+        ['Treynor (excess return per beta)', rk.treynor == null ? '—' : qnPct(rk.treynor)], ['Jensen alpha (per year)', rk.jensen == null ? '—' : qnPct(rk.jensen)]].concat(m.profitFactor != null ? [['Profit factor', g2(m.profitFactor, 2)]] : []);
+      table(L5, M, y, [150, 80], { head:1 });
+      var R5 = [['Robustness check', 'Result']];
+      if(rv){
+        R5.push(['Probabilistic Sharpe', rv.psr == null ? '—' : (rv.psr * 100).toFixed(0) + '%']);
+        if(rv.dsr != null) R5.push(['Deflated Sharpe (' + rv.sens.trials + ' variants)', (rv.dsr * 100).toFixed(0) + '%']);
+        if(rv.boot){ R5.push(['Sharpe, 5th to 95th pct', g2(rv.boot.sharpe[0], 2) + ' to ' + g2(rv.boot.sharpe[2], 2)]); R5.push(['CAGR, 5th to 95th pct', qnPct(rv.boot.cagr[0]) + ' to ' + qnPct(rv.boot.cagr[2])]); R5.push(['Sharpe above 0 in', rv.boot.probSharpePositive.toFixed(0) + '% of paths']); }
+        if(rv.hold){ R5.push(['Sharpe, first 70% / last 30%', g2(rv.hold.inSample.sharpe, 2) + ' / ' + g2(rv.hold.outSample.sharpe, 2)]); R5.push(['Out-of-sample verdict', rv.hold.verdict]); }
+        if(rv.sens) R5.push(['Across its dials', rv.sens.verdict]);
+      } else R5.push(['Not run', 'use "Is this result real?" in the app']);
+      table(R5, M + CW / 2 + 20, y, [150, 90], { head:1 });
+      y += Math.max(L5.length, R5.length) * 12 + 14;
+      if(rv && rv.sens){
+        var S5 = rv.sens; y = sec('Sharpe by Dial Setting' + (S5.ids.length > 1 ? ' (across: ' + S5.labels[0] + ', down: ' + S5.labels[1] + ')' : ' (' + S5.labels[0] + ')'), y);
+        y = table([[S5.ids.length > 1 ? '' : S5.labels[0]].concat(S5.xs.map(String))].concat(S5.grid.map(function(row, i){ return [S5.ys[i] == null ? 'Sharpe' : String(S5.ys[i])].concat(row.map(function(x){ return g2(x, 2); })); })), M, y, [70].concat(S5.xs.map(function(){ return 44; })), { head:1 }) + 10;
+      }
+      if(bt.alloc){
+        y = sec('Allocation: ' + (QN.METHODS[bt.alloc.method] || bt.alloc.method) + (bt.alloc.volTarget ? ', ' + bt.alloc.volTarget + '% volatility target' : ''), y);
+        y = table([['Asset', 'Weight', 'Share of risk']].concat(bt.alloc.syms.map(function(sy, i){ return [sy, g2(bt.alloc.weights[i] * 100, 1) + '%', bt.alloc.share ? g2(bt.alloc.share.share[i], 0) + '%' : '—']; })).concat(bt.alloc.exposure < 99.5 ? [['Cash', g2(100 - bt.alloc.exposure, 1) + '%', '']] : []), M, y, [150, 80, 80], { head:1 }) + 10;
+      }
+      y = sec('How to read these', y);
+      y = para('VaR and CVaR: the loss on a 1-in-20 day, and the average loss on the worst 5% of days (historical, from the daily returns). Omega: total gains divided by total losses. Information ratio: active return over the benchmark divided by tracking error. ' +
+        'Treynor: excess return per unit of beta. Probabilistic Sharpe: the chance the true Sharpe ratio is above 0, adjusting for skew and fat tails. Deflated Sharpe: the same, after charging for the number of dial settings tried. ' +
+        'Resampling: 500 histories built from 21-day blocks of the strategy\'s own daily returns. First 70% / last 30%: the same fixed rules measured on each part; it checks stability over time, it does not re-tune. A passing grade lowers the odds of a lucky result and does not prove an edge.', M, y, CW, { s:8.2 });
+      foot();
+    }
     var name = 'MercerFargo-Quant_' + cur.spec.title.replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').slice(0, 50) + '_' + dstr + '.pdf', blob = doc.output('blob'), fid = 'pdf-' + Date.now().toString(36);
     qnBlobSave(blob, name);
     return qdbDo('readwrite', function(st){ return st.put(blob, fid); }).then(function(){
@@ -13201,7 +13342,7 @@ function bindEvents(){
       case 'quick-toggle': { var q = $('aiQuick'); q.hidden = !q.hidden; break; }
       case 'drawer-full': setFull(!$('drawer').classList.contains('full')); break;
       case 'drawer-tab': rsShowTab(el.getAttribute('data-tab')); break;
-      case 'qn-run': case 'qn-ex': case 'qn-new': case 'qn-open': case 'qn-log': case 'qn-reset': case 'qn-refine': case 'qn-pdf': case 'qn-pdf-dl': case 'qn-log-open': case 'qn-log-del': qnAction(act, el); break;
+      case 'qn-run': case 'qn-ex': case 'qn-new': case 'qn-open': case 'qn-log': case 'qn-reset': case 'qn-refine': case 'qn-val': case 'qn-vol': case 'qn-vol-use': case 'qn-pdf': case 'qn-pdf-dl': case 'qn-log-open': case 'qn-log-del': qnAction(act, el); break;
       case 'pd-wake': case 'pd-guide': case 'pd-run': case 'pd-retry': case 'pd-os': case 'pd-copy': case 'pd-dl': case 'pd-chip': pdAction(act, el); break;
       case 'rs-close': closeDrawer(); break;
       case 'quote': ev.preventDefault(); go('#/quote/' + encodeURIComponent(sym)); break;

@@ -199,3 +199,32 @@ test('Sortino: the Quant tab and the engine use the same downside deviation', as
   const q = QN.metrics(dates, S, B, [], [], 0), e = await run('risk', { series: S, per_year: 252 });
   near(e.sortino, q.s.sortino, 1e-5); near(e.sharpe, q.s.sharpe, 1e-5);
 });
+
+test('batch-1 tools: risk metrics, robustness, allocation, volatility, fractional Kelly', async () => {
+  const g = (() => { const r = rng(5); return () => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r()); })();
+  let a = 100, b = 100;
+  const noisy = { A: days(500, () => (a *= 1 + 0.0004 + 0.01 * g())), B: days(500, () => (b *= 1 + 0.0002 + 0.03 * g())) };
+  const rows = (s) => noisy[s].map((x, i) => ({ ...x, o: x.c * 0.999, h: x.c * 1.01, l: x.c * 0.99 }));
+  const e2 = { history: (s) => rows(s) };
+  const A = noisy.A.map((x) => x.c); A.dates = noisy.A.map((x) => x.d);
+  const B = noisy.B.map((x) => x.c); B.dates = noisy.B.map((x) => x.d);
+
+  const rm = await run('risk_metrics', { series: A, benchmark: B });
+  assert.ok(rm.cvar95Pct > rm.var95Pct && rm.var95Pct > 0 && Number.isFinite(rm.informationRatio) && rm.trackingErrorPct > 0);
+
+  const ro = await run('robustness', { series: A, trials: 20, trial_sharpe_stdev: 0.4 });
+  assert.ok(ro.deflatedSharpe <= ro.probabilisticSharpe && ro.sharpeRange5to95[0] < ro.sharpeRange5to95[2] && ro.holdout.inSample.days > ro.holdout.outSample.days);
+
+  const al = await run('allocate', { assets: ['A', 'B'], method: 'risk_parity' }, e2);
+  near(al.assets.reduce((s, x) => s + x.weightPct, 0), 100, 1e-6);
+  assert.ok(al.assets[0].weightPct > al.assets[1].weightPct);                                  // the calmer asset gets more capital
+  al.assets.forEach((x) => near(x.shareOfRiskPct, 50, 8));                                     // equal risk
+  assert.ok(al.portfolioVolPct < al.equalWeightVolPct);
+  await assert.rejects(run('allocate', { assets: ['A', 'B'], method: 'nonsense' }, e2));
+
+  const vf = await run('vol_forecast', { symbol: 'A' }, e2);
+  assert.ok(vf.garch.volNowPct > 0 && vf.ewmaPct > 0 && vf.garmanKlassPct > 0 && vf.yangZhangPct > 0 && vf.parkinsonPct > 0);
+
+  const k = await run('kelly', { win_rate_pct: 55, win_loss_ratio: 1.5, fraction: 0.25 });
+  near(k.fractionalKellyPct, k.kellyPct * 0.25, 1e-9);
+});

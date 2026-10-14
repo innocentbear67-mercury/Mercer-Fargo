@@ -137,13 +137,29 @@ QN.backtest = function(spec, al, over){
   var filter = (spec.filter || []).map(function(c){ return condFn(c, ctx); });
   var stop = val(spec.stop_pct, P), take = val(spec.take_pct, P), trail = val(spec.trail_pct, P), maxHold = val(spec.max_hold_days, P);
   var side = spec.side === 'short' ? -1 : 1, mc = al.bars[main].c, lastReb = '';
+  /* weighting method (allocation) and volatility targeting (both types): weights come from the trailing `lookback` days and are refreshed on the rebalance dates only */
+  var method = String((over && over.method) || spec.method || 'fixed'), rfp = val(spec.rf, P) || 0, curKey = '', memoK = null, memoW = null, aSyms = [];
+  var lb = Math.max(30, Math.round(+val(over && over.lookback != null ? over.lookback : (spec.lookback || 252), P) || 252));
+  var vt = +val(over && over.vol_target != null ? over.vol_target : spec.vol_target, P) || 0, maxLev = Math.max(.1, +val(spec.max_leverage, P) || 1);
+  if(spec.type === 'allocation') spec.assets.forEach(function(a){ var s = String(a.sym).toUpperCase(); if(aSyms.indexOf(s) < 0) aSyms.push(s); });
+  var winX = function(syms, i){ var a = Math.max(1, i - lb + 1); return syms.map(function(s){ return R[s].slice(a, i + 1); }); };
+  var volScale = function(t, i){
+    if(!vt) return 1; var syms = Object.keys(t), a = Math.max(1, i - lb + 1), pr = [];
+    for(var k = a; k <= i; k++){ var x = 0; syms.forEach(function(s){ x += t[s] * R[s][k]; }); pr.push(x); }
+    var v = pr.length >= 20 ? sd(pr) * Math.sqrt(DAY) : 0; return v ? Math.min(maxLev, vt / 100 / v) : 1;
+  };
   var target = function(i){   // weights to hold from the close of day i
     if(spec.type === 'allocation'){
       var ok = filter.every(function(f){ return f(i); }), t = {};
       if(!ok){ if(alt) t[alt] = 1; return t; }
-      var tot = spec.assets.reduce(function(s, a){ return s + (+val(a.weight, P) || 0); }, 0) || 1;
-      spec.assets.forEach(function(a){ var s = String(a.sym).toUpperCase(); t[s] = (t[s] || 0) + (+val(a.weight, P) || 0) / tot; });
-      return t;
+      if(memoK !== curKey || !memoW){
+        var tot = spec.assets.reduce(function(s, a){ return s + (+val(a.weight, P) || 0); }, 0) || 1;
+        spec.assets.forEach(function(a){ var s = String(a.sym).toUpperCase(); t[s] = (t[s] || 0) + (+val(a.weight, P) || 0) / tot; });
+        if(method !== 'fixed' && aSyms.length > 1){ var X = winX(aSyms, i); if(X[0].length >= 60){ var wv = QN.weights(method, X, rfp); t = {}; aSyms.forEach(function(s, k){ t[s] = wv[k]; }); } }
+        var sc = volScale(t, i); if(sc !== 1) Object.keys(t).forEach(function(s){ t[s] *= sc; });
+        memoW = t; memoK = curKey;
+      }
+      return memoW;
     }
     var px = mc[i];
     if(open){
@@ -155,9 +171,9 @@ QN.backtest = function(spec, al, over){
       else if(maxHold && i - open.i >= maxHold) why = 'time';
       else if(exit.length && exit.some(function(f){ return f(i); })) why = 'signal';
       if(why){ trades.push({ in:al.dates[open.i], out:al.dates[i], pxIn:open.px, pxOut:px, ret:r * 100, days:i - open.i, why:why }); open = null; }
-    } else if(entry.length && entry.every(function(f){ return f(i); })) open = { i:i, px:px, peak:px };
+    } else if(entry.length && entry.every(function(f){ return f(i); })) open = { i:i, px:px, peak:px, sc:(function(){ var t0 = {}; t0[main] = 1; return volScale(t0, i); })() };
     var t2 = {};
-    if(open) t2[main] = side * size; else if(alt) t2[alt] = size;
+    if(open) t2[main] = side * size * (open.sc || 1); else if(alt) t2[alt] = size;
     return t2;
   };
   for(var i = i0; i < n; i++){
@@ -168,7 +184,7 @@ QN.backtest = function(spec, al, over){
     if(spec.type === 'allocation'){
       var tot = 1 + r, dw = {}; Object.keys(w).forEach(function(s){ dw[s] = w[s] * (1 + (i > i0 ? R[s][i] : 0)) / (tot || 1); }); nw = base = dw;   // weights drift with prices between rebalances
       var reb = spec.rebalance || 'monthly', key = reb === 'none' ? (i === i0 ? 'x' : lastReb) : reb === 'yearly' ? al.dates[i].slice(0, 4) : reb === 'quarterly' ? al.dates[i].slice(0, 4) + Math.floor((+al.dates[i].slice(5, 7) - 1) / 3) : al.dates[i].slice(0, 7);
-      var t = target(i), flip = Object.keys(t).join() !== Object.keys(w).join();
+      curKey = key; var t = target(i), flip = Object.keys(t).join() !== Object.keys(w).join();
       if(key !== lastReb || flip || i === i0){ nw = t; lastReb = key; }
     } else nw = target(i);
     var turn = 0, keys = {}; Object.keys(w).concat(Object.keys(nw)).forEach(function(s){ keys[s] = 1; });
@@ -179,8 +195,11 @@ QN.backtest = function(spec, al, over){
     w = nw; inPos.push(Object.keys(w).some(function(s){ return w[s] && s !== alt; }) ? 1 : 0);
   }
   if(open) trades.push({ in:al.dates[open.i], out:al.dates[n - 1], pxIn:open.px, pxOut:mc[n - 1], ret:side * (mc[n - 1] / open.px - 1) * 100, days:n - 1 - open.i, why:'open', open:true });
+  var alloc = null;
+  if(spec.type === 'allocation' && memoW){ var X2 = winX(aSyms, n - 1), ws = aSyms.map(function(s){ return memoW[s] || 0; }), sw = ws.reduce(function(a, b){ return a + b; }, 0) || 1;
+    alloc = { method:method, lookback:lb, volTarget:vt, syms:aSyms, weights:ws, exposure:sw * 100, share:aSyms.length > 1 && X2[0].length > 30 ? QN.riskShare(ws.map(function(x){ return x / sw; }), X2) : null }; }
   var dates = al.dates.slice(i0);
-  return { dates:dates, eq:eq, bench:bq, ret:dr, bret:bq.map(function(v, k){ return k ? v / bq[k - 1] - 1 : 0; }).slice(1), inPos:inPos, trades:trades, metrics:QN.metrics(dates, eq, bq, trades, inPos, val(spec.rf, P) || 0), P:P, main:main, bsym:bsym };
+  return { alloc:alloc, dates:dates, eq:eq, bench:bq, ret:dr, bret:bq.map(function(v, k){ return k ? v / bq[k - 1] - 1 : 0; }).slice(1), inPos:inPos, trades:trades, metrics:QN.metrics(dates, eq, bq, trades, inPos, val(spec.rf, P) || 0), P:P, main:main, bsym:bsym };
 };
 
 /* ------------------------------------------------------------------ metrics */
@@ -208,7 +227,7 @@ QN.metrics = function(dates, eq, bq, trades, inPos, rf){
   var months = {}; eq.forEach(function(v, k){ if(!k) return; var m = dates[k].slice(0, 7); if(!months[m]) months[m] = { a:eq[k - 1] }; months[m].b = v; });
   return { s:s, b:b, beta:beta, alpha:(ms - beta * mb) * DAY * 100, corr:corr, trades:trades.length, closed:closed.length, winRate:closed.length ? wins.length / closed.length * 100 : null,
     avgTrade:closed.length ? mean(closed.map(function(t){ return t.ret; })) : null, avgDays:closed.length ? mean(closed.map(function(t){ return t.days; })) : null,
-    exposure:inPos.length ? mean(inPos) * 100 : 0, beatYears:beat, nYears:s.years.length, from:dates[0], to:dates[dates.length - 1],
+    exposure:inPos.length ? mean(inPos) * 100 : 0, risk:QN.riskStats(rs, rb, rf), profitFactor:QN.profitFactor(trades), beatYears:beat, nYears:s.years.length, from:dates[0], to:dates[dates.length - 1],
     monthly:Object.keys(months).map(function(m){ return [m, (months[m].b / months[m].a - 1) * 100]; }) };
 };
 /* The report's three judgements, rule-based so they are the same every time.
@@ -217,6 +236,211 @@ QN.metrics = function(dates, eq, bq, trades, inPos, rf){
 QN.rating = function(m){ var d = m.s.sharpe - m.b.sharpe; return d > .4 ? 5 : d > .15 ? 4 : d > -.15 ? 3 : d > -.4 ? 2 : 1; };
 QN.edge = function(m){ var p = m.nYears ? m.beatYears / m.nYears : 0; return m.nYears < 3 ? 'Too short' : p >= .7 ? 'Wide' : p >= .55 ? 'Narrow' : 'None'; };
 QN.uncertainty = function(spread){ return spread < 30 ? 'Low' : spread < 50 ? 'Medium' : spread < 80 ? 'High' : 'Very High'; };
+
+
+/* ------------------------------------------------------------------ risk & quality statistics */
+function ncdf(x){ var z = Math.abs(x) / Math.SQRT2, t = 1 / (1 + .3275911 * z), e = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - .284496736) * t + .254829592) * t * Math.exp(-z * z); return x >= 0 ? .5 * (1 + e) : .5 * (1 - e); }   // Abramowitz-Stegun 7.1.26, error under 1e-7
+function ninv(p){   // inverse normal CDF (Acklam)
+  var a = [-3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2, 1.383577518672690e2, -3.066479806614716e1, 2.506628277459239], b = [-5.447609879822406e1, 1.615858368580409e2, -1.556989798598866e2, 6.680131188771972e1, -1.328068155288572e1],
+    c = [-7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783], d = [7.784695709041462e-3, 3.224671290700398e-1, 2.445134137142996, 3.754408661907416], q, r;
+  if(p <= 0) return -Infinity; if(p >= 1) return Infinity;
+  if(p < .02425){ q = Math.sqrt(-2 * Math.log(p)); return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  if(p > 1 - .02425){ q = Math.sqrt(-2 * Math.log(1 - p)); return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  q = p - .5; r = q * q; return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+}
+QN.ncdf = ncdf; QN.ninv = ninv;
+function moments(r){ var m = mean(r), s2 = 0, s3 = 0, s4 = 0, n = r.length; for(var i = 0; i < n; i++){ var d = r[i] - m; s2 += d * d; s3 += d * d * d; s4 += d * d * d * d; } s2 /= n; var sg = Math.sqrt(s2); return { m:m, sd:sg, skew:sg ? s3 / n / (sg * sg * sg) : 0, kurt:s2 ? s4 / n / (s2 * s2) : 3 }; }
+function qtile(a, q){ var x = a.slice().sort(function(u, w){ return u - w; }), i = (x.length - 1) * q, lo = Math.floor(i); return x[lo] + (x[Math.min(lo + 1, x.length - 1)] - x[lo]) * (i - lo); }
+/* Tail and quality measures of daily returns r (fractions). b = benchmark daily returns of the same length (optional), rf = annual % */
+QN.riskStats = function(r, b, rf){
+  var n = r.length, o = {}; if(n < 20) return null;
+  var q95 = qtile(r, .05), tail = r.filter(function(x){ return x <= q95; }), mo = moments(r), gain = 0, loss = 0;
+  r.forEach(function(x){ if(x > 0) gain += x; else loss -= x; });
+  o.var95 = -q95 * 100; o.cvar95 = -mean(tail) * 100; o.varNormal95 = -(mo.m + ninv(.05) * mo.sd) * 100;
+  o.worstDay = Math.min.apply(null, r) * 100; o.skew = mo.skew; o.kurt = mo.kurt;
+  o.omega = loss ? gain / loss : null; o.gainToPain = loss ? (gain - loss) / loss : null;   // Omega(0) = gains / losses; gain-to-pain = net return / total losses
+  if(b && b.length === n){
+    var act = r.map(function(x, i){ return x - b[i]; }), te = sd(act) * Math.sqrt(DAY), mb = mean(b), vb = 0, cv = 0, ms = mean(r);
+    for(var i = 0; i < n; i++){ vb += (b[i] - mb) * (b[i] - mb); cv += (r[i] - ms) * (b[i] - mb); }
+    var beta = vb ? cv / vb : 0;
+    o.te = te * 100; o.ir = te ? mean(act) * DAY / te : null;
+    o.treynor = beta ? (ms * DAY - (rf || 0) / 100) / beta * 100 : null;   // % of excess return per unit of beta
+    o.jensen = (ms - beta * mb) * DAY * 100;
+  }
+  return o;
+};
+QN.profitFactor = function(trades){
+  var w = 0, l = 0; trades.forEach(function(t){ if(t.open) return; if(t.ret > 0) w += t.ret; else l -= t.ret; });
+  return l ? w / l : (w ? null : null);
+};
+
+/* ------------------------------------------------------------------ is the result real? (overfitting checks) */
+function sharpeOf(r, rf){ var v = sd(r) * Math.sqrt(DAY); return v ? (mean(r) * DAY - (rf || 0) / 100) / v : 0; }
+/* Probabilistic Sharpe Ratio (Bailey & Lopez de Prado): the chance the true Sharpe beats `bench` (annual units), given skew and fat tails. */
+QN.psr = function(r, bench, rf){
+  var n = r.length, mo = moments(r); if(n < 30 || !mo.sd) return null;
+  var sr = (mo.m - (rf || 0) / 100 / DAY) / mo.sd, b = (bench || 0) / Math.sqrt(DAY), den = Math.sqrt(Math.max(1e-12, 1 - mo.skew * sr + (mo.kurt - 1) / 4 * sr * sr));
+  return ncdf((sr - b) * Math.sqrt(n - 1) / den);
+};
+/* Deflated Sharpe: PSR against the Sharpe you would expect from the best of `trials` tries of pure noise (trialSd = stdev of the tried Sharpes, annual units). */
+QN.dsr = function(r, trials, trialSd, rf){
+  if(!(trials > 1)) return QN.psr(r, 0, rf);
+  var g = .5772156649, sr0 = trialSd * ((1 - g) * ninv(1 - 1 / trials) + g * ninv(1 - 1 / (trials * Math.E)));
+  return QN.psr(r, Math.max(0, sr0), rf);
+};
+/* Block bootstrap of the daily returns: how wide the Sharpe and CAGR could be by luck of the draw. */
+QN.bootstrap = function(r, o){
+  o = o || {}; var n = r.length, B = o.block || 21, paths = o.paths || 500, rand = rng(o.seed || 11), sh = [], cg = [];
+  if(n < 60) return null;
+  for(var p = 0; p < paths; p++){
+    var x = [], v = 1;
+    while(x.length < n){ var st = Math.floor(rand() * (n - B)); for(var j = 0; j < B && x.length < n; j++) x.push(r[st + j]); }
+    x.forEach(function(d){ v *= 1 + d; });
+    sh.push(sharpeOf(x, o.rf)); cg.push((Math.pow(v, DAY / n) - 1) * 100);
+  }
+  return { sharpe:[qtile(sh, .05), qtile(sh, .5), qtile(sh, .95)], cagr:[qtile(cg, .05), qtile(cg, .5), qtile(cg, .95)], probSharpePositive:sh.filter(function(x){ return x > 0; }).length / paths * 100, paths:paths };
+};
+/* Hold-out view: the first `split` share of the days against the rest, with the same fixed rules. */
+QN.holdout = function(r, split, rf){
+  var k = Math.floor(r.length * (split || .7)), a = r.slice(0, k), b = r.slice(k); if(a.length < 60 || b.length < 60) return null;
+  var f = function(x){ var q = 1, pk = 1, mdd = 0; x.forEach(function(d){ q *= 1 + d; if(q > pk) pk = q; mdd = Math.min(mdd, q / pk - 1); }); return { sharpe:sharpeOf(x, rf), cagr:(Math.pow(q, DAY / x.length) - 1) * 100, maxdd:mdd * 100, days:x.length }; };
+  var i = f(a), o = f(b), ratio = i.sharpe > 0 ? o.sharpe / i.sharpe : null;
+  return { inSample:i, outSample:o, ratio:ratio, verdict:o.sharpe <= 0 ? 'Fails out of sample' : ratio == null ? 'Holds up' : ratio >= .7 ? 'Holds up' : ratio >= .35 ? 'Fades' : 'Mostly in-sample' };
+};
+/* Re-run the strategy over a grid of its own dials (up to two) and record the Sharpe: a robust rule has a plateau, not a spike. */
+QN.sensitivity = function(spec, al, over, ids, npts){
+  var ps = (spec.params || []).filter(function(p){ return (!ids || ids.indexOf(p.id) >= 0) && +p.max > +p.min; }).slice(0, 2); if(!ps.length) return null;
+  npts = npts || (ps.length === 1 ? 7 : 5);
+  var axis = function(p){ var out = [], lo = +p.min, hi = +p.max, st = +p.step || 1; for(var i = 0; i < npts; i++){ var v = lo + (hi - lo) * i / (npts - 1); v = Math.round(v / st) * st; v = +v.toFixed(6); if(out.indexOf(v) < 0) out.push(v); } return out; };
+  var xs = axis(ps[0]), ys = ps[1] ? axis(ps[1]) : [null], grid = [], all = [];
+  ys.forEach(function(y){ var row = []; xs.forEach(function(x){ var ov = Object.assign({}, over || {}); ov[ps[0].id] = x; if(ps[1]) ov[ps[1].id] = y; var sh = null; try{ sh = QN.backtest(spec, al, ov).metrics.s.sharpe; }catch(e){} row.push(sh); if(sh != null) all.push(sh); }); grid.push(row); });
+  if(all.length < 3) return null;
+  var base = QN.backtest(spec, al, over).metrics.s.sharpe, m = mean(all);
+  return { ids:ps.map(function(p){ return p.id; }), labels:ps.map(function(p){ return p.label || p.id; }), xs:xs, ys:ys, grid:grid, base:base, trials:all.length, trialSd:sd(all), positivePct:all.filter(function(v){ return v > 0; }).length / all.length * 100,
+    min:Math.min.apply(null, all), max:Math.max.apply(null, all), verdict:all.filter(function(v){ return v > 0; }).length / all.length >= .8 && m > base * .5 ? 'Stable across the dials' : all.filter(function(v){ return v > 0; }).length / all.length >= .5 ? 'Sensitive to the dials' : 'Fragile: works only in a corner' };
+};
+/* Everything above on one result, ready to show. `sens` is optional (it costs a grid of backtests). */
+QN.validate = function(bt, sens, rf){
+  var r = bt.ret, out = { psr:QN.psr(r, 0, rf), boot:QN.bootstrap(r, { rf:rf }), hold:QN.holdout(r, .7, rf), sens:sens || null };
+  if(sens) out.dsr = QN.dsr(r, sens.trials, sens.trialSd, rf);
+  return out;
+};
+
+/* ------------------------------------------------------------------ allocation methods (long-only weights from a window of daily returns) */
+function covOf(X){   // X: assets x days
+  var p = X.length, n = X[0].length, mu = X.map(mean), S = [];
+  for(var i = 0; i < p; i++){ S.push([]); for(var j = 0; j <= i; j++){ var c = 0; for(var k = 0; k < n; k++) c += (X[i][k] - mu[i]) * (X[j][k] - mu[j]); c /= (n - 1); S[i][j] = c; if(j < i) S[j][i] = c; } }
+  return S;
+}
+/* Ledoit-Wolf (2004) shrinkage toward a scaled identity: keeps the matrix well-conditioned when assets are few days apart or highly correlated. */
+QN.shrink = function(X){
+  var p = X.length, n = X[0].length, S = covOf(X), mu = X.map(mean), m = 0, d2 = 0, b2 = 0, i, j, k;
+  for(i = 0; i < p; i++) m += S[i][i]; m /= p;
+  for(i = 0; i < p; i++) for(j = 0; j < p; j++) d2 += Math.pow(S[i][j] - (i === j ? m : 0), 2);
+  for(k = 0; k < n; k++){ var f = 0; for(i = 0; i < p; i++) for(j = 0; j < p; j++) f += Math.pow((X[i][k] - mu[i]) * (X[j][k] - mu[j]) - S[i][j], 2); b2 += f; }
+  b2 = Math.min(b2 / (n * n), d2); var a = d2 ? b2 / d2 : 0;
+  return { S:S.map(function(row, i){ return row.map(function(v, j){ return (1 - a) * v + (i === j ? a * m : 0); }); }), mu:mu, intensity:a };
+};
+function solve(A, b){   // Gaussian elimination with partial pivoting
+  var n = b.length, M = A.map(function(r, i){ return r.concat([b[i]]); }), i, j, k;
+  for(i = 0; i < n; i++){ var pv = i; for(j = i + 1; j < n; j++) if(Math.abs(M[j][i]) > Math.abs(M[pv][i])) pv = j; var t = M[i]; M[i] = M[pv]; M[pv] = t; if(Math.abs(M[i][i]) < 1e-14) return null;
+    for(j = i + 1; j < n; j++){ var f = M[j][i] / M[i][i]; for(k = i; k <= n; k++) M[j][k] -= f * M[i][k]; } }
+  var x = new Array(n); for(i = n - 1; i >= 0; i--){ var s2 = M[i][n]; for(j = i + 1; j < n; j++) s2 -= M[i][j] * x[j]; x[i] = s2 / M[i][i]; } return x;
+}
+/* w proportional to S^-1 v with negative weights dropped and re-solved: v = 1 gives minimum variance, v = mu gives the maximum-Sharpe (tangency) portfolio. */
+function longOnly(S, v){
+  var p = S.length, act = []; for(var i = 0; i < p; i++) act.push(i);
+  for(var it = 0; it < p; it++){
+    var A = act.map(function(a){ return act.map(function(b){ return S[a][b]; }); }), x = solve(A, act.map(function(a){ return v[a]; }));
+    if(!x) return null;
+    var tot = x.reduce(function(s, y){ return s + y; }, 0); if(!tot) return null; x = x.map(function(y){ return y / tot; });
+    var bad = x.some(function(y){ return y < -1e-12; });
+    if(!bad){ var w = new Array(p).fill(0); act.forEach(function(a, k){ w[a] = Math.max(0, x[k]); }); return w; }
+    act = act.filter(function(a, k){ return x[k] >= 0; }); if(!act.length) return null;
+  }
+  return null;
+}
+function ercW(S){
+  var p = S.length, w = S.map(function(r, i){ return 1 / Math.sqrt(r[i]); }), tot = w.reduce(function(a, b){ return a + b; }, 0); w = w.map(function(x){ return x / tot; });
+  for(var it = 0; it < 300; it++){
+    for(var i = 0; i < p; i++){ var c = 0; for(var j = 0; j < p; j++) if(j !== i) c += w[j] * S[i][j]; w[i] = (-c + Math.sqrt(c * c + 4 * S[i][i] / p)) / (2 * S[i][i]); }   // coordinate update so every asset carries 1/p of the risk
+    tot = w.reduce(function(a, b){ return a + b; }, 0); w = w.map(function(x){ return x / tot; });
+  }
+  return w;
+}
+function hrpW(S){   // Hierarchical Risk Parity (Lopez de Prado 2016): cluster by correlation, then split risk down the tree
+  var p = S.length; if(p === 1) return [1]; if(p === 2){ var a = 1 / S[0][0], b = 1 / S[1][1]; return [a / (a + b), b / (a + b)]; }
+  var i, j, k, D = S.map(function(r, a){ return r.map(function(v, b){ return Math.sqrt(Math.max(0, (1 - v / Math.sqrt(S[a][a] * S[b][b])) / 2)); }); });
+  var D2 = D.map(function(r, a){ return r.map(function(v, b){ var t = 0; for(k = 0; k < p; k++) t += Math.pow(D[a][k] - D[b][k], 2); return Math.sqrt(t); }); });
+  var cl = []; for(i = 0; i < p; i++) cl.push([i]);
+  var order = (function(){   // single-linkage merges; the dendrogram's leaf order puts similar assets side by side
+    var cs = cl.map(function(c){ return { leaves:c }; });
+    while(cs.length > 1){ var bi = 0, bj = 1, bd = Infinity;
+      for(i = 0; i < cs.length; i++) for(j = i + 1; j < cs.length; j++){ var dm = Infinity; cs[i].leaves.forEach(function(x){ cs[j].leaves.forEach(function(y){ if(D2[x][y] < dm) dm = D2[x][y]; }); }); if(dm < bd){ bd = dm; bi = i; bj = j; } }
+      var m = { leaves:cs[bi].leaves.concat(cs[bj].leaves) }; cs = cs.filter(function(x, q){ return q !== bi && q !== bj; }); cs.push(m); }
+    return cs[0].leaves;
+  })();
+  var cv = function(items){ var iv = items.map(function(x){ return 1 / S[x][x]; }), t = iv.reduce(function(a, b){ return a + b; }, 0), v = 0; items.forEach(function(x, a){ items.forEach(function(y, b){ v += iv[a] / t * iv[b] / t * S[x][y]; }); }); return v; };
+  var w = new Array(p).fill(1), groups = [order];
+  while(groups.length){ var g = groups.pop(); if(g.length < 2) continue; var h = Math.floor(g.length / 2), l = g.slice(0, h), r = g.slice(h), vl = cv(l), vr = cv(r), al = 1 - vl / (vl + vr);
+    l.forEach(function(x){ w[x] *= al; }); r.forEach(function(x){ w[x] *= 1 - al; }); groups.push(l, r); }
+  return w;
+}
+QN.METHODS = { fixed:'Fixed weights', equal:'Equal weight', inverse_vol:'Inverse volatility', risk_parity:'Risk parity (equal risk)', min_variance:'Minimum variance', max_sharpe:'Maximum Sharpe', hrp:'Hierarchical risk parity' };
+/* Weights for `method` from X (assets x days of daily returns). Falls back to equal weight if the maths cannot be solved. */
+QN.weights = function(method, X, rf){
+  var p = X.length, eq = new Array(p).fill(1 / p);
+  if(p < 2 || method === 'equal' || !QN.METHODS[method]) return eq;
+  var sh = QN.shrink(X), S = sh.S, w = null;
+  if(method === 'inverse_vol'){ var iv = S.map(function(r, i){ return 1 / Math.sqrt(r[i]); }), t = iv.reduce(function(a, b){ return a + b; }, 0); w = iv.map(function(x){ return x / t; }); }
+  else if(method === 'risk_parity') w = ercW(S);
+  else if(method === 'min_variance') w = longOnly(S, new Array(p).fill(1));
+  else if(method === 'hrp') w = hrpW(S);
+  else if(method === 'max_sharpe'){
+    var g = mean(sh.mu), mu = sh.mu.map(function(m){ return .5 * m + .5 * g - (rf || 0) / 100 / DAY; });   // trailing means are noisy: pull each halfway to the group average
+    w = longOnly(S, mu); if(!w || !mu.some(function(m){ return m > 0; })) w = longOnly(S, new Array(p).fill(1));
+  }
+  return w && w.every(isFinite) ? w : eq;
+};
+/* Risk each asset contributes to a portfolio, as % of total, from the same window. */
+QN.riskShare = function(w, X){
+  var S = covOf(X), p = w.length, tot = 0, c = [];
+  for(var i = 0; i < p; i++){ var m = 0; for(var j = 0; j < p; j++) m += S[i][j] * w[j]; c.push(w[i] * m); tot += w[i] * m; }
+  return { share:c.map(function(v){ return tot ? v / tot * 100 : 0; }), vol:Math.sqrt(tot * DAY) * 100 };
+};
+
+/* ------------------------------------------------------------------ volatility estimators and forecasts */
+function annual(v){ return Math.sqrt(Math.max(0, v) * DAY) * 100; }
+/* Garch(1,1) by Gaussian likelihood with variance targeting (long-run variance = sample variance), a coarse grid then a finer one. */
+QN.garch = function(r){
+  var n = r.length; if(n < 120) return null;
+  var m = mean(r), e = r.map(function(x){ return x - m; }), V = e.reduce(function(s, x){ return s + x * x; }, 0) / n;
+  var ll = function(al, be){ var h = V, s = 0; for(var t = 0; t < n; t++){ s += Math.log(h) + e[t] * e[t] / h; h = V * (1 - al - be) + al * e[t] * e[t] + be * h; } return -s / 2; };
+  var best = null;
+  var scan = function(a0, a1, b0, b1, k){ for(var i = 0; i <= k; i++) for(var j = 0; j <= k; j++){ var al = a0 + (a1 - a0) * i / k, be = b0 + (b1 - b0) * j / k; if(al <= 0 || be < 0 || al + be >= .9995) continue; var l = ll(al, be); if(!best || l > best.l) best = { al:al, be:be, l:l }; } };
+  scan(.01, .25, .5, .98, 24); var a = best.al, b = best.be; scan(Math.max(.002, a - .02), a + .02, Math.max(0, b - .03), Math.min(.998, b + .03), 12);
+  var al = best.al, be = best.be, h = V; for(var t = 0; t < n; t++) h = V * (1 - al - be) + al * e[t] * e[t] + be * h;   // h is now tomorrow's variance
+  var per = al + be, avg = 0, hh = h; for(var d = 0; d < DAY; d++){ avg += hh; hh = V + per * (hh - V); }
+  return { alpha:al, beta:be, persistence:per, halfLife:per < 1 ? Math.log(.5) / Math.log(per) : null, longRunVol:annual(V), nowVol:annual(h), nextYearVol:annual(avg / DAY) };
+};
+/* bars: { o, h, l, c } arrays. Annualised % over the last `win` days. */
+QN.rangeVol = function(bars, win){
+  var n = bars.c.length, a = Math.max(1, n - (win || 63)), ln = Math.log, ok = true, P = 0, G = 0, RS = 0, ov = [], oc = [], k = 0;
+  for(var i = a; i < n; i++){
+    var o = bars.o[i], h = bars.h[i], l = bars.l[i], c = bars.c[i], pc = bars.c[i - 1]; if(!(o > 0 && h > 0 && l > 0 && c > 0 && pc > 0)){ ok = false; break; }
+    var hl = ln(h / l), co = ln(c / o); P += hl * hl; G += .5 * hl * hl - (2 * Math.LN2 - 1) * co * co; RS += ln(h / c) * ln(h / o) + ln(l / c) * ln(l / o); ov.push(ln(o / pc)); oc.push(co); k++;
+  }
+  if(!ok || k < 10 || P === 0) return null;
+  var kk = .34 / (1.34 + (k + 1) / (k - 1)), vo = Math.pow(sd(ov), 2), vc = Math.pow(sd(oc), 2);
+  return { parkinson:annual(P / k / (4 * Math.LN2)), garmanKlass:annual(G / k), yangZhang:annual(vo + kk * vc + (1 - kk) * RS / k), days:k };
+};
+/* Every estimate for one return series (and the OHLC bars when there are any). */
+QN.volReport = function(r, bars){
+  var n = r.length, ew = 0, i; if(n < 30) return null;
+  var m = mean(r); ew = r.slice(0, 30).reduce(function(s, x){ return s + (x - m) * (x - m); }, 0) / 30; for(i = 0; i < n; i++) ew = .94 * ew + .06 * (r[i] - m) * (r[i] - m);
+  var last = r.slice(-21), g = QN.garch(r), full = sd(r) * Math.sqrt(DAY) * 100;
+  return { realized21:sd(last) * Math.sqrt(DAY) * 100, realized63:sd(r.slice(-63)) * Math.sqrt(DAY) * 100, full:full, ewma:annual(ew), garch:g, range:bars ? QN.rangeVol(bars, 63) : null };
+};
 
 /* ------------------------------------------------------------------ the projection */
 function rng(seed){ return function(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }

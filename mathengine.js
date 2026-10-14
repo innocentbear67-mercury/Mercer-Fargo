@@ -307,10 +307,11 @@ def('position_size', 'account, risk_pct (of account), entry, stop: shares to buy
   var sh = Math.floor(risk / per);
   return { shares:sh, positionValue:sh * e, positionPctOfAccount:sh * e / acct * 100, riskAmount:sh * per, riskPerShare:per, stopDistancePct:per / e * 100 };
 });
-def('kelly', 'win_rate_pct, win_loss_ratio (avg win / avg loss)', function(a){
+def('kelly', 'win_rate_pct, win_loss_ratio (avg win / avg loss), fraction?[0.5] (of full Kelly to bet)', function(a){
   var p = num(a.win_rate_pct, 'win_rate_pct') / 100, b = num(a.win_loss_ratio, 'win_loss_ratio'); if(b <= 0) bad('win_loss_ratio must be positive');
-  var k = p - (1 - p) / b;
-  return { kellyPct:k * 100, halfKellyPct:k * 50, expectancyPerUnitRisked:p * b - (1 - p), note:k <= 0 ? 'No edge: Kelly says do not bet.' : undefined };
+  var k = p - (1 - p) / b, f = a.fraction != null ? num(a.fraction, 'fraction') : .5;
+  if(f <= 0 || f > 1) bad('fraction must be above 0 and at most 1 (0.5 = half Kelly)');
+  return { kellyPct:k * 100, halfKellyPct:k * 50, fraction:f, fractionalKellyPct:k * 100 * f, expectancyPerUnitRisked:p * b - (1 - p), note:k <= 0 ? 'No edge: Kelly says do not bet.' : undefined };
 });
 def('portfolio_vol', 'assets:[{symbol, weight}], range?[1Y]: annual volatility, each asset\'s share of risk, diversification', function(a, env){
   var as = list(a.assets, 'assets', 2);
@@ -324,6 +325,54 @@ def('portfolio_vol', 'assets:[{symbol, weight}], range?[1Y]: annual volatility, 
     var vol = Math.sqrt(pv), solo = sum(w.map(function(wi, i){ return wi * Math.sqrt(C[i][i]); }));
     return { volatilityPct:vol * 100, weightedAverageVolPct:solo * 100, diversificationBenefitPct:(solo - vol) * 100,
       assets:as.map(function(x, i){ return { symbol:x.symbol, weightPct:w[i] * 100, volatilityPct:Math.sqrt(C[i][i]) * 100, shareOfRiskPct:pv ? mc[i] / pv * 100 : 0 }; }), from:dates[0], to:dates[dates.length - 1] };
+  });
+});
+
+
+/* risk quality, robustness, allocation and volatility (the Quant engine's batch-1 tools) */
+function Q(){ var q = root.QN; if(!q || !q.riskStats) bad('the Quant engine is not loaded'); return q; }
+function dailyOf(p, what){ if(perYear(p.dates) < 150) bad(what + ' works on daily prices: use a 1Y (or longer) daily history, not weekly or monthly'); return rets(p); }
+def('risk_metrics', 'series (prices), benchmark? (prices), rf_pct?[0]: tail risk (historical and normal VaR, CVaR / expected shortfall at 95%), Omega, gain-to-pain, skew, kurtosis, and vs a benchmark: information ratio, tracking error, Treynor, Jensen alpha', function(a){
+  var sr = arr(a.series, 'series', 60), rf = num(a.rf_pct, 'rf_pct', 0), b = null, r;
+  if(a.benchmark){ var al = align(sr, arr(a.benchmark, 'benchmark', 60)); r = dailyOf(al[0], 'risk_metrics'); b = rets(al[1]); } else r = dailyOf(sr, 'risk_metrics');
+  var o = Q().riskStats(r, b, rf); if(!o) bad('need at least 20 daily returns');
+  return { observations:r.length, var95Pct:o.var95, cvar95Pct:o.cvar95, normalVar95Pct:o.varNormal95, worstDayPct:o.worstDay, skew:o.skew, kurtosis:o.kurt, omega:o.omega, gainToPain:o.gainToPain,
+    trackingErrorPct:o.te, informationRatio:o.ir, treynorPct:o.treynor, jensenAlphaPctPerYear:o.jensen };
+});
+def('robustness', 'series (daily prices or a strategy equity curve), trials?[1] (how many variants you tried), trial_sharpe_stdev?[0.5] (spread of those Sharpes), split_pct?[70], rf_pct?[0]: Probabilistic and Deflated Sharpe, bootstrap range for Sharpe and CAGR, first-vs-last split', function(a){
+  var sr = arr(a.series, 'series', 120), rf = num(a.rf_pct, 'rf_pct', 0), r = dailyOf(sr, 'robustness'), q = Q(), trials = num(a.trials, 'trials', 1), sp = num(a.split_pct, 'split_pct', 70) / 100;
+  if(sp < .3 || sp > .9) bad('split_pct must be between 30 and 90');
+  var boot = q.bootstrap(r, { rf:rf }), h = q.holdout(r, sp, rf);
+  return { observations:r.length, probabilisticSharpe:q.psr(r, 0, rf), deflatedSharpe:trials > 1 ? q.dsr(r, trials, num(a.trial_sharpe_stdev, 'trial_sharpe_stdev', .5), rf) : undefined, trials:trials,
+    sharpeRange5to95:boot && boot.sharpe, cagrRange5to95Pct:boot && boot.cagr, probSharpePositivePct:boot && boot.probSharpePositive, holdout:h, note:'Probabilistic Sharpe = chance the true Sharpe is above 0. Deflated Sharpe also charges for the number of variants tried.' };
+});
+function commonRets(ser){
+  var dates = ser.reduce(function(acc, s){ var m = {}; (s.dates || []).forEach(function(d){ m[d] = 1; }); return acc.filter(function(d){ return m[d]; }); }, ser[0].dates || []);
+  return { dates:dates, R:ser.map(function(s){ var m = {}; s.dates.forEach(function(d, i){ m[d] = s[i]; }); return rets(dates.map(function(d){ return m[d]; })); }) };
+}
+def('allocate', 'assets:[symbols or {symbol}], method? (equal | inverse_vol | risk_parity | min_variance | max_sharpe | hrp)[risk_parity], range?[3Y], lookback_days?[252], rf_pct?[0]: long-only weights from the latest lookback window, each asset\'s share of risk, and the volatility versus equal weight', function(a, env){
+  var as = list(a.assets, 'assets', 2), q = Q(), method = String(a.method || 'risk_parity'); if(!q.METHODS[method] || method === 'fixed') bad('method must be one of: equal, inverse_vol, risk_parity, min_variance, max_sharpe, hrp');
+  var lb = Math.max(60, Math.round(num(a.lookback_days, 'lookback_days', 252))), rf = num(a.rf_pct, 'rf_pct', 0);
+  return Promise.all(as.map(function(x){ return getHist(env, typeof x === 'string' ? x : x.symbol, a.range || '3Y'); })).then(function(ser){
+    var c = commonRets(ser); if(c.R[0].length < 80) bad('not enough shared daily history (need about 4 months)');
+    if(perYear(c.dates) < 150) bad('allocate works on daily prices');
+    var X = c.R.map(function(r){ return r.slice(-lb); }), w = q.weights(method, X, rf), eq = X.map(function(){ return 1 / X.length; }), rs = q.riskShare(w, X), re = q.riskShare(eq, X);
+    return { method:method, windowDays:X[0].length, from:c.dates[c.dates.length - X[0].length - 1], to:c.dates[c.dates.length - 1],
+      assets:as.map(function(x, i){ return { symbol:typeof x === 'string' ? x : x.symbol, weightPct:w[i] * 100, shareOfRiskPct:rs.share[i], equalWeightShareOfRiskPct:re.share[i] }; }),
+      portfolioVolPct:rs.vol, equalWeightVolPct:re.vol, note:'Covariance is Ledoit-Wolf shrunk. Weights are estimated from past returns and are not a recommendation.' };
+  });
+});
+def('vol_forecast', 'symbol, range?[5Y]: realized (21 and 63 day), EWMA, GARCH(1,1) now / long-run / next-year volatility, and Parkinson, Garman-Klass, Yang-Zhang from daily high-low-open-close (annualised %)', function(a, env){
+  var q = Q(), sym = String(a.symbol || '').toUpperCase(); if(!sym) bad('symbol is required');
+  if(!env || !env.history) bad('price history is not available here');
+  return Promise.resolve(env.history(sym, a.range || '5Y')).then(function(rows){
+    rows = (rows || []).filter(function(x){ return x && x.c != null; }); if(rows.length < 130) bad('need at least 130 daily bars for ' + sym);
+    var dates = rows.map(function(x){ return x.d; }); if(perYear(dates) < 150) bad('vol_forecast works on daily bars');
+    var c = rows.map(function(x){ return x.c; }), r = rets(c), bars = { o:rows.map(function(x){ return x.o; }), h:rows.map(function(x){ return x.h; }), l:rows.map(function(x){ return x.l; }), c:c };
+    var v = q.volReport(r, bars), g = v.garch;
+    return { symbol:sym, bars:rows.length, from:dates[0], to:dates[dates.length - 1], realized21Pct:v.realized21, realized63Pct:v.realized63, fullPeriodPct:v.full, ewmaPct:v.ewma,
+      garch:g && { alphaPct:g.alpha * 100, betaPct:g.beta * 100, persistence:g.persistence, halfLifeDays:g.halfLife, volNowPct:g.nowVol, longRunPct:g.longRunVol, nextYearAvgPct:g.nextYearVol },
+      parkinsonPct:v.range && v.range.parkinson, garmanKlassPct:v.range && v.range.garmanKlass, yangZhangPct:v.range && v.range.yangZhang };
   });
 });
 
