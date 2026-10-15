@@ -307,6 +307,7 @@ input[type=color]{width:64px;height:36px;padding:2px;border:1px solid var(--fh-b
 .tp-px{color:#d6d3ca}
 .tp-ch.up{color:var(--cc-up,#3ddc6f)}.tp-ch.down{color:var(--cc-dn,#ff5c67)}
 .tp-i.fl .tp-px{animation:tpFlash .9s ease-out}
+.lv-fl{animation:tpFlash .9s ease-out}
 @keyframes tpFlash{from{color:var(--mf-gold)}}
 @media (prefers-reduced-motion:reduce){.tp-track{animation:none}.tape{overflow-x:auto;scrollbar-width:none}}
 .subnav{
@@ -3738,16 +3739,21 @@ function yhLive(list){
     jobs.push(fetchJSON(OC_PROXY + '/api/live?symbols=' + encodeURIComponent(list.slice(i, i + 40).join(',')), 8000).then(function(j){ return j.quotes || []; }, function(){ return []; }));
   return Promise.all(jobs).then(function(a){ return [].concat.apply([], a); });
 }
-function applyLive(L){
-  /* US stocks, ETFs and indices only: Yahoo reports delay 0 even for feeds it delays (futures, SGX), so the exchange decides */
-  if(!L || L.price == null || L.delay || L.tz !== 'America/New_York' || !/^(EQUITY|ETF|INDEX|MUTUALFUND)$/.test(L.type || '')) return false;
-  var s = L.symbol, q = DATA.quotes[s] || {};
-  if(q.cur && L.currency && q.cur !== L.currency) return false;   // same ticker, different listing
+/* US stocks, ETFs and indices only: Yahoo reports delay 0 even for feeds it delays (futures, SGX), so the exchange decides */
+function liveOk(L){ return !!(L && L.price != null && !L.delay && L.tz === 'America/New_York' && /^(EQUITY|ETF|INDEX|MUTUALFUND)$/.test(L.type || '')); }
+function liveMove(L){
   var ext = L.state !== 'regular' && L.regPrice && Math.abs(L.price / L.regPrice - 1) >= 0.0001;   // an extended-hours price still at the close is just the close
   var ref = ext ? L.regPrice : L.prevClose, chg = ref ? L.price - ref : null;
+  return { ext:!!ext, chg:chg, pct:ref ? chg / ref * 100 : null };
+}
+function applyLive(L){
+  if(!liveOk(L)) return false;
+  var s = L.symbol, q = DATA.quotes[s] || {};
+  if(q.cur && L.currency && q.cur !== L.currency) return false;   // same ticker, different listing
+  var mv = liveMove(L), ext = mv.ext, chg = mv.chg;
   var label = ext ? (L.state === 'post' ? 'After hours' : 'Pre-market') : '';
   DATA.quotes[s] = Object.assign({}, q, {
-    c:L.price, pc:L.prevClose != null ? L.prevClose : q.pc, ch:chg, pct:ref ? chg / ref * 100 : null, regClose:L.regPrice,
+    c:L.price, pc:L.prevClose != null ? L.prevClose : q.pc, ch:chg, pct:mv.pct, regClose:L.regPrice,
     v:L.volume != null ? L.volume : q.v, cur:L.currency || q.cur || 'USD', name:q.name || labelOf(s),
     src:'yahoo-live', ts:(L.time || 0) * 1000 || Date.now(), ext:ext, extLabel:label, state:ext ? label : 'Regular session'
   });
@@ -5576,9 +5582,9 @@ function moversTableHTML(symbols, opts){
   var body = rows.map(function(r){
     var tds = '<td class="sym' + (opts.list ? ' wl-x' : '') + '"><span class="s">' + esc(r.sym) + '</span><span class="n">' + esc(r.name) + '</span>' +
       (opts.list ? '<button class="wl-rm" data-act="list-remove" data-id="' + esc(opts.list) + '" data-sym="' + esc(r.sym) + '" title="Remove ' + esc(r.sym) + ' from this watchlist" aria-label="Remove ' + esc(r.sym) + '">' + railSvg('M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z', 14) + '</button>' : '') + '</td>' +
-      '<td class="num ' + r.cls + '">' + r.cells.price + '</td>' +
-      '<td class="num ' + r.cls + '">' + r.cells.change + '</td>' +
-      '<td class="num ' + r.cls + '">' + (r.ch.pct == null ? '—' : pct(r.ch.pct)) + '</td>' +
+      '<td class="num ' + r.cls + '" data-lp="' + esc(r.sym) + '">' + r.cells.price + '</td>' +
+      '<td class="num ' + r.cls + '" data-la="' + esc(r.sym) + '">' + r.cells.change + '</td>' +
+      '<td class="num ' + r.cls + '" data-lpct="' + esc(r.sym) + '">' + (r.ch.pct == null ? '—' : pct(r.ch.pct)) + '</td>' +
       '<td class="col-trend">' + r.cells.trend + '</td>';
     extra.forEach(function(c){ if(c[2]) tds += '<td class="num">' + r.cells[c[0]] + '</td>'; });
     return '<tr data-act="quote" data-sym="' + esc(r.sym) + '" style="cursor:pointer">' + tds + '</tr>';
@@ -5606,8 +5612,8 @@ function rowListHTML(symbols, emptyText){
     var r = quoteRow(sym, false);
     return '<button class="row" data-act="quote" data-sym="' + esc(r.sym) + '">' +
       '<span class="id"><b>' + esc(r.sym) + '</b><span>' + esc(r.name) + '</span></span>' +
-      '<span class="val"><b class="num">' + r.cells.price + '</b>' +
-      '<span class="' + r.cls + ' num">' + (r.ch.pct == null ? '—' : pct(r.ch.pct)) + ' ' + arrowIcon(r.up, 13) + '</span></span></button>';
+      '<span class="val"><b class="num" data-lp="' + esc(r.sym) + '">' + r.cells.price + '</b>' +
+      '<span class="' + r.cls + ' num" data-lpa="' + esc(r.sym) + '">' + (r.ch.pct == null ? '—' : pct(r.ch.pct)) + ' ' + arrowIcon(r.up, 13) + '</span></span></button>';
   }).join('') + '</div>';
 }
 
@@ -8983,8 +8989,8 @@ function paintQuote(){
       '<button class="btn outlined sm" data-act="togglelist" data-sym="' + esc(sym) + '">' + (inList ? 'In watchlist ✓' : 'Add to watchlist') + '</button>' +
       '<button class="btn outlined sm al-set" data-act="al-new" data-sym="' + esc(sym) + '">' + railSvg('M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V11a6 6 0 0 0-5-5.9V4a1 1 0 0 0-2 0v1.1A6 6 0 0 0 6 11v5l-2 2v1h16v-1l-2-2z', 14) +
         ' Set alert' + (ALERTS.filter(function(a){ return a.sym === dispSym(sym) && a.on; }).length ? ' (' + ALERTS.filter(function(a){ return a.sym === dispSym(sym) && a.on; }).length + ')' : '') + '</button></div>' +
-    '<div class="price-block"><span class="px num">' + (q.c == null ? '—' : money(q.c, cur)) + '</span>' +
-      '<span class="d num ' + (up ? 'up' : 'down') + '">' + arrowIcon(up, 16) + (ch.abs == null ? '—' : (ch.abs >= 0 ? '+' : '') + num(ch.abs, 2) + ' (' + pct(ch.pct) + ')') + '</span>' +
+    '<div class="price-block"><span class="px num" data-lp="' + esc(sym) + '">' + (q.c == null ? '—' : money(q.c, cur)) + '</span>' +
+      '<span class="d num ' + (up ? 'up' : 'down') + '" data-lc="' + esc(sym) + '">' + arrowIcon(up, 16) + (ch.abs == null ? '—' : (ch.abs >= 0 ? '+' : '') + num(ch.abs, 2) + ' (' + pct(ch.pct) + ')') + '</span>' +
       '<span class="rng">' + esc(rlab(CUR.range)) + '</span></div>' +
     '<div class="mkt-state"><span>' + esc(state || 'Market data') + '</span>' +
       (mk.marketCountDown ? '<span>·</span><span>' + esc(mk.marketCountDown) + '</span>' : '') +
@@ -14801,6 +14807,44 @@ function tapeVal(it){
   return { px:num(it.c, dp) + (it.kind === 'yield' ? '%' : ''), cls:up ? 'up' : 'down',
     ch:(up ? '▲ ' : '▼ ') + num(Math.abs(it.ch || 0), dp) + ' (' + (up ? '+' : '') + num(it.pct || 0, 2) + '%)' };
 }
+/* Ticker strip: TradingView picks the line-up (and stays the price for futures, FX, yields and crypto); US indices and stocks take Yahoo's live price. */
+var TAPE_Y = { 'SP:SPX':'^SPX', 'NASDAQ:IXIC':'^IQX', 'DJ:DJI':'^DJI', 'TVC:RUT':'^RUT', 'CBOE:VIX':'^VIX' };
+function tapeLive(items){
+  TAPE.items = items;
+  var by = {};
+  items.forEach(function(it){ var y = TAPE_Y[it.k] || (it.kind === 'stock' ? it.label : ''); if(y) by[y] = it; });
+  return yhLive(Object.keys(by)).then(function(arr){
+    arr.forEach(function(L){ var it = by[L.symbol]; if(!it || !liveOk(L)) return; var mv = liveMove(L); it.c = L.price; it.ch = mv.chg; it.pct = mv.pct; });
+    return items;
+  });
+}
+
+/* Live loop: every 8 s while the tab is visible, re-price the US symbols on screen and the ticker strip in place (no re-render, so scroll and focus stay put). */
+var LIVE = { busy:false };
+function livePaint(sym){
+  var r = quoteRow(sym, false), k = r.sym.replace(/["\\]/g, '');
+  var each = function(attr, fn){ [].forEach.call(document.querySelectorAll('[' + attr + '="' + k + '"]'), fn); };
+  var tone = function(el){ el.classList.remove('up', 'down', 'mut'); el.classList.add(r.cls); };
+  var pctTxt = r.ch.pct == null ? '—' : pct(r.ch.pct);
+  each('data-lp', function(el){ if(el.textContent !== r.cells.price){ el.textContent = r.cells.price; el.classList.remove('lv-fl'); void el.offsetWidth; el.classList.add('lv-fl'); } if(el.tagName === 'TD') tone(el); });
+  each('data-la', function(el){ el.textContent = r.cells.change; tone(el); });
+  each('data-lpct', function(el){ el.textContent = pctTxt; tone(el); });
+  each('data-lpa', function(el){ el.innerHTML = pctTxt + ' ' + arrowIcon(r.up, 13); tone(el); });
+  each('data-lc', function(el){ el.innerHTML = arrowIcon(r.up, 16) + (r.ch.abs == null ? '—' : (r.ch.abs >= 0 ? '+' : '') + num(r.ch.abs, 2) + ' (' + pctTxt + ')'); el.classList.remove('up', 'down'); el.classList.add(r.up ? 'up' : 'down'); });
+}
+function liveTick(){
+  if(document.hidden || LIVE.busy) return;
+  var seen = {};
+  [].forEach.call(document.querySelectorAll('[data-lp]'), function(el){ var s = el.getAttribute('data-lp'); if(s && !isCrypto(s) && !isFx(s)) seen[s] = 1; });
+  var list = Object.keys(seen).slice(0, 80);
+  LIVE.busy = true;
+  Promise.all([
+    list.length ? yhLive(list).then(function(arr){ arr.forEach(function(L){ if(applyLive(L)) livePaint(L.symbol); }); }) : null,
+    TAPE.items && CFG.tape !== false ? tapeLive(TAPE.items).then(tapePaint) : null
+  ]).catch(function(){}).then(function(){ LIVE.busy = false; });
+}
+setInterval(liveTick, 8000);   // ponytail: fixed 8 s poll, also overnight; slow it outside US hours if Yahoo starts rate-limiting
+
 function tapePaint(items){
   var el = $('tape'); if(!el || !items.length) return;
   var keys = items.map(function(x){ return x.k; }).join(',');
@@ -14823,7 +14867,7 @@ function tapePaint(items){
   });
 }
 function tapeStart(){
-  var tick = function(force){ if(force || !document.hidden){ TAPE.t = Date.now(); tapeLoad().then(tapePaint).catch(function(){}); } };
+  var tick = function(force){ if(force || !document.hidden){ TAPE.t = Date.now(); tapeLoad().then(tapeLive).then(tapePaint).catch(function(){}); } };
   tick(true); clearInterval(TAPE.timer); TAPE.timer = setInterval(tick, 60000);
   document.addEventListener('visibilitychange', function(){ if(!document.hidden && Date.now() - (TAPE.t || 0) > 60000) tick(); });
 }
