@@ -3,7 +3,7 @@
    Per key, the newest write wins (CLOUD.touch stamps each save). API keys and caches never leave the device. */
 var CLOUD = (function(){
   var KEY = 'fh3_cloud', TS = 'fh3_cts';
-  var SYNC = /^fh3_(lists|pf|hist|q|chat|tasks|research|skills|desk|calls|visit|pfseen|memory|rruns|alerts|inbox|custom|chs|inds|quant|scrmode|favs|tour|xpf)$/;
+  var SYNC = /^fh3_(lists|pf|hist|q|chat|tasks|research|skills|desk|calls|visit|pfseen|memory|rruns|alerts|inbox|custom|chs|inds|quant|scrmode|favs|tour|xpf|csum)$/;
   var PROFILE = '_profile';   // name/age/roles/since of the signed-in account, kept under a pseudo key
   var hooks = { getProfile:function(){ return null; }, setProfile:function(){} };
   var st = rd(KEY) || {}, ts = rd(TS) || {};

@@ -330,6 +330,28 @@ var MH = (function(){
         return ids.map(function(id){ return DOCS[id]; }).join('\n\n');
       }
     },
+    chat_history:{
+      modes:'chat', label:function(a){ return '💬 Looking back in this chat' + (a.query ? ' for “' + String(a.query).slice(0, 50) + '”' : ''); },
+      description:'Read earlier messages of THIS chat, the user\'s and your own, in full (your visuals come back as their JSON, numbers included). You only see the latest messages verbatim and a summary of older ones; call this when the user refers back to something ("what did you say about AMD earlier", "use the numbers from before") that is not in view. ' +
+        'With a query: messages containing all its words, newest first. With ids: those message numbers. With neither: a numbered index of the whole chat.',
+      params:S({ query:STR('Words to find, e.g. "AMD target"'), ids:ARR('Message numbers from the index, e.g. [3, 4]') }),
+      run:function(a){
+        var all = typeof chatPast === 'function' ? chatPast(chatCurrentSession()) : [];
+        if(all.length) all = all.slice(0, -1);   // the newest message is the question being answered
+        if(!all.length) return 'This chat has no earlier messages.';
+        var who = function(m){ return m.role === 'user' ? 'user' : 'marvell'; };
+        var full = function(m, i){ return { n:i + 1, from:who(m), when:new Date(m.ts || 0).toISOString().slice(0, 16).replace('T', ' '), text:String(m.text).slice(0, 12000) }; };
+        var ids = (a.ids || []).map(Number).filter(function(n){ return n >= 1 && n <= all.length; }).slice(0, 6);
+        if(ids.length) return { messages:ids.map(function(n){ return full(all[n - 1], n - 1); }) };
+        var words = String(a.query || '').toLowerCase().split(/\s+/).filter(Boolean);
+        if(words.length){
+          var hits = [];
+          for(var i = all.length - 1; i >= 0 && hits.length < 6; i--){ var t = String(all[i].text).toLowerCase(); if(words.every(function(w){ return t.indexOf(w) >= 0; })) hits.push(full(all[i], i)); }
+          return hits.length ? { messages:hits } : 'No earlier message in this chat contains all of: ' + words.join(', ') + '. Call again with no query for the index.';
+        }
+        return { count:all.length, index:all.map(function(m, i){ return { n:i + 1, from:who(m), start:(m.role === 'user' ? String(m.text) : GENUI.forHistory(m.text)).replace(/\s+/g, ' ').slice(0, 140) }; }) };
+      }
+    },
     read_memory:{
       modes:'chat research', label:function(){ return '🧠 Reading memory'; },
       description:'Read the user\'s full Memory: profile, the memory vault\'s note list, portfolios, watchlists, skills and every research summary. A short version is already in your instructions; call this for the full research log.',
@@ -531,7 +553,7 @@ var MH = (function(){
     'put independent calculations in one batch. Use its numbers as returned; quote derived percentages and multiples to one decimal place (12.4%, 24.3x), never rounded to a whole number, so they can be checked. The user sees results, not workings: do not show formulas, code or tool calls unless they ask how it was worked out.';
   /* Intelligent UI: Agent chat may answer with ui blocks that genui.js draws (see genui.js for the block types). */
   function visualsPrompt(level){ return typeof GENUI !== 'undefined' ? GENUI.promptFor(level) : ''; }
-  var CHAT_PROMPT = '\n\nTOOLS: you run inside the Marvell harness with live tools. You cannot see the app\'s screen or its cached data, and the user may change topic at any time: answer the LATEST message. ' +
+  var CHAT_PROMPT = '\n\nTOOLS: you run inside the Marvell harness with live tools. You cannot see the app\'s screen or its cached data, and the user may change topic at any time: answer the LATEST message. You see only the latest messages of this chat plus a summary of older ones: when the user refers back to something not in view, call chat_history instead of guessing. ' +
     'For every quote, number, news item, insider trade, filing or market fact, call the data tools (get_quote, get_price_history, get_financials, list_filings, read_filing, get_insider_trades, get_news, get_investor_holdings, company_profile, screen_stocks) in this turn, ' +
     'even if an earlier turn already covered it, because earlier answers go stale. Use web search (and read_webpage) for anything else, recent, or non-US. ' +
     'Never say you only have the data on the page. Only say something is unavailable after a tool failed or returned nothing, and name the tool. ' +

@@ -11167,10 +11167,39 @@ function aiPending(on){
   btn.setAttribute('aria-label', on ? 'Thinking' : 'Send');
 }
 
-/* Earlier turns of this chat session, so follow-ups ("dig deeper on that") have context. */
+/* Earlier turns of this chat session, so follow-ups ("dig deeper on that") have context.
+   Three layers: the last CHAT_WIN messages verbatim; a running summary of everything older (chatSumBlock, in the system prompt);
+   and the chat_history tool, which reads any earlier message in full, visuals included. */
+var CHAT_WIN = 20;
+function chatPast(sid){ return (sid ? chatMessages(sid) : []).filter(function(m){ return !m.err && m.text && !m.route; }); }
 function chatHistory(){
   var sid = chatCurrentSession(), msgs = sid ? chatMessages(sid) : [];
-  return msgs.slice(0, -1).filter(function(m){ return !m.err && m.text && !m.route; }).slice(-8).map(function(m){ return { role:m.role === 'user' ? 'user' : 'assistant', content:(m.role === 'user' ? String(m.text) : GENUI.forHistory(m.text)).slice(0, 4000) }; });
+  return msgs.slice(0, -1).filter(function(m){ return !m.err && m.text && !m.route; }).slice(-CHAT_WIN).map(function(m){ return { role:m.role === 'user' ? 'user' : 'assistant', content:(m.role === 'user' ? String(m.text) : GENUI.forHistory(m.text)).slice(0, 8000) }; });
+}
+var CHAT_SUM = load('fh3_csum', {});   // sid -> { n: messages folded in, text }
+function chatSumBlock(){
+  var sid = chatCurrentSession(), sm = sid && CHAT_SUM[sid];
+  if(!sm || !sm.text) return '';
+  return '\n\nEARLIER IN THIS CHAT (summary of the first ' + sm.n + ' messages, older than the ones you can see; call chat_history to read any of them in full):\n' + sm.text;
+}
+/* After a reply: fold messages that have scrolled out of the window into the running summary, 6 or more at a time, on the user's own key. */
+function chatSumMaybe(sid){
+  if(!sid || !aiReady() || chatSumMaybe.busy) return;
+  var all = chatPast(sid), older = all.slice(0, Math.max(0, all.length - CHAT_WIN - 1)), sm = CHAT_SUM[sid] || { n:0, text:'' };
+  if(older.length - sm.n < 6) return;
+  var fresh = older.slice(sm.n).map(function(m){ return (m.role === 'user' ? 'USER: ' : 'MARVELL: ') + (m.role === 'user' ? m.text : GENUI.forHistory(m.text)).slice(0, 3000); }).join('\n\n');
+  chatSumMaybe.busy = true;
+  aiCall([{ role:'user', content:'Update the running summary of the earlier part of a chat between a user and Marvell, a finance assistant.\n\n' +
+    'Keep what a later turn may need: the user\'s goals, holdings and preferences, every ticker discussed, key numbers with their dates, conclusions and recommendations Marvell gave, decisions made, and open questions. ' +
+    'Bullet points, under 300 words, no preamble.\n\nCURRENT SUMMARY:\n' + (sm.text || '(none yet)') + '\n\nNEW MESSAGES TO FOLD IN:\n' + fresh }],
+    'You write compact, factual running summaries of conversations. Never invent anything that is not in the messages.', 'low')
+    .then(function(t){
+      t = String(t || '').trim(); if(!t) return;
+      CHAT_SUM[sid] = { n:older.length, text:t.slice(0, 4000), t:Date.now() };
+      var live = {}; CHAT.forEach(function(m){ live[m.sid] = 1; });
+      Object.keys(CHAT_SUM).forEach(function(k){ if(!live[k]) delete CHAT_SUM[k]; });   // deleted chats take their summary with them
+      save('fh3_csum', CHAT_SUM);
+    }).catch(function(){}).then(function(){ chatSumMaybe.busy = false; });
 }
 /* The harness's current step replaces the rotating verb in the thinking indicator. */
 function thinkStep(st){
@@ -11216,8 +11245,8 @@ function aiRun(kind, question, opts){
   return pre.then(function(extra){
     var content = agent ? prompt : prompt + (opts.noData ? '' : '\n\n--- DATA (the page the user has open) ---\n' + aiContext(extra, false));
     if(!agent) return aiCall([{ role:'user', content:content, images:attImgs }]);
-    return MH.run({ mode:'chat', provider:KEYS.provider, model:KEYS.model, key:KEYS.key, effort:aiEffortKey(), system:aiSystem(true), visuals:CFG.visuals || 'auto',
-      history:history, user:content, images:attImgs, onStep:thinkStep }).then(function(r){ agentRes = r; return r.text; });
+    return MH.run({ mode:'chat', provider:KEYS.provider, model:KEYS.model, key:KEYS.key, effort:aiEffortKey(), system:aiSystem(true) + chatSumBlock(), visuals:CFG.visuals || 'auto',
+      history:history, user:content, images:attImgs, onStep:thinkStep }).then(function(r){ agentRes = r; setTimeout(function(){ chatSumMaybe(chatCurrentSession()); }, 1500); return r.text; });
   }).then(function(text){
     if(kind === 'learn'){ skillDraftPush(text, opts.fromRs); return text; }
     var parsed = spec.json ? jsonFrom(text) : null;
