@@ -1,7 +1,7 @@
 // node --test worker/  — parsers and the public-URL guard behind /api/search and /api/read.
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { ddgParse, bingParse, htmlText, publicUrl, yahooEvents, normalizeYahoo, fetchFeed, bingNewsRss } from './opencode-proxy.js';
+import { ddgParse, bingParse, htmlText, publicUrl, yahooEvents, normalizeYahoo, liveQuote, fetchFeed, bingNewsRss } from './opencode-proxy.js';
 
 test('ddgParse unwraps redirect links and skips ads', () => {
   const html = '<a class="result__a" href="https://duckduckgo.com/y.js?ad=1">Ad</a>' +
@@ -114,4 +114,19 @@ test('sync: sign in, store per account, optimistic revisions, isolation, delete'
   assert.equal((await call('/api/sync', 'PUT', a.token, { baseRev: 1, data: [] }))[0], 400);
   await call('/api/sync', 'DELETE', a.token);
   assert.equal((await call('/api/sync', 'GET', a.token))[1].rev, 0);
+});
+
+test('liveQuote takes the regular price in session and the newest extended-hours bar outside it', () => {
+  const meta = { regularMarketPrice: 100, regularMarketTime: 1000, chartPreviousClose: 98, currency: 'USD', currentTradingPeriod: { regular: { start: 500, end: 1000 } } };
+  const mk = (ts, close, m) => ({ chart: { result: [{ meta: Object.assign({}, meta, m), timestamp: ts, indicators: { quote: [{ close }] } }] } });
+  const reg = liveQuote(mk([900, 960], [99.5, 99.9], { regularMarketTime: 990 }), 'AAPL');
+  assert.equal(reg.price, 100); assert.equal(reg.state, 'regular'); assert.equal(reg.delay, 0);
+  const post = liveQuote(mk([960, 1200, 1260], [99.9, 101, null]), 'AAPL');
+  assert.equal(post.price, 101); assert.equal(post.state, 'post'); assert.equal(post.regPrice, 100);
+  const pre = liveQuote(mk([300], [97], { regularMarketTime: 200, currentTradingPeriod: { pre: { start: 250, end: 500 }, regular: { start: 500, end: 1000 } } }), 'AAPL');
+  assert.equal(pre.state, 'pre'); assert.equal(pre.price, 97);
+  const night = liveQuote(mk([240], [96], { regularMarketTime: 200, currentTradingPeriod: { pre: { start: 250, end: 500 }, regular: { start: 500, end: 1000 } } }), 'AAPL');
+  assert.equal(night.state, 'post');   // last night's after-hours bar, seen after midnight
+  assert.equal(liveQuote(mk([], [], { exchangeDataDelayedBy: 20 }), 'D05.SI').delay, 20);
+  assert.equal(liveQuote({ chart: { result: [] } }, 'X'), null);
 });

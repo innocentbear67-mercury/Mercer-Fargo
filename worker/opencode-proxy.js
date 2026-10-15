@@ -9,7 +9,7 @@ const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers
 
 // Mirrors serve.py OA_YMAP / OA_RANGE. Third RANGE element = edge cache seconds.
 const YMAP = { '^SPX': '^GSPC', '^IQX': '^IXIC', '^DJI': '^DJI', '^RUT': '^RUT', '^UKX': '^FTSE', '^DAX': '^GDAXI', '^CAC': '^FCHI', '^NKX': '^N225', '^HSI': '^HSI', '^SHC': '000001.SS', '^NDQ': '^NDX', '^VIX': '^VIX', 'ES.F': 'ES=F', 'NQ.F': 'NQ=F', 'YM.F': 'YM=F', 'GC.F': 'GC=F', 'CL.F': 'CL=F' };
-const RANGE = { 'M1': ['5d', '1m', 60], 'M5': ['1d', '5m', 120], 'M15': ['5d', '15m', 120], 'H1': ['6mo', '60m', 300], 'H4': ['6mo', '60m', 300], '1D': ['1d', '5m', 120], '5D': ['5d', '15m', 120], '1M': ['1mo', '1d', 1800], '6M': ['6mo', '1d', 1800], 'YTD': ['ytd', '1d', 1800], '1Y': ['1y', '1d', 1800], '5Y': ['5y', '1wk', 3600], 'MAX': ['max', '1mo', 86400], 'DMAX': ['max', '1d', 43200] };   // DMAX: 30 years of daily bars for Quant backtests (Yahoo turns range=max into monthly, so it asks by dates)
+const RANGE = { 'M1': ['5d', '1m', 15], 'M5': ['1d', '5m', 30], 'M15': ['5d', '15m', 120], 'H1': ['6mo', '60m', 300], 'H4': ['6mo', '60m', 300], '1D': ['1d', '5m', 15], '5D': ['5d', '15m', 120], '1M': ['1mo', '1d', 1800], '6M': ['6mo', '1d', 1800], 'YTD': ['ytd', '1d', 1800], '1Y': ['1y', '1d', 1800], '5Y': ['5y', '1wk', 3600], 'MAX': ['max', '1mo', 86400], 'DMAX': ['max', '1d', 43200] };   // DMAX: 30 years of daily bars for Quant backtests (Yahoo turns range=max into monthly, so it asks by dates)
 
 function json(o, status, maxAge) {
   return new Response(JSON.stringify(o), { status, headers: Object.assign({ 'content-type': 'application/json', 'cache-control': 'public, max-age=' + maxAge }, cors) });
@@ -53,6 +53,39 @@ async function eventsResponse(symbol) {
     } catch (e) { /* try the other host */ }
   }
   return json({ error: 'yahoo unavailable' }, 502, 0);
+}
+
+// Live quote from Yahoo's chart meta plus 1m bars with extended hours: the newest bar after the regular close (or before the open) is the after-hours / pre-market price.
+// delay = exchangeDataDelayedBy (0 for US stocks; SGX and others are delayed, so the browser keeps its other source for those).
+export function liveQuote(j, symbol) {
+  const r0 = ((((j && j.chart) || {}).result) || [])[0];
+  if (!r0 || !r0.meta || r0.meta.regularMarketPrice == null) return null;
+  const m = r0.meta, ts = r0.timestamp || [], cl = ((((r0.indicators || {}).quote) || [{}])[0] || {}).close || [];
+  let t = m.regularMarketTime || 0, p = m.regularMarketPrice;
+  for (let n = ts.length - 1; n >= 0; n--) if (cl[n] != null) { if (ts[n] > t) { t = ts[n]; p = cl[n]; } break; }
+  const tp = m.currentTradingPeriod || {}, reg = tp.regular || {}, pre = tp.pre || {};
+  // after midnight the trading period is already the new day, so a bar from last night's after-hours sits before today's pre-market
+  const state = t <= (m.regularMarketTime || 0) ? 'regular' : reg.end && t >= reg.end ? 'post' : pre.start && t >= pre.start && t < reg.start ? 'pre' : 'post';
+  return { symbol, price: p, time: t, state, regPrice: m.regularMarketPrice, regTime: m.regularMarketTime || 0, prevClose: m.chartPreviousClose ?? m.previousClose ?? null,
+    currency: m.currency || null, delay: m.exchangeDataDelayedBy || 0, type: m.instrumentType || '', tz: m.exchangeTimezoneName || '', high: m.regularMarketDayHigh ?? null, low: m.regularMarketDayLow ?? null, volume: m.regularMarketVolume ?? null };
+}
+async function liveResponse(list) {
+  const syms = String(list || '').toUpperCase().split(',').map((x) => x.trim()).filter((x) => /^[\w.^=\-]{1,20}$/.test(x)).slice(0, 40);
+  if (!syms.length) return json({ error: 'symbols required' }, 400, 0);
+  const one = async (s) => {
+    const ysym = YMAP[s] || s.replace(/^([A-Z]+)\.([A-Z])$/, '$1-$2');   // BRK.B -> BRK-B
+    for (const host of ['query1.finance.yahoo.com', 'query2.finance.yahoo.com']) {
+      try {
+        const res = await fetch('https://' + host + '/v8/finance/chart/' + encodeURIComponent(ysym) + '?range=1d&interval=1m&includePrePost=true',
+          { headers: { 'User-Agent': 'Mozilla/5.0' }, cf: { cacheTtl: 5, cacheEverything: true } });   // ponytail: 5s edge cache keeps many viewers to one Yahoo call per symbol
+        if (res.status === 404) return null;
+        if (res.ok) return liveQuote(await res.json(), s);
+      } catch (e) { /* try the other host */ }
+    }
+    return null;
+  };
+  const out = await Promise.all(syms.map(one));
+  return json({ quotes: out.filter(Boolean), at: Date.now() }, 200, 5);
 }
 
 async function chartResponse(symbol, rng) {
@@ -252,6 +285,7 @@ export default {
     if (url.pathname === '/api/chart' && req.method === 'GET') {
       return chartResponse(url.searchParams.get('symbol'), url.searchParams.get('range'));
     }
+    if (url.pathname === '/api/live' && req.method === 'GET') return liveResponse(url.searchParams.get('symbols'));
     if (url.pathname === '/api/events' && req.method === 'GET') return eventsResponse(url.searchParams.get('symbol'));
     if (url.pathname === '/api/fetch' && req.method === 'GET') {
       return feedResponse(url.searchParams.get('u') || '', env);

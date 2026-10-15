@@ -3729,6 +3729,31 @@ function fetchFX(pairs){
   })).then(function(arr){ return arr.reduce(function(a, b){ return a + b; }, 0); });
 }
 
+/* Live prices from Yahoo through the worker (/api/live). Yahoo's US stocks are real time; TradingView's free
+   feed is 15 minutes late. TradingView still supplies names and fundamentals, and stays the price wherever
+   Yahoo fails or is itself delayed (delay > 0: SGX, futures and other exchanges). */
+function yhLive(list){
+  var jobs = [];
+  for(var i = 0; i < list.length; i += 40)
+    jobs.push(fetchJSON(OC_PROXY + '/api/live?symbols=' + encodeURIComponent(list.slice(i, i + 40).join(',')), 8000).then(function(j){ return j.quotes || []; }, function(){ return []; }));
+  return Promise.all(jobs).then(function(a){ return [].concat.apply([], a); });
+}
+function applyLive(L){
+  /* US stocks, ETFs and indices only: Yahoo reports delay 0 even for feeds it delays (futures, SGX), so the exchange decides */
+  if(!L || L.price == null || L.delay || L.tz !== 'America/New_York' || !/^(EQUITY|ETF|INDEX|MUTUALFUND)$/.test(L.type || '')) return false;
+  var s = L.symbol, q = DATA.quotes[s] || {};
+  if(q.cur && L.currency && q.cur !== L.currency) return false;   // same ticker, different listing
+  var ext = L.state !== 'regular' && L.regPrice && Math.abs(L.price / L.regPrice - 1) >= 0.0001;   // an extended-hours price still at the close is just the close
+  var ref = ext ? L.regPrice : L.prevClose, chg = ref ? L.price - ref : null;
+  var label = ext ? (L.state === 'post' ? 'After hours' : 'Pre-market') : '';
+  DATA.quotes[s] = Object.assign({}, q, {
+    c:L.price, pc:L.prevClose != null ? L.prevClose : q.pc, ch:chg, pct:ref ? chg / ref * 100 : null, regClose:L.regPrice,
+    v:L.volume != null ? L.volume : q.v, cur:L.currency || q.cur || 'USD', name:q.name || labelOf(s),
+    src:'yahoo-live', ts:(L.time || 0) * 1000 || Date.now(), ext:ext, extLabel:label, state:ext ? label : 'Regular session'
+  });
+  return true;
+}
+
 /* Universal quote entry: routes stocks/ETFs, crypto and FX. */
 function fetchQuotes(symbols, concurrency){
   var list = [], seen = {};
@@ -3742,7 +3767,9 @@ function fetchQuotes(symbols, concurrency){
   var jobs = [];
   if(crypto.length) jobs.push(fetchCrypto(crypto));
   if(fx.length) jobs.push(fetchFX(fx));
-  if(rest.length) jobs.push(tvQuotes(rest, concurrency));
+  if(rest.length) jobs.push(Promise.all([tvQuotes(rest, concurrency), yhLive(rest)]).then(function(r){   // live price lands after TradingView's, so it wins
+    var live = r[1].filter(applyLive).length; return Math.max(r[0], live);
+  }));
   jobs.push(loadFXRates().then(function(){ return 0; }));   // portfolio totals need the rate table ready with the prices
   return Promise.all(jobs).then(function(arr){
     var ok = arr.reduce(function(a, b){ return a + (b || 0); }, 0);
@@ -3786,7 +3813,7 @@ function loadScreener(limit){
       /* The scan is a broad, cheap snapshot. A per-symbol TradingView quote carries
          pre/post-market prices and fundamentals, so keep it and only take the
          market cap from the scan. */
-      var richer = (q.src === 'tradingview' || q.src === 'coingecko' || q.src === 'frankfurter');
+      var richer = (q.src === 'tradingview' || q.src === 'yahoo-live' || q.src === 'coingecko' || q.src === 'frankfurter');
       DATA.quotes[r.sym] = richer
         ? Object.assign({}, q, { mc:r.mc != null ? r.mc : q.mc, name:q.name || r.name })
         : Object.assign({}, q, {
@@ -8937,7 +8964,7 @@ function paintQuote(){
   var state = q.state || mk.marketIndicator || '';
   var feed = q.src === 'coingecko' ? 'CoinGecko'
     : (q.src === 'frankfurter' ? 'ECB reference rate'
-    : (q.src === 'tradingview' ? 'TradingView quote' : 'TradingView scan'));
+    : (q.src === 'yahoo-live' ? 'Yahoo Finance · real time' : (q.src === 'tradingview' ? 'TradingView quote · 15 min delayed' : 'TradingView scan · 15 min delayed')));
   var tabs = [['overview', 'Overview'], ['analysis', 'Analysis'], ['earnings', 'Earnings'], ['financials', 'Financials']];
   if(isFund) tabs.push(['holdings', 'Holdings']);
   tabs.push(['research', 'Research']);
@@ -11442,7 +11469,7 @@ function renderSettingsPage(sec){
     '<label class="field"><span>Mode suggestions</span><select class="inp" id="setRoute"><option value="1"' + (CFG.noRoute ? '' : ' selected') + '>On</option><option value="0"' + (CFG.noRoute ? ' selected' : '') + '>Off</option></select></label></div>';
   else if(sec === 'appearance') h = settingsAppearanceHTML();
   else if(sec === 'data') h = '<div class="card"><h3>Data sources</h3><div class="kv-inline" style="flex-direction:column;gap:6px">' +
-    '<span>Quotes: TradingView delayed feed ' + (DATA.lastUpdate ? '· updated ' + new Date(DATA.lastUpdate).toLocaleTimeString() : '· not loaded yet') + '</span>' +
+    '<span>Quotes: Yahoo Finance real time for US stocks; TradingView (15 min delayed) for other markets and as a fallback ' + (DATA.lastUpdate ? '· updated ' + new Date(DATA.lastUpdate).toLocaleTimeString() : '· not loaded yet') + '</span>' +
     '<span>History: stockanalysis.com · Crypto: CoinGecko · FX: Frankfurter (ECB) · News: Google News RSS</span>' +
     '<span>Fundamentals: SEC XBRL, CSV import, or AI-drafted (always labelled)</span></div></div>';
   else if(sec === 'skills') h = skillsPageHTML();
