@@ -2690,14 +2690,14 @@ html{overflow-x:clip}
 @media (prefers-reduced-motion:reduce){ .sys *,.nf4 *{animation:none!important;stroke-dashoffset:0!important;opacity:1} }
 /* ---------- Collapsible left rail ------------------------------------------ */
 .shell{transition:grid-template-columns .26s cubic-bezier(.2,0,0,1)}
-.rail-top{display:flex;justify-content:flex-end;margin:-6px -2px 4px 0}
+.rail-top{display:flex;justify-content:flex-end;margin:-16px -2px 4px 0;padding:10px 0 2px;position:sticky;top:-16px;z-index:3;background:var(--fh-background-canvas)}   /* sticks while the rail scrolls, so the collapse button never scrolls away */
 .rail-min-btn{display:grid;place-items:center;width:30px;height:30px;border:0;border-radius:9px;background:transparent;color:var(--fh-foreground-on-surface-de-emphasis);cursor:pointer;transition:background .15s,color .15s,transform .26s}
 .rail-min-btn:hover{background:var(--fh-states-neutral-hovered);color:var(--mf-gold)}
 @media (min-width:1025px){
   body.rail-min .shell{grid-template-columns:68px minmax(0,1fr)}
   body.rail-min .rail{padding:14px 10px 64px;overflow-x:hidden;scrollbar-width:none}
   body.rail-min .rail::-webkit-scrollbar{display:none}
-  body.rail-min .rail-top{justify-content:center;margin:-4px 0 6px}
+  body.rail-min .rail-top{justify-content:center;margin:-14px 0 6px;top:-14px}
   body.rail-min .rail-min-btn{transform:rotate(180deg)}
   body.rail-min .rsec+.rsec{border-top:0;padding-top:0}
   body.rail-min .rsec-head{justify-content:center}
