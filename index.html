@@ -3513,7 +3513,16 @@ var TV_SEED = {
 var TVMAP = Object.assign({}, TV_SEED, load('fh3_tvmap', {}));
 function saveTVMap(){ save('fh3_tvmap', TVMAP); }
 /* Yahoo-style exchange suffixes → TradingView exchange (D05.SI → SGX:D05, 0700.HK → HKEX:700). */
-var TV_SUFFIX = { SI:'SGX', HK:'HKEX', L:'LSE', TO:'TSX', AX:'ASX', T:'TSE' };
+/* Yahoo suffix <-> TradingView exchange. Symbols outside the US are kept in Yahoo's form (7203.T, 0700.HK) so charts (Yahoo) and quotes (TradingView) both resolve. */
+var TV_SUFFIX = { SI:'SGX', HK:'HKEX', L:'LSE', TO:'TSX', AX:'ASX', T:'TSE', DE:'XETR', KS:'KRX', NS:'NSE', BO:'BSE', SW:'SIX', TW:'TWSE', SS:'SSE', SZ:'SZSE', MI:'MIL', MC:'BME', ST:'OMXSTO', CO:'OMXCOP', HE:'OMXHEX', AS:'EURONEXT', PA:'EURONEXT', BR:'EURONEXT', LS:'EURONEXT', IR:'EURONEXT' };
+var TV_EXSUF = {}; Object.keys(TV_SUFFIX).forEach(function(k){ if(TV_SUFFIX[k] !== 'EURONEXT') TV_EXSUF[TV_SUFFIX[k]] = k; });
+var EURONEXT_SUF = { Netherlands:'AS', France:'PA', Belgium:'BR', Portugal:'LS', Ireland:'IR' };   // one TradingView exchange, five Yahoo suffixes: the company's country picks
+function symFromTV(full, country){   // 'TSE:7203' -> '7203.T', 'HKEX:700' -> '0700.HK'; exchanges without a Yahoo suffix (Euronext) keep 'EXCH:TICKER'
+  var p = String(full || '').split(':'), ex = p[0], t = p[1] || p[0], suf = ex === 'EURONEXT' ? EURONEXT_SUF[country] : TV_EXSUF[ex];
+  if(!p[1]) return dispSym(t);
+  if(suf) return (suf === 'HK' ? ('000' + t).slice(-Math.max(4, t.length)) : t) + '.' + suf;
+  return /^(NASDAQ|NYSE|AMEX|CBOE|OTC|BATS|ARCA)$/.test(ex) ? dispSym(t) : ex + ':' + t;
+}
 function tvCandidates(sym){
   var s = dispSym(sym);
   var m = s.match(/^([A-Z0-9]+)\.([A-Z]{1,2})$/);
@@ -14666,8 +14675,8 @@ function doSearch(q){
   if(!v) return;
   var sym = v.toUpperCase().replace(/\s+/g, '');
   var known = INSTRUMENTS[sym] || UNIVERSE.filter(function(u){ return u[0] === sym; })[0];
-  var looksLikeSymbol = /^[\^A-Z0-9.\-\/]{1,12}$/.test(sym) && !/\s/.test(v);
-  if(known || (looksLikeSymbol && v.length <= 6)){
+  var looksLikeSymbol = /^[\^A-Z0-9.\-\/:]{1,16}$/.test(sym) && !/\s/.test(v);
+  if(known || (looksLikeSymbol && (v.length <= 6 || /^[A-Z0-9]+\.[A-Z]{1,2}$|^[A-Z]+:[A-Z0-9.]+$/.test(sym)))){
     hsRemember({ sym:sym });
     go('#/quote/' + encodeURIComponent(sym));
     return;
@@ -14689,17 +14698,29 @@ function hsScan(extra, n){
     .then(function(r){ return r.json(); })
     .then(function(j){ return (j.data || []).map(function(r){ var d = r.d; return { sym:dispSym(d[0]), name:d[1], c:d[2], pct:d[3], etf:d[4] === 'fund' }; }); });
 }
+/* Same search on TradingView's global scanner, without the US exchanges the scan above already covers. */
+function hsScanG(q, n){
+  var body = { filter:[scC('exchange', 'not_in_range', ['NASDAQ', 'NYSE', 'AMEX', 'CBOE', 'OTC']), scC('is_primary', 'equal', true), scC('type', 'in_range', ['stock', 'dr', 'fund'])],
+    filter2:{ operator:'and', operands:[{ operation:{ operator:'or', operands:[{ expression:scC('name', 'match', q) }, { expression:scC('description', 'match', q) }] } }] },
+    columns:['name', 'description', 'close', 'change', 'type', 'currency', 'country'], sort:{ sortBy:'market_cap_basic', sortOrder:'desc', nullsFirst:false }, range:[0, n] };
+  return fetchWithTimeout('https://scanner.tradingview.com/global/scan', 8000, { method:'POST', headers:{ 'Content-Type':'text/plain' }, body:JSON.stringify(body) })
+    .then(function(r){ return r.json(); })
+    .then(function(j){ return (j.data || []).map(function(r){ var d = r.d, sym = symFromTV(r.s, d[6]); TVMAP[sym] = r.s; return { sym:sym, name:d[1], c:d[2], pct:d[3], etf:d[4] === 'fund', cur:d[5], tick:d[0] }; }); });
+}
 function hsRank(q, it){
   var Q = q.toUpperCase(), n = (it.name || '').toUpperCase();
-  if(it.sym === Q) return 0;
-  if(it.sym.indexOf(Q) === 0 || n.indexOf(Q) === 0) return 1;
+  var t = it.tick || it.sym;   // a foreign listing ranks by its local ticker (D05 for D05.SI)
+  if(it.sym === Q || t === Q) return 0;
+  if(t.indexOf(Q) === 0 || n.indexOf(Q) === 0) return 1;
   if((' ' + n.replace(/[^A-Z0-9]+/g, ' ')).indexOf(' ' + Q.replace(/[^A-Z0-9]+/g, ' ')) >= 0) return 2;
   return 3;
 }
 function hsSuggest(q){
   var direct = hsScan({ filter2:{ operator:'and', operands:[{ operation:{ operator:'or', operands:[
     { expression:scC('name', 'match', q) }, { expression:scC('description', 'match', q) }] } }] } }, 40).catch(function(){ return []; });
-  return direct.then(function(list){
+  var world = hsScanG(q, 20).catch(function(){ return []; });
+  return Promise.all([direct, world]).then(function(r){
+    var list = r[0].concat(r[1]);
     list = list.map(function(it, i){ it.r = hsRank(q, it); it.i = i; return it; }).sort(function(a, b){ return a.r - b.r || a.i - b.i; });
     var good = list.filter(function(it){ return it.r < 3; });
     if(good.length >= 3) return good.slice(0, 8);
@@ -14744,7 +14765,7 @@ function hsBind(form, input){
       var up = (it.pct || 0) >= 0;
       return lab + '<button type="button" role="option" aria-selected="' + (i === at) + '" class="' + (i === at ? 'on' : '') + '" data-i="' + i + '" style="--d:' + (i * 25) + 'ms">' + guruLogo({ t:it.sym }) +
         '<b>' + esc(it.sym) + '</b><span>' + esc(it.name || '') + (it.etf && !/\bETF\b/.test(it.name || '') ? ' <small class="hs-tag">ETF</small>' : '') + '</span>' +
-        '<em class="num">' + (it.c == null ? '' : money(it.c, 'USD') + '<small class="' + (up ? 'up' : 'down') + '">' + pct(it.pct || 0) + '</small>') + '</em></button>';
+        '<em class="num">' + (it.c == null ? '' : money(it.c, it.cur || 'USD') + '<small class="' + (up ? 'up' : 'down') + '">' + pct(it.pct || 0) + '</small>') + '</em></button>';
     }).join('');
   }
   function close(){ items = []; at = -1; draw(); }
