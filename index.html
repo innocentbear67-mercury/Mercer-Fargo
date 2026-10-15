@@ -1194,7 +1194,7 @@ body.chart-fs{overflow:hidden}
   .shell{grid-template-columns:minmax(0,1fr)}
   .grid-2,.grid-3{grid-template-columns:minmax(0,1fr)}
   .rail{display:none}
-  .rail.drawer-open{display:block;position:fixed;top:64px;left:0;width:min(320px,86vw);z-index:50;background:var(--fh-background-surface);box-shadow:var(--fh-elevation-3)}
+  .rail.drawer-open{display:block;position:fixed;top:var(--drawer-top,64px);height:calc(100vh - var(--drawer-top,64px));left:0;width:min(320px,86vw);z-index:50;background:var(--fh-background-surface);box-shadow:var(--fh-elevation-3)}
   .mobile-only{display:inline-flex}
 }
 @media (max-width:760px){
@@ -2706,7 +2706,7 @@ html{overflow-x:clip}
   body.rail-min .rail-fold,body.rail-min .rail-foot{display:none}
   body.rail-min .rsec-ic{width:36px;height:36px}
 }
-@media (max-width:1024px){ .rail-top{display:none} }
+@media (max-width:1024px){ .rail-top{background:var(--fh-background-surface)} }   /* slide-over: the same button closes the panel */
 
 /* ---------- Resizable Marvell panel ---------------------------------------- */
 .drawer-grip{position:absolute;left:-6px;top:0;bottom:0;width:12px;z-index:3;cursor:col-resize;touch-action:none;outline:none}
@@ -14214,7 +14214,7 @@ function bindEvents(){
       case 'quote': ev.preventDefault(); go('#/quote/' + encodeURIComponent(sym)); break;
       case 'openlist': go('#/list/' + el.getAttribute('data-id')); break;
       case 'openpf': go('#/portfolio/' + el.getAttribute('data-id')); break;
-      case 'rail-min': railMin(!CFG.railMin); break;
+      case 'rail-min': if(innerWidth > 1024) railMin(!CFG.railMin); else $('rail').classList.remove('drawer-open'); break;
       case 'rail-sec': { var sid = el.getAttribute('data-sec'), open = el.getAttribute('aria-expanded') !== 'true';
         if(CFG.railMin && innerWidth > 1024){ save('fh3_rail_' + sid, true); railMin(false);
           setTimeout(function(){ var sec = document.querySelector('#rail .rsec[data-sec="' + sid + '"]'); if(sec) sec.scrollIntoView({ block:'nearest', behavior:'smooth' }); }, 280); break; }   // collapsed: an icon click expands the rail on that section
