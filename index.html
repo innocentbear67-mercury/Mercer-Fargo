@@ -1944,6 +1944,8 @@ html{overflow-x:clip}
 
 /* ---------- Deep Research: focus chips, tasks, progress ------------------ */
 .rs-focus{margin:12px 0 4px}
+.rs-stock-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:12px 0 0}
+.rs-stock-row .fc-tip{margin:0;flex:1;min-width:180px}
 .fc-row{display:flex;flex-wrap:wrap;gap:8px}
 .fc{font:inherit;font-size:13px;color:var(--fh-foreground-on-surface-de-emphasis);background:transparent;border:1px solid var(--fh-border-stroke-default);border-radius:999px;padding:7px 14px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
 .fc:hover{color:var(--fh-foreground-on-surface-emphasis);background:var(--fh-background-surface-container)}
@@ -10959,7 +10961,7 @@ function routeCard(m){
 function routeGo(m){
   var r = m.route; if(!r) return;
   r.st = 'switched'; save(LS.chat, CHAT); chatRender();
-  if(r.to === 'research'){ RS.question = r.q; rsSaveCfg(); rsOpenPanel('research'); setTimeout(function(){ var e = $('rsQ'); if(e){ e.value = r.q; e.focus(); } rsPaint(); }, 140); }
+  if(r.to === 'research'){ RS.question = r.q; RS.stock = true; rsSaveCfg(); rsOpenPanel('research'); setTimeout(function(){ var e = $('rsQ'); if(e){ e.value = r.q; e.focus(); } rsPaint(); }, 140); }
   else if(r.to === 'quant'){ QS.draft = r.q; rsOpenPanel('quant'); setTimeout(function(){ var e = $('qnQ'); if(e){ e.value = r.q; e.focus(); } }, 160); }
   else { if(r.sym){ PD.form.sym = r.sym; save('fh3_pd', PD.form); } rsOpenPanel('predict'); }
   toast('Switched to ' + ROUTE[r.to].name + '. Press Run when you are ready.');
@@ -13621,9 +13623,9 @@ function rsTogglePanel(){
 /* ------------------------------------------------------------ delegation */
 /* ------------------------------------------- 10. deep research (harness) */
 /* Runs the Marvell harness (harness.js) in research mode with the user's own model key. */
-var RS = load(LS.research, { mode:'auto', focus:['auto'], provider:'', model:'', effort:'medium', question:'' });
+var RS = load(LS.research, { mode:'auto', focus:['auto'], stock:false, provider:'', model:'', effort:'medium', question:'' });
 RS.model = fixOrId(RS.model);
-function rsSaveCfg(){ save(LS.research, { mode:RS.mode, focus:RS.focus, provider:RS.provider, model:RS.model, effort:RS.effort, question:RS.question }); }
+function rsSaveCfg(){ save(LS.research, { mode:RS.mode, focus:RS.focus, stock:!!RS.stock, provider:RS.provider, model:RS.model, effort:RS.effort, question:RS.question }); }
 var RS_DEFAULT_MODEL = { xai:'grok-4.7', gemini:'gemini-3.8-flash', openrouter:'deepseek/deepseek-v4.1-flash',
   openai:'gpt-6.1-sol', deepseek:'deepseek-flash', groq:'openai/gpt-oss-120b',
   opencode:'deepseek-v4.1-flash', 'opencode-go':'deepseek-v4.1-flash' };
@@ -13678,6 +13680,17 @@ function rsFocusHTML(){
   var sel = RS_FOCUS.filter(function(x){ return rsFocusOn(x.id); });
   var tips = rsFocusOn('auto') ? RS_FOCUS[0].tip : sel.filter(function(x){ return x.id === 'fund' || x.id === 'earn'; }).map(function(x){ return x.label + ': ' + x.tip; }).join(' · ');
   return '<div class="fc-row">' + chips + '</div>' + (tips ? '<div class="fc-tip">' + esc(tips) + '</div>' : '');
+}
+/* Stock focus: on, Deep Research runs the Stock Research Pro pipeline (intake form, valuation, kill gate, PDF memo);
+   off, the general method for any topic (markets, sectors, macro, products), ending in a cited report. */
+function rsStockHTML(){
+  return '<button type="button" class="fc rs-stock' + (RS.stock ? ' on' : '') + '" data-act="rs-stock" aria-pressed="' + !!RS.stock + '" title="Use the Stock Research Pro method for one company">' +
+    (RS.stock ? '✓ ' : '') + 'Stock focus</button><span class="fc-tip">' +
+    (RS.stock ? 'Stock Research Pro: intake questions, valuation, insider flow, kill gate and a PDF memo. For one listed company.' : 'Off: general research for any topic, ending in a cited report. Turn on for a full stock verdict.') + '</span>';
+}
+function rsStockSet(on){
+  RS.stock = !!on; rsSaveCfg();
+  var host = $('rsStock'); if(host) host.innerHTML = rsStockHTML();
 }
 function rsFocusBrief(){
   var sel = RS_FOCUS.filter(function(x){ return rsFocusOn(x.id); });
@@ -13816,6 +13829,7 @@ function rsPanelHTML(){
     'placeholder="Ask a question — e.g. Estimate NVDA\'s intrinsic value with a DCF. Type / for skills.">' +
     esc(RS.question || '') + '</textarea>' +
     '<div class="pickmenu" id="slashMenuR" role="listbox" aria-label="Skills" style="left:0;right:0;bottom:auto;top:100%;margin:6px 0 0" hidden></div></div>' +
+    '<div class="rs-stock-row" id="rsStock">' + rsStockHTML() + '</div>' +
     '<div class="rs-focus" id="rsFocus">' + rsFocusHTML() + '</div>' +
     '<div class="rs-actions">' +
     '<button class="btn filled sm" data-act="rs-run"' + (RS.running ? ' disabled' : '') + '>' +
@@ -14011,7 +14025,7 @@ function rsRun(){
   rsPaint();
   var stop = { stopped:false };
   RS.ctl = { abort:function(){ stop.stopped = true; } };
-  MH.run({ mode:'research', provider:prov, model:RS.model, key:key, effort:rsEffortKey(), system:aiSystem(true), stop:stop, onAsk:rsQOpen,
+  MH.run({ mode:'research', stock:!!RS.stock, provider:prov, model:RS.model, key:key, effort:rsEffortKey(), system:aiSystem(true), stop:stop, onAsk:rsQOpen,
     user:'Research question: ' + sk.question + rsFocusBrief() + '\n\nToday is ' + new Date().toISOString().slice(0, 10) + '.',
     onStep:function(st){
       if(st.kind === 'round'){ rsStep('round', st.label, st.detail); if(st.round) rsTaskEvent({ kind:'round_start', round:st.round }); }
@@ -14109,6 +14123,7 @@ function rsSeed(sym){
   RS.question = s
     ? 'Build a research brief on ' + s + ': what has moved the shares, what the numbers and filings say, and what to watch next.'
     : (RS.question || '');
+  if(s) RS.stock = true;   // one company: the stock method
   rsSaveCfg();
   rsOpenPanel('research');
   setTimeout(function(){
@@ -14224,6 +14239,7 @@ function bindEvents(){
       case 'rs-log-open': rsLogOpen(el.getAttribute('data-id')); break;
       case 'rs-log-del': RLOG = RLOG.filter(function(x){ return x.id !== el.getAttribute('data-id'); }); save('fh3_rruns', RLOG); rsResearchRuns(); break;
       case 'rs-focus': rsFocusToggle(el.getAttribute('data-f')); break;
+      case 'rs-stock': rsStockSet(!RS.stock); break;
       case 'rs-seed': rsSeed(el.getAttribute('data-sym')); break;
       case 'list-rename': closeMenu(); renameWatchlist(el.getAttribute('data-id')); break;
       case 'pf-menu': { var pmid = el.getAttribute('data-id');

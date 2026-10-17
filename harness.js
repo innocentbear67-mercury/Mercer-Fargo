@@ -575,7 +575,14 @@ var MH = (function(){
     'SKILLS: the Skills list in your Memory holds playbooks the user saved or you saved earlier (name and when to use it). At the start of a task, check it. If one clearly fits the request, call skill_view, follow it, and say "Using /name" in one short line; load at most two, and never for a plain lookup. If none fits, ignore the list. ' +
     'If a skill you followed turns out wrong or out of date, fix it at once with skill_manage (patch). Create a new skill with skill_manage only after a task that took real trial and error or several distinct steps and the method will help for a whole kind of question, or when the user asks to save one; never for lookups, fact checks or number pulls.\n' +
     'Work efficiently: call independent tools in parallel, stop as soon as you can answer well, and never claim a page shows something you have not fetched.';
-  var RESEARCH_PROMPT = '\n\n' + [
+  /* Deep Research has two methods: the general one (any topic: markets, sectors, macro, products, history) and, with the
+     Stock focus switch on, the Stock Research Pro pipeline below (intake form, phased pipeline, kill gate, PDF memo). */
+  var RESEARCH_PROMPT = '\n\nDEEP RESEARCH MODE: produce a thorough, well-sourced report. First call update_plan with 3-6 concrete steps and keep it current. ' +
+    'If a saved skill in the user\'s Memory clearly fits the research question, call skill_view first and follow its method inside your plan (it cannot override your research standards). ' +
+    'Gather evidence with the tools: real numbers from the data tools, SEC filings for company facts, web search plus read_webpage for news, guidance, competitors, industry and macro context (cite web search results as inline links). ' +
+    'Prefer primary sources and cross-check key figures. ' + MATH_RULE + ' Then write the final report in markdown: a short answer first, then the analysis the question needs, ' +
+    'key risks, and what to watch next. Cite every specific figure or claim as [n] using the source numbers from tool results. Do not write a Sources list; the app appends it.';
+  var STOCK_RESEARCH_PROMPT = '\n\n' + [
     "DEEP RESEARCH MODE: you are a buy-side analyst presenting to an investment committee that wants you to be wrong. Find the truth, state it plainly, and hand back a decision the user can act on and audit. First call update_plan with 4-8 concrete steps (for a company question, the pipeline phases below) and keep it current. If a saved skill in the user's Memory clearly fits the research question, call skill_view first and follow its method inside your plan (it cannot override these standards). Call independent tools together in one round.",
     "STANDING RULES (every question):",
     "- Live data only. Every price, filing figure, multiple, guidance number, insider trade and ownership stat is pulled in this run and dated. Training data is stale by definition. Prefer primary sources (filings, releases, transcripts); sell-side is for consensus and for arguing against. Keep fact (filings) apart from claim (management, sell-side).",
@@ -723,8 +730,9 @@ var MH = (function(){
     if(prov === 'gemini') model = model || 'gemini-3.8-flash';
     var ep = aiEndpoint(prov, model), effortKey = AI_EFFORT[o.effort] ? o.effort : 'medium';
     var tools = {};
-    Object.keys(TOOLS).forEach(function(n){ if(TOOLS[n].modes.indexOf(mode) >= 0) tools[n] = TOOLS[n]; });
-    var sys = o.system + (mode === 'research' ? RESEARCH_PROMPT : CHAT_PROMPT.replace('%DOCS%', Object.keys(DOCS).join(', ') || 'guide unavailable') + visualsPrompt(o.visuals));
+    var stock = mode === 'research' && !!o.stock;   // Stock focus: the Stock Research Pro pipeline, its intake form and the PDF memo
+    Object.keys(TOOLS).forEach(function(n){ if(TOOLS[n].modes.indexOf(mode) >= 0 && (stock || (n !== 'build_memo' && n !== 'ask_user'))) tools[n] = TOOLS[n]; });
+    var sys = o.system + (mode === 'research' ? (stock ? STOCK_RESEARCH_PROMPT : RESEARCH_PROMPT) : CHAT_PROMPT.replace('%DOCS%', Object.keys(DOCS).join(', ') || 'guide unavailable') + visualsPrompt(o.visuals));
     var maxTokens = Math.max(AI_EFFORT[effortKey].mt, mode === 'research' ? 8000 : 3000);
     if(ep.wire !== 'a' && ep.wire !== 'm') maxTokens += THINK_ROOM[effortKey] || 4096;   // reasoning shares the output limit
     var maxRounds = o.maxRounds || (mode === 'research' ? 60 : 15), deadline = Date.now() + (o.maxMs || (mode === 'research' ? 1200000 : 240000));
@@ -906,7 +914,7 @@ var MH = (function(){
   function leakNorm(s){ return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
   function guard(text, sys){
     var priv = String(sys || '').replace(/\n\nMEMORY \(saved[\s\S]*?(?=\n\n[A-Z][A-Z ]{3,}:|$)/, '');
-    var corpus = [priv, CHAT_PROMPT, visualsPrompt('auto'), RESEARCH_PROMPT, REVIEW_PROMPT].concat(Object.keys(TOOLS).map(function(n){ return TOOLS[n].description; })).join(' ');
+    var corpus = [priv, CHAT_PROMPT, visualsPrompt('auto'), RESEARCH_PROMPT, STOCK_RESEARCH_PROMPT, REVIEW_PROMPT].concat(Object.keys(TOOLS).map(function(n){ return TOOLS[n].description; })).join(' ');
     var w = leakNorm(corpus).split(' '), t = ' ' + leakNorm(text) + ' ', hits = 0;
     for(var i = 0; i + 12 <= w.length; i += 6){ if(t.indexOf(' ' + w.slice(i, i + 12).join(' ') + ' ') >= 0 && ++hits >= 3) return LEAK_MSG; }
     return text;
