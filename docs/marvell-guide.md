@@ -193,7 +193,7 @@ Settings → AI & API keys → **Visuals in Agent chat**: *Auto* (default), *Few
 
 ## deep-research
 The **Deep Research** tab of the Marvell panel, or *Start deep research on SYM* on a quote's Research tab. It has two methods, picked with the **Stock focus** switch above the focus chips:
-- **Stock focus off** (the default): general research for any topic (markets, sectors, macro, products). Marvell plans, gathers sources and writes a cited markdown report. No intake form, no memo.
+- **Stock focus off** (the default): general research for any topic (markets, sectors, macro, products). If the question is vague, Marvell first asks 1-2 quick questions in a form. It then splits the question into sub-questions, scales its effort to the question, searches broad then narrow, rechecks for gaps after each round, and writes a cited markdown report: short answer first, a layout that fits the question (table, timeline, options), risks, what to watch, then Confidence, What would change this answer and Could not verify. No memo.
 - **Stock focus on**: the user's Stock Research Pro method for one listed company, ending in a PDF memo (everything below). *Start deep research on SYM* and a switch from Agent chat turn it on.
 - Pick focus areas (Auto, Macro, Competitors, Fundamentals, Earnings, Insiders, News & Politics) and a model under *Setup*. A narrowed focus runs only the phases that touch it, but never skips the bear case or the assumption audit.
 - **Standing rules**: live data only (every figure pulled this run and dated); falsification first (the bear case comes from actual bears, in their words); loud about gaps (inputs are labelled SOURCED, ESTIMATED or GUESSED, and more than 3 GUESSED core inputs means no verdict); plain language.

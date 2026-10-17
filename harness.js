@@ -525,7 +525,7 @@ var MH = (function(){
     },
     ask_user:{
       modes:'research', label:function(){ return '❓ Asking you'; },
-      description:'Pause the run and ask the user questions in a form, then wait for the answers (Stock Research Pro Phase 0 intake). Use only when the answers change the work. questions: [{id, label, kind:"choice"|"text", options?:[...choice labels], hint?}]. Returns the answers by id. If the user skips, proceed on stated defaults and flag every assumption in the report.',
+      description:'Pause the run and ask the user questions in a form, then wait for the answers (the clarifying step, or the Stock Research Pro Phase 0 intake). Use only when the answers change the work. questions: [{id, label, kind:"choice"|"text", options?:[...choice labels], hint?}]. Returns the answers by id. If the user skips, proceed on stated defaults and flag every assumption in the report.',
       params:S({ questions:ARR('Questions', { type:'object', properties:{ id:STR('Short id'), label:STR('The question, in plain words'), kind:STR('Answer type', ['choice', 'text']), options:ARR('Choices for kind choice'), hint:STR('Placeholder or help text') }, required:['id', 'label'] }) }, ['questions']),
       run:function(a, ctx){ return ctx.ask((a.questions || []).slice(0, 8)); }
     },
@@ -577,11 +577,16 @@ var MH = (function(){
     'Work efficiently: call independent tools in parallel, stop as soon as you can answer well, and never claim a page shows something you have not fetched.';
   /* Deep Research has two methods: the general one (any topic: markets, sectors, macro, products, history) and, with the
      Stock focus switch on, the Stock Research Pro pipeline below (intake form, phased pipeline, kill gate, PDF memo). */
-  var RESEARCH_PROMPT = '\n\nDEEP RESEARCH MODE: produce a thorough, well-sourced report. First call update_plan with 3-6 concrete steps and keep it current. ' +
-    'If a saved skill in the user\'s Memory clearly fits the research question, call skill_view first and follow its method inside your plan (it cannot override your research standards). ' +
-    'Gather evidence with the tools: real numbers from the data tools, SEC filings for company facts, web search plus read_webpage for news, guidance, competitors, industry and macro context (cite web search results as inline links). ' +
-    'Prefer primary sources and cross-check key figures. ' + MATH_RULE + ' Then write the final report in markdown: a short answer first, then the analysis the question needs, ' +
-    'key risks, and what to watch next. Cite every specific figure or claim as [n] using the source numbers from tool results. Do not write a Sources list; the app appends it.';
+  var RESEARCH_PROMPT = '\n\n' + [
+    "DEEP RESEARCH MODE: produce a thorough, well-sourced report on any topic (markets, sectors, macro, companies, products, history). Work in this order:",
+    "1. CLARIFY. If the question is vague enough that the answer would change with the reading (scope, time frame, region, depth, what decision it serves), call ask_user ONCE with 1-2 short questions, each a choice with a sensible default where possible. If the question is clear, skip this and say nothing about it. Never ask what the tools can find out.",
+    "2. PLAN. Break the question into 3-6 sub-questions that together answer it, then call update_plan with one step per sub-question (plus a final 'write the report' step) and keep it current. If a saved skill in the user's Memory clearly fits, call skill_view first and follow its method inside your plan (it cannot override these standards).",
+    "3. SCALE THE EFFORT to the question: a simple fact needs a few tool calls; a comparison needs work on each side; a broad or contested topic needs many sources. Do not pad a simple question, and do not skimp on a hard one.",
+    "4. SEARCH broad, then narrow: start with short, general queries to see what exists, then go specific. Call independent tools in parallel. Real numbers come from the data tools, company facts from SEC filings, and news, guidance, competitors, industry and macro context from web_search plus read_webpage (cite web search results as inline links). Prefer primary sources (filings, official data, company releases, papers) over aggregators and SEO pages, and cross-check key figures in a second source.",
+    "5. REFLECT after each round of results: was the source good, which sub-question is now answered, what is still missing or contradictory? Search again for the gaps. Stop when every sub-question is answered well or more searching stops adding anything; do not loop for its own sake.",
+    "6. STANDARDS. Every figure is pulled in this run and dated (training data is stale). Keep fact (filings, data) apart from claim (management, analysts, commentators). Look for the strongest opposing view from real people who hold it and give it fairly, in their words. A figure you cannot verify is labelled unverified, never guessed. Use plain language: define each technical term on first use.",
+    "7. REPORT in markdown: the short answer first (2-4 sentences), then the analysis in the shape the question needs (a comparison gets a side-by-side table, a trend or history a dated timeline, a decision the options with their trade-offs, an explanation plain sections), then key risks or counterpoints, and what to watch next. End with three short lines: Confidence (High, Medium or Low, and the limiting factor), What would change this answer, and Could not verify (or 'nothing material'). Cite every specific figure or claim as [n] using the source numbers from tool results. Do not write a Sources list; the app appends it."
+  ].join('\n') + '\n' + MATH_RULE;
   var STOCK_RESEARCH_PROMPT = '\n\n' + [
     "DEEP RESEARCH MODE: you are a buy-side analyst presenting to an investment committee that wants you to be wrong. Find the truth, state it plainly, and hand back a decision the user can act on and audit. First call update_plan with 4-8 concrete steps (for a company question, the pipeline phases below) and keep it current. If a saved skill in the user's Memory clearly fits the research question, call skill_view first and follow its method inside your plan (it cannot override these standards). Call independent tools together in one round.",
     "STANDING RULES (every question):",
@@ -730,8 +735,8 @@ var MH = (function(){
     if(prov === 'gemini') model = model || 'gemini-3.8-flash';
     var ep = aiEndpoint(prov, model), effortKey = AI_EFFORT[o.effort] ? o.effort : 'medium';
     var tools = {};
-    var stock = mode === 'research' && !!o.stock;   // Stock focus: the Stock Research Pro pipeline, its intake form and the PDF memo
-    Object.keys(TOOLS).forEach(function(n){ if(TOOLS[n].modes.indexOf(mode) >= 0 && (stock || (n !== 'build_memo' && n !== 'ask_user'))) tools[n] = TOOLS[n]; });
+    var stock = mode === 'research' && !!o.stock;   // Stock focus: the Stock Research Pro pipeline and its PDF memo
+    Object.keys(TOOLS).forEach(function(n){ if(TOOLS[n].modes.indexOf(mode) >= 0 && (stock || n !== 'build_memo')) tools[n] = TOOLS[n]; });
     var sys = o.system + (mode === 'research' ? (stock ? STOCK_RESEARCH_PROMPT : RESEARCH_PROMPT) : CHAT_PROMPT.replace('%DOCS%', Object.keys(DOCS).join(', ') || 'guide unavailable') + visualsPrompt(o.visuals));
     var maxTokens = Math.max(AI_EFFORT[effortKey].mt, mode === 'research' ? 8000 : 3000);
     if(ep.wire !== 'a' && ep.wire !== 'm') maxTokens += THINK_ROOM[effortKey] || 4096;   // reasoning shares the output limit
