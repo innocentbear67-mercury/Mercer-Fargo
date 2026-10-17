@@ -27,10 +27,10 @@ test('a second device receives what the first saved, and newer edits flow both w
   const w = world(), A = await w.device(), B = await w.device();
   A.put('fh3_pf', [{ name: 'Main' }]); A.put('fh3_keys', { key: 'SECRET' });
   await A.CLOUD.sync();
-  assert.ok(!JSON.stringify([...w.kv.values()]).includes('SECRET'), 'API keys are never uploaded');
+  assert.ok(!JSON.stringify([...w.kv.values()]).includes('SECRET'), 'API keys are sealed, never stored in clear');
   assert.equal((await B.CLOUD.sync()).changed, true);
   assert.deepEqual(B.get('fh3_pf'), [{ name: 'Main' }]);
-  assert.equal(B.get('fh3_keys'), null);
+  assert.deepEqual(B.get('fh3_keys'), { key: 'SECRET' });          // the phone gets the laptop's AI keys
   await wait(); B.put('fh3_pf', [{ name: 'Main' }, { name: 'Alt' }]);
   await B.CLOUD.sync();
   assert.equal((await A.CLOUD.sync()).changed, true);

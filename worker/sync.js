@@ -2,6 +2,7 @@
 //   POST /api/auth/google {credential}  -> verifies the Google ID token, returns a 30-day session token
 //   GET|PUT|DELETE /api/sync            -> one JSON document per Google account (KV), guarded by the session token
 // Needs: KV binding USERS, var GOOGLE_CLIENT_ID (public), secret SESSION_SECRET.
+// The AI keys entry (fh3_keys) is encrypted at rest (AES-GCM, a per-account key derived from SESSION_SECRET), so the KV store never holds them in clear.
 const JWKS_URL = 'https://www.googleapis.com/oauth2/v3/certs';
 const SESSION_MS = 30 * 864e5;
 const MAX_BYTES = 2_000_000;
@@ -48,6 +49,37 @@ export async function readSession(token, secret, now = Date.now()) {
   return u.exp > now && u.sub ? u : null;
 }
 
+const SECRET_KEYS = ['fh3_keys'];
+async function vaultKey(secret, sub) {
+  const base = await crypto.subtle.importKey('raw', enc.encode(secret), 'HKDF', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: enc.encode('mf-keys-v1'), info: enc.encode(sub) }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+// entry.v is the stored JSON string; sealed entries carry e:1 and v = base64url(iv + ciphertext)
+export async function sealData(data, secret, sub) {
+  const out = { ...data };
+  for (const k of SECRET_KEYS) {
+    const e = out[k];
+    if (!e || e.e || typeof e.v !== 'string') continue;
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await vaultKey(secret, sub), enc.encode(e.v)));
+    const buf = new Uint8Array(12 + ct.length); buf.set(iv); buf.set(ct, 12);
+    out[k] = { t: e.t, e: 1, v: b64u(buf) };
+  }
+  return out;
+}
+export async function openData(data, secret, sub) {
+  const out = { ...data };
+  for (const k of SECRET_KEYS) {
+    const e = out[k];
+    if (!e || !e.e) continue;
+    try {
+      const buf = unb64u(e.v);
+      out[k] = { t: e.t, v: new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, await vaultKey(secret, sub), buf.slice(12))) };
+    } catch (err) { delete out[k]; }   // a rotated secret: the device keeps its own copy and re-uploads it
+  }
+  return out;
+}
+
 export async function syncResponse(req, url, env, fetchFn = fetch) {
   if (!env.SESSION_SECRET || !env.USERS || !env.GOOGLE_CLIENT_ID) return json({ error: 'sync is not configured' }, 503);
   if (url.pathname === '/api/auth/google') {
@@ -60,7 +92,8 @@ export async function syncResponse(req, url, env, fetchFn = fetch) {
   if (!user) return json({ error: 'sign in again' }, 401);
   const kvKey = 'u:' + user.sub;
   const cur = (await env.USERS.get(kvKey, 'json')) || { rev: 0, data: {} };
-  if (req.method === 'GET') return json(cur);
+  const open = async (c) => ({ ...c, data: await openData(c.data || {}, env.SESSION_SECRET, user.sub), keysSealed: true });
+  if (req.method === 'GET') return json(await open(cur));
   if (req.method === 'DELETE') { await env.USERS.delete(kvKey); return json({ ok: true }); }
   if (req.method !== 'PUT') return json({ error: 'method not allowed' }, 405);
   const raw = await req.text();
@@ -68,8 +101,8 @@ export async function syncResponse(req, url, env, fetchFn = fetch) {
   let body;
   try { body = JSON.parse(raw); } catch (e) { return json({ error: 'bad json' }, 400); }
   if (!body || typeof body.data !== 'object' || Array.isArray(body.data)) return json({ error: 'bad body' }, 400);
-  if (body.baseRev !== cur.rev) return json({ conflict: true, ...cur }, 409);   // someone else (another device) wrote since this client last pulled
-  const next = { rev: cur.rev + 1, updated: Date.now(), data: body.data };
+  if (body.baseRev !== cur.rev) return json({ conflict: true, ...(await open(cur)) }, 409);   // someone else (another device) wrote since this client last pulled
+  const next = { rev: cur.rev + 1, updated: Date.now(), data: await sealData(body.data, env.SESSION_SECRET, user.sub) };
   await env.USERS.put(kvKey, JSON.stringify(next));
   return json({ rev: next.rev, updated: next.updated });
 }

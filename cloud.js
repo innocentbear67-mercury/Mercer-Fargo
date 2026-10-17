@@ -1,9 +1,10 @@
 /* Cloud sync for accounts signed in with Google. The data is the same localStorage keys the app already uses;
    this layer mirrors an allow-list of them to the worker (worker/sync.js), one document per Google account.
-   Per key, the newest write wins (CLOUD.touch stamps each save). API keys and caches never leave the device. */
+   Per key, the newest write wins (CLOUD.touch stamps each save). Caches never leave the device. The AI keys (fh3_keys) sync too,
+   so a phone signed in to the same Google account gets them, but only to a worker that seals them at rest (keysSealed). */
 var CLOUD = (function(){
   var KEY = 'fh3_cloud', TS = 'fh3_cts';
-  var SYNC = /^fh3_(lists|pf|hist|q|chat|tasks|research|skills|desk|calls|visit|pfseen|memory|rruns|alerts|inbox|custom|chs|inds|quant|scrmode|favs|tour|xpf|csum)$/;
+  var SYNC = /^fh3_(keys|lists|pf|hist|q|chat|tasks|research|skills|desk|calls|visit|pfseen|memory|rruns|alerts|inbox|custom|chs|inds|quant|scrmode|favs|tour|xpf|csum)$/;
   var PROFILE = '_profile';   // name/age/roles/since of the signed-in account, kept under a pseudo key
   var hooks = { getProfile:function(){ return null; }, setProfile:function(){} };
   var st = rd(KEY) || {}, ts = rd(TS) || {};
@@ -26,7 +27,7 @@ var CLOUD = (function(){
   /* what this device holds right now, in the cloud document's shape: key -> { v:<json string|null>, t:<ms> } */
   function local(){
     var o = {};
-    try{ for(var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if(SYNC.test(k)) o[k] = { v:localStorage.getItem(k), t:ts[k] || 1 }; } }catch(e){}
+    try{ for(var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if(SYNC.test(k) && (k !== 'fh3_keys' || st.sealed)) o[k] = { v:localStorage.getItem(k), t:ts[k] || 1 }; } }catch(e){}
     var p = hooks.getProfile(); if(p) o[PROFILE] = { v:JSON.stringify(p), t:ts[PROFILE] || 1 };
     Object.keys(ts).forEach(function(k){ if(ts[k] && !o[k] && (SYNC.test(k) || k === PROFILE) && ts['-' + k]) o[k] = { v:null, t:ts[k] }; });   // deleted here
     return o;
@@ -57,7 +58,7 @@ var CLOUD = (function(){
       return api('/api/sync', 'GET').then(function(r){
         if(r.status === 401){ st = {}; wr(KEY, st); set('off'); if(typeof toast === 'function') toast('Cloud sync paused — sign in with Google again.'); return; }
         if(r.status !== 200) throw new Error('pull ' + r.status);
-        last = r.body.data || {}; st.rev = r.body.rev || 0;
+        last = r.body.data || {}; st.rev = r.body.rev || 0; st.sealed = !!r.body.keysSealed;
         var m = merge(last); changed = changed || m.changed;
         if(same(m.out, last)) return;
         return api('/api/sync', 'PUT', { baseRev:st.rev, data:m.out }).then(function(p){

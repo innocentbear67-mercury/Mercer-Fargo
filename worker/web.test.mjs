@@ -65,7 +65,7 @@ test('bingNewsRss renames the publisher tag so the page shows the real source', 
 });
 
 // ---- Google sign-in + cloud sync (sync.js) ----
-import { verifyGoogle, signSession, readSession, syncResponse } from './sync.js';
+import { verifyGoogle, signSession, readSession, syncResponse, sealData, openData } from './sync.js';
 
 const b64u = (b) => Buffer.from(b).toString('base64url');
 async function googleFixture(claims = {}) {
@@ -106,7 +106,7 @@ test('sync: sign in, store per account, optimistic revisions, isolation, delete'
   const [, b] = await call('/api/auth/google', 'POST', '', { credential: g2.token }, g2.fetchFn);
   assert.equal(s1, 200);
   assert.equal((await call('/api/sync', 'GET', ''))[0], 401);
-  assert.deepEqual((await call('/api/sync', 'GET', a.token))[1], { rev: 0, data: {} });
+  assert.deepEqual((await call('/api/sync', 'GET', a.token))[1], { rev: 0, data: {}, keysSealed: true });
   assert.equal((await call('/api/sync', 'PUT', a.token, { baseRev: 0, data: { fh3_pf: { v: [1], t: 5 } } }))[1].rev, 1);
   const [c, conflict] = await call('/api/sync', 'PUT', a.token, { baseRev: 0, data: {} });   // stale writer
   assert.equal(c, 409); assert.deepEqual(conflict.data.fh3_pf, { v: [1], t: 5 });
@@ -114,6 +114,21 @@ test('sync: sign in, store per account, optimistic revisions, isolation, delete'
   assert.equal((await call('/api/sync', 'PUT', a.token, { baseRev: 1, data: [] }))[0], 400);
   await call('/api/sync', 'DELETE', a.token);
   assert.equal((await call('/api/sync', 'GET', a.token))[1].rev, 0);
+});
+
+test('sync: AI keys are sealed in KV and opened only for their own account', async () => {
+  const kv = new Map(), env = { SESSION_SECRET: 's', GOOGLE_CLIENT_ID: 'cid', USERS: { get: async (k) => (kv.has(k) ? JSON.parse(kv.get(k)) : null), put: async (k, v) => kv.set(k, v), delete: async (k) => kv.delete(k) } };
+  const call = async (path, method, token, body, fetchFn) => { const r = await syncResponse(new Request('https://w' + path, { method, headers: token ? { authorization: 'Bearer ' + token } : {}, body: body && JSON.stringify(body) }), new URL('https://w' + path), env, fetchFn); return [r.status, await r.json()]; };
+  const g = await googleFixture();
+  const [, a] = await call('/api/auth/google', 'POST', '', { credential: g.token }, g.fetchFn);
+  const keys = { v: JSON.stringify({ provider: 'openrouter', key: 'sk-secret-123' }), t: 7 };
+  await call('/api/sync', 'PUT', a.token, { baseRev: 0, data: { fh3_keys: keys, fh3_pf: { v: '[]', t: 1 } } });
+  const raw = [...kv.values()].join('');
+  assert.ok(!raw.includes('sk-secret-123'));                                   // never in clear at rest
+  assert.deepEqual((await call('/api/sync', 'GET', a.token))[1].data.fh3_keys, keys);
+  const sealed = await sealData({ fh3_keys: keys }, 's', 'u1');
+  assert.equal((await openData(sealed, 's', 'u2')).fh3_keys, undefined);       // another account's key cannot open it
+  assert.deepEqual((await openData(sealed, 's', 'u1')).fh3_keys, keys);
 });
 
 test('liveQuote takes the regular price in session and the newest extended-hours bar outside it', () => {

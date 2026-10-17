@@ -173,7 +173,7 @@ US listing snapshot, sorted by market cap by default, with "add results to a lis
 
 **Other** — compare view, portfolio tracking (cost basis, P/L), watchlist CRUD,
 symbol search with autocomplete, localStorage persistence, light/dark theme,
-responsive down to phone width. Watchlists are named objects you can create, **rename**
+responsive down to phone width (Marvell opens full screen on phones, text boxes are 16px so iOS does not zoom, and the site installs to the home screen with its own icon). Signed in with Google, your AI keys sync to your other devices, encrypted at rest by the worker. Watchlists are named objects you can create, **rename**
 and delete; each one is called a "watchlist" throughout the UI, and the old default
 "Equity sectors" list is gone (the migration removes it from existing browsers).
 

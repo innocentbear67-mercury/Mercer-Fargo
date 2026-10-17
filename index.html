@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MercerFargo Finance Superhub — Market Prices, Quotes &amp; Business News</title>
 <link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="manifest" href="assets/manifest.webmanifest">
+<meta name="theme-color" content="#141414">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="MercerFargo">
 <meta name="description" content="MercerFargo Finance Superhub — a charcoal-and-gold market dashboard with your own AI keys and free delayed market data.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -376,6 +383,7 @@ td.sym .wl-rm:hover{color:var(--fh-negative,#ea4335);background:var(--fh-states-
 .section{margin:0 0 28px}
 .section-head{display:flex;align-items:center;gap:12px;margin:0 0 12px;flex-wrap:wrap;row-gap:6px}
 .section-head h2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:600px){.section-head h2{flex:1 0 auto;max-width:100%}}   /* phones: the title keeps its width and the actions wrap below it */
 .card{
   background:var(--fh-background-surface);border:1px solid var(--fh-border-stroke-default);
   border-radius:var(--fh-radius-card);padding:16px
@@ -622,6 +630,21 @@ body.vol-dragging,body.vol-dragging *{cursor:grabbing!important;user-select:none
   transition:transform .22s cubic-bezier(.2,0,0,1),visibility 0s linear .22s
 }
 .drawer.open{transform:none;visibility:visible;transition:transform .22s cubic-bezier(.2,0,0,1),visibility 0s}
+/* Phones: Marvell takes the whole width (a 300px panel beside a 390px screen cut its text and buttons off) */
+@media (max-width:760px){
+  .drawer{left:0;width:auto;border-left:0;z-index:70}
+  .rs-tabs button{padding:6px 11px}
+  .drawer-head{gap:2px;padding:10px 8px 6px}
+  #drawerFull,.rs-tabs .tab-deep{display:none}   /* already full width; keeps the close button on screen */
+  .qn-go>.mut{display:none}
+}
+@media (hover:none){ .qn-go>.mut{display:none} }   /* no keyboard shortcut hint on touch screens */
+/* Touch screens: iOS zooms the page into any text box under 16px, and small ✕ buttons are hard to hit */
+@media (pointer:coarse){
+  input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select{font-size:16px!important}
+  [data-act="cmp-del"],[data-act="scr-clear"]{position:relative}
+  [data-act="cmp-del"]::after,[data-act="scr-clear"]::after{content:"";position:absolute;inset:-12px}
+}
 .drawer-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--fh-border-stroke-default)}
 .drawer-head .ttl{flex:1;font-size:16px;font-weight:500;color:var(--fh-foreground-on-surface-emphasis)}
 .drawer-body{flex:1;overflow-y:auto;padding:16px}
@@ -1514,7 +1537,7 @@ body.chart-fs{overflow:hidden}
 .gl-foot a{color:var(--fh-foreground-on-surface-link-default);text-decoration:none;font-weight:500}
 .gl-empty{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .gl-empty .gl-big{font-size:24px}
-.gl-cta{display:flex;gap:8px}
+.gl-cta{display:flex;gap:8px;flex-wrap:wrap}
 .glance.loading .gl-big{opacity:.6}
 /* ============================================================================
    MercerFargo brand layer
@@ -1836,7 +1859,7 @@ body.panel-open{padding-right:calc(var(--panel-w) + 8px)}
 body.panel-open .appbar{
   margin-right:calc(0px - var(--panel-w) - 8px)
 }
-html{overflow-x:clip}
+html,body{overflow-x:clip}   /* body too: on phones anything a few px too wide would otherwise widen the whole page */
 @media (max-width:860px){
   body.panel-open{padding-right:0}
   body.panel-open .appbar{margin-right:0}
@@ -2937,6 +2960,10 @@ body.rs-drag iframe{pointer-events:none}
 .iu-cols>.iu-col>.iu-h:first-child{margin-top:0}
 .iu-col{min-width:0;padding:10px;border:1px solid var(--fh-border-stroke-default);border-radius:10px}
 @media (prefers-reduced-motion:reduce){.iu-btn,.iu-node rect{transition:none}.iu-node.flipping{animation:none}}
+/* Phones with a home bar (iPhone): keep the bottom search bar and Marvell's input above it */
+@media (max-width:760px){ .bottombar{padding-bottom:calc(10px + env(safe-area-inset-bottom))} }
+.drawer-foot{padding-bottom:max(12px, env(safe-area-inset-bottom))}
+.drawer.full .drawer-foot{padding-bottom:max(22px, env(safe-area-inset-bottom))}
 </style>
   </head>
   <body>
@@ -5278,7 +5305,7 @@ function openAuth(mode){
       '<div class="field"><span>What do you do? (pick any)</span><div class="pills" id="auRoles">' +
       ACCT_ROLES.map(function(r){ return '<label class="pill chk"><input type="checkbox" value="' + r + '"><span>' + r + '</span></label>'; }).join('') + '</div></div>' +
       field('Started investing (optional)', 'auSince', '', 'Year, e.g. ' + (year - 5), 'number') : '') +
-    '<div class="mut" style="font-size:12px;line-height:18px;margin-top:8px">' + (GOOGLE_CLIENT_ID ? 'Google sign-in saves your portfolios, watchlists, chats, research and settings to your account, so they follow you to any device. API keys stay on this device. ' : '') +
+    '<div class="mut" style="font-size:12px;line-height:18px;margin-top:8px">' + (GOOGLE_CLIENT_ID ? 'Google sign-in saves your portfolios, watchlists, chats, research and settings to your account, so they follow you to any device. Your AI keys come too, stored encrypted. ' : '') +
     'Email accounts live in this browser only — there is no server or password, and no sync.</div><div class="mut" id="auErr" style="color:var(--fh-error,#d93025);font-size:13px;margin-top:6px"></div>';
   setTimeout(gisLoad, 0);
   dialog(reg ? 'Create your account' : 'Sign in', body, '<button class="btn text" data-act="dlg-close">Cancel</button><button class="btn filled" data-act="auth-go" data-m="' + mode + '">' + (reg ? 'Create account' : 'Sign in') + '</button>');
@@ -10036,7 +10063,7 @@ function renderLocked(){
   $('main').innerHTML = '<div class="section"><div class="card lk"><h2>Finish setup to unlock this</h2>' +
     '<p class="mut">The Terminal, quotes, charts, watchlists, your main portfolio and Market work without setup. Research, Screener, Compare, Earnings, Investors, Insiders, Filings, Experiments and the Marvell agent need an account and your own AI key.</p>' +
     step(a, 1, 'Create an account', 'Sign in with Google. Your portfolios and chats are saved to it.', 'signin', 'Sign in') +
-    step(k, 2, 'Add your AI key', 'Paste a key for your provider. It stays on this device.', 'keys', 'Add key') + '</div>' + keyGuideHTML() + '</div>';
+    step(k, 2, 'Add your AI key', 'Paste a key for your provider. Signed in with Google, it follows you to your other devices, stored encrypted.', 'keys', 'Add key') + '</div>' + keyGuideHTML() + '</div>';
 }
 function paintKeyBtn(){
   var b = $('keysBtn'), l = $('keyLabel'); if(!b || !l) return;
@@ -11083,6 +11110,7 @@ function chatPush(role, text, extra){
 }
 function openDrawer(focus){
   $('drawer').classList.add('open');
+  if(innerWidth <= 1024) $('rail').classList.remove('drawer-open');   // the slide-over menu would sit under Marvell
   if(CFG.rfull){ $('drawer').classList.add('full'); document.body.classList.add('rs-full'); }
   document.body.classList.add('panel-open');
   $('drawer').setAttribute('aria-hidden', 'false');
@@ -11566,7 +11594,7 @@ function settingsProfileHTML(){
 function cloudCardHTML(a){
   if(!a.google) return '';
   if(!CLOUD.on()) return '<div class="card"><h3>Cloud sync</h3><div class="mut" style="font-size:13.5px;line-height:20px;margin-bottom:12px">Sync is paused on this device. Sign in with Google again to resume.</div><button class="btn filled sm" data-act="auth-open" data-m="signin">Sign in with Google</button></div>';
-  return '<div class="card"><h3>Cloud sync</h3><div class="mut" style="font-size:13.5px;line-height:20px;margin-bottom:12px">Your portfolios, watchlists, chats, research, call book and settings are saved to your Google account (' + esc(a.email) + ') and follow you to any device. API keys never leave this device.</div>' +
+  return '<div class="card"><h3>Cloud sync</h3><div class="mut" style="font-size:13.5px;line-height:20px;margin-bottom:12px">Your portfolios, watchlists, chats, research, call book and settings are saved to your Google account (' + esc(a.email) + ') and follow you to any device. Your AI keys sync too, stored encrypted; "Sign out and clear this device" removes them here.</div>' +
     '<div class="key-row"><span id="cloudLine" style="font-size:13px">' + esc(CLOUD.line()) + '</span></div>' +
     '<div class="key-row"><button class="btn filled sm" data-act="cloud-sync">Sync now</button><button class="btn text sm" data-act="signout-clear">Sign out and clear this device</button><button class="btn text sm" data-act="cloud-wipe">Delete my cloud data</button></div></div>';
 }
